@@ -11,8 +11,7 @@ public interface CamionRepository extends JpaRepository<Camion, String> {
     List<Camion> findByTipo(String tipo);
     long countByEstado(int estado);
     List<Camion> findByTipoAndEstado(String tipo, int estado);
-    List<Camion> findByTipoAndEstadoAndFechaUltimoMantenimientoNotNull(String tipo, int estado);
-    List<Camion> findByTipoAndEstadoAndFechaUltimoMantenimientoNull(String tipo, int estado);
+ 
     //FindfindByEstadoNot
     List<Camion> findByEstadoNot(int estado);
 
