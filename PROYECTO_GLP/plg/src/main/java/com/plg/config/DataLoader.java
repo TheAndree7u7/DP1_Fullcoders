@@ -13,7 +13,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -88,52 +87,60 @@ public class DataLoader implements CommandLineRunner {
     
     private void initializeAlmacenes() {
         List<Almacen> almacenes = new ArrayList<>();
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
         
-        try {
-            Path path = Paths.get("src/main/resources/data/almacenes/almacenes.txt");
-            BufferedReader reader = new BufferedReader(new FileReader(path.toFile()));
-            
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] datos = line.split("\t");
-                if (datos.length >= 15) {
-                    Almacen almacen = new Almacen();
-                    // almacen.setId(Long.parseLong(datos[0])); // ID es autogenerado
-                    almacen.setNombre(datos[1]);
-                    almacen.setPosX(Integer.parseInt(datos[2]));
-                    almacen.setPosY(Integer.parseInt(datos[3]));
-                    almacen.setCapacidadGLP(Double.parseDouble(datos[4]));
-                    almacen.setCapacidadActualGLP(Double.parseDouble(datos[5]));
-                    almacen.setCapacidadMaximaGLP(Double.parseDouble(datos[6]));
-                    almacen.setCapacidadCombustible(Double.parseDouble(datos[7]));
-                    almacen.setCapacidadActualCombustible(Double.parseDouble(datos[8]));
-                    almacen.setCapacidadMaximaCombustible(Double.parseDouble(datos[9]));
-                    almacen.setEsCentral(Boolean.parseBoolean(datos[10]));
-                    almacen.setPermiteCamionesEstacionados(Boolean.parseBoolean(datos[11]));
-                    almacen.setHoraReabastecimiento(LocalTime.parse(datos[12], timeFormatter));
-                    LocalDateTime ultimoReabastecimiento = LocalDateTime.parse(datos[13], dateTimeFormatter);
-                    almacen.setUltimoReabastecimientoRealizado(false); // Se reinicia al cargar
-                    almacen.setActivo(Boolean.parseBoolean(datos[14]));
-                    
-                    almacenes.add(almacen);
-                }
-            }
-            
-            reader.close();
-            
-            if (!almacenes.isEmpty()) {
-                almacenRepository.saveAll(almacenes);
-                System.out.println("Almacenes inicializados: " + almacenes.size());
-            } else {
-                System.out.println("No se encontraron almacenes para inicializar");
-            }
-            
-        } catch (Exception e) {
-            System.err.println("Error loading almacenes: " + e.getMessage());
-            e.printStackTrace();
-        }
+        // Almacén central
+        Almacen almacenCentral = new Almacen();
+        almacenCentral.setNombre("Almacén Central");
+        almacenCentral.setPosX(12);
+        almacenCentral.setPosY(8);
+        almacenCentral.setCapacidadGLP(10000.0); // Gran capacidad de GLP
+        almacenCentral.setCapacidadActualGLP(10000.0);
+        almacenCentral.setCapacidadMaximaGLP(10000.0);
+        almacenCentral.setCapacidadCombustible(50000.0); // Gran capacidad de combustible
+        almacenCentral.setCapacidadActualCombustible(50000.0);
+        almacenCentral.setCapacidadMaximaCombustible(50000.0);
+        almacenCentral.setEsCentral(true);
+        almacenCentral.setPermiteCamionesEstacionados(true);
+        almacenCentral.setActivo(true);
+        almacenes.add(almacenCentral);
+        
+        // Almacén intermedio Norte
+        Almacen almacenNorte = new Almacen();
+        almacenNorte.setNombre("Almacén Intermedio Norte");
+        almacenNorte.setPosX(42);
+        almacenNorte.setPosY(42);
+        almacenNorte.setCapacidadGLP(2000.0); // Capacidad media de GLP
+        almacenNorte.setCapacidadActualGLP(1500.0);
+        almacenNorte.setCapacidadMaximaGLP(2000.0);
+        almacenNorte.setCapacidadCombustible(3000.0); // Capacidad media de combustible
+        almacenNorte.setCapacidadActualCombustible(2500.0);
+        almacenNorte.setCapacidadMaximaCombustible(3000.0);
+        almacenNorte.setEsCentral(false);
+        almacenNorte.setPermiteCamionesEstacionados(false);
+        almacenNorte.setHoraReabastecimiento(java.time.LocalTime.of(6, 0)); // Reabastecimiento a las 6:00 AM
+        almacenNorte.setActivo(true);
+        almacenes.add(almacenNorte);
+        
+        // Almacén intermedio Este
+        Almacen almacenEste = new Almacen();
+        almacenEste.setNombre("Almacén Intermedio Este");
+        almacenEste.setPosX(63);
+        almacenEste.setPosY(3);
+        almacenEste.setCapacidadGLP(1500.0); // Capacidad menor de GLP
+        almacenEste.setCapacidadActualGLP(1200.0);
+        almacenEste.setCapacidadMaximaGLP(1500.0);
+        almacenEste.setCapacidadCombustible(2000.0); // Capacidad menor de combustible
+        almacenEste.setCapacidadActualCombustible(1800.0);
+        almacenEste.setCapacidadMaximaCombustible(2000.0);
+        almacenEste.setEsCentral(false);
+        almacenEste.setPermiteCamionesEstacionados(false);
+        almacenEste.setHoraReabastecimiento(java.time.LocalTime.of(5, 30)); // Reabastecimiento a las 5:30 AM
+        almacenEste.setActivo(true);
+        almacenes.add(almacenEste);
+        
+        almacenRepository.saveAll(almacenes);
+        
+        System.out.println("Almacenes inicializados: " + almacenes.size());
     }
     
     private void loadPedidosFromFile(String fileName) {
