@@ -1,5 +1,6 @@
 package com.plg.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
@@ -20,11 +21,14 @@ public class Camion {
     private int estado; // 0: disponible, 1: en ruta, 2: en mantenimiento, 3: averiado
     
     @OneToMany(mappedBy = "camion", cascade = CascadeType.ALL)
+    @JsonManagedReference(value="camion-mantenimiento")
     private List<Mantenimiento> mantenimientos;
     
     @OneToMany(mappedBy = "camion", cascade = CascadeType.ALL)
+    @JsonManagedReference(value="camion-averia")
     private List<Averia> averias;
     
     @OneToMany(mappedBy = "camion", cascade = CascadeType.ALL)
+    @JsonManagedReference(value="camion-pedido")
     private List<Pedido> pedidos;
 }

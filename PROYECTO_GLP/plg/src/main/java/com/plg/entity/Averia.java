@@ -1,5 +1,6 @@
 package com.plg.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ public class Averia {
     
     @ManyToOne
     @JoinColumn(name = "camion_codigo")
+    @JsonBackReference(value="camion-averia")
     private Camion camion;
     
     private LocalDateTime fechaHoraReporte;
