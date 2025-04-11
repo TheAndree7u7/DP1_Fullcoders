@@ -1,0 +1,7 @@
+TA01,2025-04-10T08:30:00,45,28,2,Problema en sistema de frenos
+TB03,2025-04-10T10:15:00,32,64,1,Falla en sistema eléctrico
+TC02,2025-04-11T09:45:00,56,42,3,Motor sobrecalentado
+TD01,2025-04-12T14:20:00,18,75,2,Fuga en sistema hidráulico
+TA02,2025-04-13T11:30:00,62,38,1,Problema con la dirección
+TB01,2025-04-15T08:00:00,27,53,3,Neumático reventado
+TC01,2025-04-17T16:45:00,40,20,2,Problema de inyección de combustible
