@@ -11,4 +11,6 @@ public interface MantenimientoRepository extends JpaRepository<Mantenimiento, Lo
     List<Mantenimiento> findByCamion_Codigo(String codigoCamion);
     List<Mantenimiento> findByEstado(int estado);
     List<Mantenimiento> findByFechaInicioBetween(LocalDate fechaInicio, LocalDate fechaFin);
+    List<Mantenimiento> findByFechaInicio(LocalDate fecha);
+List<Mantenimiento> findByFechaFin(LocalDate fecha);
 }

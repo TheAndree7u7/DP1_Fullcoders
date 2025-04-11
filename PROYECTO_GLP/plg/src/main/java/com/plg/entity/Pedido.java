@@ -30,4 +30,6 @@ public class Pedido {
     @JoinColumn(name = "camion_codigo")
     @JsonBackReference(value="camion-pedido")
     private Camion camion;
+    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaEntrega;
 }

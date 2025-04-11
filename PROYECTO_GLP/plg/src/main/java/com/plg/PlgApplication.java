@@ -5,11 +5,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableScheduling  // Habilita la programación de tareas
+@EnableScheduling  // Habilitar tareas programadas
 public class PlgApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(PlgApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(PlgApplication.class, args);
+    }
 }

@@ -9,4 +9,11 @@ import java.util.List;
 public interface CamionRepository extends JpaRepository<Camion, String> {
     List<Camion> findByEstado(int estado);
     List<Camion> findByTipo(String tipo);
+    long countByEstado(int estado);
+    List<Camion> findByTipoAndEstado(String tipo, int estado);
+    List<Camion> findByTipoAndEstadoAndFechaUltimoMantenimientoNotNull(String tipo, int estado);
+    List<Camion> findByTipoAndEstadoAndFechaUltimoMantenimientoNull(String tipo, int estado);
+    //FindfindByEstadoNot
+    List<Camion> findByEstadoNot(int estado);
+
 }
