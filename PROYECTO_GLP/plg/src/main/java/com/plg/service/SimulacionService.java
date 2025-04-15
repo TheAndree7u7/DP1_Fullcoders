@@ -19,34 +19,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-
-
-import com.plg.service.RutaService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.List;
-import com.plg.entity.Pedido;
-import com.plg.entity.Camion;
-import com.plg.entity.Averia;
-import com.plg.entity.Bloqueo;
-import com.plg.entity.Almacen;
-import com.plg.repository.PedidoRepository;
-import com.plg.repository.CamionRepository;
-import com.plg.repository.AveriaRepository;
-import com.plg.repository.BloqueoRepository;
-import com.plg.repository.AlmacenRepository;
-import com.plg.repository.MantenimientoRepository;
-import com.plg.service.RutaService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.io.IOException;
 
 @Service
 public class SimulacionService {
@@ -71,6 +47,9 @@ public class SimulacionService {
     
     @Autowired
     private MantenimientoRepository mantenimientoRepository;
+
+    @Autowired
+    private BloqueoService bloqueoService;
     /**
      * Simula un escenario diario con pedidos, rutas y posibles averías
      */
@@ -269,7 +248,15 @@ public class SimulacionService {
             averia.setId(Long.valueOf(i));
             averia.setFechaHoraReporte(LocalDateTime.now());
             averia.setDescripcion("Avería simulada #" + i);
-            averia.setSeveridad(ThreadLocalRandom.current().nextInt(1, 4)); // 1-3
+            
+            // Usar tipoIncidente en lugar de severidad
+            String[] tiposIncidente = {"TI1", "TI2", "TI3"};
+            averia.setTipoIncidente(tiposIncidente[ThreadLocalRandom.current().nextInt(0, 3)]);
+            
+            // Asignar turno aleatorio
+            String[] turnos = {"T1", "T2", "T3"};
+            averia.setTurno(turnos[ThreadLocalRandom.current().nextInt(0, 3)]);
+            
             averia.setPosX(ThreadLocalRandom.current().nextInt(0, 100));
             averia.setPosY(ThreadLocalRandom.current().nextInt(0, 100));
             averia.setEstado(0); // Reportada
@@ -278,6 +265,14 @@ public class SimulacionService {
             Camion camion = new Camion();
             camion.setCodigo("T" + ThreadLocalRandom.current().nextInt(1, 3) + "0" + ThreadLocalRandom.current().nextInt(1, 6));
             averia.setCamion(camion);
+            
+            // Establecer conCarga a true para simulación
+            averia.setConCarga(true);
+            
+            // Calcular tiempos de inmovilización
+            averia.calcularValidezAveria(true);
+            averia.calcularKilometroOcurrencia(100.0); // Valor por defecto
+            averia.calcularTiemposInoperatividad();
             
             averias.add(averia);
         }
@@ -293,24 +288,54 @@ public class SimulacionService {
             Bloqueo bloqueo = new Bloqueo();
             bloqueo.setId(Long.valueOf(i));
             
+            // Crear lista de coordenadas (polígono abierto)
+            List<Bloqueo.Coordenada> coordenadas = new ArrayList<>();
+            
             // Punto inicial del bloqueo
             int x1 = ThreadLocalRandom.current().nextInt(10, 90);
             int y1 = ThreadLocalRandom.current().nextInt(10, 90);
-            bloqueo.setPosXInicio(x1);
-            bloqueo.setPosYInicio(y1);
+            coordenadas.add(new Bloqueo.Coordenada(x1, y1));
             
-            // Punto final del bloqueo (cercano al inicial)
-            int x2 = x1 + ThreadLocalRandom.current().nextInt(-10, 11);
-            int y2 = y1 + ThreadLocalRandom.current().nextInt(-10, 11);
-            bloqueo.setPosXFin(x2);
-            bloqueo.setPosYFin(y2);
+            // Agregar 1-3 puntos más para formar un polígono abierto
+            int numPuntos = ThreadLocalRandom.current().nextInt(1, 4);
+            int xActual = x1;
+            int yActual = y1;
             
-            // Fechas
-            bloqueo.setFechaInicio(LocalDate.now());
-            bloqueo.setFechaFin(LocalDate.now().plusDays(ThreadLocalRandom.current().nextInt(1, 8)));
+            for (int j = 0; j < numPuntos; j++) {
+                // Generar un punto cercano al anterior (máximo 10 unidades de distancia)
+                int xNuevo = xActual + ThreadLocalRandom.current().nextInt(-10, 11);
+                int yNuevo = yActual + ThreadLocalRandom.current().nextInt(-10, 11);
+                
+                // Mantener los puntos dentro de los límites del mapa
+                xNuevo = Math.max(0, Math.min(xNuevo, 100));
+                yNuevo = Math.max(0, Math.min(yNuevo, 100));
+                
+                coordenadas.add(new Bloqueo.Coordenada(xNuevo, yNuevo));
+                
+                xActual = xNuevo;
+                yActual = yNuevo;
+            }
+            
+            bloqueo.setCoordenadas(coordenadas);
+            
+            // Fechas y horas (formato correcto para el nuevo modelo)
+            LocalDateTime ahora = LocalDateTime.now();
+            
+            // El bloqueo inicia entre ahora y 3 días después
+            LocalDateTime fechaInicio = ahora.plusMinutes(ThreadLocalRandom.current().nextInt(0, 72 * 60));
+            
+            // El bloqueo dura entre 4 horas y 7 días
+            LocalDateTime fechaFin = fechaInicio.plusMinutes(
+                ThreadLocalRandom.current().nextInt(4 * 60, 7 * 24 * 60)
+            );
+            
+            bloqueo.setFechaInicio(fechaInicio);
+            bloqueo.setFechaFin(fechaFin);
             
             bloqueo.setDescripcion("Bloqueo simulado #" + i);
-            bloqueo.setActivo(true);
+            
+            // Un bloqueo está activo si ya comenzó pero aún no ha terminado
+            bloqueo.setActivo(ahora.isAfter(fechaInicio) && ahora.isBefore(fechaFin));
             
             bloqueos.add(bloqueo);
         }
@@ -493,22 +518,37 @@ public class SimulacionService {
      * Actualiza el estado de los bloqueos según el tiempo actual
      */
     private void actualizarBloqueos(LocalDateTime tiempo) {
-        LocalDate fechaActual = tiempo.toLocalDate();
+        // Usar el servicio de bloqueos para actualizar los estados
+        bloqueoService.actualizarEstadoBloqueos();
         
-        // Buscar bloqueos que inician hoy
-        List<Bloqueo> bloqueosInicio = bloqueoRepository.findByFechaInicio(fechaActual);
-        for (Bloqueo bloqueo : bloqueosInicio) {
-            bloqueo.setActivo(true);
-            bloqueoRepository.save(bloqueo);
-            System.out.println("Iniciado bloqueo: " + bloqueo.getDescripcion() + " en tiempo " + tiempo);
+        // Obtener bloqueos activos para el tiempo actual
+        List<Bloqueo> bloqueosActivos = bloqueoService.obtenerBloqueosActivos(tiempo);
+        
+        // Log de actividades de bloqueos
+        for (Bloqueo bloqueo : bloqueosActivos) {
+            // Verificar si este bloqueo acaba de activarse (para limitar logs repetidos)
+            if (tiempo.isAfter(bloqueo.getFechaInicio()) && 
+                tiempo.isBefore(bloqueo.getFechaInicio().plusMinutes(5))) {
+                System.out.println(String.format(
+                    "Bloqueo activo en %s hasta %s con %d puntos - %s", 
+                    bloqueo.getFechaInicio(), bloqueo.getFechaFin(), 
+                    bloqueo.getCoordenadas().size(), bloqueo.getDescripcion()
+                ));
+            }
         }
         
-        // Buscar bloqueos que finalizan hoy
-        List<Bloqueo> bloqueosFin = bloqueoRepository.findByFechaFin(fechaActual);
-        for (Bloqueo bloqueo : bloqueosFin) {
-            bloqueo.setActivo(false);
-            bloqueoRepository.save(bloqueo);
-            System.out.println("Finalizado bloqueo: " + bloqueo.getDescripcion() + " en tiempo " + tiempo);
+        // Obtener bloqueos que finalizan pronto (en los próximos 5 minutos)
+        LocalDateTime tiempoFuturo = tiempo.plusMinutes(5);
+        List<Bloqueo> bloqueosFinalizando = bloqueoRepository.findByFechaInicioBeforeAndFechaFinAfter(
+            tiempo, tiempo).stream()
+            .filter(b -> b.getFechaFin().isBefore(tiempoFuturo))
+            .collect(java.util.stream.Collectors.toList());
+            
+        for (Bloqueo bloqueo : bloqueosFinalizando) {
+            System.out.println(String.format(
+                "Bloqueo finalizando pronto: %s a las %s", 
+                bloqueo.getDescripcion(), bloqueo.getFechaFin()
+            ));
         }
     }
     
@@ -623,21 +663,61 @@ public class SimulacionService {
                 averia.setCamion(camion);
                 averia.setFechaHoraReporte(tiempo);
                 averia.setDescripcion("Avería aleatoria en ruta");
-                averia.setSeveridad(ThreadLocalRandom.current().nextInt(1, 4)); // 1-3
-                averia.setPosX(ThreadLocalRandom.current().nextInt(0, 100));
-                averia.setPosY(ThreadLocalRandom.current().nextInt(0, 100));
+                
+                // Usar tipoIncidente en lugar de severidad
+                String[] tiposIncidente = {"TI1", "TI2", "TI3"};
+                averia.setTipoIncidente(tiposIncidente[ThreadLocalRandom.current().nextInt(0, 3)]);
+                
+                // Asignar turno según la hora del día
+                String turno;
+                int hora = tiempo.getHour();
+                if (hora >= 0 && hora < 8) {
+                    turno = "T1";
+                } else if (hora >= 8 && hora < 16) {
+                    turno = "T2";
+                } else {
+                    turno = "T3";
+                }
+                averia.setTurno(turno);
+                
+                averia.setPosX(camion.getPosX());
+                averia.setPosY(camion.getPosY());
                 averia.setEstado(0); // 0: Reportada
                 
-                averiaRepository.save(averia);
+                // Verificar si el camión tiene carga
+                averia.setConCarga(camion.getPesoCarga() > 0);
                 
-                // Actualizar estado del camión
-                camion.setEstado(3); // 3: averiado
-                camionRepository.save(camion);
+                // Validar si la avería es válida según las condiciones
+                boolean esValida = averia.calcularValidezAveria(true); // El camión ya está en operación
                 
-                System.out.println(String.format(
-                    "Camión %s averiado en tiempo %s", 
-                    camion.getCodigo(), tiempo
-                ));
+                if (esValida) {
+                    // Calcular distancia total del recorrido
+                    List<Pedido> pedidosCamion = pedidoRepository.findByCamion_CodigoAndEstado(camion.getCodigo(), 1);
+                    double distanciaTotal = calcularDistanciaRecorrido(camion, pedidosCamion);
+                    
+                    // Calcular kilómetro de ocurrencia entre 5% y 35% del recorrido
+                    averia.calcularKilometroOcurrencia(distanciaTotal);
+                    
+                    // Calcular tiempos de inmovilización según tipo de incidente
+                    averia.calcularTiemposInoperatividad();
+                    
+                    // Guardar la avería
+                    averiaRepository.save(averia);
+                    
+                    // Actualizar estado del camión
+                    actualizarEstadoCamionPorAveria(camion, averia);
+                    
+                    System.out.println(String.format(
+                        "Camión %s averiado con %s en turno %s en tiempo %s - KM: %.2f", 
+                        camion.getCodigo(), averia.getTipoIncidente(), averia.getTurno(), 
+                        tiempo, averia.getKilometroOcurrencia()
+                    ));
+                } else {
+                    System.out.println(String.format(
+                        "Avería ignorada para camión %s (sin carga)", 
+                        camion.getCodigo()
+                    ));
+                }
             }
         }
     }
@@ -953,5 +1033,167 @@ public class SimulacionService {
         }
         
         return estadisticas;
+    }
+
+    /**
+     * Carga y procesa el archivo de averías
+     * Aplica todas las reglas de validación especificadas:
+     * 1. Verifica si la unidad está en operación
+     * 2. Calcula el kilómetro de ocurrencia aleatoriamente entre 5% y 35% del tramo
+     * 3. Solo considera averías cuando el camión lleva carga
+     */
+    public List<Averia> cargarArchivoAverias(String rutaArchivo) {
+        List<Averia> averias = new ArrayList<>();
+        
+        try {
+            Path path = Paths.get(rutaArchivo);
+            if (!Files.exists(path)) {
+                System.out.println("Archivo de averías no encontrado: " + rutaArchivo);
+                return averias;
+            }
+            
+            List<String> lines = Files.readAllLines(path);
+            
+            for (String line : lines) {
+                if (line.trim().isEmpty()) continue;
+                
+                // Formato esperado: T1_TA01_TI2
+                String[] parts = line.split("_");
+                if (parts.length != 3) {
+                    System.out.println("Formato inválido en línea: " + line);
+                    continue;
+                }
+                
+                String turno = parts[0];       // T1, T2, T3
+                String codigoCamion = parts[1]; // TA01, TB03, etc.
+                String tipoIncidente = parts[2]; // TI1, TI2, TI3
+                
+                // Buscar el camión por su código
+                Optional<Camion> optCamion = camionRepository.findById(codigoCamion);
+                if (!optCamion.isPresent()) {
+                    System.out.println("Camión no encontrado para avería: " + line);
+                    continue;
+                }
+                
+                Camion camion = optCamion.get();
+                
+                // Verificar si el camión está en operación (estado 1: en ruta)
+                boolean estaEnOperacion = camion.getEstado() == 1;
+                
+                // Crear la avería
+                Averia averia = new Averia();
+                averia.setCamion(camion);
+                averia.setFechaHoraReporte(LocalDateTime.now());
+                averia.setDescripcion("Avería importada: " + tipoIncidente);
+                averia.setTurno(turno);
+                averia.setTipoIncidente(tipoIncidente);
+                averia.setPosX(camion.getPosX());
+                averia.setPosY(camion.getPosY());
+                averia.setEstado(0); // 0: reportada
+                
+                // Verificar si tiene carga asignada
+                List<Pedido> pedidosCamion = pedidoRepository.findByCamion_CodigoAndEstado(camion.getCodigo(), 1);
+                averia.setConCarga(!pedidosCamion.isEmpty() && camion.getPesoCarga() > 0);
+                
+                // Validar si la avería es válida según las condiciones
+                boolean esValida = averia.calcularValidezAveria(estaEnOperacion);
+                
+                if (esValida) {
+                    // Calcular la distancia total del recorrido (simplificado)
+                    double distanciaTotal = 100.0; // Valor por defecto
+                    
+                    // Si hay pedidos, podríamos calcular la distancia real
+                    if (!pedidosCamion.isEmpty()) {
+                        // Simplificación: usamos una suma de distancias punto a punto
+                        distanciaTotal = calcularDistanciaRecorrido(camion, pedidosCamion);
+                    }
+                    
+                    // Calcular kilómetro aleatorio de ocurrencia (5% a 35% del recorrido)
+                    averia.calcularKilometroOcurrencia(distanciaTotal);
+                    
+                    // Calcular tiempos de inmovilización según tipo de incidente
+                    // Asumimos 3 turnos de 8 horas cada uno (configurable)
+                    int duracionTurnoHoras = 8;
+                    averia.calcularTiemposInoperatividad(duracionTurnoHoras);
+                    
+                    // Actualizar estado del camión según el tipo de incidente
+                    actualizarEstadoCamionPorAveria(camion, averia);
+                    
+                    // Guardar la avería
+                    averiaRepository.save(averia);
+                    averias.add(averia);
+                    
+                    System.out.println("Avería procesada: " + averia.generarRegistro() + 
+                                     " - KM: " + averia.getKilometroOcurrencia());
+                } else {
+                    System.out.println("Avería ignorada (unidad no en operación o sin carga): " + line);
+                }
+            }
+            
+        } catch (IOException e) {
+            System.err.println("Error al leer el archivo de averías: " + e.getMessage());
+        }
+        
+        return averias;
+    }
+    
+    /**
+     * Calcula la distancia aproximada del recorrido completo de un camión
+     */
+    private double calcularDistanciaRecorrido(Camion camion, List<Pedido> pedidos) {
+        double distanciaTotal = 0;
+        
+        // Posición actual del camión
+        int posXActual = camion.getPosX();
+        int posYActual = camion.getPosY();
+        
+        // Sumar distancias entre puntos consecutivos
+        for (Pedido pedido : pedidos) {
+            double distancia = Math.sqrt(
+                Math.pow(pedido.getPosX() - posXActual, 2) + 
+                Math.pow(pedido.getPosY() - posYActual, 2)
+            );
+            
+            distanciaTotal += distancia;
+            
+            // Actualizar posición para el siguiente cálculo
+            posXActual = pedido.getPosX();
+            posYActual = pedido.getPosY();
+        }
+        
+        // Agregar distancia de regreso al almacén (simplificado)
+        // Asumimos almacén central en posición (12, 8)
+        double distanciaRegreso = Math.sqrt(
+            Math.pow(12 - posXActual, 2) + 
+            Math.pow(8 - posYActual, 2)
+        );
+        
+        distanciaTotal += distanciaRegreso;
+        
+        // Multiplicar por 2 para simular ida y vuelta
+        return distanciaTotal * 2;
+    }
+    
+    /**
+     * Actualiza el estado del camión según el tipo de avería
+     */
+    private void actualizarEstadoCamionPorAveria(Camion camion, Averia averia) {
+        // Marcar el camión como averiado
+        camion.setEstado(3); // 3: averiado
+        
+        // Guardar el camión con su nuevo estado
+        camionRepository.save(camion);
+        
+        System.out.println("Camión " + camion.getCodigo() + " marcado como averiado por " + 
+                         averia.getTipoIncidente() + " en turno " + averia.getTurno());
+    }
+    
+    /**
+     * Método para iniciar la carga del archivo de averías durante el inicio de la simulación
+     */
+    public void inicializarAveriasDesdeArchivo() {
+        String rutaArchivo = "src/main/resources/data/averias/averias.v1.txt";
+        List<Averia> averiasCargadas = cargarArchivoAverias(rutaArchivo);
+        System.out.println("Se cargaron " + averiasCargadas.size() + " averías válidas desde el archivo");
     }
 }

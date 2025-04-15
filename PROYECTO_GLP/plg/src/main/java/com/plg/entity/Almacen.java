@@ -68,7 +68,8 @@ public class Almacen {
     
     // Método para calcular la distancia desde este almacén hasta una posición
     public double calcularDistancia(int posX2, int posY2) {
-        return Math.sqrt(Math.pow(posX - posX2, 2) + Math.pow(posY - posY2, 2));
+        // Distancia Manhattan: suma de las diferencias absolutas en cada dimensión
+        return Math.abs(posX - posX2) + Math.abs(posY - posY2);
     }
     
     // Método para reabastecer el almacén

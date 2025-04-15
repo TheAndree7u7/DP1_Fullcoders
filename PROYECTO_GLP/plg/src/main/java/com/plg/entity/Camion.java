@@ -3,53 +3,434 @@ package com.plg.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "camiones")
 public class Camion {
     @Id
     private String codigo;
     
     private String tipo; // TA, TB, TC, TD, etc.
-    private double capacidad; // Capacidad en m3
+    private double capacidad; // Capacidad en m3 de GLP
+    private double capacidadDisponible; // Capacidad disponible actual (m3)
     private double tara; // Peso del camión vacío en toneladas
     private double pesoCarga; // Peso actual de la carga en toneladas
     private double pesoCombinado; // Peso total (tara + carga)
+    
+    @Column(name = "estado")
     private int estado; // 0: disponible, 1: en ruta, 2: en mantenimiento, 3: averiado
     
     // Atributos relacionados con combustible
+    @Column(name = "capacidad_tanque")
     private double capacidadTanque = 25.0; // Capacidad del tanque en galones
+    
+    @Column(name = "combustible_actual")
     private double combustibleActual; // Combustible actual en galones
+    
+    @Column(name = "velocidad_promedio")
     private double velocidadPromedio = 50.0; // Velocidad promedio en km/h
     
     // Posición actual del camión (para calcular distancia a recorrer)
+    @Column(name = "pos_x")
     private int posX;
+    
+    @Column(name = "pos_y")
     private int posY;
+    
+    // Último almacén visitado
+    @ManyToOne
+    @JoinColumn(name = "ultimo_almacen_id")
+    private Almacen ultimoAlmacen;
+    
+    // Fecha de la última carga de GLP
+    @Column(name = "fecha_ultima_carga")
+    private LocalDateTime fechaUltimaCarga;
+    
+    // Porcentaje de uso actual
+    @Column(name = "porcentaje_uso")
+    private double porcentajeUso;
     
     @OneToMany(mappedBy = "camion", cascade = CascadeType.ALL)
     @JsonManagedReference(value="camion-mantenimiento")
-    private List<Mantenimiento> mantenimientos;
+    private List<Mantenimiento> mantenimientos = new ArrayList<>();
     
     @OneToMany(mappedBy = "camion", cascade = CascadeType.ALL)
     @JsonManagedReference(value="camion-averia")
-    private List<Averia> averias;
+    private List<Averia> averias = new ArrayList<>();
     
     @OneToMany(mappedBy = "camion", cascade = CascadeType.ALL)
     @JsonManagedReference(value="camion-pedido")
-    private List<Pedido> pedidos;
+    private List<Pedido> pedidos = new ArrayList<>();
     
-    // Método para calcular consumo de combustible
+    @OneToMany(mappedBy = "camion", cascade = CascadeType.ALL)
+    @JsonManagedReference(value="camion-ruta")
+    private List<Ruta> rutas = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "camion", cascade = CascadeType.ALL)
+    private List<EntregaParcial> entregasParciales = new ArrayList<>();
+    
+    /**
+     * Constructor con parámetros básicos
+     */
+    public Camion(String codigo, String tipo, double capacidad, double tara) {
+        this.codigo = codigo;
+        this.tipo = tipo;
+        this.capacidad = capacidad;
+        this.capacidadDisponible = capacidad;
+        this.tara = tara;
+        this.estado = 0; // Disponible por defecto
+        this.porcentajeUso = 0.0;
+        inicializar();
+    }
+ 
+    /**
+     * Asigna un volumen parcial de GLP de un pedido a este camión
+     * @param pedido Pedido a asignar
+     * @param volumen Volumen a entregar (en m3)
+     * @param porcentaje Porcentaje del pedido que representa
+     * @return true si se pudo asignar, false si no hay capacidad suficiente
+     */
+    public boolean asignarPedidoParcial(Pedido pedido, double volumen, double porcentaje) {
+        // Verificar si hay capacidad disponible
+        if (capacidadDisponible < volumen) {
+            return false;
+        }
+        
+        // Actualizar capacidad disponible
+        capacidadDisponible -= volumen;
+        
+        // Actualizar porcentaje de uso
+        actualizarPorcentajeUso();
+        
+        // Actualizar peso de carga y combinado
+        actualizarPeso();
+        
+        // Crear nueva entrega parcial
+        EntregaParcial entrega = new EntregaParcial();
+        entrega.setCamion(this);
+        entrega.setPedido(pedido);
+        entrega.setVolumenGLP(volumen);
+        entrega.setPorcentajePedido(porcentaje);
+        entrega.setFechaAsignacion(LocalDateTime.now());
+        entrega.setEstado(0); // Asignado
+        
+        // Agregar a la lista de entregas parciales
+        entregasParciales.add(entrega);
+        
+        return true;
+    }
+    
+    /**
+     * Libera capacidad después de una entrega
+     * @param volumen Volumen liberado (en m3)
+     */
+    public void liberarCapacidad(double volumen) {
+        capacidadDisponible += volumen;
+        if (capacidadDisponible > capacidad) {
+            capacidadDisponible = capacidad;
+        }
+        
+        // Actualizar porcentaje de uso
+        actualizarPorcentajeUso();
+        
+        // Actualizar peso después de liberar capacidad
+        actualizarPeso();
+    }
+    
+    /**
+     * Actualiza el porcentaje de uso
+     */
+    private void actualizarPorcentajeUso() {
+        porcentajeUso = ((capacidad - capacidadDisponible) / capacidad) * 100;
+    }
+    
+    /**
+     * Actualiza el peso de carga y combinado
+     * El peso del GLP es aproximadamente 0.55 ton/m3
+     */
+    private void actualizarPeso() {
+        this.pesoCarga = (capacidad - capacidadDisponible) * 0.55; // Peso del GLP en toneladas
+        this.pesoCombinado = tara + pesoCarga;
+    }
+    
+    /**
+     * Realiza una recarga completa de GLP
+     */
+    public void recargarGLP(Almacen almacen) {
+        capacidadDisponible = capacidad;
+        porcentajeUso = 0.0;
+        ultimoAlmacen = almacen;
+        fechaUltimaCarga = LocalDateTime.now();
+        actualizarPeso();
+    }
+    
+    /**
+     * Realiza una recarga de combustible
+     * @param cantidadGalones Cantidad a recargar en galones
+     */
+    public void recargarCombustible(double cantidadGalones) {
+        combustibleActual += cantidadGalones;
+        if (combustibleActual > capacidadTanque) {
+            combustibleActual = capacidadTanque;
+        }
+    }
+    
+    /**
+     * Consume combustible durante un recorrido
+     * @param cantidadGalones Cantidad a consumir en galones
+     * @return true si se pudo consumir, false si no hay suficiente
+     */
+    public boolean consumirCombustible(double cantidadGalones) {
+        if (combustibleActual < cantidadGalones) {
+            return false;
+        }
+        
+        combustibleActual -= cantidadGalones;
+        return true;
+    }
+    
+    /**
+     * Obtiene las entregas parciales pendientes
+     */
+    public List<EntregaParcial> getEntregasPendientes() {
+        List<EntregaParcial> pendientes = new ArrayList<>();
+        for (EntregaParcial entrega : entregasParciales) {
+            if (entrega.getEstado() != 2) { // No entregado
+                pendientes.add(entrega);
+            }
+        }
+        
+        return pendientes;
+    }
+    
+    /**
+     * Obtiene el volumen total de GLP asignado actualmente
+     */
+    public double getVolumenTotalAsignado() {
+        double total = 0.0;
+        for (EntregaParcial entrega : entregasParciales) {
+            if (entrega.getEstado() != 2) { // No entregado
+                total += entrega.getVolumenGLP();
+            }
+        }
+        
+        return total;
+    }
+    
+    /**
+     * Marca una entrega parcial como completada
+     */
+    public boolean completarEntregaParcial(Long pedidoId) {
+        for (EntregaParcial entrega : entregasParciales) {
+            if (entrega.getPedido().getId().equals(pedidoId) && entrega.getEstado() != 2) {
+                entrega.setEstado(2); // Entregado
+                entrega.setFechaEntrega(LocalDateTime.now());
+                liberarCapacidad(entrega.getVolumenGLP());
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Verifica si el camión tiene capacidad para un volumen adicional
+     */
+    public boolean tieneCapacidadPara(double volumenAdicional) {
+        return capacidadDisponible >= volumenAdicional;
+    }
+    
+    /**
+     * Calcula consumo de combustible para una distancia
+     * @param distanciaKm Distancia a recorrer en kilómetros
+     * @return Consumo en galones
+     */
     public double calcularConsumoCombustible(double distanciaKm) {
         // Consumo (Gal) = Distancia (km) × Peso combinado (Ton) / 180
         return distanciaKm * pesoCombinado / 180.0;
     }
     
-    // Método para calcular la distancia máxima que puede recorrer con el combustible actual
+    /**
+     * Calcula la distancia máxima que puede recorrer con el combustible actual
+     * @return Distancia máxima en kilómetros
+     */
     public double calcularDistanciaMaxima() {
         // Dist Max = Combustible (Gal) * 180 / Peso combinado (Ton)
+        if (pesoCombinado <= 0) {
+            return 0.0; // Evitar división por cero
+        }
         return combustibleActual * 180.0 / pesoCombinado;
+    }
+    
+    /**
+     * Inicializa el camión con valores por defecto
+     */
+    public void inicializar() {
+        if (capacidadDisponible <= 0) {
+            capacidadDisponible = capacidad;
+        }
+        
+        if (combustibleActual <= 0) {
+            combustibleActual = capacidadTanque * 0.75; // Inicializa con 75% del tanque
+        }
+        
+        actualizarPorcentajeUso();
+        actualizarPeso();
+    }
+    
+    /**
+     * Reporta una avería y cambia el estado del camión
+     */
+    public Averia reportarAveria(String descripcion) {
+        Averia averia = new Averia();
+        averia.setCamion(this);
+        averia.setDescripcion(descripcion);
+        averia.setFechaHoraReporte(LocalDateTime.now());
+        averia.setEstado(0); // Pendiente
+        
+        this.estado = 3; // Averiado
+        
+        if (this.averias == null) {
+            this.averias = new ArrayList<>();
+        }
+        this.averias.add(averia);
+        
+        return averia;
+    }
+    
+    /**
+     * Programa un mantenimiento
+     */
+    public Mantenimiento programarMantenimiento(String descripcion, LocalDateTime fechaProgramada) {
+        Mantenimiento mantenimiento = new Mantenimiento();
+        mantenimiento.setCamion(this);
+        mantenimiento.setDescripcion(descripcion);
+        mantenimiento.setFechaProgramada(fechaProgramada);
+        mantenimiento.setEstado(0); // Programado
+        
+        if (this.mantenimientos == null) {
+            this.mantenimientos = new ArrayList<>();
+        }
+        this.mantenimientos.add(mantenimiento);
+        
+        return mantenimiento;
+    }
+    
+    /**
+     * Mover el camión a nuevas coordenadas
+     */
+    public void moverA(int nuevoX, int nuevoY) {
+        this.posX = nuevoX;
+        this.posY = nuevoY;
+    }
+    
+    /**
+     * Calcula la distancia desde la posición actual hasta un punto
+     * usando distancia Manhattan
+     */
+    public double calcularDistanciaHasta(int destinoX, int destinoY) {
+        return Math.abs(destinoX - this.posX) + Math.abs(destinoY - this.posY);
+    }
+    
+    /**
+     * Obtiene el estado del camión como texto
+     */
+    @Transient
+    public String getEstadoTexto() {
+        switch (this.estado) {
+            case 0: return "Disponible";
+            case 1: return "En ruta";
+            case 2: return "En mantenimiento";
+            case 3: return "Averiado";
+            default: return "Desconocido";
+        }
+    }
+    
+    /**
+     * Actualiza el estado de las entregas parciales cuando la ruta está en curso
+     */
+    public void actualizarEstadoEntregasARuta() {
+        for (EntregaParcial entrega : entregasParciales) {
+            if (entrega.getEstado() == 0) { // Si está asignada
+                entrega.setEstado(1); // Cambiar a "En ruta"
+            }
+        }
+    }
+    
+    /**
+     * Obtiene información básica del camión para APIs
+     */
+    @Transient
+    public Map<String, Object> getInfoBasica() {
+        Map<String, Object> info = new HashMap<>();
+        info.put("codigo", this.codigo);
+        info.put("tipo", this.tipo);
+        info.put("capacidad", this.capacidad);
+        info.put("capacidadDisponible", this.capacidadDisponible);
+        info.put("porcentajeUso", this.porcentajeUso);
+        info.put("estado", this.estado);
+        info.put("estadoTexto", this.getEstadoTexto());
+        info.put("posX", this.posX);
+        info.put("posY", this.posY);
+        info.put("combustibleActual", this.combustibleActual);
+        info.put("distanciaMaxima", this.calcularDistanciaMaxima());
+        return info;
+    }
+    
+    /**
+     * Obtiene información detallada de las entregas parciales para APIs
+     */
+    @Transient
+    public List<Map<String, Object>> getInfoEntregasParciales() {
+        List<Map<String, Object>> listaEntregas = new ArrayList<>();
+        
+        for (EntregaParcial entrega : entregasParciales) {
+            Map<String, Object> infoEntrega = new HashMap<>();
+            infoEntrega.put("id", entrega.getId());
+            infoEntrega.put("pedidoId", entrega.getPedido().getId());
+            infoEntrega.put("codigoPedido", entrega.getPedido().getCodigo());
+            infoEntrega.put("volumenGLP", entrega.getVolumenGLP());
+            infoEntrega.put("porcentaje", entrega.getPorcentajePedido());
+            infoEntrega.put("estado", entrega.getEstado());
+            
+            switch (entrega.getEstado()) {
+                case 0:
+                    infoEntrega.put("estadoTexto", "Asignado");
+                    break;
+                case 1:
+                    infoEntrega.put("estadoTexto", "En ruta");
+                    break;
+                case 2:
+                    infoEntrega.put("estadoTexto", "Entregado");
+                    break;
+                case 3:
+                    infoEntrega.put("estadoTexto", "Cancelado");
+                    break;
+                default:
+                    infoEntrega.put("estadoTexto", "Desconocido");
+            }
+            
+            if (entrega.getFechaAsignacion() != null) {
+                infoEntrega.put("fechaAsignacion", entrega.getFechaAsignacion().toString());
+            }
+            
+            if (entrega.getFechaEntrega() != null) {
+                infoEntrega.put("fechaEntrega", entrega.getFechaEntrega().toString());
+            }
+            
+            listaEntregas.add(infoEntrega);
+        }
+        
+        return listaEntregas;
     }
 }

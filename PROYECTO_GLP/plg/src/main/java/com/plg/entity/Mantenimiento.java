@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -24,4 +25,8 @@ public class Mantenimiento {
     private String tipo; // preventivo, correctivo
     private String descripcion;
     private int estado; // 0: programado, 1: en proceso, 2: finalizado
+    public void setFechaProgramada(LocalDateTime fechaProgramada) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setFechaProgramada'");
+    }
 }
