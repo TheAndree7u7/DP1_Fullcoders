@@ -16,4 +16,5 @@ long countByEstado(int estado);
     List<Pedido> findByCliente_IdAndEstado(String clienteId, int estado);
     List<Pedido> findByCamion_CodigoAndEstadoAndFechaEntregaNotNull(String codigoCamion, int estado);
     List<Pedido> findByCamion_CodigoAndEstadoAndFechaEntregaNull(String codigoCamion, int estado);
+    List<Pedido> findByCodigoRuta(String idRuta);
 }

@@ -1,15 +1,15 @@
 package com.plg.service;
 
 import com.plg.config.MapaConfig;
-import com.plg.entity.Bloqueo;
-import com.plg.entity.Pedido;
-import com.plg.repository.BloqueoRepository;
-import com.plg.repository.PedidoRepository;
+import com.plg.entity.*;
+import com.plg.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class RutaService {
@@ -19,6 +19,15 @@ public class RutaService {
 
     @Autowired
     private BloqueoRepository bloqueoRepository;
+    
+    @Autowired
+    private RutaRepository rutaRepository;
+    
+    @Autowired
+    private CamionRepository camionRepository;
+    
+    @Autowired
+    private EntregaParcialRepository entregaParcialRepository;
 
     @Autowired
     private MapaConfig mapaConfig;
@@ -29,6 +38,245 @@ public class RutaService {
     @Autowired
     private BloqueoService bloqueoService;
 
+    /**
+     * Obtiene una ruta por su código
+     */
+    public Ruta findByCodigoRuta(String codigo) {
+        return rutaRepository.findByCodigo(codigo)
+            .orElseThrow(() -> new RuntimeException("Ruta no encontrada con código: " + codigo));
+    }
+    
+    /**
+     * Obtiene todas las rutas
+     */
+    public List<Ruta> getAllRutas() {
+        return rutaRepository.findAll();
+    }
+    
+    /**
+     * Obtiene las rutas por estado
+     */
+    public List<Ruta> getRutasByEstado(int estado) {
+        return rutaRepository.findByEstado(estado);
+    }
+    
+    /**
+     * Obtiene las rutas por camión
+     */
+    public List<Ruta> getRutasByCamion(String codigoCamion) {
+        Camion camion = camionRepository.findById(codigoCamion)
+            .orElseThrow(() -> new RuntimeException("Camión no encontrado con código: " + codigoCamion));
+        return rutaRepository.findByCamion(camion);
+    }
+    
+    /**
+     * Crea una nueva ruta con información básica
+     */
+    @Transactional
+    public Ruta crearRuta(String codigo, String codigoCamion, boolean consideraBloqueos) {
+        // Verificar si ya existe una ruta con ese código
+        if (rutaRepository.findByCodigo(codigo).isPresent()) {
+            throw new RuntimeException("Ya existe una ruta con el código: " + codigo);
+        }
+        
+        Ruta ruta = new Ruta(codigo);
+        ruta.setConsideraBloqueos(consideraBloqueos);
+        
+        if (codigoCamion != null && !codigoCamion.isEmpty()) {
+            Camion camion = camionRepository.findById(codigoCamion)
+                .orElseThrow(() -> new RuntimeException("Camión no encontrado con código: " + codigoCamion));
+            
+            if (camion.getEstado() != 0) {
+                throw new RuntimeException("El camión no está disponible. Estado actual: " + camion.getEstadoTexto());
+            }
+            
+            ruta.setCamion(camion);
+        }
+        
+        // Agregar nodo inicial (almacén)
+        ruta.agregarNodo(mapaConfig.getAlmacenCentralX(), mapaConfig.getAlmacenCentralY(), "ALMACEN");
+        
+        return rutaRepository.save(ruta);
+    }
+    
+    /**
+     * Agrega un pedido a una ruta existente
+     */
+    @Transactional
+    public Ruta agregarPedidoARuta(String codigoRuta, Long pedidoId, double volumenGLP, double porcentajePedido) {
+        Ruta ruta = findByCodigoRuta(codigoRuta);
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+            .orElseThrow(() -> new RuntimeException("Pedido no encontrado con ID: " + pedidoId));
+        
+        // Verificar si el camión tiene capacidad
+        if (ruta.getCamion() != null && !ruta.getCamion().tieneCapacidadPara(volumenGLP)) {
+            throw new RuntimeException("El camión no tiene capacidad suficiente para este pedido");
+        }
+        
+        // Verificar si la ruta está en un estado que permite modificación
+        if (ruta.getEstado() != 0) { // Si no está "Planificada"
+            throw new RuntimeException("No se puede modificar una ruta que ya está en curso o finalizada");
+        }
+        
+        // Agregar nodo de cliente a la ruta
+        ruta.agregarNodoCliente(pedido.getPosX(), pedido.getPosY(), pedido, volumenGLP, porcentajePedido);
+        
+        // Si hay camión asignado, asignar también el pedido al camión como entrega parcial
+        if (ruta.getCamion() != null) {
+            ruta.getCamion().asignarPedidoParcial(pedido, volumenGLP, porcentajePedido);
+        }
+        
+        // Recalcular la distancia total
+        ruta.calcularDistanciaTotal();
+        
+        // Si se considera bloqueos, verificar posibles bloqueos
+        if (ruta.isConsideraBloqueos()) {
+            List<Bloqueo> bloqueosActivos = bloqueoRepository.findByActivoTrue();
+            ruta.verificarInterseccionConBloqueos(bloqueosActivos);
+        }
+        
+        return rutaRepository.save(ruta);
+    }
+    
+    /**
+     * Asigna un camión a una ruta
+     */
+    @Transactional
+    public Ruta asignarCamionARuta(String codigoRuta, String codigoCamion) {
+        Ruta ruta = findByCodigoRuta(codigoRuta);
+        Camion camion = camionRepository.findById(codigoCamion)
+            .orElseThrow(() -> new RuntimeException("Camión no encontrado con código: " + codigoCamion));
+        
+        // Verificar si el camión está disponible
+        if (camion.getEstado() != 0) {
+            throw new RuntimeException("El camión no está disponible. Estado actual: " + camion.getEstadoTexto());
+        }
+        
+        // Verificar si la ruta está en un estado que permite asignar camión
+        if (ruta.getEstado() != 0) {
+            throw new RuntimeException("No se puede asignar un camión a una ruta que ya está en curso o finalizada");
+        }
+        
+        // Verificar si la capacidad del camión es suficiente
+        if (!camion.tieneCapacidadPara(ruta.getVolumenTotalGLP())) {
+            throw new RuntimeException("El camión no tiene capacidad suficiente para el volumen total de GLP de la ruta");
+        }
+        
+        // Asignar el camión a la ruta
+        ruta.setCamion(camion);
+        
+        // Asignar todos los pedidos de la ruta al camión como entregas parciales
+        for (NodoRuta nodo : ruta.getNodos()) {
+            if (nodo.getPedido() != null) {
+                camion.asignarPedidoParcial(nodo.getPedido(), nodo.getVolumenGLP(), nodo.getPorcentajePedido());
+            }
+        }
+        
+        return rutaRepository.save(ruta);
+    }
+    
+    /**
+     * Iniciar una ruta
+     */
+    @Transactional
+    public Ruta iniciarRuta(String codigoRuta) {
+        Ruta ruta = findByCodigoRuta(codigoRuta);
+        
+        // Verificar que la ruta tenga un camión asignado
+        if (ruta.getCamion() == null) {
+            throw new RuntimeException("No se puede iniciar una ruta sin un camión asignado");
+        }
+        
+        // Verificar que la ruta esté en estado "Planificada"
+        if (ruta.getEstado() != 0) {
+            throw new RuntimeException("La ruta no está en estado Planificada. Estado actual: " + ruta.getEstadoTexto());
+        }
+        
+        // Verificar si la ruta tiene pedidos
+        if (ruta.getNodos().stream().noneMatch(n -> n.getPedido() != null)) {
+            throw new RuntimeException("La ruta no tiene pedidos asignados");
+        }
+        
+        // Verificar si hay bloqueos activos que afecten la ruta
+        if (ruta.isConsideraBloqueos()) {
+            List<Bloqueo> bloqueosActivos = bloqueoRepository.findByActivoTrue();
+            if (ruta.tieneBloqueoActivo(bloqueosActivos)) {
+                throw new RuntimeException("La ruta tiene bloqueos activos en este momento. Revise el mapa o reprograme la ruta.");
+            }
+        }
+        
+        // Iniciar la ruta
+        ruta.iniciarRuta();
+        
+        // Estimar tiempos de llegada
+        ruta.estimarTiemposLlegada(ruta.getCamion().getVelocidadPromedio(), LocalDateTime.now());
+        
+        return rutaRepository.save(ruta);
+    }
+    
+    /**
+     * Marcar entrega de pedido en ruta
+     */
+    @Transactional
+    public Ruta marcarEntregaPedido(String codigoRuta, Long pedidoId, String observaciones) {
+        Ruta ruta = findByCodigoRuta(codigoRuta);
+        
+        // Verificar que la ruta esté en curso
+        if (ruta.getEstado() != 1) {
+            throw new RuntimeException("La ruta no está en curso. Estado actual: " + ruta.getEstadoTexto());
+        }
+        
+        // Marcar el pedido como entregado
+        boolean entregaExitosa = ruta.marcarPedidoComoEntregado(pedidoId, LocalDateTime.now(), observaciones);
+        
+        if (!entregaExitosa) {
+            throw new RuntimeException("El pedido no se encuentra en esta ruta o ya ha sido entregado");
+        }
+        
+        // Verificar si todos los pedidos han sido entregados para completar la ruta
+        if (ruta.getEntregasPendientes().isEmpty()) {
+            ruta.completarRuta();
+        }
+        
+        return rutaRepository.save(ruta);
+    }
+    
+    /**
+     * Completar una ruta
+     */
+    @Transactional
+    public Ruta completarRuta(String codigoRuta) {
+        Ruta ruta = findByCodigoRuta(codigoRuta);
+        
+        // Verificar que la ruta esté en curso
+        if (ruta.getEstado() != 1) {
+            throw new RuntimeException("La ruta no está en curso. Estado actual: " + ruta.getEstadoTexto());
+        }
+        
+        // Completar la ruta
+        ruta.completarRuta();
+        
+        return rutaRepository.save(ruta);
+    }
+    
+    /**
+     * Cancelar una ruta
+     */
+    @Transactional
+    public Ruta cancelarRuta(String codigoRuta, String motivo) {
+        Ruta ruta = findByCodigoRuta(codigoRuta);
+        
+        // No se puede cancelar una ruta que ya está completada
+        if (ruta.getEstado() == 2) {
+            throw new RuntimeException("No se puede cancelar una ruta que ya está completada");
+        }
+        
+        // Cancelar la ruta
+        ruta.cancelarRuta(motivo);
+        
+        return rutaRepository.save(ruta);
+    }
+    
     /**
      * Optimiza una ruta considerando bloqueos si se especifica
      */
@@ -141,6 +389,61 @@ public class RutaService {
     }
     
     /**
+     * Actualiza la ruta existente con una ruta optimizada
+     */
+    @Transactional
+    public Ruta actualizarRutaConOptimizacion(String codigoRuta, List<Map<String, Object>> puntosOptimizados) {
+        Ruta ruta = findByCodigoRuta(codigoRuta);
+        
+        // Verificar que la ruta esté en estado Planificada
+        if (ruta.getEstado() != 0) {
+            throw new RuntimeException("No se puede modificar una ruta que ya está en curso o finalizada");
+        }
+        
+        // Preservar información de pedidos
+        Map<Long, NodoRuta> nodosCliente = ruta.getNodos().stream()
+            .filter(n -> n.getPedido() != null)
+            .collect(Collectors.toMap(n -> n.getPedido().getId(), n -> n));
+        
+        // Limpiar nodos existentes
+        ruta.getNodos().clear();
+        
+        // Agregar nuevos nodos basados en la ruta optimizada
+        for (Map<String, Object> punto : puntosOptimizados) {
+            int x = (int) punto.get("x");
+            int y = (int) punto.get("y");
+            String tipo = (String) punto.get("tipo");
+            
+            if (tipo.startsWith("CLIENTE_")) {
+                // Es un nodo de cliente
+                String pedidoIdStr = tipo.substring("CLIENTE_".length());
+                Long pedidoId = Long.parseLong(pedidoIdStr);
+                
+                if (nodosCliente.containsKey(pedidoId)) {
+                    // Recuperar la información original del pedido
+                    NodoRuta nodoOriginal = nodosCliente.get(pedidoId);
+                    ruta.agregarNodoCliente(x, y, nodoOriginal.getPedido(), 
+                        nodoOriginal.getVolumenGLP(), nodoOriginal.getPorcentajePedido());
+                }
+            } else {
+                // Es un nodo de tipo ALMACEN o RUTA
+                ruta.agregarNodo(x, y, tipo);
+            }
+        }
+        
+        // Recalcular distancia total
+        ruta.calcularDistanciaTotal();
+        
+        // Verificar bloqueos si es necesario
+        if (ruta.isConsideraBloqueos()) {
+            List<Bloqueo> bloqueosActivos = bloqueoRepository.findByActivoTrue();
+            ruta.verificarInterseccionConBloqueos(bloqueosActivos);
+        }
+        
+        return rutaRepository.save(ruta);
+    }
+    
+    /**
      * Calcula una ruta directa en el mapa reticular, moviéndose primero horizontal
      * y luego verticalmente entre dos puntos
      */
@@ -191,7 +494,6 @@ public class RutaService {
     
     /**
      * Verifica si una ruta entre dos puntos está bloqueada
-     * Esta función ahora usa la nueva estructura de Bloqueo
      */
     public boolean estaRutaBloqueada(int x1, int y1, int x2, int y2, List<Bloqueo> bloqueos) {
         // En un mapa reticular, debemos verificar cada segmento del recorrido
@@ -230,18 +532,25 @@ public class RutaService {
         
         for (Bloqueo bloqueo : bloqueos) {
             if (bloqueo.isActivo()) {
-                // Verificar intersección con cada tramo del bloqueo
-                List<Bloqueo.Coordenada> coordenadas = bloqueo.getCoordenadas();
-                
-                if (coordenadas.size() < 2) continue;
-                
-                for (int i = 0; i < coordenadas.size() - 1; i++) {
-                    Bloqueo.Coordenada c1 = coordenadas.get(i);
-                    Bloqueo.Coordenada c2 = coordenadas.get(i + 1);
-                    
-                    // En mapa reticular, verificamos la superposición de segmentos
-                    if (intersectaSegmentosReticulares(x1, y1, x2, y2, c1.getX(), c1.getY(), c2.getX(), c2.getY())) {
+                try {
+                    if (bloqueo.intersectaConSegmento(x1, y1, x2, y2)) {
                         return true;
+                    }
+                } catch (Exception e) {
+                    // Usar método alternativo si hay error
+                    // Verificar intersección con cada tramo del bloqueo
+                    List<Bloqueo.Coordenada> coordenadas = bloqueo.getCoordenadas();
+                    
+                    if (coordenadas.size() < 2) continue;
+                    
+                    for (int i = 0; i < coordenadas.size() - 1; i++) {
+                        Bloqueo.Coordenada c1 = coordenadas.get(i);
+                        Bloqueo.Coordenada c2 = coordenadas.get(i + 1);
+                        
+                        // En mapa reticular, verificamos la superposición de segmentos
+                        if (intersectaSegmentosReticulares(x1, y1, x2, y2, c1.getX(), c1.getY(), c2.getX(), c2.getY())) {
+                            return true;
+                        }
                     }
                 }
             }
@@ -341,5 +650,44 @@ public class RutaService {
         }
         
         return rutasBloqueadas;
+    }
+    
+    /**
+     * Obtiene un resumen de todas las rutas
+     */
+    public List<Map<String, Object>> obtenerResumeneRutas() {
+        List<Ruta> rutas = rutaRepository.findAll();
+        
+        return rutas.stream()
+            .map(Ruta::getResumenRuta)
+            .collect(Collectors.toList());
+    }
+    
+    /**
+     * Verifica si alguna ruta activa pasa por ciertos tramos bloqueados
+     */
+    public List<Map<String, Object>> verificarRutasAfectadasPorBloqueos(List<Bloqueo> nuevosBloqueos) {
+        List<Map<String, Object>> rutasAfectadas = new ArrayList<>();
+        
+        // Obtener solo rutas planificadas o en curso
+        List<Ruta> rutasActivas = rutaRepository.findByEstadoIn(List.of(0, 1));
+        
+        for (Ruta ruta : rutasActivas) {
+            if (ruta.isConsideraBloqueos() && ruta.verificarInterseccionConBloqueos(nuevosBloqueos)) {
+                Map<String, Object> info = new HashMap<>();
+                info.put("rutaId", ruta.getId());
+                info.put("codigo", ruta.getCodigo());
+                info.put("estado", ruta.getEstado());
+                info.put("estadoTexto", ruta.getEstadoTexto());
+                
+                if (ruta.getCamion() != null) {
+                    info.put("camionCodigo", ruta.getCamion().getCodigo());
+                }
+                
+                rutasAfectadas.add(info);
+            }
+        }
+        
+        return rutasAfectadas;
     }
 }

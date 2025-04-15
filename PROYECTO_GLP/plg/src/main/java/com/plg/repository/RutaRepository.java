@@ -1,5 +1,6 @@
 package com.plg.repository;
 
+import com.plg.entity.Camion;
 import com.plg.entity.Ruta;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -57,4 +58,8 @@ public interface RutaRepository extends JpaRepository<Ruta, Long> {
      * Cuenta cuántas rutas planificadas (estado = 0) hay actualmente
      */
     long countByEstado(int estado);
+
+    List<Ruta> findByEstadoIn(List<Integer> of);
+
+    List<Ruta> findByCamion(Camion camion);
 }
