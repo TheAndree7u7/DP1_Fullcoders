@@ -479,7 +479,7 @@ public class AlmacenCombustibleService {
     public Map<String, Object> analizarCasoTransporte(String codigoCamion, double cantidadM3) {
         Map<String, Object> analisis = new HashMap<>();
         
-        Optional<Camion> optCamion = camionRepository.findById(codigoCamion);
+        Optional<Camion> optCamion = camionRepository.findByCodigo(codigoCamion);
         if (!optCamion.isPresent()) {
             analisis.put("error", "Camión no encontrado");
             return analisis;
@@ -658,7 +658,7 @@ public class AlmacenCombustibleService {
     public Map<String, Object> recargarCombustible(String codigoCamion, Long idAlmacen, double cantidadSolicitada) {
         Map<String, Object> resultado = new HashMap<>();
         
-        Optional<Camion> optCamion = camionRepository.findById(codigoCamion);
+        Optional<Camion> optCamion = camionRepository.findByCodigo(codigoCamion);
         if (!optCamion.isPresent()) {
             resultado.put("exito", false);
             resultado.put("mensaje", "Camión no encontrado");

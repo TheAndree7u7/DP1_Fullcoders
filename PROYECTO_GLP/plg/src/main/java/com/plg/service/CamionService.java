@@ -30,7 +30,7 @@ public class CamionService {
      * Obtiene un camión por su código
      */
     public Optional<Camion> findById(String codigo) {
-        return camionRepository.findById(codigo);
+        return camionRepository.findByCodigo(codigo);
     }
     
     /**
@@ -91,7 +91,7 @@ public class CamionService {
      * Obtiene información detallada del camión incluyendo pedidos, mantenimientos y averías asociadas
      */
     public Map<String, Object> getDetalleCamion(String codigo) {
-        Optional<Camion> optCamion = camionRepository.findById(codigo);
+        Optional<Camion> optCamion = camionRepository.findByCodigo(codigo);
         if (!optCamion.isPresent()) {
             return null;
         }

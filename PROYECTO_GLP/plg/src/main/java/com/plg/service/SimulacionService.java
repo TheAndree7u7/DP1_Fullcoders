@@ -1069,7 +1069,7 @@ public class SimulacionService {
                 String tipoIncidente = parts[2]; // TI1, TI2, TI3
                 
                 // Buscar el camión por su código
-                Optional<Camion> optCamion = camionRepository.findById(codigoCamion);
+                Optional<Camion> optCamion = camionRepository.findByCodigo(codigoCamion);
                 if (!optCamion.isPresent()) {
                     System.out.println("Camión no encontrado para avería: " + line);
                     continue;

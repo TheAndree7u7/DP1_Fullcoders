@@ -66,7 +66,7 @@ public class RutaService {
      * Obtiene las rutas por camión
      */
     public List<Ruta> getRutasByCamion(String codigoCamion) {
-        Camion camion = camionRepository.findById(codigoCamion)
+        Camion camion = camionRepository.findByCodigo(codigoCamion)
             .orElseThrow(() -> new RuntimeException("Camión no encontrado con código: " + codigoCamion));
         return rutaRepository.findByCamion(camion);
     }
@@ -85,7 +85,7 @@ public class RutaService {
         ruta.setConsideraBloqueos(consideraBloqueos);
         
         if (codigoCamion != null && !codigoCamion.isEmpty()) {
-            Camion camion = camionRepository.findById(codigoCamion)
+            Camion camion = camionRepository.findByCodigo(codigoCamion)
                 .orElseThrow(() -> new RuntimeException("Camión no encontrado con código: " + codigoCamion));
             
             if (camion.getEstado() != 0) {
@@ -154,7 +154,7 @@ public class RutaService {
     @Transactional
     public Ruta asignarCamionARuta(String codigoRuta, String codigoCamion) {
         Ruta ruta = findByCodigoRuta(codigoRuta);
-        Camion camion = camionRepository.findById(codigoCamion)
+        Camion camion = camionRepository.findByCodigo(codigoCamion)
             .orElseThrow(() -> new RuntimeException("Camión no encontrado con código: " + codigoCamion));
         
         // Verificar si el camión está disponible

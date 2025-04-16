@@ -58,7 +58,7 @@ public class AlmacenCombustibleController {
      */
     @GetMapping("/verificar/{codigoCamion}")
     public ResponseEntity<?> verificarCombustible(@PathVariable String codigoCamion) {
-        Optional<Camion> optCamion = camionRepository.findById(codigoCamion);
+        Optional<Camion> optCamion = camionRepository.findByCodigo(codigoCamion);
         if (!optCamion.isPresent()) {
             Map<String, String> response = new HashMap<>();
             response.put("error", "Camión no encontrado con código: " + codigoCamion);

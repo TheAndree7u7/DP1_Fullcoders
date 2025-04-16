@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.core.io.ClassPathResource;
+import java.nio.file.Files;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -72,8 +74,10 @@ public class DataLoader implements CommandLineRunner {
     
     private void loadCamionesFromFile(String fileName) {
         try {
-            Path path = Paths.get(camionesPath + fileName);
-            BufferedReader reader = new BufferedReader(new FileReader(path.toFile()));
+            ClassPathResource resource = new ClassPathResource("data/camiones/" + fileName);
+        
+            // Leer el archivo desde el classpath
+            BufferedReader reader = new BufferedReader(new FileReader(resource.getFile()));
             
             String line;
             // Skip header line
@@ -138,8 +142,11 @@ public class DataLoader implements CommandLineRunner {
     
     private void loadAlmacenesFromFile(String fileName) {
         try {
-            Path path = Paths.get(almacenesPath + fileName);
-            BufferedReader reader = new BufferedReader(new FileReader(path.toFile()));
+            // Usar ClassPathResource para obtener el archivo desde resources
+            ClassPathResource resource = new ClassPathResource("data/almacenes/" + fileName);
+            
+            // Leer el archivo desde el classpath
+            BufferedReader reader = new BufferedReader(new FileReader(resource.getFile()));
             
             String line;
             while ((line = reader.readLine()) != null) {
@@ -183,8 +190,11 @@ public class DataLoader implements CommandLineRunner {
     
     private void loadPedidosFromFile(String fileName) {
         try {
-            Path path = Paths.get(pedidosPath + fileName);
-            BufferedReader reader = new BufferedReader(new FileReader(path.toFile()));
+            // Usar ClassPathResource para obtener el archivo desde resources
+            ClassPathResource resource = new ClassPathResource("data/pedidos/" + fileName);
+            
+            // Leer el archivo desde el classpath
+            BufferedReader reader = new BufferedReader(new FileReader(resource.getFile()));
             
             String line;
             int contador = 1;
@@ -240,8 +250,9 @@ public class DataLoader implements CommandLineRunner {
     
     private void loadMantenimientosFromFile(String fileName) {
         try {
-            Path path = Paths.get(mantenimientosPath + fileName);
-            BufferedReader reader = new BufferedReader(new FileReader(path.toFile()));
+            ClassPathResource resource = new ClassPathResource("data/mantenimientos/mantpreventivo.txt");
+            BufferedReader reader = new BufferedReader(new FileReader(resource.getFile()));
+            
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             
             String line;

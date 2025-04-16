@@ -45,7 +45,7 @@ public class MantenimientoService {
     public Mantenimiento save(Mantenimiento mantenimiento) {
         // Si es un nuevo mantenimiento, actualiza el estado del camión
         if (mantenimiento.getId() == null && mantenimiento.getEstado() == 1) { // En proceso
-            Optional<Camion> camionOpt = camionRepository.findById(mantenimiento.getCamion().getCodigo());
+            Optional<Camion> camionOpt = camionRepository.findByCodigo(mantenimiento.getCamion().getCodigo());
             if (camionOpt.isPresent()) {
                 Camion camion = camionOpt.get();
                 camion.setEstado(2); // Camión en mantenimiento
@@ -68,7 +68,7 @@ public class MantenimientoService {
         
         // Si el estado cambia a finalizado, actualiza el estado del camión
         if (existingMantenimiento.getEstado() != 2 && mantenimiento.getEstado() == 2) { // Finalizado
-            Optional<Camion> camionOpt = camionRepository.findById(mantenimiento.getCamion().getCodigo());
+            Optional<Camion> camionOpt = camionRepository.findByCodigo(mantenimiento.getCamion().getCodigo());
             if (camionOpt.isPresent()) {
                 Camion camion = camionOpt.get();
                 camion.setEstado(0); // Camión disponible nuevamente
@@ -102,7 +102,7 @@ public class MantenimientoService {
                     LocalDate fechaFin = LocalDate.parse(datos[2]);
                     
                     // Verifica si existe el camión
-                    Optional<Camion> camionOpt = camionRepository.findById(codigoCamion);
+                    Optional<Camion> camionOpt = camionRepository.findByCodigo(codigoCamion);
                     if (camionOpt.isPresent()) {
                         Mantenimiento mantenimiento = new Mantenimiento();
                         mantenimiento.setCamion(camionOpt.get());
