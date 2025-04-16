@@ -8,6 +8,9 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
+@Builder
 public class Cliente {
     @Id
     private String id; // código único del cliente

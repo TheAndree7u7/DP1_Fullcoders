@@ -34,13 +34,15 @@ public class Almacen {
     //! Tipo de almacén
     private boolean esCentral; // Indica si es el almacén central (true) o intermedio (false)
     private boolean permiteCamionesEstacionados; // Solo el central permite esto por defecto
-    
+    private String tipo;
+    //el tio se asigna segun el b
     // Hora de reabastecimiento para almacenes intermedios
     private LocalTime horaReabastecimiento = LocalTime.MIDNIGHT; // Por defecto a las 00:00
     private boolean ultimoReabastecimientoRealizado = false; // Indica si ya se realizó el reabastecimiento hoy
     @Column(name = "activo")
     @ColumnDefault("true")
     private boolean activo; // Estado del almacén (activo/inactivo)
+     
     //!Puede recargar?
     // Método para verificar si el almacén puede recargar combustible
     public boolean puedeRecargarCombustible(double cantidadRequerida) {

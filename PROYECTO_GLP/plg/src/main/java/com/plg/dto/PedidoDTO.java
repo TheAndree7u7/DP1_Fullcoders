@@ -1,15 +1,28 @@
 package com.plg.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import java.time.LocalDateTime;
 
 @Data
+@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class PedidoDTO {
-    private String fechaHora; // 11d13h31m
-    private int posX;
-    private int posY;
-    private String idCliente;
-    private int m3;
-    private int horasLimite;
+    private Long id;
+    private String codigo;
+    private Integer posX;
+    private Integer posY;
+    private Integer m3; // Cambiado de Double a Integer para coincidir con la entidad
+    private Integer horasLimite;
+    private String clienteId; // Cambiado de Long a String para coincidir con la entidad
+    private String clienteNombre;
+    private String fechaHora; // Cambiado de LocalDateTime a String para coincidir con la entidad
+    private Integer estado;
 }

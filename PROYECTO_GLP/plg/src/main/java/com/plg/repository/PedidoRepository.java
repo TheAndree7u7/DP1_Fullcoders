@@ -21,4 +21,5 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     
     @Query("SELECT p FROM Pedido p JOIN p.asignaciones a WHERE a.ruta.codigo = :idRuta")
     List<Pedido> findByCodigoRuta(@Param("idRuta") String idRuta);
+    List<Pedido> findByEstadoIn(List<Integer> asList);
 }

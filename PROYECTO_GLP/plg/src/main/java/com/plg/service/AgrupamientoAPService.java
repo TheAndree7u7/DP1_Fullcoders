@@ -1,13 +1,14 @@
 package com.plg.service;
 
+import com.plg.dto.*;
 import com.plg.entity.Pedido;
 import com.plg.repository.PedidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;//
-//INICIA MODIFICACION DE
+import java.util.stream.Collectors;
+
 @Service
 public class AgrupamientoAPService {
 
@@ -19,15 +20,18 @@ public class AgrupamientoAPService {
     private final int MAX_ITERATIONS = 200;
     private final double CONVERGENCE_THRESHOLD = 0.001;
     
-    public Map<String, Object> generarGrupos(Map<String, Object> params) {
+    public AgrupamientoAPResultadoDTO generarGrupos(Map<String, Object> params) {
         // Obtener pedidos pendientes
         List<Pedido> pedidos = pedidoRepository.findByEstado(0);
         
         // Verificar si hay suficientes pedidos para agrupar
         if (pedidos.isEmpty()) {
-            Map<String, Object> resultado = new HashMap<>();
-            resultado.put("mensaje", "No hay pedidos pendientes para agrupar");
-            return resultado;
+            return AgrupamientoAPResultadoDTO.builder()
+                .metodo("affinityPropagation")
+                .totalPedidos(0)
+                .totalGrupos(0)
+                .grupos(Collections.emptyList())
+                .build();
         }
         
         // Parámetros opcionales
@@ -38,21 +42,20 @@ public class AgrupamientoAPService {
         // que agruparía los pedidos basado en distancias y otras métricas
         
         // Generamos grupos simulados
-        List<Map<String, Object>> grupos = generarGruposSimulados(pedidos, numeroClusterDeseado);
+        List<GrupoDTO> grupos = generarGruposSimulados(pedidos, numeroClusterDeseado);
         
-        // Preparamos el resultado
-        Map<String, Object> resultado = new HashMap<>();
-        resultado.put("grupos", grupos);
-        resultado.put("metodo", "affinityPropagation");
-        resultado.put("totalPedidos", pedidos.size());
-        resultado.put("totalGrupos", grupos.size());
-        
-        return resultado;
+        // Preparamos el resultado usando DTO
+        return AgrupamientoAPResultadoDTO.builder()
+            .grupos(grupos)
+            .metodo("affinityPropagation")
+            .totalPedidos(pedidos.size())
+            .totalGrupos(grupos.size())
+            .build();
     }
     
     // Método que simula la generación de grupos - en un caso real esto implementaría el AP completo
-    private List<Map<String, Object>> generarGruposSimulados(List<Pedido> pedidos, int numeroGruposDeseado) {
-        List<Map<String, Object>> grupos = new ArrayList<>();
+    private List<GrupoDTO> generarGruposSimulados(List<Pedido> pedidos, int numeroGruposDeseado) {
+        List<GrupoDTO> grupos = new ArrayList<>();
         
         // Dividir los pedidos en grupos (clusters)
         // En un caso real, esto se haría con el algoritmo AP que encuentra automáticamente el número óptimo
@@ -61,33 +64,34 @@ public class AgrupamientoAPService {
         
         // Para cada cluster creamos un grupo
         for (int i = 0; i < clustersSimulados.size(); i++) {
-            Map<String, Object> grupo = new HashMap<>();
-            grupo.put("idGrupo", "G" + (i + 1));
-            
             // Encontrar el pedido más central del grupo (ejemplar) - simulado
             Pedido ejemplar = encontrarEjemplar(clustersSimulados.get(i));
-            grupo.put("ejemplar", convertirPedidoAMapa(ejemplar));
             
             // Calcular centroide del grupo
             Map<String, Double> centroide = calcularCentroide(clustersSimulados.get(i));
-            grupo.put("centroideX", centroide.get("x"));
-            grupo.put("centroideY", centroide.get("y"));
             
-            // Convertir pedidos a su representación simple para la API
-            List<Map<String, Object>> pedidosGrupo = clustersSimulados.get(i).stream()
-                .map(this::convertirPedidoAMapa)
+            // Convertir pedidos a DTOs
+            List<PedidoDTO> pedidosDTO = clustersSimulados.get(i).stream()
+                .map(this::convertirAPedidoDTO)
                 .collect(Collectors.toList());
-            
-            grupo.put("pedidos", pedidosGrupo);
-            grupo.put("numeroPedidos", clustersSimulados.get(i).size());
             
             // Calcular radio del grupo (distancia máxima desde el centroide)
             double radio = calcularRadioGrupo(clustersSimulados.get(i), centroide.get("x"), centroide.get("y"));
-            grupo.put("radio", radio);
             
             // Calcular densidad (pedidos por área)
             double densidad = clustersSimulados.get(i).size() / (Math.PI * Math.pow(radio, 2));
-            grupo.put("densidad", densidad);
+            
+            // Crear grupo como DTO
+            GrupoDTO grupo = GrupoDTO.builder()
+                .idGrupo("G" + (i + 1))
+                .ejemplar(convertirAPedidoDTO(ejemplar))
+                .centroideX(centroide.get("x"))
+                .centroideY(centroide.get("y"))
+                .pedidos(pedidosDTO)
+                .numeroPedidos(pedidosDTO.size())
+                .radio(radio)
+                .densidad(densidad)
+                .build();
             
             grupos.add(grupo);
         }
@@ -197,15 +201,19 @@ public class AgrupamientoAPService {
         return maxDistancia;
     }
     
-    // Convierte un pedido a un mapa para la API REST
-    private Map<String, Object> convertirPedidoAMapa(Pedido pedido) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", pedido.getId());
-        map.put("posX", pedido.getPosX());
-        map.put("posY", pedido.getPosY());
-        map.put("m3", pedido.getM3());
-        map.put("horasLimite", pedido.getHorasLimite());
-        map.put("cliente", pedido.getCliente() != null ? pedido.getCliente().getId() : null);
-        return map;
+    // Convierte un pedido a un DTO
+    private PedidoDTO convertirAPedidoDTO(Pedido pedido) {
+        if (pedido == null) return null;
+        
+        return PedidoDTO.builder()
+            .id(pedido.getId())
+            .codigo(pedido.getCodigo())
+            .posX(pedido.getPosX())
+            .posY(pedido.getPosY())
+            .m3(pedido.getM3())
+            .horasLimite(pedido.getHorasLimite())
+            .clienteId(pedido.getCliente() != null ? pedido.getCliente().getId() : null)
+            .clienteNombre(pedido.getCliente() != null ? pedido.getCliente().getNombre() : null)
+            .build();
     }
 }

@@ -173,7 +173,14 @@ public class DataLoader implements CommandLineRunner {
                 a.setPermiteCamionesEstacionados(Boolean.parseBoolean(d[10]));
                 a.setHoraReabastecimiento(LocalTime.parse(d[11]));
                 a.setActivo(Boolean.parseBoolean(d[12]));
-    
+                ///colocar tipó  almacen
+                if(a.isEsCentral()){
+                    a.setTipo("CENTRAL");
+                }else{
+                    a.setTipo("INTERMEDIO");
+                }
+
+
                 almacenRepository.save(a);                 // se hace INSERT con id autogenerado
                 logger.debug("Almacén guardado: {}", a.getNombre());
             }

@@ -1,5 +1,6 @@
 package com.plg.service;
 
+import com.plg.dto.*;
 import com.plg.entity.Pedido;
 import com.plg.repository.PedidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,15 +21,18 @@ public class AlgoritmoGeneticoService {
     private final double TASA_MUTACION = 0.1;
     private final double TASA_CRUCE = 0.8;
     
-    public Map<String, Object> generarRutas(Map<String, Object> params) {
+    public AlgoritmoGeneticoResultadoDTO generarRutas(Map<String, Object> params) {
         // Obtener pedidos pendientes
         List<Pedido> pedidos = pedidoRepository.findByEstado(0);
         
         // Verificar si hay suficientes pedidos para optimizar
         if (pedidos.isEmpty()) {
-            Map<String, Object> resultado = new HashMap<>();
-            resultado.put("mensaje", "No hay pedidos pendientes para optimizar");
-            return resultado;
+            return AlgoritmoGeneticoResultadoDTO.builder()
+                .metodo("algoritmoGenetico")
+                .totalPedidos(0)
+                .pedidosAsignados(0)
+                .rutas(Collections.emptyList())
+                .build();
         }
         
         // Parámetros opcionales
@@ -39,43 +43,43 @@ public class AlgoritmoGeneticoService {
         // que optimizaría las rutas considerando capacidades de camiones, restricciones temporales, etc.
         
         // Generamos rutas simuladas
-        List<Map<String, Object>> rutas = generarRutasSimuladas(pedidos, numeroRutas);
+        List<RutaDTO> rutas = generarRutasSimuladas(pedidos, numeroRutas);
         
-        // Preparamos el resultado
-        Map<String, Object> resultado = new HashMap<>();
-        resultado.put("rutas", rutas);
-        resultado.put("metodo", "algoritmoGenetico");
-        resultado.put("totalPedidos", pedidos.size());
-        resultado.put("pedidosAsignados", pedidos.size());
-        
-        return resultado;
+        // Preparamos el resultado usando DTO
+        return AlgoritmoGeneticoResultadoDTO.builder()
+            .rutas(rutas)
+            .metodo("algoritmoGenetico")
+            .totalPedidos(pedidos.size())
+            .pedidosAsignados(pedidos.size())
+            .build();
     }
     
     // Método que simula la generación de rutas - en un caso real esto implementaría el AG completo
-    private List<Map<String, Object>> generarRutasSimuladas(List<Pedido> pedidos, int numeroRutas) {
-        List<Map<String, Object>> rutas = new ArrayList<>();
+    private List<RutaDTO> generarRutasSimuladas(List<Pedido> pedidos, int numeroRutas) {
+        List<RutaDTO> rutas = new ArrayList<>();
         
         // Dividir los pedidos en grupos (clusters) para simular las rutas
         List<List<Pedido>> grupos = dividirEnGrupos(pedidos, numeroRutas);
         
         // Para cada grupo creamos una ruta
         for (int i = 0; i < grupos.size(); i++) {
-            Map<String, Object> ruta = new HashMap<>();
-            ruta.put("idRuta", "R" + (i + 1));
-            ruta.put("distanciaTotal", 120.0 + (20 * Math.random())); // Valor simulado
-            ruta.put("tiempoEstimado", 180 + (i * 30)); // Minutos (simulado)
-            
-            // Convertir pedidos a su representación simple para la API
-            List<Map<String, Object>> pedidosRuta = grupos.get(i).stream()
-                .map(this::convertirPedidoAMapa)
+            // Convertir pedidos a DTOs
+            List<PedidoDTO> pedidosDTO = grupos.get(i).stream()
+                .map(this::convertirAPedidoDTO)
                 .collect(Collectors.toList());
             
-            ruta.put("pedidos", pedidosRuta);
-            ruta.put("numeroPedidos", grupos.get(i).size());
-            
             // Generar puntos de la ruta
-            List<Map<String, Object>> puntosRuta = generarPuntosRuta(grupos.get(i));
-            ruta.put("puntos", puntosRuta);
+            List<PuntoRutaDTO> puntosRuta = generarPuntosRuta(grupos.get(i));
+            
+            // Crear la ruta como DTO
+            RutaDTO ruta = RutaDTO.builder()
+                .idRuta("R" + (i + 1))
+                .distanciaTotal(120.0 + (20 * Math.random())) // Valor simulado
+                .tiempoEstimado(180 + (i * 30)) // Minutos (simulado)
+                .pedidos(pedidosDTO)
+                .numeroPedidos(grupos.get(i).size())
+                .puntos(puntosRuta)
+                .build();
             
             rutas.add(ruta);
         }
@@ -103,45 +107,47 @@ public class AlgoritmoGeneticoService {
         return grupos;
     }
     
-    // Convierte un pedido a un mapa para la API REST
-    private Map<String, Object> convertirPedidoAMapa(Pedido pedido) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", pedido.getId());
-        map.put("posX", pedido.getPosX());
-        map.put("posY", pedido.getPosY());
-        map.put("m3", pedido.getM3());
-        map.put("horasLimite", pedido.getHorasLimite());
-        map.put("cliente", pedido.getCliente() != null ? pedido.getCliente().getId() : null);
-        return map;
+    // Convierte un pedido a un DTO
+    private PedidoDTO convertirAPedidoDTO(Pedido pedido) {
+        return PedidoDTO.builder()
+            .id(pedido.getId())
+            .codigo(pedido.getCodigo())
+            .posX(pedido.getPosX())
+            .posY(pedido.getPosY())
+            .m3(pedido.getM3())
+            .horasLimite(pedido.getHorasLimite())
+            .clienteId(pedido.getCliente() != null ? pedido.getCliente().getId() : null)
+            .clienteNombre(pedido.getCliente() != null ? pedido.getCliente().getNombre() : null)
+            .build();
     }
     
     // Genera puntos de ruta (simulado - en un escenario real se utilizaría el AG)
-    private List<Map<String, Object>> generarPuntosRuta(List<Pedido> pedidos) {
-        List<Map<String, Object>> puntos = new ArrayList<>();
+    private List<PuntoRutaDTO> generarPuntosRuta(List<Pedido> pedidos) {
+        List<PuntoRutaDTO> puntos = new ArrayList<>();
         
         // El primer punto es el almacén (origen)
-        Map<String, Object> origen = new HashMap<>();
-        origen.put("tipo", "ALMACEN");
-        origen.put("posX", 0);
-        origen.put("posY", 0);
-        puntos.add(origen);
+        puntos.add(PuntoRutaDTO.builder()
+            .tipo("ALMACEN")
+            .posX(0)
+            .posY(0)
+            .build());
         
         // Agregamos cada pedido como un punto de la ruta
         for (Pedido pedido : pedidos) {
-            Map<String, Object> punto = new HashMap<>();
-            punto.put("tipo", "CLIENTE");
-            punto.put("posX", pedido.getPosX());
-            punto.put("posY", pedido.getPosY());
-            punto.put("idPedido", pedido.getId());
-            puntos.add(punto);
+            puntos.add(PuntoRutaDTO.builder()
+                .tipo("CLIENTE")
+                .posX(pedido.getPosX())
+                .posY(pedido.getPosY())
+                .idPedido(pedido.getId())
+                .build());
         }
         
         // El último punto es el retorno al almacén
-        Map<String, Object> retorno = new HashMap<>();
-        retorno.put("tipo", "ALMACEN");
-        retorno.put("posX", 0);
-        retorno.put("posY", 0);
-        puntos.add(retorno);
+        puntos.add(PuntoRutaDTO.builder()
+            .tipo("ALMACEN")
+            .posX(0)
+            .posY(0)
+            .build());
         
         return puntos;
     }
