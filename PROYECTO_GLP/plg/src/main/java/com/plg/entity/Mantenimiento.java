@@ -8,6 +8,10 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
+@Getter
+@Setter
+@Builder
+@Table(name = "mantenimiento")
 @NoArgsConstructor
 @AllArgsConstructor
 public class Mantenimiento {
@@ -25,8 +29,6 @@ public class Mantenimiento {
     private String tipo; // preventivo, correctivo
     private String descripcion;
     private int estado; // 0: programado, 1: en proceso, 2: finalizado
-    public void setFechaProgramada(LocalDateTime fechaProgramada) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setFechaProgramada'");
-    }
+    
+    
 }

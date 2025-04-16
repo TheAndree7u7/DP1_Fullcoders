@@ -308,24 +308,7 @@ public class Camion {
         return averia;
     }
     
-    /**
-     * Programa un mantenimiento
-     */
-    public Mantenimiento programarMantenimiento(String descripcion, LocalDateTime fechaProgramada) {
-        Mantenimiento mantenimiento = new Mantenimiento();
-        mantenimiento.setCamion(this);
-        mantenimiento.setDescripcion(descripcion);
-        mantenimiento.setFechaProgramada(fechaProgramada);
-        mantenimiento.setEstado(0); // Programado
-        
-        if (this.mantenimientos == null) {
-            this.mantenimientos = new ArrayList<>();
-        }
-        this.mantenimientos.add(mantenimiento);
-        
-        return mantenimiento;
-    }
-    
+ 
     /**
      * Mover el camión a nuevas coordenadas
      */

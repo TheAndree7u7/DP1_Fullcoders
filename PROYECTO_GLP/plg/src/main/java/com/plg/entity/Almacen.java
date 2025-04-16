@@ -17,16 +17,18 @@ public class Almacen {
     private int posX; // Posición X en el mapa
     private int posY; // Posición Y en el mapa
     
-    // Capacidades para GLP
+    // !Capacidades para GLP
     private double capacidadGLP; // Capacidad total de GLP en m3
     private double capacidadActualGLP; // Capacidad actual disponible de GLP en m3
     private double capacidadMaximaGLP; // Capacidad máxima para restaurar en reabastecimiento
     
-    // Capacidades para combustible (gasolina/petróleo)
+    //!Capacidades para combustible (gasolina/petróleo)
     private double capacidadCombustible; // Capacidad total de combustible en galones
-    private double capacidadActualCombustible; // Capacidad actual disponible de combustible en galones
+    private double capacidadActualCombustible; // Capacidad actual disponible de combustible en galones 
     private double capacidadMaximaCombustible; // Capacidad máxima para restaurar en reabastecimiento
     
+
+    //! Tipo de almacén
     private boolean esCentral; // Indica si es el almacén central (true) o intermedio (false)
     private boolean permiteCamionesEstacionados; // Solo el central permite esto por defecto
     
@@ -35,7 +37,7 @@ public class Almacen {
     private boolean ultimoReabastecimientoRealizado = false; // Indica si ya se realizó el reabastecimiento hoy
     
     private boolean activo; // Estado del almacén (activo/inactivo)
-    
+    //!Puede recargar?
     // Método para verificar si el almacén puede recargar combustible
     public boolean puedeRecargarCombustible(double cantidadRequerida) {
         return capacidadActualCombustible >= cantidadRequerida && activo;
