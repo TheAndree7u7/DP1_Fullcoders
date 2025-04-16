@@ -21,6 +21,8 @@ public class Camion {
     private String codigo;
     
     private String tipo; // TA, TB, TC, TD, etc.
+
+    //!GLP
     private double capacidad; // Capacidad en m3 de GLP
     private double capacidadDisponible; // Capacidad disponible actual (m3)
     private double tara; // Peso del camión vacío en toneladas
@@ -30,7 +32,7 @@ public class Camion {
     @Column(name = "estado")
     private int estado; // 0: disponible, 1: en ruta, 2: en mantenimiento, 3: averiado
     
-    // Atributos relacionados con combustible
+    //!combustible Atributos relacionados con 
     @Column(name = "capacidad_tanque")
     private double capacidadTanque = 25.0; // Capacidad del tanque en galones
     
@@ -158,19 +160,25 @@ public class Camion {
      * Actualiza el peso de carga y combinado
      * El peso del GLP es aproximadamente 0.55 ton/m3
      */
+    //Peso de carga= 12,peso e carga es volumen de carga*0.
     private void actualizarPeso() {
-        this.pesoCarga = (capacidad - capacidadDisponible) * 0.55; // Peso del GLP en toneladas
+        this.pesoCarga = (capacidad - capacidadDisponible) * 0.5; // Peso del GLP en toneladas
         this.pesoCombinado = tara + pesoCarga;
     }
     
     /**
-     * Realiza una recarga completa de GLP
+     * Realiza una recarga   de GLP
      */
-    public void recargarGLP(Almacen almacen) {
-        capacidadDisponible = capacidad;
-        porcentajeUso = 0.0;
-        ultimoAlmacen = almacen;
-        fechaUltimaCarga = LocalDateTime.now();
+    public void recargarGLP(double volumenGLP) {
+        capacidadDisponible += volumenGLP;
+        if (capacidadDisponible > capacidad) {
+            capacidadDisponible = capacidad;
+        }
+        
+        // Actualizar porcentaje de uso
+        actualizarPorcentajeUso();
+        
+        // Actualizar peso después de recargar
         actualizarPeso();
     }
     
@@ -281,7 +289,7 @@ public class Camion {
         }
         
         if (combustibleActual <= 0) {
-            combustibleActual = capacidadTanque * 0.75; // Inicializa con 75% del tanque
+            combustibleActual = capacidadTanque * 1; // Inicializa con 100% del tanque
         }
         
         actualizarPorcentajeUso();
