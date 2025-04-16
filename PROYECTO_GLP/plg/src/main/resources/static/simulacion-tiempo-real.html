@@ -793,6 +793,7 @@
                                 almacen.esCentral ? 'almacen central' : 'almacen', 
                                 almacen.nombre);
                             
+
                             // Añadir datos adicionales al elemento para mostrar en el tooltip
                             elemento.dataset.id = almacen.id;
                             elemento.dataset.nombre = almacen.nombre;
@@ -801,6 +802,7 @@
                             elemento.dataset.porcentajeGLP = 
                                 (almacen.capacidadGLP > 0 ? (almacen.capacidadActualGLP / almacen.capacidadGLP) * 100 : 0).toFixed(2);
                             
+
                             // Añadir evento para mostrar información al pasar el ratón
                             elemento.addEventListener('mouseover', mostrarTooltipAlmacen);
                             elemento.addEventListener('mouseout', ocultarTooltip);

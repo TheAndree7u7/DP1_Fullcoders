@@ -253,7 +253,7 @@ public class DataLoader implements CommandLineRunner {
                     LocalDate fechaFin = LocalDate.parse(datos[2].trim(), formatter);
                     
                     // Verificar si existe el camión
-                    Optional<Camion> camionOpt = camionRepository.findById(codigoCamion);
+                    Optional<Camion> camionOpt = camionRepository.findByCodigo(codigoCamion);
                     if (camionOpt.isPresent()) {
                         Camion camion = camionOpt.get();
                         Mantenimiento mantenimiento = Mantenimiento.builder()
