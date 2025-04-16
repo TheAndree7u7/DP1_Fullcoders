@@ -15,12 +15,12 @@ public class Bloqueo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    // Ya no usamos posXInicio, posYInicio, posXFin, posYFin, sino una lista de coordenadas
+    
     @ElementCollection
     @CollectionTable(name = "bloqueo_coordenadas", joinColumns = @JoinColumn(name = "bloqueo_id"))
     private List<Coordenada> coordenadas = new ArrayList<>();
     
-    // Cambiamos de LocalDate a LocalDateTime para manejar horas y minutos
+    
     private LocalDateTime fechaInicio;
     private LocalDateTime fechaFin;
     private String descripcion;
@@ -53,47 +53,26 @@ public class Bloqueo {
     }
     
     /**
-     * Verifica si un punto está en una línea, con una pequeña tolerancia
+     * Verifica si un punto está en una línea dentro de un mapa reticular
      */
-    private boolean estaPuntoEnLinea(int x, int y, int x1, int y1, int x2, int y2) {
-        // Calculamos la distancia del punto a la línea
-        double distanciaALinea = distanciaPuntoALinea(x, y, x1, y1, x2, y2);
-        
-        // Tolerancia para considerar que está en la línea (por ejemplo, 0.5 unidades)
-        double tolerancia = 0.5;
-        
-        // Verificar si la distancia es menor a la tolerancia y el punto está dentro del segmento
-        return distanciaALinea < tolerancia && estaPuntoEnSegmento(x, y, x1, y1, x2, y2);
+    private boolean estaPuntoEnLinea(int puntoX, int puntoY, int lineaInicioX, int lineaInicioY, int lineaFinX, int lineaFinY) {
+        // En un mapa reticular, verificamos si el punto está exactamente en la línea
+        return estaPuntoEnSegmento(puntoX, puntoY, lineaInicioX, lineaInicioY, lineaFinX, lineaFinY);
     }
-    
-    /**
-     * Calcula la distancia de un punto a una línea
-     */
-    private double distanciaPuntoALinea(int x, int y, int x1, int y1, int x2, int y2) {
-        // Si los puntos de la línea son iguales, la distancia es simplemente la distancia al punto
-        if (x1 == x2 && y1 == y2) {
-            return Math.sqrt(Math.pow(x - x1, 2) + Math.pow(y - y1, 2));
-        }
-        
-        // Cálculo de la distancia de un punto a una línea
-        return Math.abs((y2 - y1) * x - (x2 - x1) * y + x2 * y1 - y2 * x1) / 
-               Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
-    }
-    
+
     /**
      * Verifica si un punto está dentro del segmento de línea
      */
-    private boolean estaPuntoEnSegmento(int x, int y, int x1, int y1, int x2, int y2) {
+    private boolean estaPuntoEnSegmento(int puntoX, int puntoY, int segmentoInicioX, int segmentoInicioY, int segmentoFinX, int segmentoFinY) {
         // Calculamos el rango de coordenadas del segmento
-        int minX = Math.min(x1, x2);
-        int maxX = Math.max(x1, x2);
-        int minY = Math.min(y1, y2);
-        int maxY = Math.max(y1, y2);
-        
+        int rangoMinX = Math.min(segmentoInicioX, segmentoFinX);
+        int rangoMaxX = Math.max(segmentoInicioX, segmentoFinX);
+        int rangoMinY = Math.min(segmentoInicioY, segmentoFinY);
+        int rangoMaxY = Math.max(segmentoInicioY, segmentoFinY);
+
         // Verificamos si el punto está dentro del rango del segmento
-        return x >= minX && x <= maxX && y >= minY && y <= maxY;
+        return puntoX >= rangoMinX && puntoX <= rangoMaxX && puntoY >= rangoMinY && puntoY <= rangoMaxY;
     }
-    
     /**
      * Convierte el bloqueo a formato de registro para archivo
      */
