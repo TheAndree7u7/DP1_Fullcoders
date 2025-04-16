@@ -1,5 +1,6 @@
 package com.plg.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,6 +23,7 @@ public class NodoRuta {
     
     @ManyToOne
     @JoinColumn(name = "ruta_id")
+    @JsonBackReference(value="ruta-nodo")
     private Ruta ruta;
     
     @Column(name = "orden")
@@ -38,6 +40,7 @@ public class NodoRuta {
     
     @ManyToOne
     @JoinColumn(name = "pedido_id")
+    @JsonBackReference(value="pedido-nodo")
     private Pedido pedido; // Solo para nodos de tipo "CLIENTE"
     
     @Column(name = "volumen_glp")
@@ -87,7 +90,6 @@ public class NodoRuta {
     
     
      
-    
     /**
      * Calcula la distancia Manhattan a otro nodo
      */

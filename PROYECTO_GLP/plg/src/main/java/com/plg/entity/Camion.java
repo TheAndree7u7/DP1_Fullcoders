@@ -82,6 +82,7 @@ public class Camion {
     private List<Ruta> rutas = new ArrayList<>();
     
     @OneToMany(mappedBy = "camion", cascade = CascadeType.ALL)
+    @JsonManagedReference(value="camion-entregaparcial")
     private List<EntregaParcial> entregasParciales = new ArrayList<>();
     
     /**

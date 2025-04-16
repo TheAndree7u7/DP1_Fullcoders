@@ -29,7 +29,7 @@ public class JacksonConfig {
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         
         // Aumentar el límite de profundidad de anidamiento permitido
-        // // Esto soluciona el error: Document nesting depth exceeds the maximum allowed
+        // Esto soluciona el error: Document nesting depth exceeds the maximum allowed
         // StreamWriteConstraints streamWriteConstraints = StreamWriteConstraints.builder()
         //         .maxNestingDepth(2000) // Aumentar de 1000 (valor por defecto) a 2000
         //         .build();

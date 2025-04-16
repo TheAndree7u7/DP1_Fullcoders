@@ -1,5 +1,6 @@
 package com.plg.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,10 +18,12 @@ public class AsignacionCamion {
     
     @ManyToOne
     @JoinColumn(name = "camion_id")
+    @JsonBackReference(value="camion-asignacion")
     private Camion camion;
     
     @ManyToOne
     @JoinColumn(name = "pedido_id")
+    @JsonBackReference(value="pedido-asignacion")
     private Pedido pedido;
     
     private double volumenAsignado;
@@ -28,6 +31,7 @@ public class AsignacionCamion {
     
     @ManyToOne
     @JoinColumn(name = "ruta_id")
+    @JsonBackReference(value="ruta-asignacion")
     private Ruta ruta;
     
     private boolean entregado;

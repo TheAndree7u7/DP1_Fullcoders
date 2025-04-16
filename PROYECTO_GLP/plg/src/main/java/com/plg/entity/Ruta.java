@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -81,7 +82,12 @@ public class Ruta {
     
     @OneToMany(mappedBy = "ruta", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderColumn(name = "orden")
+    @JsonManagedReference(value="ruta-nodo")
     private List<NodoRuta> nodos = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "ruta", cascade = CascadeType.ALL)
+    @JsonManagedReference(value="ruta-asignacion")
+    private List<AsignacionCamion> asignaciones = new ArrayList<>();
     
     // Para almacenar IDs de bloqueos que afectan a esta ruta
     @Column(name = "bloqueos_ids", length = 255)

@@ -1,5 +1,6 @@
 package com.plg.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
@@ -23,5 +24,6 @@ public class Cliente {
     private int posY;
     
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
+    @JsonManagedReference(value="cliente-pedido")
     private List<Pedido> pedidos;
 }

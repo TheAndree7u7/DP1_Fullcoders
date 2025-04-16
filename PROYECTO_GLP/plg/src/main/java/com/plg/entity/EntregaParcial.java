@@ -1,5 +1,6 @@
 package com.plg.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,17 +26,19 @@ public class EntregaParcial {
     
     @ManyToOne
     @JoinColumn(name = "camion_id")
+    @JsonBackReference(value="camion-entregaparcial")
     private Camion camion;
     
     @ManyToOne
     @JoinColumn(name = "pedido_id")
+    @JsonBackReference(value="pedido-entregaparcial")
     private Pedido pedido;
     
     @Column(name = "volumen_glp")
-    private double volumenGLP;
+    private double volumenGLP; // Volumen asignado para esta entrega parcial
     
     @Column(name = "porcentaje_pedido")
-    private double porcentajePedido;
+    private double porcentajePedido; // Porcentaje del pedido que representa esta entrega
     
     @Column(name = "fecha_asignacion")
     private LocalDateTime fechaAsignacion;
@@ -67,7 +70,7 @@ public class EntregaParcial {
         this.porcentajePedido = porcentajePedido;
     } 
   
-    
+  
     /**
      * Builder pattern para crear instancias de EntregaParcial
      */
