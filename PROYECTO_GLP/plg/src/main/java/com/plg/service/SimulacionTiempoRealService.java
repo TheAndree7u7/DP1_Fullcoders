@@ -112,8 +112,20 @@ public class SimulacionTiempoRealService {
                 procesarMovimientoCamion(camion);
             }
             
+            // Contar estadísticas para incluir en la actualización
+            Map<String, Object> estadisticas = new HashMap<>();
+            estadisticas.put("camionesTotal", camionRepository.count());
+            estadisticas.put("camionesEnRuta", camionRepository.findByEstado(1).size());
+            estadisticas.put("almacenesTotal", almacenRepository.count());
+            estadisticas.put("pedidosTotal", pedidoRepository.count());
+            estadisticas.put("pedidosPendientes", pedidoRepository.findByEstado(0).size());
+            estadisticas.put("pedidosEnRuta", pedidoRepository.findByEstado(1).size());
+            estadisticas.put("pedidosEntregados", pedidoRepository.findByEstado(2).size());
+            estadisticas.put("rutasTotal", rutaRepository.count());
+            estadisticas.put("rutasActivas", rutaRepository.findByEstado(1).size());
+            
             // Enviar actualización a los clientes conectados vía WebSocket
-            enviarActualizacionPosiciones();
+            enviarActualizacionPosiciones(estadisticas);
             
         } catch (Exception e) {
             // Registrar error pero no detener la simulación
@@ -295,7 +307,7 @@ public class SimulacionTiempoRealService {
             // Si todas las entregas están completadas o el volumen entregado es suficiente, marcar pedido como completado
             if (todasEntregasCompletadas || Math.abs(volumenTotalEntregado - pedido.getM3()) < 0.01) {
                 pedido.setEstado(2); // 2 = Entregado
-                pedido.setFechaEntrega(LocalDate.now());
+                pedido.setFechaEntrega(LocalDateTime.now());
                 pedidoRepository.save(pedido);
             }
             

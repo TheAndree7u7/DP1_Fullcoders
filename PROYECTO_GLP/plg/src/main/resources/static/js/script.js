@@ -821,18 +821,24 @@ function actualizarPosiciones(data) {
     // Redibujar el mapa con las nuevas posiciones
     dibujarMapa();
     
-    // Actualizar panel de información
+    // Actualizar panel de información con los datos proporcionados por el servidor
     actualizarPanelInformacion({
         camiones: camiones.length,
         almacenes: almacenes.length,
         pedidos: pedidos.length,
         rutas: rutas.length,
         simulacionEnCurso: simulacionEnCurso,
-        camionesEnRuta: camiones.filter(c => c.estado === 1).length,
-        pedidosPendientes: pedidos.filter(p => p.estado === 0).length,
-        pedidosEnRuta: pedidos.filter(p => p.estado === 1).length,
-        rutasActivas: rutas.filter(r => r.estado === 1).length
+        camionesEnRuta: data.camionesEnRuta || camiones.filter(c => c.estado === 1).length,
+        pedidosPendientes: data.pedidosPendientes || pedidos.filter(p => p.estado === 0).length,
+        pedidosEnRuta: data.pedidosEnRuta || pedidos.filter(p => p.estado === 1).length,
+        rutasActivas: data.rutasActivas || rutas.filter(r => r.estado === 1).length
     });
+    
+    // Actualizar contador de elementos en tiempo real
+    document.getElementById('contador-camiones').textContent = camiones.length;
+    document.getElementById('contador-almacenes').textContent = almacenes.length;
+    document.getElementById('contador-pedidos').textContent = pedidos.length;
+    document.getElementById('contador-rutas').textContent = rutas.length;
 }
 
 // Procesar entrega de pedido

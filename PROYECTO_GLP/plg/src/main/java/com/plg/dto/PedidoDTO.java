@@ -19,7 +19,7 @@ public class PedidoDTO {
     private String codigo;
     private Integer posX;
     private Integer posY;
-    private Integer m3; // Cambiado de Double a Integer para coincidir con la entidad
+    private Double m3; // Cambiado de Double a Integer para coincidir con la entidad
     private Integer horasLimite;
     private String clienteId; // Cambiado de Long a String para coincidir con la entidad
     private String clienteNombre;

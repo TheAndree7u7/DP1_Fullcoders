@@ -37,11 +37,12 @@ public class Pedido {
     //fecha creacion
     private LocalDateTime fechaCreacion; // Fecha de creación del pedido
     //fecha entrega
-    private LocalDate fechaEntrega; // Fecha de entrega del pedido
+    private LocalDateTime fechaEntrega; // Fecha de entrega del pedido
     //m3
-    private int m3; // Volumen total requerido (m3)
-    private LocalDate fechaPedido;
-    private LocalDate fechaEntregaRequerida;
+    private double m3; // Volumen total requerido (m3)
+    // fecha pedido
+    private LocalDateTime fechaPedido;
+    private LocalDateTime fechaEntregaRequerida;
     private LocalDateTime fechaEntregaReal;
     
     private double volumenGLP; // Volumen total requerido (m3)
