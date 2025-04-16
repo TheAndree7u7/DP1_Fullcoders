@@ -3,11 +3,14 @@ package com.plg.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalTime;
-
+//importar column default
+import org.hibernate.annotations.ColumnDefault;
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class Almacen {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,7 +20,7 @@ public class Almacen {
     private int posX; // Posición X en el mapa
     private int posY; // Posición Y en el mapa
     
-    // !Capacidades para GLP
+    // !Capacidades para GLPP
     private double capacidadGLP; // Capacidad total de GLP en m3
     private double capacidadActualGLP; // Capacidad actual disponible de GLP en m3
     private double capacidadMaximaGLP; // Capacidad máxima para restaurar en reabastecimiento
@@ -35,7 +38,8 @@ public class Almacen {
     // Hora de reabastecimiento para almacenes intermedios
     private LocalTime horaReabastecimiento = LocalTime.MIDNIGHT; // Por defecto a las 00:00
     private boolean ultimoReabastecimientoRealizado = false; // Indica si ya se realizó el reabastecimiento hoy
-    
+    @Column(name = "activo")
+    @ColumnDefault("true")
     private boolean activo; // Estado del almacén (activo/inactivo)
     //!Puede recargar?
     // Método para verificar si el almacén puede recargar combustible

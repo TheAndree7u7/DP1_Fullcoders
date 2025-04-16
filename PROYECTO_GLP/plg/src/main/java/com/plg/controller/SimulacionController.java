@@ -49,44 +49,22 @@ public class SimulacionController {
     // NUEVOS ENDPOINTS PARA TIEMPO REAL
     
     @PostMapping("/iniciar-tiempo-real")
-    public ResponseEntity<?> iniciarSimulacionTiempoReal() {
-        simulacionTiempoRealService.iniciarSimulacion();
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("mensaje", "Simulación en tiempo real iniciada");
-        response.put("activa", true);
-        
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Map<String, Object>> iniciarSimulacionTiempoReal() {
+        return ResponseEntity.ok(simulacionTiempoRealService.iniciarSimulacion());
     }
     
     @PostMapping("/detener-tiempo-real")
-    public ResponseEntity<?> detenerSimulacionTiempoReal() {
-        simulacionTiempoRealService.detenerSimulacion();
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("mensaje", "Simulación en tiempo real detenida");
-        response.put("activa", false);
-        
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Map<String, Object>> detenerSimulacionTiempoReal() {
+        return ResponseEntity.ok(simulacionTiempoRealService.detenerSimulacion());
     }
     
     @PostMapping("/ajustar-velocidad")
-    public ResponseEntity<?> ajustarVelocidadSimulacion(@RequestParam int factor) {
-        simulacionTiempoRealService.ajustarFactorAceleracion(factor);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("mensaje", "Velocidad de simulación ajustada");
-        response.put("factor", factor);
-        
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Map<String, Object>> ajustarVelocidadSimulacion(@RequestParam int factor) {
+        return ResponseEntity.ok(simulacionTiempoRealService.ajustarVelocidad(factor));
     }
     
     @GetMapping("/estado")
-    public ResponseEntity<?> obtenerEstadoSimulacion() {
-        Map<String, Object> estado = new HashMap<>();
-        estado.put("activa", simulacionTiempoRealService.isSimulacionActiva());
-        estado.put("tiempo", simulacionTiempoRealService.getTiempoSimulacion());
-        
-        return ResponseEntity.ok(estado);
+    public ResponseEntity<Map<String, Object>> obtenerEstadoSimulacion() {
+        return ResponseEntity.ok(simulacionTiempoRealService.obtenerEstadoSimulacion());
     }
 }

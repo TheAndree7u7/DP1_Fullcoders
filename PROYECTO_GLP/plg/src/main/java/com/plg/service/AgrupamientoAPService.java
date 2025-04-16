@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
-//INICIA MODIFICACION DE ALGORITMO
+//INICIA MODIFICACION DE
 @Service
 public class AgrupamientoAPService {
 

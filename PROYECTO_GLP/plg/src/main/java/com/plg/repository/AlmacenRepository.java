@@ -10,4 +10,8 @@ import java.util.List;
 public interface AlmacenRepository extends JpaRepository<Almacen, Long> {
     List<Almacen> findByActivo(boolean activo);
     List<Almacen> findByEsCentralAndActivo(boolean esCentral, boolean activo);
+    //busca el almacen central activo
+    Almacen findByEsCentralAndActivoTrue(boolean esCentral);//Esto devuleve uno solo, el primero que encuentra
+ 
+ 
 }

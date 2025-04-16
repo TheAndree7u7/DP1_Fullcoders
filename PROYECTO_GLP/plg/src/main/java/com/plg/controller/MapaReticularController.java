@@ -31,9 +31,7 @@ public class MapaReticularController {
         config.put("ancho", mapaConfig.getAncho());
         config.put("origenX", mapaConfig.getOrigenX());
         config.put("origenY", mapaConfig.getOrigenY());
-        config.put("distanciaNodos", mapaConfig.getDistanciaNodos());
-        config.put("almacenCentralX", mapaConfig.getAlmacenCentralX());
-        config.put("almacenCentralY", mapaConfig.getAlmacenCentralY());
+        config.put("distanciaNodos", mapaConfig.getDistanciaNodos()); 
         
         return ResponseEntity.ok(config);
     }

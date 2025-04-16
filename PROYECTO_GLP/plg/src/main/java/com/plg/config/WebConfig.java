@@ -6,6 +6,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -35,5 +36,12 @@ public class WebConfig implements WebMvcConfigurer {
         
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
+    }
+
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        // Configurar rutas de vistas
+        registry.addViewController("/").setViewName("redirect:/simulacion-tiempo-real.html");
+        registry.addViewController("/simulacion").setViewName("redirect:/simulacion-tiempo-real.html");
     }
 }

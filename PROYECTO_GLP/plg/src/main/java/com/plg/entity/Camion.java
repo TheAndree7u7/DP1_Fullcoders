@@ -18,6 +18,9 @@ import java.util.HashMap;
 @Table(name = "camiones")
 public class Camion {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // ID único del camión
+
     private String codigo;
     
     private String tipo; // TA, TB, TC, TD, etc.

@@ -1,8 +1,10 @@
 package com.plg.service;
 
+import com.plg.entity.Almacen;
 import com.plg.entity.Bloqueo;
 import com.plg.entity.Camion;
 import com.plg.entity.Pedido;
+import com.plg.repository.AlmacenRepository;
 import com.plg.repository.CamionRepository;
 import com.plg.repository.PedidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +24,11 @@ public class VisualizadorService {
     
     @Autowired
     private CamionRepository camionRepository;
+    
+    @Autowired
+    private AlmacenRepository almacenRepository;
 
-    public Map<String, Object> obtenerDatosMapa(boolean mostrarPedidos, boolean mostrarCamiones, boolean mostrarBloqueos) {
+    public Map<String, Object> obtenerDatosMapa(boolean mostrarPedidos, boolean mostrarCamiones, boolean mostrarBloqueos, boolean mostrarAlmacenes) {
         Map<String, Object> datos = new HashMap<>();
         
         if (mostrarPedidos) {
@@ -43,10 +48,16 @@ public class VisualizadorService {
         }
         
         if (mostrarBloqueos) {
-            // Aquí se cargarían los bloqueos desde el repositorio
-            // Por ahora usamos datos de ejemplo
             List<Map<String, Object>> bloqueosData = obtenerBloqueosEjemplo();
             datos.put("bloqueos", bloqueosData);
+        }
+        
+        if (mostrarAlmacenes) {
+            List<Almacen> almacenes = almacenRepository.findByActivo(true);
+            List<Map<String, Object>> almacenesData = almacenes.stream()
+                .map(this::convertirAlmacenAMapa)
+                .collect(Collectors.toList());
+            datos.put("almacenes", almacenesData);
         }
         
         return datos;
@@ -55,13 +66,11 @@ public class VisualizadorService {
     public Map<String, Object> obtenerEstadoGeneral() {
         Map<String, Object> estado = new HashMap<>();
         
-        // Estadísticas de pedidos
         List<Pedido> pedidos = pedidoRepository.findAll();
         estado.put("totalPedidos", pedidos.size());
         estado.put("pedidosPendientes", pedidos.stream().filter(p -> p.getEstado() == 0).count());
         estado.put("pedidosEntregados", pedidos.stream().filter(p -> p.getEstado() == 3).count());
         
-        // Estadísticas de camiones
         List<Camion> camiones = camionRepository.findAll();
         estado.put("totalCamiones", camiones.size());
         estado.put("camionesDisponibles", camiones.stream().filter(c -> c.getEstado() == 0).count());
@@ -75,7 +84,6 @@ public class VisualizadorService {
     public Map<String, Object> aplicarFiltros(Map<String, Object> filtros) {
         Map<String, Object> datosConFiltro = new HashMap<>();
         
-        // Aplicar filtros a pedidos
         if (filtros.containsKey("estadoPedidos")) {
             List<Integer> estados = (List<Integer>) filtros.get("estadoPedidos");
             List<Pedido> pedidosFiltrados = pedidoRepository.findAll().stream()
@@ -86,7 +94,6 @@ public class VisualizadorService {
                 .collect(Collectors.toList()));
         }
         
-        // Aplicar filtros a camiones
         if (filtros.containsKey("tipoCamiones")) {
             List<String> tipos = (List<String>) filtros.get("tipoCamiones");
             List<Camion> camionesFiltrados = camionRepository.findAll().stream()
@@ -100,7 +107,6 @@ public class VisualizadorService {
         return datosConFiltro;
     }
     
-    // Métodos auxiliares para convertir entidades a mapas
     private Map<String, Object> convertirPedidoAMapa(Pedido pedido) {
         Map<String, Object> map = new HashMap<>();
         map.put("id", pedido.getId());
@@ -120,15 +126,26 @@ public class VisualizadorService {
         map.put("estado", camion.getEstado());
         map.put("capacidad", camion.getCapacidad());
         map.put("pesoCarga", camion.getPesoCarga());
-        // Para visualización normalmente necesitaríamos la posición actual del camión
-        // Esto se obtendría de otro servicio o sensor
-        map.put("posX", 0); // Por defecto
-        map.put("posY", 0); // Por defecto
+        map.put("posX", 0);
+        map.put("posY", 0);
+        return map;
+    }
+    
+    private Map<String, Object> convertirAlmacenAMapa(Almacen almacen) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", almacen.getId());
+        map.put("nombre", almacen.getNombre());
+        map.put("posX", almacen.getPosX());
+        map.put("posY", almacen.getPosY());
+        map.put("esCentral", almacen.isEsCentral());
+        map.put("capacidadGLP", almacen.getCapacidadGLP());
+        map.put("capacidadActualGLP", almacen.getCapacidadActualGLP());
+        map.put("capacidadCombustible", almacen.getCapacidadCombustible());
+        map.put("capacidadActualCombustible", almacen.getCapacidadActualCombustible());
         return map;
     }
     
     private List<Map<String, Object>> obtenerBloqueosEjemplo() {
-        // Este método es temporal hasta que tengamos un repositorio real de bloqueos
         List<Map<String, Object>> bloqueos = new ArrayList<>();
         
         Map<String, Object> bloqueo1 = new HashMap<>();

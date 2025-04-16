@@ -55,6 +55,12 @@
         button.stop:hover {
             background-color: #d32f2f;
         }
+        button.info {
+            background-color: #2196F3;
+        }
+        button.info:hover {
+            background-color: #0b7dda;
+        }
         select, input {
             padding: 8px;
             border: 1px solid #ddd;
@@ -98,76 +104,155 @@
             border-radius: 5px;
             width: 0%;
         }
+        .progress.warning {
+            background-color: #FFC107;
+        }
+        .progress.danger {
+            background-color: #F44336;
+        }
         .map-container {
-            height: 400px;
+            height: 600px;
             border: 1px solid #ddd;
             margin-top: 20px;
             position: relative;
             overflow: hidden;
-            background-color: #f9f9f9;
+            background-color: #fcfcfc;
+            background-image: linear-gradient(#e3e3e3 1px, transparent 1px), 
+                              linear-gradient(90deg, #e3e3e3 1px, transparent 1px);
+            background-size: 20px 20px;
         }
         .map-item {
             position: absolute;
             transform: translate(-50%, -50%);
+            cursor: pointer;
         }
         .map-item.almacen {
-            width: 20px;
-            height: 20px;
-            background-color: #2196F3;
-            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            z-index: 10;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2348afe7"><path d="M11,2h2v4H11V2z M20,6.5l-1.5,1.5L10,0.8V0H8v2.5L2.5,7.9L1,6.5L0,7.5L3,10L0,12.5L1,13.5L2.5,12l5.5,4.4V22h8v-5.6 l6.1-4.9L24,13.5L21,10l3-2.5L23,6.5L20,6.5z M8.7,14.8L4,11l4.7-3.8l0.3,0.2L4.4,11l4.6,3.6L8.7,14.8z M19,11l-5,4v5h-4v-5l-5-4V8 l7-5l7,5V11z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .map-item.almacen.central {
+            width: 32px;
+            height: 32px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%230d47a1"><path d="M11,2h2v4H11V2z M20,6.5l-1.5,1.5L10,0.8V0H8v2.5L2.5,7.9L1,6.5L0,7.5L3,10L0,12.5L1,13.5L2.5,12l5.5,4.4V22h8v-5.6 l6.1-4.9L24,13.5L21,10l3-2.5L23,6.5L20,6.5z M8.7,14.8L4,11l4.7-3.8l0.3,0.2L4.4,11l4.6,3.6L8.7,14.8z M19,11l-5,4v5h-4v-5l-5-4V8 l7-5l7,5V11z"/></svg>');
         }
         .map-item.camion {
-            width: 10px;
-            height: 10px;
-            background-color: #FF9800;
-            border-radius: 3px;
+            width: 20px;
+            height: 20px;
+            z-index: 5;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%234285f4"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .map-item.camion.averiado {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23f44336"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>');
         }
         .map-item.pedido {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             background-color: #F44336;
             border-radius: 50%;
         }
-        .log-container {
-            height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
+        .tooltip {
+            position: absolute;
+            background-color: white;
+            color: black;
             padding: 10px;
-            margin-top: 20px;
-            background-color: #f5f5f5;
-            font-family: monospace;
+            border-radius: 4px;
+            font-size: 14px;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            border: 1px solid #ddd;
+            min-width: 180px;
         }
-        .log-entry {
-            margin: 2px 0;
+        .tooltip strong {
+            display: block;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .ruta-linea {
+            position: absolute;
+            background-color: #2196F3;
+            height: 3px;
+            transform-origin: 0 0;
+            z-index: 3;
+        }
+        .ruta-linea.bloqueo {
+            background-color: #F44336;
+            height: 5px;
+            z-index: 4;
+        }
+        .info-box {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 12px;
+            z-index: 20;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-width: 200px;
+            top: 10px;
+            right: 10px;
+        }
+        .leyenda {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            z-index: 20;
             font-size: 12px;
         }
-        .tab-container {
-            margin-top: 20px;
-        }
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid #ddd;
-        }
-        .tab {
-            padding: 10px 20px;
+        .leyenda-titulo {
+            font-weight: bold;
+            margin-bottom: 5px;
             cursor: pointer;
-            background-color: #f1f1f1;
-            margin-right: 2px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        .tab.active {
-            background-color: white;
-            border: 1px solid #ddd;
-            border-bottom: 1px solid white;
-            margin-bottom: -1px;
+        .leyenda-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
         }
-        .tab-content {
-            display: none;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-top: none;
+        .leyenda-color {
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .tab-content.active {
-            display: block;
+        .leyenda-color.almacen-central {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%230d47a1"><path d="M11,2h2v4H11V2z M20,6.5l-1.5,1.5L10,0.8V0H8v2.5L2.5,7.9L1,6.5L0,7.5L3,10L0,12.5L1,13.5L2.5,12l5.5,4.4V22h8v-5.6 l6.1-4.9L24,13.5L21,10l3-2.5L23,6.5L20,6.5z M8.7,14.8L4,11l4.7-3.8l0.3,0.2L4.4,11l4.6,3.6L8.7,14.8z M19,11l-5,4v5h-4v-5l-5-4V8 l7-5l7,5V11z"/></svg>');
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        .leyenda-color.almacen-intermedio {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2348afe7"><path d="M11,2h2v4H11V2z M20,6.5l-1.5,1.5L10,0.8V0H8v2.5L2.5,7.9L1,6.5L0,7.5L3,10L0,12.5L1,13.5L2.5,12l5.5,4.4V22h8v-5.6 l6.1-4.9L24,13.5L21,10l3-2.5L23,6.5L20,6.5z M8.7,14.8L4,11l4.7-3.8l0.3,0.2L4.4,11l4.6,3.6L8.7,14.8z M19,11l-5,4v5h-4v-5l-5-4V8 l7-5l7,5V11z"/></svg>');
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        .leyenda-color.camion {
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%234285f4"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>');
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        .leyenda-color.bloqueo {
+            background-color: #F44336;
+            height: 3px;
+            width: 20px;
         }
     </style>
 </head>
@@ -180,8 +265,10 @@
             <div class="controls">
                 <button id="btnIniciar" onclick="iniciarSimulacion()">Iniciar</button>
                 <button id="btnDetener" onclick="detenerSimulacion()" class="stop">Detener</button>
+                <button id="btnCargarAlmacenes" onclick="cargarAlmacenes()" class="info">Cargar Almacenes</button>
                 <label>Velocidad: 
                     <select id="velocidad" onchange="cambiarVelocidad(this.value)">
+                        <option value="1">1x</option>
                         <option value="10">10x</option>
                         <option value="60" selected>60x</option>
                         <option value="120">120x</option>
@@ -198,6 +285,7 @@
             <div class="tab-container">
                 <div class="tabs">
                     <div class="tab active" onclick="cambiarTab(event, 'tabEstadisticas')">Estadísticas</div>
+                    <div class="tab" onclick="cambiarTab(event, 'tabAlmacenes')">Almacenes</div>
                     <div class="tab" onclick="cambiarTab(event, 'tabMapa')">Mapa</div>
                     <div class="tab" onclick="cambiarTab(event, 'tabLog')">Log</div>
                 </div>
@@ -210,9 +298,16 @@
                     </div>
                 </div>
                 
+                <div id="tabAlmacenes" class="tab-content">
+                    <div id="almacenes-container">
+                        <div>Cargando información de almacenes...</div>
+                    </div>
+                </div>
+                
                 <div id="tabMapa" class="tab-content">
                     <div class="map-container" id="mapa">
                         <!-- Los elementos del mapa se insertarán aquí dinámicamente -->
+                        <div id="tooltip" class="tooltip"></div>
                     </div>
                 </div>
                 
@@ -228,6 +323,44 @@
     <script>
         let stompClient = null;
         let simulacionActiva = false;
+        let almacenes = [];
+        let tooltip = document.getElementById("tooltip");
+        
+        // Añadir función para cambiar entre pestañas
+        function cambiarTab(event, tabId) {
+            // Ocultar todas las pestañas
+            const tabsContent = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabsContent.length; i++) {
+                tabsContent[i].classList.remove("active");
+            }
+            
+            // Remover clase active de todas las pestañas
+            const tabs = document.getElementsByClassName("tab");
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove("active");
+            }
+            
+            // Mostrar la pestaña seleccionada
+            document.getElementById(tabId).classList.add("active");
+            
+            // Añadir clase active al tab seleccionado
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add("active");
+            }
+            
+            // Si es la pestaña del mapa, redimensionar los elementos
+            if (tabId === 'tabMapa') {
+                const mapa = document.getElementById('mapa');
+                mapa.innerHTML = '';
+                mapa.appendChild(tooltip);
+                cargarAlmacenes();
+            }
+        }
+        
+        // Iniciar la conexión al WebSocket cuando se cargue la página
+        window.onload = function() {
+            conectarWebSocket();
+        };
         
         function conectarWebSocket() {
             const socket = new SockJS('/ws');
@@ -244,6 +377,8 @@
                 
                 // Verificar estado inicial
                 verificarEstadoSimulacion();
+                // Cargar almacenes al inicio
+                cargarAlmacenes();
             }, error => {
                 console.error('Error en la conexión WebSocket:', error);
                 agregarLog('Error de conexión al WebSocket. Intentando reconectar en 5 segundos...');
@@ -269,6 +404,7 @@
                 agregarTarjetaEstadistica(contenedorEstadisticas, 'Pedidos', [
                     { label: 'Pendientes', valor: estadisticas.pedidosPendientes },
                     { label: 'Asignados', valor: estadisticas.pedidosAsignados },
+                    { label: 'En Ruta', valor: estadisticas.pedidosEnRuta },
                     { label: 'Entregados', valor: estadisticas.pedidosEntregados },
                     { label: 'Total', valor: estadisticas.totalPedidos }
                 ]);
@@ -282,6 +418,16 @@
                     { label: 'Total', valor: estadisticas.totalCamiones }
                 ]);
                 
+                // Estadísticas de almacenes
+                agregarTarjetaEstadistica(contenedorEstadisticas, 'Almacenes', [
+                    { label: 'Centrales', valor: estadisticas.almacenesCentrales },
+                    { label: 'Intermedios', valor: estadisticas.almacenesIntermedios },
+                    { label: 'Total', valor: estadisticas.totalAlmacenes },
+                    { label: 'Capacidad GLP (m³)', valor: estadisticas.capacidadTotalGLP?.toFixed(2) || '0.00' },
+                    { label: 'GLP Actual (m³)', valor: estadisticas.capacidadActualGLP?.toFixed(2) || '0.00' },
+                    { label: 'Ocupación GLP (%)', valor: estadisticas.porcentajeOcupacionGLP?.toFixed(2) || '0.00' }
+                ]);
+                
                 // Estadísticas de eficiencia
                 agregarTarjetaEstadistica(contenedorEstadisticas, 'Eficiencia', [
                     { label: 'Tiempo Promedio (min)', valor: estadisticas.tiempoPromedioEntrega?.toFixed(2) || '0.00' },
@@ -289,8 +435,16 @@
                     { label: 'Consumo (gal)', valor: estadisticas.consumoTotalCombustible?.toFixed(2) || '0.00' }
                 ]);
                 
-                // Actualizar mapa
-                actualizarMapa(datos);
+                // Actualizar mapa si hay posiciones
+                if (datos.posiciones) {
+                    actualizarMapa(datos.posiciones);
+                    
+                    // Guardar almacenes para uso en otras partes de la interfaz
+                    if (datos.posiciones.almacenes) {
+                        almacenes = datos.posiciones.almacenes;
+                        actualizarDetallesAlmacenes(almacenes);
+                    }
+                }
                 
                 // Agregar entrada al log
                 agregarLog(`Actualización en ${tiempo}: ${estadisticas.camionesEnRuta} camiones en ruta, ${estadisticas.pedidosEntregados} pedidos entregados.`);
@@ -318,44 +472,246 @@
         function actualizarMapa(datos) {
             const mapa = document.getElementById('mapa');
             mapa.innerHTML = '';
+            // Volver a añadir el tooltip
+            mapa.appendChild(tooltip);
             
             // Si hay datos de posición de elementos (almacenes, camiones, pedidos)
-            if (datos.posiciones) {
-                // Renderizar almacenes
-                if (datos.posiciones.almacenes) {
-                    datos.posiciones.almacenes.forEach(almacen => {
-                        agregarElementoMapa(mapa, almacen.posX, almacen.posY, 'almacen', almacen.nombre);
-                    });
-                }
+            // Renderizar almacenes
+            if (datos.almacenes) {
+                datos.almacenes.forEach(almacen => {
+                    const elemento = agregarElementoMapa(mapa, almacen.posX, almacen.posY, 
+                        almacen.esCentral ? 'almacen central' : 'almacen', 
+                        almacen.nombre);
+                    
+                    // Añadir datos adicionales al elemento para mostrar en el tooltip
+                    elemento.dataset.id = almacen.id;
+                    elemento.dataset.nombre = almacen.nombre;
+                    elemento.dataset.tipo = almacen.esCentral ? 'central' : 'intermedio';
+                    elemento.dataset.glp = `${almacen.capacidadActualGLP.toFixed(2)} / ${almacen.capacidadGLP.toFixed(2)} m³`;
+                    elemento.dataset.porcentajeGLP = 
+                        (almacen.capacidadGLP > 0 ? (almacen.capacidadActualGLP / almacen.capacidadGLP) * 100 : 0).toFixed(2);
+                    
+                    // Añadir evento para mostrar información al pasar el ratón
+                    elemento.addEventListener('mouseover', mostrarTooltipAlmacen);
+                    elemento.addEventListener('mouseout', ocultarTooltip);
+                });
+            }
+            
+            // Renderizar camiones
+            if (datos.camiones) {
+                datos.camiones.forEach(camion => {
+                    const elemento = agregarElementoMapa(mapa, camion.posX, camion.posY, 
+                        camion.estado === 3 ? 'camion averiado' : 'camion', 
+                        camion.codigo);
+                    
+                    // Añadir datos para tooltip
+                    elemento.dataset.codigo = camion.codigo;
+                    elemento.dataset.tipo = camion.tipo;
+                    elemento.dataset.capacidad = camion.capacidad;
+                    elemento.dataset.estado = camion.estado;
+                    
+                    // Añadir evento para mostrar información
+                    elemento.addEventListener('mouseover', mostrarTooltipCamion);
+                    elemento.addEventListener('mouseout', ocultarTooltip);
+                    
+                    // Si está averiado, mostrar info de avería
+                    if (camion.estado === 3 && camion.averiaCodigo) {
+                        agregarEtiquetaAveria(mapa, camion.posX, camion.posY + 2, `Vehículo ${camion.codigo}`, `Avería ${camion.averiaCodigo}`);
+                    }
+                });
+            }
+            
+            // Renderizar pedidos
+            if (datos.pedidos) {
+                datos.pedidos.forEach(pedido => {
+                    const elemento = agregarElementoMapa(mapa, pedido.posX, pedido.posY, 'pedido', `Pedido ${pedido.id}`);
+                    
+                    // Añadir datos para tooltip
+                    elemento.dataset.id = pedido.id;
+                    elemento.dataset.m3 = pedido.m3;
+                    elemento.dataset.estado = pedido.estado;
+                    
+                    // Añadir evento para mostrar información
+                    elemento.addEventListener('mouseover', mostrarTooltipPedido);
+                    elemento.addEventListener('mouseout', ocultarTooltip);
+                });
+            }
+            
+            // Dibujar cuadrícula para representar las calles
+            dibujarCuadricula(mapa);
+        }
+        
+        function agregarInfoGlp(contenedor, x, y, cantidadActual, capacidadTotal) {
+            const escalaX = contenedor.clientWidth / 70;
+            const escalaY = contenedor.clientHeight / 50;
+            
+            // Ya no creamos un infoBox permanente, toda la información se mostrará en el tooltip
+            return null;
+        }
+        
+        function agregarEtiquetaAveria(contenedor, x, y, linea1, linea2) {
+            const escalaX = contenedor.clientWidth / 70;
+            const escalaY = contenedor.clientHeight / 50;
+            
+            const infoBox = document.createElement('div');
+            infoBox.style.position = 'absolute';
+            infoBox.style.left = (x * escalaX) + 'px';
+            infoBox.style.top = ((50 - y) * escalaY) + 'px';
+            infoBox.style.transform = 'translate(-50%, -50%)';
+            infoBox.style.backgroundColor = 'white';
+            infoBox.style.padding = '4px 8px';
+            infoBox.style.borderRadius = '4px';
+            infoBox.style.fontSize = '12px';
+            infoBox.style.fontWeight = 'bold';
+            infoBox.style.border = '1px solid #f44336';
+            infoBox.style.color = '#f44336';
+            infoBox.style.zIndex = '15';
+            infoBox.style.pointerEvents = 'none';
+            infoBox.innerHTML = `${linea1}<br>${linea2}`;
+            
+            contenedor.appendChild(infoBox);
+            return infoBox;
+        }
+        
+        function dibujarRuta(contenedor, puntos, esBloqueada) {
+            if (!puntos || puntos.length < 2) return;
+            
+            const escalaX = contenedor.clientWidth / 70;
+            const escalaY = contenedor.clientHeight / 50;
+            
+            for (let i = 0; i < puntos.length - 1; i++) {
+                const p1 = puntos[i];
+                const p2 = puntos[i + 1];
                 
-                // Renderizar camiones
-                if (datos.posiciones.camiones) {
-                    datos.posiciones.camiones.forEach(camion => {
-                        agregarElementoMapa(mapa, camion.posX, camion.posY, 'camion', camion.codigo);
-                    });
-                }
+                // Calcular la longitud y el ángulo de la línea
+                const dx = p2.x - p1.x;
+                const dy = p2.y - p1.y;
+                const longitud = Math.sqrt(dx * dx + dy * dy);
+                const angulo = Math.atan2(dy, dx) * (180 / Math.PI);
                 
-                // Renderizar pedidos
-                if (datos.posiciones.pedidos) {
-                    datos.posiciones.pedidos.forEach(pedido => {
-                        agregarElementoMapa(mapa, pedido.posX, pedido.posY, 'pedido', `Pedido ${pedido.id}`);
-                    });
-                }
+                // Crear la línea
+                const linea = document.createElement('div');
+                linea.className = `ruta-linea ${esBloqueada ? 'bloqueo' : ''}`;
+                linea.style.width = (longitud * escalaX) + 'px';
+                linea.style.left = (p1.x * escalaX) + 'px';
+                linea.style.top = ((50 - p1.y) * escalaY) + 'px';
+                linea.style.transform = `rotate(${-angulo}deg)`;
+                
+                contenedor.appendChild(linea);
             }
         }
         
+        function actualizarDetallesAlmacenes(almacenes) {
+            const contenedor = document.getElementById('almacenes-container');
+            contenedor.innerHTML = '';
+            
+            if (!almacenes || almacenes.length === 0) {
+                contenedor.innerHTML = '<div>No hay almacenes disponibles.</div>';
+                return;
+            }
+            
+            almacenes.forEach(almacen => {
+                const almacenHTML = crearDetalleAlmacen(almacen);
+                contenedor.appendChild(almacenHTML);
+            });
+        }
+        
+        function crearDetalleAlmacen(almacen) {
+            const detalle = document.createElement('div');
+            detalle.className = 'almacen-detail';
+            
+            const porcentajeGLP = almacen.porcentajeGLP?.toFixed(2) || '0.00';
+            let estadoClase = 'success';
+            if (porcentajeGLP < 50) estadoClase = 'warning';
+            if (porcentajeGLP < 20) estadoClase = 'danger';
+            
+            detalle.innerHTML = `
+                <div class="almacen-header">
+                    <div class="almacen-title">${almacen.nombre}</div>
+                    <div class="almacen-type ${almacen.esCentral ? 'central' : ''}">${almacen.esCentral ? 'Central' : 'Intermedio'}</div>
+                </div>
+                <div>Posición: (${almacen.posX}, ${almacen.posY})</div>
+                <div class="almacen-stats">
+                    <div class="almacen-stat-item">
+                        <div class="almacen-stat-label">Capacidad GLP</div>
+                        <div class="almacen-stat-value">${almacen.capacidadGLP.toFixed(2)} m³</div>
+                    </div>
+                    <div class="almacen-stat-item">
+                        <div class="almacen-stat-label">GLP Actual</div>
+                        <div class="almacen-stat-value">${almacen.capacidadActualGLP.toFixed(2)} m³</div>
+                    </div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <div>Nivel de GLP:</div>
+                        <div>${porcentajeGLP}%</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress ${estadoClase}" style="width: ${porcentajeGLP}%"></div>
+                    </div>
+                </div>
+            `;
+            
+            return detalle;
+        }
+        
         function agregarElementoMapa(contenedor, x, y, tipo, titulo) {
-            // Escalar coordenadas al tamaño del mapa (asumiendo mapa de 100x100 unidades)
-            const escalaX = contenedor.clientWidth / 100;
-            const escalaY = contenedor.clientHeight / 100;
+            // Escalar coordenadas al tamaño del mapa (70x50)
+            const escalaX = contenedor.clientWidth / 70;
+            const escalaY = contenedor.clientHeight / 50;
             
             const elemento = document.createElement('div');
             elemento.className = 'map-item ' + tipo;
             elemento.style.left = (x * escalaX) + 'px';
-            elemento.style.top = (y * escalaY) + 'px';
+            elemento.style.top = ((50 - y) * escalaY) + 'px'; // Invertir eje Y
             elemento.title = titulo;
             
             contenedor.appendChild(elemento);
+            return elemento;
+        }
+        
+        function dibujarCuadricula(contenedor) {
+            // Limpiar cualquier cuadrícula existente primero
+            const canvasExistente = contenedor.querySelector('canvas');
+            if (canvasExistente) {
+                contenedor.removeChild(canvasExistente);
+            }
+            
+            const escalaX = contenedor.clientWidth / 70;
+            const escalaY = contenedor.clientHeight / 50;
+            
+            // Crear un canvas para dibujar la cuadrícula
+            const canvas = document.createElement('canvas');
+            canvas.width = contenedor.clientWidth;
+            canvas.height = contenedor.clientHeight;
+            canvas.style.position = 'absolute';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.pointerEvents = 'none'; // Para que no interfiera con los clicks
+            canvas.style.zIndex = '1'; // Asegurarse que esté debajo de los elementos
+            
+            const ctx = canvas.getContext('2d');
+            ctx.strokeStyle = '#dddddd';
+            ctx.lineWidth = 0.5;
+            
+            // Dibujar líneas verticales (calles)
+            for (let x = 0; x <= 70; x += 5) {
+                ctx.beginPath();
+                ctx.moveTo(x * escalaX, 0);
+                ctx.lineTo(x * escalaX, contenedor.clientHeight);
+                ctx.stroke();
+            }
+            
+            // Dibujar líneas horizontales (calles)
+            for (let y = 0; y <= 50; y += 5) {
+                ctx.beginPath();
+                ctx.moveTo(0, y * escalaY);
+                ctx.lineTo(contenedor.clientWidth, y * escalaY);
+                ctx.stroke();
+            }
+            
+            // Insertar el canvas al principio del contenedor para que quede debajo de todo
+            contenedor.insertBefore(canvas, contenedor.firstChild);
         }
         
         function agregarLog(mensaje) {
@@ -417,44 +773,114 @@
                 });
         }
         
-        function verificarEstadoSimulacion() {
-            fetch('/api/simulacion/estado')
+        function cargarAlmacenes() {
+            fetch('/api/almacenes')
                 .then(response => response.json())
                 .then(data => {
-                    simulacionActiva = data.activa;
-                    document.getElementById('estado').innerText = simulacionActiva ? 'Activo' : 'Inactivo';
-                    document.getElementById('estado').className = simulacionActiva ? 'status active' : 'status inactive';
-                    
-                    if (data.tiempo) {
-                        document.getElementById('tiempo').innerText = `Tiempo: ${data.tiempo}`;
+                    // El controlador devuelve un objeto con una propiedad 'almacenes'
+                    if (data && data.almacenes) {
+                        almacenes = data.almacenes;
+                        actualizarDetallesAlmacenes(almacenes);
+                        agregarLog(`Cargados ${almacenes.length} almacenes (${data.total} activos de ${data.totalEnBD} totales).`);
+                        
+                        // También actualizar el mapa con los nuevos almacenes
+                        const mapa = document.getElementById('mapa');
+                        mapa.innerHTML = '';
+                        mapa.appendChild(tooltip);
+                        
+                        almacenes.forEach(almacen => {
+                            const elemento = agregarElementoMapa(mapa, almacen.posX, almacen.posY, 
+                                almacen.esCentral ? 'almacen central' : 'almacen', 
+                                almacen.nombre);
+                            
+                            // Añadir datos adicionales al elemento para mostrar en el tooltip
+                            elemento.dataset.id = almacen.id;
+                            elemento.dataset.nombre = almacen.nombre;
+                            elemento.dataset.tipo = almacen.esCentral ? 'central' : 'intermedio';
+                            elemento.dataset.glp = `${almacen.capacidadActualGLP.toFixed(2)} / ${almacen.capacidadGLP.toFixed(2)} m³`;
+                            elemento.dataset.porcentajeGLP = 
+                                (almacen.capacidadGLP > 0 ? (almacen.capacidadActualGLP / almacen.capacidadGLP) * 100 : 0).toFixed(2);
+                            
+                            // Añadir evento para mostrar información al pasar el ratón
+                            elemento.addEventListener('mouseover', mostrarTooltipAlmacen);
+                            elemento.addEventListener('mouseout', ocultarTooltip);
+                        });
                     }
-                    
-                    agregarLog(`Estado de simulación verificado: ${simulacionActiva ? 'activa' : 'inactiva'}.`);
                 })
                 .catch(error => {
-                    console.error('Error al verificar estado:', error);
-                    agregarLog('Error al verificar estado de simulación.');
+                    console.error('Error al cargar almacenes:', error);
+                    agregarLog('Error al cargar almacenes.');
                 });
         }
         
-        function cambiarTab(event, tabId) {
-            // Desactivar todas las pestañas y contenidos
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
+        function mostrarTooltipAlmacen(event) {
+            const almacen = event.currentTarget.dataset;
+            const porcentaje = parseFloat(almacen.porcentajeGLP);
+            let estadoColor = "#4CAF50"; // verde
+            if (porcentaje < 50) estadoColor = "#FFC107"; // amarillo
+            if (porcentaje < 20) estadoColor = "#F44336"; // rojo
             
-            // Activar la pestaña seleccionada
-            event.currentTarget.classList.add('active');
-            document.getElementById(tabId).classList.add('active');
+            tooltip.innerHTML = `
+                <strong>${almacen.nombre}</strong>
+                <div>Tipo: ${almacen.tipo === 'central' ? 'Central' : 'Intermedio'}</div>
+                <div>Cantidad de GLP: ${almacen.glp}</div>
+                <div>Ocupación: 
+                    <div style="display: inline-block; width: 100px; height: 10px; background-color: #e0e0e0; border-radius: 5px; margin-left: 5px;">
+                        <div style="height: 100%; background-color: ${estadoColor}; border-radius: 5px; width: ${porcentaje}%;"></div>
+                    </div>
+                    <span style="margin-left: 5px;">${porcentaje}%</span>
+                </div>
+            `;
+            
+            // Posicionar el tooltip cerca del cursor pero evitando que se salga de la pantalla
+            const mapContainer = document.getElementById('mapa');
+            const mapRect = mapContainer.getBoundingClientRect();
+            
+            let left = event.clientX + 15;
+            let top = event.clientY + 15;
+            
+            // Asegurarse de que el tooltip no se salga del contenedor del mapa
+            if (left + tooltip.offsetWidth > mapRect.right) {
+                left = event.clientX - tooltip.offsetWidth - 15;
+            }
+            
+            if (top + tooltip.offsetHeight > mapRect.bottom) {
+                top = event.clientY - tooltip.offsetHeight - 15;
+            }
+            
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+            tooltip.style.opacity = 1;
         }
         
-        // Conectar al cargar la página
-        document.addEventListener('DOMContentLoaded', () => {
-            conectarWebSocket();
-        });
+        function mostrarTooltipCamion(event) {
+            const camion = event.currentTarget.dataset;
+            tooltip.innerHTML = `
+                <strong>Camión ${camion.codigo}</strong>
+                Tipo: ${camion.tipo}<br>
+                Capacidad: ${camion.capacidad}<br>
+                Estado: ${camion.estado}
+            `;
+            tooltip.style.left = event.pageX + 'px';
+            tooltip.style.top = event.pageY + 'px';
+            tooltip.style.opacity = 1;
+        }
+        
+        function mostrarTooltipPedido(event) {
+            const pedido = event.currentTarget.dataset;
+            tooltip.innerHTML = `
+                <strong>Pedido ${pedido.id}</strong>
+                GLP: ${pedido.m3} m³<br>
+                Estado: ${pedido.estado}
+            `;
+            tooltip.style.left = event.pageX + 'px';
+            tooltip.style.top = event.pageY + 'px';
+            tooltip.style.opacity = 1;
+        }
+        
+        function ocultarTooltip() {
+            tooltip.style.opacity = 0;
+        }
     </script>
 </body>
 </html>

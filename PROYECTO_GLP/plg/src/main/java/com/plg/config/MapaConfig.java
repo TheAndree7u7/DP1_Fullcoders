@@ -4,12 +4,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /**
  * Configuración del mapa para la aplicación
  * Contiene las dimensiones y características del mapa reticular
  */
+@Getter
+@Setter
 @Component
 @Configuration
+@NoArgsConstructor
 public class MapaConfig {
     
     // Dimensiones del mapa
@@ -30,19 +37,8 @@ public class MapaConfig {
     @Value("${mapa.distancia.nodos:1}")
     private double distanciaNodos; // Distancia entre nodos en km
     
-    // Posición del almacén central
-    @Value("${mapa.almacen.central.x:12}")
-    private int almacenCentralX;
-    
-    @Value("${mapa.almacen.central.y:8}")
-    private int almacenCentralY;
-    
-    /**
-     * Constructor por defecto
-     */
-    public MapaConfig() {
-        // Valores por defecto definidos arriba con @Value
-    }
+ 
+  
     
     /**
      * Constructor con parámetros
@@ -103,63 +99,5 @@ public class MapaConfig {
         
         // Convertir lista a array 2D
         return nodosAdyacentes.toArray(new int[0][]);
-    }
-    
-    // Getters y setters
-    
-    public int getLargo() {
-        return largo;
-    }
-    
-    public void setLargo(int largo) {
-        this.largo = largo;
-    }
-    
-    public int getAncho() {
-        return ancho;
-    }
-    
-    public void setAncho(int ancho) {
-        this.ancho = ancho;
-    }
-    
-    public int getOrigenX() {
-        return origenX;
-    }
-    
-    public void setOrigenX(int origenX) {
-        this.origenX = origenX;
-    }
-    
-    public int getOrigenY() {
-        return origenY;
-    }
-    
-    public void setOrigenY(int origenY) {
-        this.origenY = origenY;
-    }
-    
-    public double getDistanciaNodos() {
-        return distanciaNodos;
-    }
-    
-    public void setDistanciaNodos(double distanciaNodos) {
-        this.distanciaNodos = distanciaNodos;
-    }
-    
-    public int getAlmacenCentralX() {
-        return almacenCentralX;
-    }
-    
-    public void setAlmacenCentralX(int almacenCentralX) {
-        this.almacenCentralX = almacenCentralX;
-    }
-    
-    public int getAlmacenCentralY() {
-        return almacenCentralY;
-    }
-    
-    public void setAlmacenCentralY(int almacenCentralY) {
-        this.almacenCentralY = almacenCentralY;
-    }
+    } 
 }

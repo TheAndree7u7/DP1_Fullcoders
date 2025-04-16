@@ -37,7 +37,9 @@ public class RutaService {
     
     @Autowired
     private BloqueoService bloqueoService;
-
+    //para obtener almacen principal
+    @Autowired
+    private AlmacenRepository almacenRepository;
     /**
      * Obtiene una ruta por su código
      */
@@ -94,8 +96,16 @@ public class RutaService {
         }
         
         // Agregar nodo inicial (almacén)
-        ruta.agregarNodo(mapaConfig.getAlmacenCentralX(), mapaConfig.getAlmacenCentralY(), "ALMACEN");
-        
+        // Obtener coordenadas del almacén central
+        Almacen almacenCentral = almacenRepository.findByEsCentralAndActivoTrue(true);
+        if (almacenCentral == null) {
+            throw new RuntimeException("No se encontró el almacén central");
+        }
+        // Obtener coordenadas del almacén central
+        int x_almacenCentral = almacenCentral.getPosX();
+        int y_almacenCentral = almacenCentral.getPosY(); 
+        ruta.agregarNodo(x_almacenCentral, y_almacenCentral, "ALMACEN");
+   
         return rutaRepository.save(ruta);
     }
     
@@ -298,9 +308,19 @@ public class RutaService {
         }
         
         // Punto de inicio: almacén central
-        int xInicio = mapaConfig.getAlmacenCentralX();
-        int yInicio = mapaConfig.getAlmacenCentralY();
-        
+      
+        //Obtener coordenadas de almacen central
+        Almacen almacenCentral = almacenRepository.findByEsCentralAndActivoTrue(true);
+        if (almacenCentral == null) {
+            throw new RuntimeException("No se encontró el almacén central");
+        }
+        int xAlmacenCentral =  almacenCentral.getPosX();
+        int yAlmacenCentral = almacenCentral.getPosY();
+
+
+        int xInicio = xAlmacenCentral;
+        int yInicio = yAlmacenCentral;
+ 
         // Inicializamos la lista de puntos de la ruta con el almacén
         List<Map<String, Object>> puntosRuta = new ArrayList<>();
         puntosRuta.add(createPunto(xInicio, yInicio, "ALMACEN"));

@@ -4,188 +4,318 @@ import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
 import com.plg.entity.Pedido;
 import com.plg.repository.AlmacenRepository;
+import com.plg.repository.CamionRepository;
+import com.plg.repository.PedidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import com.plg.repository.CamionRepository;
-import com.plg.repository.PedidoRepository;
 @Service
 public class SimulacionTiempoRealService {
 
     @Autowired
-    private SimulacionService simulacionService;
+    private SimpMessagingTemplate messagingTemplate;
+    
+    @Autowired
+    private PedidoRepository pedidoRepository;
+    
+    @Autowired
+    private CamionRepository camionRepository;
     
     @Autowired
     private AlmacenRepository almacenRepository;
     
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
-    @Autowired
-    private CamionRepository camionRepository;
-    @Autowired
-    private PedidoRepository pedidoRepository;
-    private AtomicBoolean simulacionActiva = new AtomicBoolean(false);
-    private LocalDateTime tiempoSimulacion = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
-    
-    // Factor de aceleración: cuántas veces más rápido corre el tiempo simulado
-    private int factorAceleracion = 60; // 1 minuto real = 60 minutos simulados
+    private boolean simulacionActiva = false;
+    private LocalDateTime tiempoSimulado = LocalDateTime.now();
+    private int factorVelocidad = 60; // Simulación a 60x por defecto
     
     /**
      * Inicia la simulación en tiempo real
      */
-    public void iniciarSimulacion() {
-        if (!simulacionActiva.getAndSet(true)) {
-            tiempoSimulacion = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
-            simulacionService.inicializarSimulacion();
-            System.out.println("Simulación en tiempo real iniciada a las " + tiempoSimulacion);
-        }
+    public Map<String, Object> iniciarSimulacion() {
+        simulacionActiva = true;
+        tiempoSimulado = LocalDateTime.now(); // Reiniciar tiempo
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("activa", simulacionActiva);
+        response.put("tiempo", formatearTiempo(tiempoSimulado));
+        
+        return response;
     }
     
     /**
      * Detiene la simulación en tiempo real
      */
-    public void detenerSimulacion() {
-        simulacionActiva.set(false);
-        System.out.println("Simulación en tiempo real detenida");
-    }
-    
-    /**
-     * Ajusta el factor de aceleración del tiempo
-     */
-    public void ajustarFactorAceleracion(int factor) {
-        this.factorAceleracion = factor;
-        System.out.println("Factor de aceleración ajustado a: " + factor);
-    }
-    
-    /**
-     * Ejecuta cada segundo para actualizar la simulación
-     */
-    @Scheduled(fixedRate = 1000) // Ejecuta cada segundo
-    public void actualizarSimulacion() {
-        if (simulacionActiva.get()) {
-            // Avanzar el tiempo según el factor de aceleración
-            tiempoSimulacion = tiempoSimulacion.plusMinutes(factorAceleracion);
-            
-            // Verificar reabastecimiento de almacenes intermedios
-            LocalTime horaActual = tiempoSimulacion.toLocalTime();
-            verificarReabastecimientoAlmacenes(horaActual);
-            
-            // Ejecutar un paso de simulación
-            simulacionService.ejecutarPasoSimulacion(tiempoSimulacion);
-            
-            // Emitir eventos a los clientes conectados
-            notificarClientes();
-            
-            // Si llegamos al final del día, podemos reiniciar o detener
-            if (horaActual.isAfter(LocalTime.of(23, 59))) {
-                tiempoSimulacion = tiempoSimulacion.plusDays(1).withHour(0).withMinute(0).withSecond(0);
-                System.out.println("Nuevo día de simulación: " + tiempoSimulacion.toLocalDate());
-            }
-        }
-    }
-    
-    /**
-     * Verifica si es hora de reabastecer algún almacén intermedio
-     */
-    private void verificarReabastecimientoAlmacenes(LocalTime horaActual) {
-        almacenRepository.findByEsCentralAndActivo(false, true).forEach(almacen -> {
-            LocalTime horaReabastecimiento = almacen.getHoraReabastecimiento();
-            
-            // Verificar si es hora de reabastecer (con margen de ±factorAceleracion minutos)
-            if (Math.abs(horaActual.toSecondOfDay() - horaReabastecimiento.toSecondOfDay()) < factorAceleracion * 60) {
-                reabastecerAlmacen(almacen);
-            }
-        });
-    }
-    
-    /**
-     * Reabastece un almacén
-     */
-    private void reabastecerAlmacen(Almacen almacen) {
-        almacen.reabastecer();
-        almacenRepository.save(almacen);
-        System.out.println(tiempoSimulacion + " - Reabastecido almacén: " + almacen.getNombre());
-    }
-    
-    /**
-     * Notifica a los clientes conectados sobre el estado actual
-     */
-    private void notificarClientes() {
-        Map<String, Object> estadoActual = simulacionService.ejecutarPasoSimulacion(tiempoSimulacion);
+    public Map<String, Object> detenerSimulacion() {
+        simulacionActiva = false;
         
-        // Añadir información de posiciones para el mapa
+        Map<String, Object> response = new HashMap<>();
+        response.put("activa", simulacionActiva);
+        response.put("tiempo", formatearTiempo(tiempoSimulado));
+        
+        return response;
+    }
+    
+    /**
+     * Obtiene el estado actual de la simulación
+     */
+    public Map<String, Object> obtenerEstadoSimulacion() {
+        Map<String, Object> estado = new HashMap<>();
+        estado.put("activa", simulacionActiva);
+        estado.put("tiempo", formatearTiempo(tiempoSimulado));
+        estado.put("factorVelocidad", factorVelocidad);
+        
+        return estado;
+    }
+    
+    /**
+     * Ajusta la velocidad de la simulación
+     */
+    public Map<String, Object> ajustarVelocidad(int factor) {
+        this.factorVelocidad = factor;
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("factorVelocidad", factorVelocidad);
+        
+        return response;
+    }
+    
+    /**
+     * Actualiza la simulación periódicamente 
+     * y envía los datos actualizados a través de WebSocket
+     */
+    @Scheduled(fixedRate = 1000) // Actualizar cada segundo
+    public void actualizarSimulacion() {
+        if (!simulacionActiva) {
+            return;
+        }
+        
+        // Avanzar el tiempo simulado según el factor de velocidad
+        tiempoSimulado = tiempoSimulado.plusSeconds(factorVelocidad);
+        
+        // Obtener datos actualizados de la simulación
+        Map<String, Object> datosActualizados = generarDatosSimulacion();
+        
+        // Enviar datos a través de WebSocket
+        messagingTemplate.convertAndSend("/topic/simulacion", datosActualizados);
+    }
+    
+    /**
+     * Genera los datos actualizados para enviar al cliente
+     */
+    private Map<String, Object> generarDatosSimulacion() {
+        Map<String, Object> datos = new HashMap<>();
+        
+        // Información de tiempo
+        datos.put("tiempo", formatearTiempo(tiempoSimulado));
+        
+        // Obtener estadísticas de pedidos y camiones
+        datos.put("estadisticas", obtenerEstadisticas());
+        
+        // Obtener posiciones actuales de elementos en el mapa
+        datos.put("posiciones", obtenerPosiciones());
+        
+        return datos;
+    }
+    
+    /**
+     * Obtiene estadísticas generales para la simulación
+     */
+    private Map<String, Object> obtenerEstadisticas() {
+        Map<String, Object> estadisticas = new HashMap<>();
+        
+        // Estadísticas de pedidos
+        List<Pedido> pedidos = pedidoRepository.findAll();
+        estadisticas.put("totalPedidos", pedidos.size());
+        estadisticas.put("pedidosPendientes", pedidos.stream().filter(p -> p.getEstado() == 0).count());
+        estadisticas.put("pedidosAsignados", pedidos.stream().filter(p -> p.getEstado() == 1).count());
+        estadisticas.put("pedidosEnRuta", pedidos.stream().filter(p -> p.getEstado() == 2).count());
+        estadisticas.put("pedidosEntregados", pedidos.stream().filter(p -> p.getEstado() == 3).count());
+        
+        // Estadísticas de camiones
+        List<Camion> camiones = camionRepository.findAll();
+        estadisticas.put("totalCamiones", camiones.size());
+        estadisticas.put("camionesDisponibles", camiones.stream().filter(c -> c.getEstado() == 0).count());
+        estadisticas.put("camionesEnRuta", camiones.stream().filter(c -> c.getEstado() == 1).count());
+        estadisticas.put("camionesEnMantenimiento", camiones.stream().filter(c -> c.getEstado() == 2).count());
+        estadisticas.put("camionesAveriados", camiones.stream().filter(c -> c.getEstado() == 3).count());
+        
+        // Estadísticas de almacenes
+        List<Almacen> almacenes = almacenRepository.findByActivo(true);
+        estadisticas.put("totalAlmacenes", almacenes.size());
+        estadisticas.put("almacenesCentrales", almacenes.stream().filter(Almacen::isEsCentral).count());
+        estadisticas.put("almacenesIntermedios", almacenes.stream().filter(a -> !a.isEsCentral()).count());
+        
+        // Capacidad total y actual de GLP
+        double capacidadTotalGLP = almacenes.stream().mapToDouble(Almacen::getCapacidadGLP).sum();
+        double capacidadActualGLP = almacenes.stream().mapToDouble(Almacen::getCapacidadActualGLP).sum();
+        estadisticas.put("capacidadTotalGLP", capacidadTotalGLP);
+        estadisticas.put("capacidadActualGLP", capacidadActualGLP);
+        estadisticas.put("porcentajeOcupacionGLP", 
+                capacidadTotalGLP > 0 ? (capacidadActualGLP / capacidadTotalGLP) * 100 : 0);
+        
+        // Estadísticas de eficiencia (simuladas)
+        estadisticas.put("tiempoPromedioEntrega", calcularTiempoPromedioEntrega());
+        estadisticas.put("eficienciaEntrega", calcularEficienciaEntrega());
+        estadisticas.put("consumoTotalCombustible", calcularConsumoTotalCombustible());
+        
+        return estadisticas;
+    }
+    
+    /**
+     * Obtiene las posiciones actuales de elementos para mostrar en el mapa
+     */
+    private Map<String, Object> obtenerPosiciones() {
         Map<String, Object> posiciones = new HashMap<>();
         
         // Obtener posiciones de almacenes
         List<Almacen> almacenes = almacenRepository.findByActivo(true);
-        List<Map<String, Object>> posicionesAlmacenes = new ArrayList<>();
+        posiciones.put("almacenes", convertirAlmacenesAMapa(almacenes));
         
-        for (Almacen almacen : almacenes) {
-            Map<String, Object> pos = new HashMap<>();
-            pos.put("id", almacen.getId());
-            pos.put("nombre", almacen.getNombre());
-            pos.put("posX", almacen.getPosX());
-            pos.put("posY", almacen.getPosY());
-            pos.put("esCentral", almacen.isEsCentral());
-            posicionesAlmacenes.add(pos);
-        }
-        posiciones.put("almacenes", posicionesAlmacenes);
+        // Obtener posiciones de camiones (en un sistema real, estas vendrían de un servicio GPS)
+        List<Camion> camiones = camionRepository.findAll();
+        posiciones.put("camiones", convertirCamionesAMapa(camiones));
         
-        // Obtener posiciones de camiones
-        List<Camion> camiones = camionRepository.findByEstadoNot(0); // Todos menos los disponibles
-        List<Map<String, Object>> posicionesCamiones = new ArrayList<>();
+        // Obtener posiciones de pedidos pendientes y en curso
+        List<Pedido> pedidos = pedidoRepository.findAll().stream()
+                .filter(p -> p.getEstado() < 3) // Solo pendientes, asignados o en ruta
+                .collect(Collectors.toList());
+        posiciones.put("pedidos", convertirPedidosAMapa(pedidos));
         
-        for (Camion camion : camiones) {
-            Map<String, Object> pos = new HashMap<>();
-            pos.put("codigo", camion.getCodigo());
-            pos.put("posX", camion.getPosX());
-            pos.put("posY", camion.getPosY());
-            pos.put("estado", camion.getEstado());
-            posicionesCamiones.add(pos);
-        }
-        posiciones.put("camiones", posicionesCamiones);
-        
-        // Obtener posiciones de pedidos
-        List<Pedido> pedidos = pedidoRepository.findByEstado(1); // Pedidos asignados
-        List<Map<String, Object>> posicionesPedidos = new ArrayList<>();
-        
-        for (Pedido pedido : pedidos) {
-            Map<String, Object> pos = new HashMap<>();
-            pos.put("id", pedido.getId());
-            pos.put("posX", pedido.getPosX());
-            pos.put("posY", pedido.getPosY());
-            posicionesPedidos.add(pos);
-        }
-        posiciones.put("pedidos", posicionesPedidos);
-        
-        // Agregar las posiciones al estado
-        estadoActual.put("posiciones", posiciones);
-        
-        // Enviar el estado completo por WebSocket
-        messagingTemplate.convertAndSend("/topic/simulacion", estadoActual);
+        return posiciones;
     }
     
     /**
-     * Obtiene el tiempo actual de la simulación
+     * Convierte una lista de almacenes a formato de mapa
      */
-    public LocalDateTime getTiempoSimulacion() {
-        return tiempoSimulacion;
+    private List<Map<String, Object>> convertirAlmacenesAMapa(List<Almacen> almacenes) {
+        return almacenes.stream()
+                .map(this::convertirAlmacenAMapa)
+                .collect(Collectors.toList());
     }
     
     /**
-     * Verifica si la simulación está activa
+     * Convierte un almacén a formato de mapa
      */
-    public boolean isSimulacionActiva() {
-        return simulacionActiva.get();
+    private Map<String, Object> convertirAlmacenAMapa(Almacen almacen) {
+        Map<String, Object> mapa = new HashMap<>();
+        mapa.put("id", almacen.getId());
+        mapa.put("nombre", almacen.getNombre());
+        mapa.put("posX", almacen.getPosX());
+        mapa.put("posY", almacen.getPosY());
+        mapa.put("esCentral", almacen.isEsCentral());
+        mapa.put("capacidadGLP", almacen.getCapacidadGLP());
+        mapa.put("capacidadActualGLP", almacen.getCapacidadActualGLP());
+        
+        // Calcular porcentaje de ocupación
+        double porcentajeGLP = 0;
+        if (almacen.getCapacidadGLP() > 0) {
+            porcentajeGLP = (almacen.getCapacidadActualGLP() / almacen.getCapacidadGLP()) * 100;
+        }
+        mapa.put("porcentajeGLP", porcentajeGLP);
+        
+        return mapa;
+    }
+    
+    /**
+     * Convierte una lista de camiones a formato de mapa
+     */
+    private List<Map<String, Object>> convertirCamionesAMapa(List<Camion> camiones) {
+        return camiones.stream()
+                .map(this::convertirCamionAMapa)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Convierte un camión a formato de mapa
+     */
+    private Map<String, Object> convertirCamionAMapa(Camion camion) {
+        Map<String, Object> mapa = new HashMap<>();
+        mapa.put("codigo", camion.getCodigo());
+        mapa.put("tipo", camion.getTipo());
+        mapa.put("estado", camion.getEstado());
+        mapa.put("capacidad", camion.getCapacidad());
+        
+        // Simular posición del camión (en un sistema real obtendríamos estos datos del GPS)
+        // Si el camión está en un almacén, usamos las coordenadas del almacén
+        if (camion.getUltimoAlmacen() != null) {
+            mapa.put("posX", camion.getUltimoAlmacen().getPosX());
+            mapa.put("posY", camion.getUltimoAlmacen().getPosY());
+        } else {
+            // De lo contrario, usar la posición almacenada del camión o una simulada
+            mapa.put("posX", camion.getPosX());
+            mapa.put("posY", camion.getPosY());
+        }
+        
+        return mapa;
+    }
+    
+    /**
+     * Convierte una lista de pedidos a formato de mapa
+     */
+    private List<Map<String, Object>> convertirPedidosAMapa(List<Pedido> pedidos) {
+        return pedidos.stream()
+                .map(this::convertirPedidoAMapa)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Convierte un pedido a formato de mapa
+     */
+    private Map<String, Object> convertirPedidoAMapa(Pedido pedido) {
+        Map<String, Object> mapa = new HashMap<>();
+        mapa.put("id", pedido.getId());
+        mapa.put("estado", pedido.getEstado());
+        mapa.put("posX", pedido.getPosX());
+        mapa.put("posY", pedido.getPosY());
+        mapa.put("m3", pedido.getM3());
+        
+        if (pedido.getCliente() != null) {
+            mapa.put("cliente", pedido.getCliente().getId());
+        }
+        
+        return mapa;
+    }
+    
+    /**
+     * Formatea un LocalDateTime para mostrarlo en la simulación
+     */
+    private String formatearTiempo(LocalDateTime tiempo) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return tiempo.format(formatter);
+    }
+    
+    // Métodos simulados para estadísticas (en un sistema real estos datos provendrían de cálculos reales)
+    
+    private double calcularTiempoPromedioEntrega() {
+        List<Pedido> pedidosEntregados = pedidoRepository.findAll().stream()
+                .filter(p -> p.getEstado() == 3) // Solo entregados
+                .collect(Collectors.toList());
+        
+        if (pedidosEntregados.isEmpty()) {
+            return 0;
+        }
+        
+        // En un sistema real, calcularíamos basados en fechas reales de entrega y fecha de pedido
+        return 120.0; // Valor simulado: 120 minutos
+    }
+    
+    private double calcularEficienciaEntrega() {
+        // En un sistema real, calcularíamos basados en tiempos estimados vs. tiempos reales
+        return 85.5; // Valor simulado: 85.5%
+    }
+    
+    private double calcularConsumoTotalCombustible() {
+        // En un sistema real, calcularíamos basados en consumo registrado
+        List<Camion> camiones = camionRepository.findAll();
+        return camiones.size() * 25.0; // Valor simulado: 25 galones por camión
     }
 }

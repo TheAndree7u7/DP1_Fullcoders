@@ -18,12 +18,14 @@ public class VisualizadorController {
     public ResponseEntity<?> obtenerDatosMapa(
             @RequestParam(required = false) Boolean mostrarPedidos,
             @RequestParam(required = false) Boolean mostrarCamiones,
-            @RequestParam(required = false) Boolean mostrarBloqueos) {
+            @RequestParam(required = false) Boolean mostrarBloqueos,
+            @RequestParam(required = false) Boolean mostrarAlmacenes) {
         
         return ResponseEntity.ok(visualizadorService.obtenerDatosMapa(
-                mostrarPedidos != null ? mostrarPedidos : true,
-                mostrarCamiones != null ? mostrarCamiones : true,
-                mostrarBloqueos != null ? mostrarBloqueos : true));
+                mostrarPedidos == null ? true : mostrarPedidos,
+                mostrarCamiones == null ? true : mostrarCamiones,
+                mostrarBloqueos == null ? true : mostrarBloqueos,
+                mostrarAlmacenes == null ? true : mostrarAlmacenes));
     }
     
     @GetMapping("/estado-general")
