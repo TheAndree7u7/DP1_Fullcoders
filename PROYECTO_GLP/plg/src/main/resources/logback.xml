@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Console appender with color support -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                <![CDATA[
+                %d{yyyy-MM-dd HH:mm:ss} - %highlight{%level} - %logger{36} - %msg%n
+                ]]>
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!-- Root logger configuration -->
+    <root level="info">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+    <!-- Optionally define a logger for specific classes -->
+    <logger name="com.plg" level="debug">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+</configuration>

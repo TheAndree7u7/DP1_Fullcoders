@@ -91,6 +91,23 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-websocket</artifactId> 
 		</dependency>
+		<!-- !LOGS -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId> 
+		</dependency>
+	
+		<!-- SLF4J Binding for Logback (SLF4J es la interfaz de logging que usarás) -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId> 
+		</dependency>
+	
+		<!-- Logback Encoder for Color support -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId> 
+		</dependency>
 	</dependencies>
 
 	<build>
