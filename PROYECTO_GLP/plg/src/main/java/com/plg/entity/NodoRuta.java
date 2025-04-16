@@ -30,10 +30,10 @@ public class NodoRuta {
     private int orden;
     
     @Column(name = "pos_x")
-    private int posX;
+    private Integer posX;
     
     @Column(name = "pos_y")
-    private int posY;
+    private Integer posY;
     
     @Column(name = "tipo")
     private String tipo; // "ALMACEN", "CLIENTE", "INTERMEDIO"

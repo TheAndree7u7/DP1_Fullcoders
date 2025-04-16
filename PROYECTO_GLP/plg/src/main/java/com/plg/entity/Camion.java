@@ -47,10 +47,10 @@ public class Camion {
     
     // Posición actual del camión (para calcular distancia a recorrer)
     @Column(name = "pos_x")
-    private int posX;
+    private Integer posX;
     
     @Column(name = "pos_y")
-    private int posY;
+    private Integer posY;
     
     // Último almacén visitado
     @ManyToOne

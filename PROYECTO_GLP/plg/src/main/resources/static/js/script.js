@@ -11,6 +11,14 @@ let velocidadSimulacion = 1;
 // Tamaño de la celda para visualización en el mapa
 const TAMANO_CELDA = 30;
 
+// Variables para el control de la vista del mapa
+let escalaActual = 1.0;      // Escala actual (zoom)
+let offsetX = 0;             // Desplazamiento horizontal
+let offsetY = 0;             // Desplazamiento vertical
+let arrastrando = false;     // Control si se está arrastrando el mapa
+let ultimaX = 0;             // Última posición X para cálculo de arrastre
+let ultimaY = 0;             // Última posición Y para cálculo de arrastre
+
 // Colores para diferentes tipos de elementos
 const COLORES = {
     CAMION: '#3498db',
@@ -34,7 +42,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('btn-generar-rutas').addEventListener('click', generarRutas);
 });
 
-// Inicializar la interfaz de usuario
+// Modificar la función inicializarUI
+
 function inicializarUI() {
     // Configurar el mapa reticular (canvas)
     const mapaCanvas = document.getElementById('mapa-canvas');
@@ -52,6 +61,16 @@ function inicializarUI() {
         dibujarMapa();
     });
     
+    // Eventos para zoom y desplazamiento
+    mapaCanvas.addEventListener('wheel', manejarZoom);
+    mapaCanvas.addEventListener('mousedown', iniciarArrastre);
+    mapaCanvas.addEventListener('mousemove', arrastrarMapa);
+    mapaCanvas.addEventListener('mouseup', finalizarArrastre);
+    mapaCanvas.addEventListener('mouseleave', finalizarArrastre);
+    
+    // Agregar controles de mapa al contenedor
+    agregarControlesMapa(contenedorMapa);
+    
     // Inicializar panel de información
     actualizarPanelInformacion({
         camiones: 0,
@@ -60,6 +79,151 @@ function inicializarUI() {
         rutas: 0,
         simulacionEnCurso: false
     });
+}
+
+// Agregar controles visuales para el mapa
+function agregarControlesMapa(contenedor) {
+    // Panel de controles
+    const controlesDiv = document.createElement('div');
+    controlesDiv.className = 'controles-mapa';
+    
+    // Botón zoom in
+    const zoomInBtn = document.createElement('button');
+    zoomInBtn.className = 'control-btn';
+    zoomInBtn.innerHTML = '➕';
+    zoomInBtn.title = 'Acercar';
+    zoomInBtn.addEventListener('click', () => {
+        cambiarZoom(0.1);
+    });
+    
+    // Botón zoom out
+    const zoomOutBtn = document.createElement('button');
+    zoomOutBtn.className = 'control-btn';
+    zoomOutBtn.innerHTML = '➖';
+    zoomOutBtn.title = 'Alejar';
+    zoomOutBtn.addEventListener('click', () => {
+        cambiarZoom(-0.1);
+    });
+    
+    // Botón reset vista
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'control-btn';
+    resetBtn.innerHTML = '🔄';
+    resetBtn.title = 'Restablecer vista';
+    resetBtn.addEventListener('click', resetearVista);
+    
+    // Botón pantalla completa
+    const fullscreenBtn = document.createElement('button');
+    fullscreenBtn.className = 'control-btn';
+    fullscreenBtn.innerHTML = '⛶';
+    fullscreenBtn.title = 'Pantalla completa';
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+    
+    // Añadir botones al panel
+    controlesDiv.appendChild(zoomInBtn);
+    controlesDiv.appendChild(zoomOutBtn);
+    controlesDiv.appendChild(resetBtn);
+    controlesDiv.appendChild(fullscreenBtn);
+    
+    // Añadir panel al contenedor
+    contenedor.appendChild(controlesDiv);
+}
+
+// Manejar evento de rueda para zoom
+function manejarZoom(event) {
+    event.preventDefault();
+    const delta = -Math.sign(event.deltaY) * 0.1;
+    cambiarZoom(delta, event.offsetX, event.offsetY);
+}
+
+// Cambiar nivel de zoom
+function cambiarZoom(delta, centerX, centerY) {
+    // Obtener centro si no se proporciona
+    const mapaCanvas = document.getElementById('mapa-canvas');
+    centerX = centerX || mapaCanvas.width / 2;
+    centerY = centerY || mapaCanvas.height / 2;
+    
+    // Calcular nueva escala con límites
+    const escalaAnterior = escalaActual;
+    escalaActual += delta;
+    escalaActual = Math.max(0.5, Math.min(3.0, escalaActual)); // Limitar entre 0.5x y 3x
+    
+    // Ajustar offset para mantener el punto de zoom como centro
+    if (escalaActual !== escalaAnterior) {
+        const factor = escalaActual / escalaAnterior;
+        offsetX = centerX - (centerX - offsetX) * factor;
+        offsetY = centerY - (centerY - offsetY) * factor;
+    }
+    
+    // Actualizar la visualización
+    dibujarMapa();
+}
+
+// Iniciar arrastre del mapa
+function iniciarArrastre(event) {
+    arrastrando = true;
+    ultimaX = event.clientX;
+    ultimaY = event.clientY;
+    document.getElementById('mapa-canvas').style.cursor = 'grabbing';
+}
+
+// Arrastrar el mapa
+function arrastrarMapa(event) {
+    if (!arrastrando) return;
+    
+    const deltaX = event.clientX - ultimaX;
+    const deltaY = event.clientY - ultimaY;
+    
+    offsetX += deltaX;
+    offsetY += deltaY;
+    
+    ultimaX = event.clientX;
+    ultimaY = event.clientY;
+    
+    dibujarMapa();
+}
+
+// Finalizar arrastre
+function finalizarArrastre() {
+    arrastrando = false;
+    document.getElementById('mapa-canvas').style.cursor = 'grab';
+}
+
+// Resetear la vista al estado inicial
+function resetearVista() {
+    escalaActual = 1.0;
+    offsetX = 0;
+    offsetY = 0;
+    dibujarMapa();
+}
+
+// Alternar pantalla completa para el mapa
+function toggleFullscreen() {
+    const contenedorMapa = document.getElementById('contenedor-mapa');
+    
+    if (!document.fullscreenElement) {
+        // Entrar a pantalla completa
+        if (contenedorMapa.requestFullscreen) {
+            contenedorMapa.requestFullscreen();
+        } else if (contenedorMapa.mozRequestFullScreen) { /* Firefox */
+            contenedorMapa.mozRequestFullScreen();
+        } else if (contenedorMapa.webkitRequestFullscreen) { /* Chrome, Safari, Opera */
+            contenedorMapa.webkitRequestFullscreen();
+        } else if (contenedorMapa.msRequestFullscreen) { /* IE/Edge */
+            contenedorMapa.msRequestFullscreen();
+        }
+    } else {
+        // Salir de pantalla completa
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
 }
 
 // Cargar datos iniciales desde el servidor
@@ -136,6 +300,13 @@ function dibujarMapa() {
     // Limpiar el canvas
     ctx.clearRect(0, 0, mapaCanvas.width, mapaCanvas.height);
     
+    // Guardar el estado actual del contexto
+    ctx.save();
+    
+    // Aplicar transformaciones para zoom y desplazamiento
+    ctx.translate(offsetX, offsetY);
+    ctx.scale(escalaActual, escalaActual);
+    
     // Dibujar cuadrícula
     dibujarCuadricula(ctx);
     
@@ -150,17 +321,20 @@ function dibujarMapa() {
     
     // Dibujar camiones (último para que estén por encima)
     dibujarCamiones(ctx);
+    
+    // Restaurar el estado del contexto
+    ctx.restore();
 }
 
 // Dibujar la cuadrícula base
 function dibujarCuadricula(ctx) {
     const mapaCanvas = document.getElementById('mapa-canvas');
-    const ancho = mapaCanvas.width;
-    const alto = mapaCanvas.height;
+    const ancho = mapaCanvas.width / escalaActual;
+    const alto = mapaCanvas.height / escalaActual;
     
-    // Configurar estilo de línea para la cuadrícula
-    ctx.strokeStyle = '#ddd';
-    ctx.lineWidth = 0.5;
+    // Aplicar estilo de línea más visible para la cuadrícula
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--color-grid').trim() || '#a0a0a0';
+    ctx.lineWidth = 1.5; // Aumentar significativamente el grosor de las líneas
     
     // Dibujar líneas horizontales
     for (let y = 0; y <= alto; y += TAMANO_CELDA) {
@@ -177,35 +351,58 @@ function dibujarCuadricula(ctx) {
         ctx.lineTo(x, alto);
         ctx.stroke();
     }
+    
+    // Añadir números en los ejes para mejor referencia
+    ctx.fillStyle = '#555';
+    ctx.font = '10px Arial';
+    
+    // Números en eje horizontal (cada 5 celdas)
+    for (let x = 0; x <= ancho; x += TAMANO_CELDA * 5) {
+        if (x > 0) { // Evitar el 0,0
+            ctx.fillText(x / TAMANO_CELDA, x + 2, 10);
+        }
+    }
+    
+    // Números en eje vertical (cada 5 celdas)
+    for (let y = 0; y <= alto; y += TAMANO_CELDA * 5) {
+        if (y > 0) { // Evitar el 0,0
+            ctx.fillText(y / TAMANO_CELDA, 2, y + 10);
+        }
+    }
 }
 
 // Dibujar almacenes en el mapa
 function dibujarAlmacenes(ctx) {
     almacenes.forEach(almacen => {
-        // Calcular posición en el canvas
+        // Calcular posición en el canvas (colocar en la intersección de las líneas)
         const x = almacen.posX * TAMANO_CELDA;
         const y = almacen.posY * TAMANO_CELDA;
         
-        // Dibujar almacén como un rectángulo verde
+        // Dibujar almacén como un punto exactamente en la intersección de las líneas
         ctx.fillStyle = COLORES.ALMACEN;
-        ctx.fillRect(x, y, TAMANO_CELDA, TAMANO_CELDA);
+        const tamanoPunto = TAMANO_CELDA / 4; // Un cuarto del tamaño de la celda
+        
+        // Dibujar un círculo pequeño en la intersección
+        ctx.beginPath();
+        ctx.arc(x, y, tamanoPunto, 0, 2 * Math.PI);
+        ctx.fill();
         
         // Agregar contorno
         ctx.strokeStyle = '#27ae60';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x, y, TAMANO_CELDA, TAMANO_CELDA);
+        ctx.lineWidth = 1;
+        ctx.stroke();
         
         // Agregar etiqueta
         ctx.fillStyle = '#fff';
         ctx.font = '10px Arial';
-        ctx.fillText('A', x + TAMANO_CELDA/2 - 3, y + TAMANO_CELDA/2 + 3);
+        ctx.fillText('A', x - 3, y + 3);
     });
 }
 
 // Dibujar pedidos en el mapa
 function dibujarPedidos(ctx) {
     pedidos.forEach(pedido => {
-        // Calcular posición en el canvas
+        // Calcular posición en el canvas (colocar en la intersección de las líneas)
         const x = pedido.posX * TAMANO_CELDA;
         const y = pedido.posY * TAMANO_CELDA;
         
@@ -225,10 +422,17 @@ function dibujarPedidos(ctx) {
                 color = '#999';
         }
         
-        // Dibujar pedido como un círculo
+        // Dibujar pedido como un pequeño rombo en la intersección
+        const tamanoPunto = TAMANO_CELDA / 4;
         ctx.fillStyle = color;
+        
+        // Dibujar un rombo exactamente en la intersección
         ctx.beginPath();
-        ctx.arc(x + TAMANO_CELDA/2, y + TAMANO_CELDA/2, TAMANO_CELDA/3, 0, 2 * Math.PI);
+        ctx.moveTo(x, y - tamanoPunto); // Arriba
+        ctx.lineTo(x + tamanoPunto, y); // Derecha
+        ctx.lineTo(x, y + tamanoPunto); // Abajo
+        ctx.lineTo(x - tamanoPunto, y); // Izquierda
+        ctx.closePath();
         ctx.fill();
         
         // Agregar contorno
@@ -236,17 +440,17 @@ function dibujarPedidos(ctx) {
         ctx.lineWidth = 1;
         ctx.stroke();
         
-        // Mostrar volumen del pedido
+        // Mostrar un indicador de pedido
         ctx.fillStyle = '#fff';
         ctx.font = '8px Arial';
-        ctx.fillText(pedido.m3.toFixed(1), x + TAMANO_CELDA/2 - 6, y + TAMANO_CELDA/2 + 3);
+        ctx.fillText('P', x - 3, y + 3);
     });
 }
 
 // Dibujar camiones en el mapa
 function dibujarCamiones(ctx) {
     camiones.forEach(camion => {
-        // Calcular posición en el canvas (pueden tener posiciones intermedias no enteras)
+        // Calcular posición en el canvas (colocar exactamente en la intersección de las líneas)
         const x = camion.posX * TAMANO_CELDA;
         const y = camion.posY * TAMANO_CELDA;
         
@@ -269,13 +473,11 @@ function dibujarCamiones(ctx) {
                 color = '#95a5a6';
         }
         
-        // Dibujar camión como un triángulo
+        // Dibujar camión como un pequeño círculo exactamente en la intersección
+        const tamanoPunto = TAMANO_CELDA / 4;
         ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.moveTo(x + TAMANO_CELDA/2, y);
-        ctx.lineTo(x, y + TAMANO_CELDA);
-        ctx.lineTo(x + TAMANO_CELDA, y + TAMANO_CELDA);
-        ctx.closePath();
+        ctx.arc(x, y, tamanoPunto, 0, 2 * Math.PI);
         ctx.fill();
         
         // Agregar contorno
@@ -286,19 +488,23 @@ function dibujarCamiones(ctx) {
         // Mostrar código del camión
         ctx.fillStyle = '#fff';
         ctx.font = '9px Arial';
-        ctx.fillText(camion.codigo, x + TAMANO_CELDA/2 - 7, y + TAMANO_CELDA/2 + 5);
+        ctx.fillText('C', x - 3, y + 3);
         
-        // Si está en ruta, mostrar indicador de progreso
+        // Si está en ruta, mostrar indicador de progreso debajo del camión
         if (camion.estado === 1 && camion.progresoRuta !== undefined) {
             // Barra de progreso debajo del camión
-            const anchoTotal = TAMANO_CELDA;
+            const anchoTotal = TAMANO_CELDA / 2;
             const anchoProgreso = (camion.progresoRuta / 100) * anchoTotal;
             
             ctx.fillStyle = '#2ecc71';
-            ctx.fillRect(x, y + TAMANO_CELDA + 2, anchoProgreso, 3);
+            ctx.fillRect(x - anchoTotal/2, 
+                        y + tamanoPunto + 2, 
+                        anchoProgreso, 2);
             
             ctx.strokeStyle = '#bdc3c7';
-            ctx.strokeRect(x, y + TAMANO_CELDA + 2, anchoTotal, 3);
+            ctx.strokeRect(x - anchoTotal/2, 
+                          y + tamanoPunto + 2, 
+                          anchoTotal, 2);
         }
     });
 }
@@ -318,20 +524,39 @@ function dibujarRutas(ctx) {
         
         const primerNodo = ruta.nodos[0];
         ctx.moveTo(
-            primerNodo.posX * TAMANO_CELDA + TAMANO_CELDA/2, 
-            primerNodo.posY * TAMANO_CELDA + TAMANO_CELDA/2
+            primerNodo.posX * TAMANO_CELDA, 
+            primerNodo.posY * TAMANO_CELDA
         );
         
         for (let i = 1; i < ruta.nodos.length; i++) {
             const nodo = ruta.nodos[i];
             ctx.lineTo(
-                nodo.posX * TAMANO_CELDA + TAMANO_CELDA/2, 
-                nodo.posY * TAMANO_CELDA + TAMANO_CELDA/2
+                nodo.posX * TAMANO_CELDA, 
+                nodo.posY * TAMANO_CELDA
             );
         }
         
         ctx.stroke();
         ctx.setLineDash([]); // Restaurar línea continua
+        
+        // Dibujar puntos en cada nodo de la ruta para mayor claridad
+        ruta.nodos.forEach((nodo, index) => {
+            const x = nodo.posX * TAMANO_CELDA;
+            const y = nodo.posY * TAMANO_CELDA;
+            
+            // Dibujar un pequeño círculo en cada nodo de la ruta
+            ctx.fillStyle = index === 0 ? '#27ae60' : '#e74c3c'; // Verde para origen, rojo para destino
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Añadir número de orden si hay más de 2 nodos
+            if (ruta.nodos.length > 2 && index > 0 && index < ruta.nodos.length - 1) {
+                ctx.fillStyle = '#fff';
+                ctx.font = '8px Arial';
+                ctx.fillText(index.toString(), x - 2, y + 3);
+            }
+        });
     });
 }
 
@@ -739,15 +964,16 @@ function agregarEventoAlHistorial(evento) {
 
 // Mostrar animación de entrega
 function mostrarAnimacionEntrega(x, y) {
-    // Convertir coordenadas de mapa a coordenadas de canvas
-    const posX = x * TAMANO_CELDA + TAMANO_CELDA/2;
-    const posY = y * TAMANO_CELDA + TAMANO_CELDA/2;
+    // Convertir coordenadas de mapa a coordenadas de canvas considerando zoom y desplazamiento
+    const posX = x * TAMANO_CELDA * escalaActual + offsetX + TAMANO_CELDA/2 * escalaActual;
+    const posY = y * TAMANO_CELDA * escalaActual + offsetY + TAMANO_CELDA/2 * escalaActual;
     
     // Crear elemento de animación
     const animacion = document.createElement('div');
     animacion.className = 'animacion-entrega';
     animacion.style.left = posX + 'px';
     animacion.style.top = posY + 'px';
+    animacion.style.transform = `scale(${escalaActual})`;
     animacion.textContent = '✓';
     
     // Agregar al contenedor del mapa
@@ -761,15 +987,16 @@ function mostrarAnimacionEntrega(x, y) {
 
 // Mostrar animación de recarga
 function mostrarAnimacionRecarga(x, y) {
-    // Convertir coordenadas de mapa a coordenadas de canvas
-    const posX = x * TAMANO_CELDA + TAMANO_CELDA/2;
-    const posY = y * TAMANO_CELDA + TAMANO_CELDA/2;
+    // Convertir coordenadas de mapa a coordenadas de canvas considerando zoom y desplazamiento
+    const posX = x * TAMANO_CELDA * escalaActual + offsetX + TAMANO_CELDA/2 * escalaActual;
+    const posY = y * TAMANO_CELDA * escalaActual + offsetY + TAMANO_CELDA/2 * escalaActual;
     
     // Crear elemento de animación
     const animacion = document.createElement('div');
     animacion.className = 'animacion-recarga';
     animacion.style.left = posX + 'px';
     animacion.style.top = posY + 'px';
+    animacion.style.transform = `scale(${escalaActual})`;
     animacion.textContent = '⛽';
     
     // Agregar al contenedor del mapa

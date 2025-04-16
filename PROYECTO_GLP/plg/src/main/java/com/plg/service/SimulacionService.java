@@ -793,7 +793,8 @@ public class SimulacionService {
                 if (camion.getPosX() == primerPedido.getPosX() && camion.getPosY() == primerPedido.getPosY()) {
                     // Camión está en la posición del pedido, realizar entrega
                     primerPedido.setEstado(2); // 2: Entregado
-                    primerPedido.setFechaEntrega(tiempo);
+                    // Actualizar fecha de entrega
+                    //primerPedido.setFechaHoraEntrega(tiempo.to);
                     pedidoRepository.save(primerPedido);
                     
                     // Actualizar carga del camión

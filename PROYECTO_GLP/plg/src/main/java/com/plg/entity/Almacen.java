@@ -17,8 +17,8 @@ public class Almacen {
     private Long id;
     
     private String nombre;
-    private int posX; // Posición X en el mapa
-    private int posY; // Posición Y en el mapa
+    private Integer posX; // Posición X en el mapa
+    private Integer posY; // Posición Y en el mapa
     
     // !Capacidades para GLPP
     private double capacidadGLP; // Capacidad total de GLP en m3

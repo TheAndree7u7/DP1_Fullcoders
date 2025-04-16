@@ -4,8 +4,10 @@ import com.plg.entity.*;
 import com.plg.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
@@ -293,7 +295,7 @@ public class SimulacionTiempoRealService {
             // Si todas las entregas están completadas o el volumen entregado es suficiente, marcar pedido como completado
             if (todasEntregasCompletadas || Math.abs(volumenTotalEntregado - pedido.getM3()) < 0.01) {
                 pedido.setEstado(2); // 2 = Entregado
-                pedido.setFechaEntrega(LocalDateTime.now());
+                pedido.setFechaEntrega(LocalDate.now());
                 pedidoRepository.save(pedido);
             }
             
@@ -419,366 +421,270 @@ public class SimulacionTiempoRealService {
         messagingTemplate.convertAndSend("/topic/nodos", notificacion);
     }
     
-    // Envía actualizaciones de posición simplificadas para evitar problemas de anidamiento
-    private void enviarActualizacionPosiciones() {
+    // Envía actualizaciones de posiciones al cliente
+    @Scheduled(fixedRate = 1000) // cada 1 segundo
+    public void enviarActualizacionPosiciones() {
         try {
-            Map<String, Object> posiciones = obtenerPosicionesSimplificadas();
-            messagingTemplate.convertAndSend("/topic/posiciones", posiciones);
+            long startTime = System.currentTimeMillis();
+            
+            // Medida de seguridad para evitar bloqueos indefinidos
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            Future<Map<String, Object>> future = executor.submit(() -> obtenerPosicionesSimplificadas());
+            
+            Map<String, Object> posiciones;
+            try {
+                posiciones = future.get(10, TimeUnit.SECONDS); // Timeout de 10 segundos
+                
+                // Añade timestamp para rastreo en el cliente
+                posiciones.put("timestamp", LocalDateTime.now().toString());
+                
+                // Evita enviar si no hay datos importantes
+                boolean hayDatos = 
+                    (posiciones.containsKey("camiones") && !((List<?>)posiciones.get("camiones")).isEmpty()) ||
+                    (posiciones.containsKey("almacenes") && !((List<?>)posiciones.get("almacenes")).isEmpty()) ||
+                    (posiciones.containsKey("pedidos") && !((List<?>)posiciones.get("pedidos")).isEmpty()) ||
+                    (posiciones.containsKey("rutas") && !((List<?>)posiciones.get("rutas")).isEmpty());
+                
+                if (hayDatos) {
+                    messagingTemplate.convertAndSend("/topic/posiciones", posiciones);
+                } else {
+                    // Si no hay datos, enviamos un mensaje mínimo para que el cliente sepa que estamos vivos
+                    Map<String, Object> heartbeat = new HashMap<>();
+                    heartbeat.put("timestamp", LocalDateTime.now().toString());
+                    heartbeat.put("status", "heartbeat");
+                    messagingTemplate.convertAndSend("/topic/posiciones", heartbeat);
+                }
+                
+                long endTime = System.currentTimeMillis();
+                if (endTime - startTime > 500) { // Solo logueamos si toma más de 500ms
+                    System.out.println("[PERF] Actualización posiciones completada en " + (endTime - startTime) + "ms");
+                }
+            } catch (TimeoutException e) {
+                System.err.println("[ERROR CRÍTICO] Timeout obteniendoPosicionesSimplificadas (>10s): " + e.getMessage());
+                // Enviar mensaje de error al cliente
+                Map<String, Object> error = new HashMap<>();
+                error.put("timestamp", LocalDateTime.now().toString());
+                error.put("error", "Timeout procesando datos de posición");
+                error.put("status", "error");
+                messagingTemplate.convertAndSend("/topic/posiciones", error);
+            } catch (Exception e) {
+                System.err.println("[ERROR] Error obteniendoPosicionesSimplificadas: " + e.getMessage());
+                e.printStackTrace();
+                // Enviar mensaje de error al cliente
+                Map<String, Object> error = new HashMap<>();
+                error.put("timestamp", LocalDateTime.now().toString());
+                error.put("error", "Error procesando datos: " + e.getMessage());
+                error.put("status", "error");
+                messagingTemplate.convertAndSend("/topic/posiciones", error);
+            } finally {
+                executor.shutdownNow(); // Asegurarse de cerrar el executor
+            }
         } catch (Exception e) {
-            System.err.println("Error enviando actualizaciones de posición: " + e.getMessage());
+            System.err.println("[ERROR CRÍTICO] Error general en enviarActualizacionPosiciones: " + e.getMessage());
             e.printStackTrace();
+            try {
+                // Último intento para informar al cliente
+                Map<String, Object> error = new HashMap<>();
+                error.put("timestamp", LocalDateTime.now().toString());
+                error.put("error", "Error crítico del sistema: " + e.getMessage());
+                error.put("status", "criticalError");
+                messagingTemplate.convertAndSend("/topic/posiciones", error);
+            } catch (Exception ex) {
+                System.err.println("[ERROR FATAL] No se pudo enviar mensaje de error al cliente: " + ex.getMessage());
+            }
         }
     }
     
     // NUEVO MÉTODO: Obtiene posiciones simplificadas para evitar el problema de anidamiento JSON
-    public Map<String, Object> obtenerPosicionesSimplificadas() {
-        Map<String, Object> posiciones = new HashMap<>();
+    private Map<String, Object> obtenerPosicionesSimplificadas() {
+        Map<String, Object> result = new HashMap<>();
+        long startGlobal = System.currentTimeMillis();
         
         try {
-            // Obtener camiones con posiciones simplificadas (sin objetos anidados)
-            List<Camion> camiones = camionRepository.findAll();
-            List<Map<String, Object>> camionesInfo = camiones.stream()
-                .map(this::convertirCamionSimplificado)
-                .collect(Collectors.toList());
-            posiciones.put("camiones", camionesInfo);
+            System.out.println("[DEBUG] Iniciando obtenerPosicionesSimplificadas: " + LocalDateTime.now());
             
-            // Obtener almacenes
-            List<Almacen> almacenes = almacenRepository.findAll();
-            List<Map<String, Object>> almacenesInfo = almacenes.stream()
-                .map(this::convertirAlmacenSimplificado)
-                .collect(Collectors.toList());
-            posiciones.put("almacenes", almacenesInfo);
-            
-            // Obtener pedidos pendientes o en ruta
-            List<Pedido> pedidos = pedidoRepository.findByEstadoIn(Arrays.asList(0, 1)); // 0=Pendiente, 1=En ruta
-            List<Map<String, Object>> pedidosInfo = pedidos.stream()
-                .map(this::convertirPedidoSimplificado)
-                .collect(Collectors.toList());
-            posiciones.put("pedidos", pedidosInfo);
-            
-            // Obtener rutas activas con sus nodos (versión simplificada)
-            List<Map<String, Object>> rutasSimplificadas = obtenerRutasSimplificadas();
-            posiciones.put("rutas", rutasSimplificadas);
-            
-        } catch (Exception e) {
-            System.err.println("Error obteniendo posiciones simplificadas: " + e.getMessage());
-            e.printStackTrace();
-            // En caso de error, devolver estructuras vacías para evitar fallos en el frontend
-            posiciones.put("camiones", new ArrayList<>());
-            posiciones.put("almacenes", new ArrayList<>());
-            posiciones.put("pedidos", new ArrayList<>());
-            posiciones.put("rutas", new ArrayList<>());
-        }
-        
-        return posiciones;
-    }
-    
-    // Método que solo extrae la información esencial de camiones
-    private Map<String, Object> convertirCamionSimplificado(Camion camion) {
-        Map<String, Object> info = new HashMap<>();
-        info.put("id", camion.getId());
-        info.put("codigo", camion.getCodigo());
-        info.put("tipo", camion.getTipo());
-        info.put("posX", camion.getPosX());
-        info.put("posY", camion.getPosY());
-        info.put("estado", camion.getEstado());
-        info.put("estadoTexto", getEstadoCamionTexto(camion.getEstado()));
-        info.put("combustibleActual", camion.getCombustibleActual());
-        info.put("combustiblePorcentaje", (camion.getCombustibleActual() / camion.getCapacidadTanque()) * 100);
-        info.put("capacidadDisponible", camion.getCapacidadDisponible());
-        info.put("capacidadTotal", camion.getCapacidad());
-        info.put("porcentajeUso", camion.getPorcentajeUso());
-        
-        // Si está en ruta, incluir información de la ruta activa
-        if (camion.getEstado() == 1) { // 1=En ruta
+            // 1. PROCESAR CAMIONES
+            long startCamiones = System.currentTimeMillis();
             try {
-                List<Ruta> rutasActivas = rutaRepository.findByCamionIdAndEstado(camion.getId(), 1);
-                if (!rutasActivas.isEmpty()) {
-                    Ruta rutaActiva = rutasActivas.get(0);
-                    info.put("rutaId", rutaActiva.getId());
-                    info.put("rutaCodigo", rutaActiva.getCodigo());
-                    
-                    // Agregar información de progreso
-                    if (progresoNodoActual.containsKey(rutaActiva.getId())) {
-                        double progreso = progresoNodoActual.get(rutaActiva.getId());
-                        info.put("progresoNodoActual", progreso * 100); // Convertir a porcentaje
+                List<Map<String, Object>> camionesList = new ArrayList<>();
+                
+                for (Camion camion : camionRepository.findAll()) {
+                    try {
+                        Map<String, Object> camionMap = new HashMap<>();
+                        camionMap.put("id", camion.getId());
+                        camionMap.put("codigo", camion.getCodigo());
+                        camionMap.put("estado", camion.getEstado());
+                        camionMap.put("capacidad", camion.getCapacidad());
+                        camionMap.put("combustibleActual", camion.getCombustibleActual());
+                        camionMap.put("posX", camion.getPosX());
+                        camionMap.put("posY", camion.getPosY());
                         
-                        try {
-                            // Calcular progreso total de la ruta de manera segura
-                            List<NodoRuta> nodos = rutaActiva.getNodos();
-                            if (nodos != null && !nodos.isEmpty()) {
-                                int indiceNodoActual = Math.min(encontrarIndiceNodoActual(rutaActiva, nodos), nodos.size() - 1);
-                                double progresoTotal = (indiceNodoActual + progreso) / Math.max(1, (nodos.size() - 1)) * 100;
-                                info.put("progresoRuta", progresoTotal);
-                            }
-                        } catch (Exception e) {
-                            // Si hay errores en el cálculo, usar un valor por defecto
-                            info.put("progresoRuta", 0.0);
+                        // Solo añadir camiones con posición válida
+                        if (camion.getPosX() != null && camion.getPosY() != null) {
+                            camionesList.add(camionMap);
                         }
+                    } catch (Exception e) {
+                        System.err.println("[ERROR] Al procesar camión " + camion.getId() + ": " + e.getMessage());
                     }
                 }
+                result.put("camiones", camionesList);
+                System.out.println("[DEBUG] Camiones procesados: " + camionesList.size() + " en " + 
+                    (System.currentTimeMillis() - startCamiones) + "ms");
             } catch (Exception e) {
-                // Ignorar errores al obtener rutas
-                System.err.println("Error obteniendo ruta activa para camión: " + e.getMessage());
+                System.err.println("[ERROR] Al procesar camiones: " + e.getMessage());
+                e.printStackTrace();
+                result.put("camiones", new ArrayList<>());
+                result.put("error_camiones", e.getMessage());
             }
-        }
-        
-        return info;
-    }
-    
-    // Método para obtener texto de estado de camión
-    private String getEstadoCamionTexto(int estado) {
-        switch (estado) {
-            case 0: return "Disponible";
-            case 1: return "En ruta";
-            case 2: return "En mantenimiento";
-            case 3: return "Averiado";
-            default: return "Desconocido";
-        }
-    }
-    
-    // Método que solo extrae la información esencial de almacenes
-    private Map<String, Object> convertirAlmacenSimplificado(Almacen almacen) {
-        Map<String, Object> info = new HashMap<>();
-        info.put("id", almacen.getId());
-        info.put("nombre", almacen.getNombre());
-        info.put("posX", almacen.getPosX());
-        info.put("posY", almacen.getPosY());
-        try {
-            info.put("tipo", almacen.getTipo());
-        } catch (Exception e) {
-            info.put("tipo", "CENTRAL"); // Valor por defecto si no está disponible
-        }
-        return info;
-    }
-    
-    // Método que solo extrae la información esencial de pedidos
-    private Map<String, Object> convertirPedidoSimplificado(Pedido pedido) {
-        Map<String, Object> info = new HashMap<>();
-        info.put("id", pedido.getId());
-        info.put("codigo", pedido.getCodigo());
-        info.put("posX", pedido.getPosX());
-        info.put("posY", pedido.getPosY());
-        info.put("m3", pedido.getM3());
-        info.put("estado", pedido.getEstado());
-        info.put("horasLimite", pedido.getHorasLimite());
-        
-        if (pedido.getCliente() != null) {
-            info.put("clienteId", pedido.getCliente().getId());
-            info.put("clienteNombre", pedido.getCliente().getNombre());
-        }
-        
-        return info;
-    }
-    
-    // Método para obtener rutas simplificadas sin objetos anidados complejos
-    private List<Map<String, Object>> obtenerRutasSimplificadas() {
-        List<Map<String, Object>> rutasSimplificadas = new ArrayList<>();
-        
-        try {
-            // Obtener solo rutas activas para reducir la cantidad de datos
-            List<Ruta> rutas = rutaRepository.findByEstado(1); // 1=En curso
-            
-            for (Ruta ruta : rutas) {
-                Map<String, Object> infoRuta = new HashMap<>();
-                infoRuta.put("id", ruta.getId());
-                infoRuta.put("codigo", ruta.getCodigo());
-                infoRuta.put("estado", ruta.getEstado());
+
+            // 2. PROCESAR ALMACENES
+            long startAlmacenes = System.currentTimeMillis();
+            try {
+                List<Map<String, Object>> almacenesList = new ArrayList<>();
                 
-                // Información simplificada del camión
-                if (ruta.getCamion() != null) {
-                    infoRuta.put("camionId", ruta.getCamion().getId());
-                    infoRuta.put("camionCodigo", ruta.getCamion().getCodigo());
-                }
-                
-                // Extraer solo información esencial de los nodos
-                List<Map<String, Object>> nodosSimplificados = new ArrayList<>();
-                if (ruta.getNodos() != null) {
-                    for (NodoRuta nodo : ruta.getNodos()) {
-                        Map<String, Object> infoNodo = new HashMap<>();
-                        infoNodo.put("id", nodo.getId());
-                        infoNodo.put("orden", nodo.getOrden());
-                        infoNodo.put("posX", nodo.getPosX());
-                        infoNodo.put("posY", nodo.getPosY());
-                        infoNodo.put("tipo", nodo.getTipo());
-                        infoNodo.put("entregado", nodo.isEntregado());
+                for (Almacen almacen : almacenRepository.findAll()) {
+                    try {
+                        Map<String, Object> almacenMap = new HashMap<>();
+                        almacenMap.put("id", almacen.getId());
+                        almacenMap.put("nombre", almacen.getNombre());
+                        almacenMap.put("posX", almacen.getPosX());
+                        almacenMap.put("posY", almacen.getPosY());
                         
-                        // Si hay pedido asociado, solo incluir su ID y código
-                        if (nodo.getPedido() != null) {
-                            infoNodo.put("pedidoId", nodo.getPedido().getId());
-                            infoNodo.put("pedidoCodigo", nodo.getPedido().getCodigo());
-                            infoNodo.put("volumenGLP", nodo.getVolumenGLP());
-                            infoNodo.put("porcentajePedido", nodo.getPorcentajePedido());
+                        // Solo añadir almacenes con posición válida
+                        if (almacen.getPosX() != null && almacen.getPosY() != null) {
+                            almacenesList.add(almacenMap);
                         }
-                        
-                        nodosSimplificados.add(infoNodo);
+                    } catch (Exception e) {
+                        System.err.println("[ERROR] Al procesar almacén " + almacen.getId() + ": " + e.getMessage());
                     }
                 }
-                infoRuta.put("nodos", nodosSimplificados);
-                
-                rutasSimplificadas.add(infoRuta);
+                result.put("almacenes", almacenesList);
+                System.out.println("[DEBUG] Almacenes procesados: " + almacenesList.size() + " en " + 
+                    (System.currentTimeMillis() - startAlmacenes) + "ms");
+            } catch (Exception e) {
+                System.err.println("[ERROR] Al procesar almacenes: " + e.getMessage());
+                e.printStackTrace();
+                result.put("almacenes", new ArrayList<>());
+                result.put("error_almacenes", e.getMessage());
             }
-        } catch (Exception e) {
-            System.err.println("Error obteniendo rutas simplificadas: " + e.getMessage());
-            e.printStackTrace();
-        }
-        
-        return rutasSimplificadas;
-    }
-    
-    // Envía actualizaciones de posición de todos los elementos en el mapa
-    private void enviarActualizacionPosicionesOriginal() {
-        Map<String, Object> posiciones = obtenerPosiciones();
-        messagingTemplate.convertAndSend("/topic/posiciones", posiciones);
-    }
-    
-    // Obtiene las posiciones actuales de todos los elementos para enviar al frontend
-    private Map<String, Object> obtenerPosiciones() {
-        Map<String, Object> posiciones = new HashMap<>();
-        
-        // Obtener camiones con sus posiciones actuales
-        List<Camion> camiones = camionRepository.findAll();
-        List<Map<String, Object>> camionesInfo = camiones.stream()
-            .map(this::convertirCamionAMapa)
-            .collect(Collectors.toList());
-        posiciones.put("camiones", camionesInfo);
-        
-        // Obtener almacenes
-        List<Almacen> almacenes = almacenRepository.findAll();
-        List<Map<String, Object>> almacenesInfo = almacenes.stream()
-            .map(this::convertirAlmacenAMapa)
-            .collect(Collectors.toList());
-        posiciones.put("almacenes", almacenesInfo);
-        
-        // Obtener pedidos pendientes o en ruta
-        List<Pedido> pedidos = pedidoRepository.findByEstadoIn(Arrays.asList(0, 1)); // 0=Pendiente, 1=En ruta
-        List<Map<String, Object>> pedidosInfo = pedidos.stream()
-            .map(this::convertirPedidoAMapa)
-            .collect(Collectors.toList());
-        posiciones.put("pedidos", pedidosInfo);
-        
-        // Obtener rutas activas con sus nodos
-        List<Ruta> rutas = rutaRepository.findByEstado(1); // 1=En curso
-        List<Map<String, Object>> rutasInfo = rutas.stream()
-            .map(this::convertirRutaAMapa)
-            .collect(Collectors.toList());
-        posiciones.put("rutas", rutasInfo);
-        
-        return posiciones;
-    }
-    
-    // Convierte un camión a un mapa para el API
-    private Map<String, Object> convertirCamionAMapa(Camion camion) {
-        Map<String, Object> info = new HashMap<>();
-        info.put("id", camion.getId());
-        info.put("codigo", camion.getCodigo());
-        info.put("tipo", camion.getTipo());
-        info.put("posX", camion.getPosX());
-        info.put("posY", camion.getPosY());
-        info.put("estado", camion.getEstado());
-        info.put("estadoTexto", camion.getEstadoTexto());
-        info.put("combustibleActual", camion.getCombustibleActual());
-        info.put("combustiblePorcentaje", (camion.getCombustibleActual() / camion.getCapacidadTanque()) * 100);
-        info.put("capacidadDisponible", camion.getCapacidadDisponible());
-        info.put("capacidadTotal", camion.getCapacidad());
-        info.put("porcentajeUso", camion.getPorcentajeUso());
-        
-        // Si está en ruta, incluir información de la ruta activa
-        if (camion.getEstado() == 1) { // 1=En ruta
-            List<Ruta> rutasActivas = rutaRepository.findByCamionIdAndEstado(camion.getId(), 1);
 
-            if (!rutasActivas.isEmpty()) {
-                Ruta rutaActiva = rutasActivas.get(0);
-                info.put("rutaId", rutaActiva.getId());
-                info.put("rutaCodigo", rutaActiva.getCodigo());
+            // 3. PROCESAR PEDIDOS
+            long startPedidos = System.currentTimeMillis();
+            try {
+                List<Map<String, Object>> pedidosList = new ArrayList<>();
                 
-                // Agregar información de progreso
-                if (progresoNodoActual.containsKey(rutaActiva.getId())) {
-                    double progreso = progresoNodoActual.get(rutaActiva.getId());
-                    info.put("progresoNodoActual", progreso * 100); // Convertir a porcentaje
-                    
-                    // Calcular progreso total de la ruta
-                    int indiceNodoActual = encontrarIndiceNodoActual(rutaActiva, rutaActiva.getNodos());
-                    double progresoTotal = (indiceNodoActual + progreso) / (rutaActiva.getNodos().size() - 1) * 100;
-                    info.put("progresoRuta", progresoTotal);
+                for (Pedido pedido : pedidoRepository.findByEstadoIn(Arrays.asList(0, 1))) {
+                    try {
+                        if (pedido.getCliente() == null) {
+                            continue; // Ignorar pedidos sin cliente
+                        }
+                        
+                        Map<String, Object> pedidoMap = new HashMap<>();
+                        pedidoMap.put("id", pedido.getId());
+                        pedidoMap.put("estado", pedido.getEstado());
+                        pedidoMap.put("m3", pedido.getM3());
+                        
+                        // Solo enviar la ubicación del cliente si tenemos el cliente
+                        if (pedido.getCliente() != null) {
+                            pedidoMap.put("clienteId", pedido.getCliente().getId());
+                            pedidoMap.put("posX", pedido.getCliente().getPosX());
+                            pedidoMap.put("posY", pedido.getCliente().getPosY());
+                        }
+                        
+                        // Solo añadir pedidos con posición válida
+                        if (pedido.getCliente() != null && 
+                            pedido.getCliente().getPosX() != null && 
+                            pedido.getCliente().getPosY() != null) {
+                            pedidosList.add(pedidoMap);
+                        }
+                    } catch (Exception e) {
+                        System.err.println("[ERROR] Al procesar pedido " + pedido.getId() + ": " + e.getMessage());
+                    }
                 }
+                result.put("pedidos", pedidosList);
+                System.out.println("[DEBUG] Pedidos procesados: " + pedidosList.size() + " en " + 
+                    (System.currentTimeMillis() - startPedidos) + "ms");
+            } catch (Exception e) {
+                System.err.println("[ERROR] Al procesar pedidos: " + e.getMessage());
+                e.printStackTrace();
+                result.put("pedidos", new ArrayList<>());
+                result.put("error_pedidos", e.getMessage());
             }
+
+            // 4. PROCESAR RUTAS
+            long startRutas = System.currentTimeMillis();
+            try {
+                List<Map<String, Object>> rutasList = new ArrayList<>();
+                
+                for (Ruta ruta : rutaRepository.findByEstado(1)) {
+                    try {
+                        Map<String, Object> rutaMap = new HashMap<>();
+                        rutaMap.put("id", ruta.getId());
+                        rutaMap.put("codigo", ruta.getCodigo());
+                        rutaMap.put("estado", ruta.getEstado());
+                        
+                        // Extraer nodos de la ruta si existen
+                        if (ruta.getNodos() != null && !ruta.getNodos().isEmpty()) {
+                            List<Map<String, Object>> nodosList = new ArrayList<>();
+                            
+                            for (NodoRuta nodo : ruta.getNodos()) {
+                                try {
+                                    if (nodo.getPosX() == null || nodo.getPosY() == null) {
+                                        continue; // Ignorar nodos sin coordenadas
+                                    }
+                                    
+                                    Map<String, Object> nodoMap = new HashMap<>();
+                                    nodoMap.put("id", nodo.getId());
+                                    nodoMap.put("orden", nodo.getOrden());
+                                    nodoMap.put("posX", nodo.getPosX());
+                                    nodoMap.put("posY", nodo.getPosY());
+                                    nodoMap.put("tipo", nodo.getTipo());
+                                    
+                                    nodosList.add(nodoMap);
+                                } catch (Exception e) {
+                                    System.err.println("[ERROR] Al procesar nodo " + nodo.getId() + 
+                                        " de ruta " + ruta.getId() + ": " + e.getMessage());
+                                }
+                            }
+                            
+                            // Ordenar nodos por el campo 'orden'
+                            nodosList.sort(Comparator.comparing(m -> ((Integer) m.get("orden"))));
+                            rutaMap.put("nodos", nodosList);
+                        } else {
+                            rutaMap.put("nodos", new ArrayList<>());
+                        }
+                        
+                        // Solo añadir rutas con al menos un nodo
+                        if (rutaMap.containsKey("nodos") && !((List<?>) rutaMap.get("nodos")).isEmpty()) {
+                            rutasList.add(rutaMap);
+                        }
+                    } catch (Exception e) {
+                        System.err.println("[ERROR] Al procesar ruta " + ruta.getId() + ": " + e.getMessage());
+                    }
+                }
+                result.put("rutas", rutasList);
+                System.out.println("[DEBUG] Rutas procesadas: " + rutasList.size() + " en " + 
+                    (System.currentTimeMillis() - startRutas) + "ms");
+            } catch (Exception e) {
+                System.err.println("[ERROR] Al procesar rutas: " + e.getMessage());
+                e.printStackTrace();
+                result.put("rutas", new ArrayList<>());
+                result.put("error_rutas", e.getMessage());
+            }
+            
+            System.out.println("[DEBUG] Finalizado obtenerPosicionesSimplificadas en " + 
+                (System.currentTimeMillis() - startGlobal) + "ms");
+            return result;
+            
+        } catch (Exception e) {
+            System.err.println("[ERROR GLOBAL] En obtenerPosicionesSimplificadas: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Devolver al menos un objeto vacío pero válido
+            result.put("error", "Error general obteniendo posiciones: " + e.getMessage());
+            result.put("timestamp", LocalDateTime.now().toString());
+            return result;
         }
-        
-        return info;
-    }
-    
-    // Convierte un almacén a un mapa para el API
-    private Map<String, Object> convertirAlmacenAMapa(Almacen almacen) {
-        Map<String, Object> info = new HashMap<>();
-        info.put("id", almacen.getId());
-        //info.put("codigo", almacen.getCodigo());
-        info.put("nombre", almacen.getNombre());
-        //info.put("tipo", almacen.getTipo());
-        info.put("posX", almacen.getPosX());
-        info.put("posY", almacen.getPosY());
-        return info;
-    }
-    
-    // Convierte un pedido a un mapa para el API
-    private Map<String, Object> convertirPedidoAMapa(Pedido pedido) {
-        Map<String, Object> info = new HashMap<>();
-        info.put("id", pedido.getId());
-        info.put("codigo", pedido.getCodigo());
-        info.put("posX", pedido.getPosX());
-        info.put("posY", pedido.getPosY());
-        info.put("m3", pedido.getM3());
-        info.put("estado", pedido.getEstado());
-        info.put("horasLimite", pedido.getHorasLimite());
-        
-        if (pedido.getCliente() != null) {
-            info.put("clienteId", pedido.getCliente().getId());
-            info.put("clienteNombre", pedido.getCliente().getNombre());
-        }
-        
-        return info;
-    }
-    
-    // Convierte una ruta a un mapa para el API
-    private Map<String, Object> convertirRutaAMapa(Ruta ruta) {
-        Map<String, Object> info = new HashMap<>();
-        info.put("id", ruta.getId());
-        info.put("codigo", ruta.getCodigo());
-        info.put("estado", ruta.getEstado());
-        info.put("estadoTexto", ruta.getEstadoTexto());
-        
-        if (ruta.getCamion() != null) {
-            info.put("camionId", ruta.getCamion().getId());
-            info.put("camionCodigo", ruta.getCamion().getCodigo());
-        }
-        
-        // Convertir nodos de la ruta
-        List<Map<String, Object>> nodosInfo = ruta.getNodos().stream()
-            .map(this::convertirNodoAMapa)
-            .collect(Collectors.toList());
-        info.put("nodos", nodosInfo);
-        
-        return info;
-    }
-    
-    // Convierte un nodo de ruta a un mapa para el API
-    private Map<String, Object> convertirNodoAMapa(NodoRuta nodo) {
-        Map<String, Object> info = new HashMap<>();
-        info.put("id", nodo.getId());
-        info.put("orden", nodo.getOrden());
-        info.put("posX", nodo.getPosX());
-        info.put("posY", nodo.getPosY());
-        info.put("tipo", nodo.getTipo());
-        info.put("entregado", nodo.isEntregado());
-        
-        if (nodo.getPedido() != null) {
-            info.put("pedidoId", nodo.getPedido().getId());
-            info.put("pedidoCodigo", nodo.getPedido().getCodigo());
-            info.put("volumenGLP", nodo.getVolumenGLP());
-            info.put("porcentajePedido", nodo.getPorcentajePedido());
-        }
-        
-        return info;
     }
     
     // Obtiene el estado actual de la simulación

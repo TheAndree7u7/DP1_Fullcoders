@@ -1,6 +1,7 @@
 /* Variables para colores */
 :root {
     --color-primary: #3498db;
+    --color-primary-light: #5dade2;
     --color-success: #2ecc71;
     --color-danger: #e74c3c;
     --color-warning: #f39c12;
@@ -11,6 +12,7 @@
     --color-text: #333;
     --color-border: #ddd;
     --color-background: #f8f9fa;
+    --color-grid: #a0a0a0; /* Color más oscuro para las líneas de la cuadrícula */
     
     --shadow-small: 0 2px 5px rgba(0, 0, 0, 0.1);
     --shadow-medium: 0 5px 15px rgba(0, 0, 0, 0.1);
@@ -528,4 +530,51 @@ footer {
         width: 100%;
         justify-content: space-between;
     }
+}
+
+/* Estilos para los controles del mapa */
+.controles-mapa {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: var(--border-radius);
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.control-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background-color: white;
+    color: var(--color-text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+    background-color: var(--color-primary-light);
+    transform: scale(1.1);
+}
+
+/* Cursor para indicar que el mapa se puede arrastrar */
+#mapa-canvas {
+    cursor: grab;
+}
+
+/* Ajuste para animaciones de entrega y recarga */
+.animacion-entrega,
+.animacion-recarga {
+    transform-origin: center;
 }
