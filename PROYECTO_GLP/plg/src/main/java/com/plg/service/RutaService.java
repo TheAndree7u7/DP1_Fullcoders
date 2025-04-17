@@ -312,11 +312,10 @@ public class RutaService {
         //Obtener coordenadas de almacen central
         Almacen almacenCentral = almacenRepository.findByEsCentralAndActivoTrue(true);
         if (almacenCentral == null) {
-            throw new RuntimeException("No se encontró el almacén central");
+            throw new RuntimeException("No hay almacén central activo configurado");
         }
-        double xAlmacenCentral =  almacenCentral.getPosX();
+        double xAlmacenCentral = almacenCentral.getPosX();
         double yAlmacenCentral = almacenCentral.getPosY();
-
 
         double xInicio = xAlmacenCentral;
         double yInicio = yAlmacenCentral;
@@ -337,63 +336,71 @@ public class RutaService {
         
         // Recorremos todos los pedidos añadiendo rutas óptimas entre ellos
         for (Pedido pedido : pedidosRuta) {
-            double xDestino = pedido.getPosX();
-            double yDestino = pedido.getPosY();
+            List<double[]> rutaSegmento;
             
-            // Calcular la ruta óptima entre el punto actual y el pedido
-            List<double[]> rutaOptima;
-            if (considerarBloqueos) {
-                rutaOptima = mapaReticularService.calcularRutaOptima(
-                    xActual, yActual, xDestino, yDestino, bloqueosActivos);
+            if (considerarBloqueos && !bloqueosActivos.isEmpty()) {
+                // Usar el servicio de mapa reticular para encontrar ruta óptima evitando bloqueos
+                rutaSegmento = mapaReticularService.calcularRutaOptima(
+                    (int)xActual, (int)yActual,
+                    (int)pedido.getPosX(), (int)pedido.getPosY(),
+                    bloqueosActivos);
             } else {
-                // Si no consideramos bloqueos, la ruta es directa en el mapa reticular
-                // (movimientos horizontales y verticales)
-                rutaOptima = calcularRutaDirectaReticular(xActual, yActual, xDestino, yDestino);
+                // Si no hay bloqueos, usar ruta reticular directa (no diagonal)
+                rutaSegmento = calcularRutaDirectaReticular(xActual, yActual, pedido.getPosX(), pedido.getPosY());
             }
             
-            // Si no se pudo encontrar una ruta, continuar con el siguiente pedido
-            if (rutaOptima.isEmpty()) {
+            // Si no se encontró una ruta válida, seguir con el siguiente pedido
+            if (rutaSegmento.isEmpty()) {
                 continue;
             }
             
             // Añadir todos los puntos de la ruta excepto el primero (ya está incluido)
-            for (int i = 1; i < rutaOptima.size(); i++) {
-                double[] punto = rutaOptima.get(i);
+            for (int i = 1; i < rutaSegmento.size(); i++) {
+                double[] punto = rutaSegmento.get(i);
                 
-                // Si es el último punto (destino), marcarlo como CLIENTE
-                String tipo = (i == rutaOptima.size() - 1) ? "CLIENTE_" + pedido.getId() : "RUTA";
+                // Calcular distancia desde el punto anterior
+                double[] puntoAnterior = rutaSegmento.get(i-1);
+                // En un mapa reticular, la distancia es Manhattan (suma de diferencias absolutas)
+                double distanciaSegmento = Math.abs(punto[0] - puntoAnterior[0]) + Math.abs(punto[1] - puntoAnterior[1]);
+                distanciaTotal += distanciaSegmento;
+                
+                // Si este es el punto final, marcarlo como cliente
+                String tipo = i == rutaSegmento.size() - 1 ? "CLIENTE" : "NODO";
                 puntosRuta.add(createPunto(punto[0], punto[1], tipo));
-                
-                // Calcular distancia con el punto anterior
-                double[] puntoAnterior = rutaOptima.get(i-1);
-                distanciaTotal += mapaConfig.calcularDistanciaRealKm(
-                    puntoAnterior[0], puntoAnterior[1], punto[0], punto[1]);
             }
             
-            // Actualizar punto actual
-            xActual = xDestino;
-            yActual = yDestino;
+            // Actualizar posición actual
+            double[] ultimoPunto = rutaSegmento.get(rutaSegmento.size() - 1);
+            xActual = ultimoPunto[0];
+            yActual = ultimoPunto[1];
         }
         
         // Añadir ruta de regreso al almacén
         List<double[]> rutaRegreso;
-        if (considerarBloqueos) {
+        if (considerarBloqueos && !bloqueosActivos.isEmpty()) {
             rutaRegreso = mapaReticularService.calcularRutaOptima(
-                xActual, yActual, xInicio, yInicio, bloqueosActivos);
+                (int)xActual, (int)yActual, 
+                (int)xInicio, (int)yInicio,
+                bloqueosActivos);
         } else {
             rutaRegreso = calcularRutaDirectaReticular(xActual, yActual, xInicio, yInicio);
         }
         
         // Si se encontró una ruta de regreso, añadirla
         if (!rutaRegreso.isEmpty()) {
+            // Añadir todos los puntos de la ruta excepto el primero (ya está incluido)
             for (int i = 1; i < rutaRegreso.size(); i++) {
                 double[] punto = rutaRegreso.get(i);
-                String tipo = (i == rutaRegreso.size() - 1) ? "ALMACEN" : "RUTA";
-                puntosRuta.add(createPunto(punto[0], punto[1], tipo));
                 
+                // Calcular distancia desde el punto anterior
                 double[] puntoAnterior = rutaRegreso.get(i-1);
-                distanciaTotal += mapaConfig.calcularDistanciaRealKm(
-                    puntoAnterior[0], puntoAnterior[1], punto[0], punto[1]);
+                // En un mapa reticular, la distancia es Manhattan (suma de diferencias absolutas)
+                double distanciaSegmento = Math.abs(punto[0] - puntoAnterior[0]) + Math.abs(punto[1] - puntoAnterior[1]);
+                distanciaTotal += distanciaSegmento;
+                
+                // Si este es el último punto, marcarlo como almacén de regreso
+                String tipo = i == rutaRegreso.size() - 1 ? "ALMACEN" : "NODO";
+                puntosRuta.add(createPunto(punto[0], punto[1], tipo));
             }
         }
         

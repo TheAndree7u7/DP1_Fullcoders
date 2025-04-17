@@ -49,7 +49,7 @@ public class Pedido {
     private double volumenGLPEntregado; // Volumen ya entregado (m3)
     private double volumenGLPPendiente; // Volumen restante por asignar (m3) 
     private int prioridad; // 1: alta, 2: media, 3: baja
-    private int estado; // 0: registrado, 1: asignado, 2: en ruta, 3: entregado, 4: cancelado
+    private int estado; // 0: registrado, 1: asignado, 2: entregado, 3: en ruta, 4: cancelado
  
 
     private String fechaHora; //formato "ddmmyyyy hh:mm:ss"
@@ -94,6 +94,7 @@ public class Pedido {
         
         // Actualizar los volúmenes
         volumenGLPEntregado += volumen;
+        volumenGLPPendiente = volumenGLPAsignado - volumenGLPEntregado; // Actualizar volumen pendiente
         
         // Asignar el volumen al camión
         camion.asignarPedidoParcial(this, volumen, porcentaje);
@@ -114,15 +115,16 @@ public class Pedido {
         
         // Actualizar volúmenes
         this.volumenGLPEntregado += volumenEntregado;
+        this.volumenGLPPendiente = volumenGLPAsignado - this.volumenGLPEntregado; // Actualizar volumen pendiente
         
-        // Liberar capacidad del camión
-        camion.liberarCapacidad(volumenEntregado);
+        // Ya no liberamos la capacidad del camión aquí, eso se hará en SimulacionTiempoRealService
+        // donde tenemos la referencia correcta al camión
         
         // Actualizar estado del pedido
         actualizarEstado();
         
         // Si el pedido está completamente entregado, actualizar la fecha de entrega
-        if (estado == 3) {
+        if (estado == 2) {
             this.fechaEntregaReal = fechaEntrega;
         }
         
@@ -137,8 +139,12 @@ public class Pedido {
             estado = 0; // Registrado
         } else if (volumenGLPEntregado < volumenGLPAsignado) {
             estado = 1; // Asignado
-        } else if (volumenGLPEntregado == volumenGLPAsignado) {
-            estado = 3; // Entregado
+            if (camion != null) {
+                estado = 3; // En ruta (si tiene camión asignado)
+            }
+        } else if (Math.abs(volumenGLPEntregado - volumenGLPAsignado) < 0.01) {
+            estado = 2; // Entregado (con tolerancia de 0.01)
+            this.volumenGLPPendiente = 0; // Asegurar que no queda pendiente
         }
     }
     
@@ -165,5 +171,23 @@ public class Pedido {
      */
     public boolean isCompletamenteEntregado() {
         return Math.abs(volumenGLPEntregado - volumenGLPAsignado) < 0.01; // Comparación con tolerancia
+    }
+    
+    /**
+     * Inicializa el volumen pendiente al crear un pedido
+     */
+    @PostLoad
+    @PostPersist
+    public void inicializarVolumenPendiente() {
+        // Si no está definido el volumen pendiente, lo calculamos
+        if (this.volumenGLPPendiente <= 0 && this.volumenGLPAsignado > 0) {
+            this.volumenGLPPendiente = this.volumenGLPAsignado - this.volumenGLPEntregado;
+        }
+        
+        // Verificar inconsistencias en estado
+        if (isCompletamenteEntregado() && estado != 2) {
+            estado = 2; // Corregir a estado entregado
+            this.volumenGLPPendiente = 0; // No queda pendiente
+        }
     }
 }

@@ -783,7 +783,7 @@ public class SimulacionService {
         List<Camion> camionesEnRuta = camionRepository.findByEstado(1); // 1: en ruta
         
         for (Camion camion : camionesEnRuta) {
-            // Obtener pedidos asignados al camión
+            // Obtener pedidos asignados al camión y que NO estén entregados
             List<Pedido> pedidosCamion = pedidoRepository.findByCamion_CodigoAndEstado(camion.getCodigo(), 1); // 1: Asignado
             
             if (!pedidosCamion.isEmpty()) {
@@ -793,8 +793,8 @@ public class SimulacionService {
                 if (camion.getPosX() == primerPedido.getPosX() && camion.getPosY() == primerPedido.getPosY()) {
                     // Camión está en la posición del pedido, realizar entrega
                     primerPedido.setEstado(2); // 2: Entregado
-                    // Actualizar fecha de entrega
-                    //primerPedido.setFechaHoraEntrega(tiempo.to);
+                    // Actualizar fecha de entrega real
+                    primerPedido.setFechaEntregaReal(tiempo);
                     pedidoRepository.save(primerPedido);
                     
                     // Actualizar carga del camión
@@ -807,9 +807,10 @@ public class SimulacionService {
                         primerPedido.getId(), camion.getCodigo(), tiempo
                     ));
                     
-                    // Verificar si hay más pedidos o debe volver al almacén
-                    if (pedidosCamion.size() <= 1) {
-                        // No hay más pedidos, regresar al almacén central
+                    // Verificar si hay más pedidos asignados a este camión
+                    List<Pedido> pedidosRestantes = pedidoRepository.findByCamion_CodigoAndEstado(camion.getCodigo(), 1);
+                    if (pedidosRestantes.isEmpty()) {
+                        // No hay más pedidos pendientes, regresar al almacén central
                         // En implementación real, calcularíamos ruta al almacén
                         if (Math.random() < 0.2) { // 20% de probabilidad por paso de volver al almacén
                             camion.setEstado(0); // 0: disponible
@@ -823,6 +824,15 @@ public class SimulacionService {
                                 camion.getCodigo(), tiempo
                             ));
                         }
+                    } else {
+                        // Hay más pedidos, dirigir el camión hacia el siguiente pedido
+                        Pedido siguientePedido = pedidosRestantes.get(0);
+                        System.out.println(String.format(
+                            "Camión %s ahora se dirige al pedido %d en posición (%d, %d)", 
+                            camion.getCodigo(), siguientePedido.getId(), 
+                            siguientePedido.getPosX(), siguientePedido.getPosY()
+                        ));
+                        // La lógica de movimiento se maneja en actualizarPosicionCamiones
                     }
                     
                     camionRepository.save(camion);

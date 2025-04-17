@@ -33,7 +33,7 @@ public class Camion {
     private double pesoCombinado; // Peso total (tara + carga)
     
     @Column(name = "estado")
-    private int estado; // 0: disponible, 1: en ruta, 2: en mantenimiento, 3: averiado
+    private int estado; // 0: disponible, 1: en ruta, 2: en mantenimiento, 3: averiado, 4: sin combustible
     
     //!combustible Atributos relacionados con 
     @Column(name = "capacidad_tanque")
@@ -347,6 +347,7 @@ public class Camion {
             case 1: return "En ruta";
             case 2: return "En mantenimiento";
             case 3: return "Averiado";
+            case 4: return "Sin combustible";
             default: return "Desconocido";
         }
     }

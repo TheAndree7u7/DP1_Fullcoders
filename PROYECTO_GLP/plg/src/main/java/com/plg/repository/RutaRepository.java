@@ -44,6 +44,12 @@ public interface RutaRepository extends JpaRepository<Ruta, Long> {
     List<Ruta> findByCamionIdAndEstado(Long camionId, int estado);
     
     /**
+     * Busca rutas en curso con sus nodos cargados para un camión específico
+     */
+    @Query("SELECT DISTINCT r FROM Ruta r LEFT JOIN FETCH r.nodos WHERE r.camion.id = :camionId AND r.estado = :estado")
+    List<Ruta> findByCamionIdAndEstadoWithNodos(@Param("camionId") Long camionId, @Param("estado") int estado);
+    
+    /**
      * Busca rutas que incluyen un pedido específico
      */
     @Query("SELECT r FROM Ruta r JOIN r.nodos n WHERE n.pedido.id = :pedidoId")
@@ -65,7 +71,16 @@ public interface RutaRepository extends JpaRepository<Ruta, Long> {
      */
     long countByEstado(int estado);
 
-    List<Ruta> findByEstadoIn(List<Integer> of);
+    /**
+     * Busca rutas que tengan alguno de los estados especificados
+     */
+    List<Ruta> findByEstadoIn(List<Integer> estados);
+    
+    /**
+     * Busca rutas con todos sus nodos inicializados que tengan alguno de los estados especificados
+     */
+    @Query("SELECT DISTINCT r FROM Ruta r LEFT JOIN FETCH r.nodos WHERE r.estado IN :estados")
+    List<Ruta> findByEstadoInWithNodos(@Param("estados") List<Integer> estados);
 
     List<Ruta> findByCamion(Camion camion);
 }

@@ -195,7 +195,7 @@ public class SimulacionTiempoRealService {
     private void procesarMovimientoCamion(Camion camion) {
         try {
             // Obtener las rutas activas del camión
-            List<Ruta> rutasActivas = rutaRepository.findByCamionIdAndEstado(camion.getId(), 1); // 1 = En curso
+            List<Ruta> rutasActivas = rutaRepository.findByCamionIdAndEstadoWithNodos(camion.getId(), 1); // Usar findByCamionIdAndEstadoWithNodos
             
             if (rutasActivas.isEmpty()) {
                 logger.warn("Camión {} está en ruta (estado 1) pero no tiene rutas activas", camion.getCodigo());
@@ -239,6 +239,12 @@ public class SimulacionTiempoRealService {
             if (!progresoNodoActual.containsKey(rutaActual.getId())) {
                 progresoNodoActual.put(rutaActual.getId(), Double.valueOf(0.0)); // Comenzamos en 0%
                 logger.info("Inicializando progreso para ruta {}", rutaActual.getCodigo());
+                
+                // Para asegurar que el camión empiece en el primer nodo de la ruta
+                NodoRuta nodoInicial = nodos.get(0);
+                camion.setPosX(nodoInicial.getPosX());
+                camion.setPosY(nodoInicial.getPosY());
+                camionRepository.save(camion);
             }
             
             // Determinar el nodo actual y siguiente
@@ -259,6 +265,34 @@ public class SimulacionTiempoRealService {
             // Aumentar el progreso hacia el siguiente nodo
             double progreso = progresoNodoActual.get(rutaActual.getId());
             double incremento = (5.0 * factorVelocidad) / 100.0; // Avance del 5% * factor de velocidad
+            
+            // Verificar si hay combustible suficiente para el movimiento
+            double distanciaRecorrida = nodoActual.distanciaA(nodoSiguiente) * incremento;
+            double consumoPrevisto = camion.calcularConsumoCombustible(distanciaRecorrida);
+            
+            if (camion.getCombustibleActual() < consumoPrevisto) {
+                // No hay combustible suficiente para continuar
+                if (camion.getEstado() != 4) { // Solo cambiar si no estaba ya marcado sin combustible
+                    camion.setEstado(4); // 4: Sin combustible
+                    camionRepository.save(camion);
+                    
+                    // Enviar notificación de falta de combustible
+                    Map<String, Object> notificacion = new HashMap<>();
+                    notificacion.put("tipo", "sinCombustible");
+                    notificacion.put("camionId", camion.getId());
+                    notificacion.put("camionCodigo", camion.getCodigo());
+                    notificacion.put("posX", camion.getPosX());
+                    notificacion.put("posY", camion.getPosY());
+                    notificacion.put("combustibleRestante", camion.getCombustibleActual());
+                    notificacion.put("mensaje", "El camión " + camion.getCodigo() + " se ha quedado sin combustible");
+                    messagingTemplate.convertAndSend("/topic/alertas", notificacion);
+                    
+                    logger.warn("Camión {} sin combustible en pos X:{} Y:{}", camion.getCodigo(), camion.getPosX(), camion.getPosY());
+                }
+                return; // No seguir procesando el camión
+            }
+            
+            // Hay suficiente combustible, continuar con el movimiento
             progreso += incremento;
             
             // Verificar si llegamos al siguiente nodo
@@ -270,9 +304,26 @@ public class SimulacionTiempoRealService {
                 camion.setPosY(nodoSiguiente.getPosY());
                 
                 // Consumir combustible por el tramo recorrido
-                double distanciaRecorrida = nodoActual.distanciaA(nodoSiguiente);
-                double consumo = camion.calcularConsumoCombustible(distanciaRecorrida);
+                double consumo = camion.calcularConsumoCombustible(distanciaRecorrida * (1.0/incremento)); // Consumo total del tramo
                 camion.setCombustibleActual(Math.max(0, camion.getCombustibleActual() - consumo));
+                
+                // Verificar si después de consumir nos quedamos sin combustible
+                if (camion.getCombustibleActual() <= 0.1) { // Un umbral mínimo para considerar "sin combustible"
+                    camion.setCombustibleActual(0);
+                    camion.setEstado(4); // 4: Sin combustible
+                    
+                    // Enviar notificación de falta de combustible
+                    Map<String, Object> notificacion = new HashMap<>();
+                    notificacion.put("tipo", "sinCombustible");
+                    notificacion.put("camionId", camion.getId());
+                    notificacion.put("camionCodigo", camion.getCodigo());
+                    notificacion.put("posX", camion.getPosX());
+                    notificacion.put("posY", camion.getPosY());
+                    notificacion.put("mensaje", "El camión " + camion.getCodigo() + " se ha quedado sin combustible");
+                    messagingTemplate.convertAndSend("/topic/alertas", notificacion);
+                    
+                    logger.warn("Camión {} sin combustible en pos X:{} Y:{}", camion.getCodigo(), camion.getPosX(), camion.getPosY());
+                }
                 
                 // Si es un nodo cliente, procesar entrega
                 if ("CLIENTE".equals(nodoSiguiente.getTipo()) && !nodoSiguiente.isEntregado() && nodoSiguiente.getPedido() != null) {
@@ -345,13 +396,48 @@ public class SimulacionTiempoRealService {
                 return;
             }
             
-            // Calculamos la posición intermedia usando interpolación lineal
+            logger.debug("Calculando posición intermedia para camión {} - Origen: ({},{}) Destino: ({},{}) - Progreso: {}", 
+                camion.getCodigo(), origen.getPosX(), origen.getPosY(), destino.getPosX(), destino.getPosY(), progreso);
+            
+            // Movimiento solo horizontal y vertical (reticular), nunca diagonal
             double deltaX = destino.getPosX() - origen.getPosX();
             double deltaY = destino.getPosY() - origen.getPosY();
             
-            // Movimiento directo (interpolación lineal simple)
-            double nuevaX = origen.getPosX() + (deltaX * progreso);
-            double nuevaY = origen.getPosY() + (deltaY * progreso);
+            double nuevaX = origen.getPosX();
+            double nuevaY = origen.getPosY();
+            
+            // En un mapa reticular, primero movemos horizontalmente, luego verticalmente
+            if (Math.abs(deltaX) > 0.01) { // Si hay distancia horizontal
+                // Primera fase: mover horizontalmente hasta completarlo
+                if (progreso <= 0.5) {
+                    // De 0 a 0.5, solo movemos en X (horizontal)
+                    // Ajustar el progreso para que vaya de 0 a 1 en esta fase
+                    double progresoHorizontal = progreso * 2.0;
+                    nuevaX = origen.getPosX() + (deltaX * progresoHorizontal);
+                    nuevaY = origen.getPosY(); // Y permanece constante
+                    
+                    logger.debug("FASE HORIZONTAL: Camión {} - Progreso real: {}%, horizontal ajustado: {}%, Nueva posición X: {}", 
+                        camion.getCodigo(), (progreso * 100), (progresoHorizontal * 100), nuevaX);
+                } else {
+                    // De 0.5 a 1, X ya está en destino, movemos Y
+                    nuevaX = destino.getPosX(); // X ya llegó al destino
+                    
+                    // Ajustar el progreso para Y, de 0 a 1
+                    double progresoVertical = (progreso - 0.5) * 2.0;
+                    nuevaY = origen.getPosY() + (deltaY * progresoVertical);
+                    
+                    logger.debug("FASE VERTICAL: Camión {} - Progreso real: {}%, vertical ajustado: {}%, Nueva posición Y: {}", 
+                        camion.getCodigo(), (progreso * 100), (progresoVertical * 100), nuevaY);
+                }
+            } else {
+                // Si no hay movimiento horizontal, solo movemos verticalmente de principio a fin
+                nuevaY = origen.getPosY() + (deltaY * progreso);
+                logger.debug("SOLO VERTICAL: Camión {} - Progreso: {}%, Nueva posición Y: {}", 
+                    camion.getCodigo(), (progreso * 100), nuevaY);
+            }
+            
+            logger.info("Camión {} - Actualización de posición: De ({},{}) a ({},{})", 
+                camion.getCodigo(), camion.getPosX(), camion.getPosY(), nuevaX, nuevaY);
             
             // Actualizar posición del camión
             camion.setPosX(nuevaX);
@@ -368,18 +454,24 @@ public class SimulacionTiempoRealService {
         nodo.setEntregado(true);
         nodo.setTiempoLlegadaReal(LocalDateTime.now());
         
-        // Liberar capacidad del camión
-        camion.liberarCapacidad(nodo.getVolumenGLP());
+        // Liberar capacidad del camión - lo hacemos primero directamente aquí
+        // ya que tenemos la referencia correcta al camión
+        double volumenEntregado = nodo.getVolumenGLP();
+        camion.liberarCapacidad(volumenEntregado);
         
         // Si el pedido está presente, actualizar su estado
         Pedido pedido = nodo.getPedido();
         if (pedido != null) {
+            // Registrar la entrega parcial con el volumen del nodo
+            // Esta función ya no maneja liberación de capacidad del camión
+            pedido.registrarEntregaParcial(camion.getCodigo(), volumenEntregado, LocalDateTime.now());
+            
             // Verificar si todas las entregas para este pedido han sido completadas
             boolean todasEntregasCompletadas = true;
             double volumenTotalEntregado = 0.0;
             
-            // Buscar este pedido en todas las rutas activas
-            List<Ruta> rutasConPedido = rutaRepository.findByEstadoIn(Arrays.asList(1, 2)); // En curso o completada
+            // Buscar este pedido en todas las rutas activas - Usar método con FETCH JOIN
+            List<Ruta> rutasConPedido = rutaRepository.findByEstadoInWithNodos(Arrays.asList(1, 2)); // En curso o completada
             for (Ruta r : rutasConPedido) {
                 for (NodoRuta n : r.getNodos()) {
                     if (n.getPedido() != null && n.getPedido().getId().equals(pedido.getId())) {
@@ -392,12 +484,18 @@ public class SimulacionTiempoRealService {
                 }
             }
             
+            // Asegurar que los volúmenes estén actualizados
+            pedido.setVolumenGLPEntregado(volumenTotalEntregado);
+            pedido.setVolumenGLPPendiente(pedido.getVolumenGLPAsignado() - volumenTotalEntregado);
+            
             // Si todas las entregas están completadas o el volumen entregado es suficiente, marcar pedido como completado
             if (todasEntregasCompletadas || Math.abs(volumenTotalEntregado - pedido.getVolumenGLPAsignado()) < 0.01) {
                 pedido.setEstado(2); // 2 = Entregado
                 pedido.setFechaEntregaReal(LocalDateTime.now());
-                pedidoRepository.save(pedido);
+                pedido.setVolumenGLPPendiente(0); // Asegurar que no queda pendiente
             }
+            
+            pedidoRepository.save(pedido);
             
             // Crear una notificación de entrega
             Map<String, Object> notificacion = new HashMap<>();
@@ -408,12 +506,20 @@ public class SimulacionTiempoRealService {
             notificacion.put("pedidoCodigo", pedido.getCodigo());
             notificacion.put("posX", camion.getPosX());
             notificacion.put("posY", camion.getPosY());
-            notificacion.put("volumenEntregado", Optional.of(nodo.getVolumenGLP()));
+            notificacion.put("volumenEntregado", Optional.of(volumenEntregado));
             notificacion.put("porcentajeEntregado", Optional.of(nodo.getPorcentajePedido()));
+            notificacion.put("volumenTotalEntregado", Optional.of(volumenTotalEntregado));
+            notificacion.put("volumenTotal", Optional.of(pedido.getVolumenGLPAsignado()));
             notificacion.put("fechaEntrega", LocalDateTime.now().toString());
+            notificacion.put("estado", pedido.getEstado());
             
             // Enviar notificación por WebSocket
             messagingTemplate.convertAndSend("/topic/entregas", notificacion);
+            
+            logger.info("Pedido {} entregado por camión {} - Volumen: {}/{} m³ - Estado: {}", 
+                pedido.getCodigo(), camion.getCodigo(), 
+                volumenTotalEntregado, pedido.getVolumenGLPAsignado(),
+                pedido.getEstado());
         }
     }
     
@@ -486,8 +592,39 @@ public class SimulacionTiempoRealService {
             
             messagingTemplate.convertAndSend("/topic/rutas", notificacion);
         } else {
-            // No hay más rutas, cambiar estado del camión a disponible
-            camion.setEstado(0); // 0 = Disponible
+            // No hay más rutas planificadas
+            // Verificar si quedan pedidos pendientes para este camión antes de marcarlo como disponible
+            boolean quedanPedidos = pedidoRepository
+                .findByEstadoIn(Arrays.asList(0, 1)) // Pendientes o asignados
+                .stream()
+                .filter(p -> p.getCamion() != null) // Solo pedidos con camión asignado
+                .filter(p -> p.getCamion().getId().equals(camion.getId())) // De este camión
+                .filter(p -> p.getEstado() != 2) // No entregados
+                .filter(p -> p.getVolumenGLPPendiente() > 0.01) // Con volumen pendiente significativo
+                .anyMatch(p -> true); // ¿Hay alguno que cumpla todas las condiciones?
+                
+            if (quedanPedidos) {
+                // Mantener el camión en estado "en ruta" si todavía tiene pedidos pendientes
+                camion.setEstado(1); // 1 = En ruta
+                logger.info("Camión {} sigue en ruta porque tiene pedidos pendientes", camion.getCodigo());
+            } else {
+                // No hay pedidos pendientes, el camión debe regresar al almacén central
+                camion.setEstado(0); // 0 = Disponible
+                // Posición del almacén central (normalmente en 12,8)
+                // Si existe un almacén central en la BD, usamos su posición
+                List<Almacen> almacenesCentrales = almacenRepository.findByEsCentral(true);
+                if (!almacenesCentrales.isEmpty()) {
+                    Almacen almacenCentral = almacenesCentrales.get(0);
+                    camion.setPosX(almacenCentral.getPosX());
+                    camion.setPosY(almacenCentral.getPosY());
+                } else {
+                    // Posición predeterminada si no hay almacén central
+                    camion.setPosX(12); 
+                    camion.setPosY(8);
+                }
+                logger.info("Camión {} marcado como disponible y posicionado en almacén central", camion.getCodigo());
+            }
+            
             camionRepository.save(camion);
             
             // Notificar fin de todas las rutas
@@ -495,6 +632,10 @@ public class SimulacionTiempoRealService {
             notificacion.put("tipo", "finRutas");
             notificacion.put("camionId", camion.getId());
             notificacion.put("camionCodigo", camion.getCodigo());
+            notificacion.put("nuevoEstado", camion.getEstado());
+            notificacion.put("nuevoEstadoTexto", camion.getEstadoTexto());
+            notificacion.put("posX", camion.getPosX());
+            notificacion.put("posY", camion.getPosY());
             
             messagingTemplate.convertAndSend("/topic/rutas", notificacion);
         }
@@ -620,32 +761,131 @@ public class SimulacionTiempoRealService {
             // 1. PROCESAR CAMIONES
             long startCamiones = System.currentTimeMillis();
             try {
-                List<Map<String, Object>> camionesList = new ArrayList<>();
+                List<Map<String, Object>> camionesEnRutaList = new ArrayList<>();
+                List<Map<String, Object>> camionesDisponiblesList = new ArrayList<>();
+                List<Map<String, Object>> camionesSinCombustibleList = new ArrayList<>();
+                List<Map<String, Object>> camionesOtrosList = new ArrayList<>();
                 
-                for (Camion camion : camionRepository.findAll()) {
+                // Obtener camiones por estado
+                List<Camion> enRuta = camionRepository.findByEstado(1); // En ruta
+                List<Camion> disponibles = camionRepository.findByEstado(0); // Disponibles
+                List<Camion> sinCombustible = camionRepository.findByEstado(4); // Sin combustible
+                List<Camion> otros = new ArrayList<>(); // Otros estados (mantenimiento, averiado)
+                otros.addAll(camionRepository.findByEstado(2)); // En mantenimiento
+                otros.addAll(camionRepository.findByEstado(3)); // Averiado
+                
+                // Procesar camiones en ruta
+                for (Camion camion : enRuta) {
                     try {
                         Map<String, Object> camionMap = new HashMap<>();
                         camionMap.put("id", camion.getId());
                         camionMap.put("codigo", camion.getCodigo());
-                        camionMap.put("estado", Optional.of(camion.getEstado()));
+                        camionMap.put("estado", camion.getEstado());
+                        camionMap.put("estadoTexto", camion.getEstadoTexto());
                         camionMap.put("capacidad", camion.getCapacidad());
-                        camionMap.put("combustibleActual", Optional.of(camion.getCombustibleActual()));
+                        camionMap.put("combustibleActual", camion.getCombustibleActual());
                         camionMap.put("posX", camion.getPosX());
                         camionMap.put("posY", camion.getPosY());
                         
                         // Solo añadir camiones con posición válida
                         if (!Double.isNaN(camion.getPosX()) && !Double.isNaN(camion.getPosY())) {
-                            camionesList.add(camionMap);
+                            camionesEnRutaList.add(camionMap);
                         }
                     } catch (Exception e) {
-                        logger.error("Al procesar camión {}: {}", camion.getId(), e.getMessage(), e);
+                        logger.error("Al procesar camión en ruta {}: {}", camion.getId(), e.getMessage(), e);
                     }
                 }
+                
+                // Procesar camiones disponibles
+                for (Camion camion : disponibles) {
+                    try {
+                        Map<String, Object> camionMap = new HashMap<>();
+                        camionMap.put("id", camion.getId());
+                        camionMap.put("codigo", camion.getCodigo());
+                        camionMap.put("estado", camion.getEstado());
+                        camionMap.put("estadoTexto", camion.getEstadoTexto());
+                        camionMap.put("capacidad", camion.getCapacidad());
+                        camionMap.put("combustibleActual", camion.getCombustibleActual());
+                        camionMap.put("posX", camion.getPosX());
+                        camionMap.put("posY", camion.getPosY());
+                        
+                        // Solo añadir camiones con posición válida
+                        if (!Double.isNaN(camion.getPosX()) && !Double.isNaN(camion.getPosY())) {
+                            camionesDisponiblesList.add(camionMap);
+                        }
+                    } catch (Exception e) {
+                        logger.error("Al procesar camión disponible {}: {}", camion.getId(), e.getMessage(), e);
+                    }
+                }
+                
+                // Procesar camiones sin combustible
+                for (Camion camion : sinCombustible) {
+                    try {
+                        Map<String, Object> camionMap = new HashMap<>();
+                        camionMap.put("id", camion.getId());
+                        camionMap.put("codigo", camion.getCodigo());
+                        camionMap.put("estado", camion.getEstado());
+                        camionMap.put("estadoTexto", camion.getEstadoTexto());
+                        camionMap.put("capacidad", camion.getCapacidad());
+                        camionMap.put("combustibleActual", camion.getCombustibleActual());
+                        camionMap.put("posX", camion.getPosX());
+                        camionMap.put("posY", camion.getPosY());
+                        
+                        // Solo añadir camiones con posición válida
+                        if (!Double.isNaN(camion.getPosX()) && !Double.isNaN(camion.getPosY())) {
+                            camionesSinCombustibleList.add(camionMap);
+                        }
+                    } catch (Exception e) {
+                        logger.error("Al procesar camión sin combustible {}: {}", camion.getId(), e.getMessage(), e);
+                    }
+                }
+                
+                // Procesar otros camiones (mantenimiento, averiado)
+                for (Camion camion : otros) {
+                    try {
+                        Map<String, Object> camionMap = new HashMap<>();
+                        camionMap.put("id", camion.getId());
+                        camionMap.put("codigo", camion.getCodigo());
+                        camionMap.put("estado", camion.getEstado());
+                        camionMap.put("estadoTexto", camion.getEstadoTexto());
+                        camionMap.put("capacidad", camion.getCapacidad());
+                        camionMap.put("combustibleActual", camion.getCombustibleActual());
+                        camionMap.put("posX", camion.getPosX());
+                        camionMap.put("posY", camion.getPosY());
+                        
+                        // Solo añadir camiones con posición válida
+                        if (!Double.isNaN(camion.getPosX()) && !Double.isNaN(camion.getPosY())) {
+                            camionesOtrosList.add(camionMap);
+                        }
+                    } catch (Exception e) {
+                        logger.error("Al procesar camión en otro estado {}: {}", camion.getId(), e.getMessage(), e);
+                    }
+                }
+                
+                // Añadir todas las categorías de camiones al resultado
+                result.put("camionesEnRuta", camionesEnRutaList);
+                result.put("camionesDisponibles", camionesDisponiblesList);
+                result.put("camionesSinCombustible", camionesSinCombustibleList);
+                result.put("camionesOtros", camionesOtrosList);
+                
+                // También añadir una lista completa para retrocompatibilidad
+                List<Map<String, Object>> camionesList = new ArrayList<>();
+                camionesList.addAll(camionesEnRutaList);
+                camionesList.addAll(camionesDisponiblesList);
+                camionesList.addAll(camionesSinCombustibleList);
+                camionesList.addAll(camionesOtrosList);
                 result.put("camiones", camionesList);
-                logger.debug("Camiones procesados: {} en {}ms", camionesList.size(), (System.currentTimeMillis() - startCamiones));
+                
+                logger.debug("Camiones procesados: {} en ruta, {} disponibles, {} sin combustible, {} otros, {} total en {}ms", 
+                    camionesEnRutaList.size(), camionesDisponiblesList.size(), camionesSinCombustibleList.size(),
+                    camionesOtrosList.size(), camionesList.size(), (System.currentTimeMillis() - startCamiones));
             } catch (Exception e) {
                 logger.error("Al procesar camiones: {}", e.getMessage(), e);
                 result.put("camiones", new ArrayList<>());
+                result.put("camionesEnRuta", new ArrayList<>());
+                result.put("camionesDisponibles", new ArrayList<>());
+                result.put("camionesSinCombustible", new ArrayList<>());
+                result.put("camionesOtros", new ArrayList<>());
                 result.put("error_camiones", e.getMessage());
             }
 
@@ -784,7 +1024,7 @@ public class SimulacionTiempoRealService {
             return result;
             
         } catch (Exception e) {
-            logger.error("Error general obteniendo posiciones: {}", e.getMessage(), e);
+            logger.error("Error general obteniendo posiciones: {}", e.getMessage());
             
             // Devolver al menos un objeto vacío pero válido
             result.put("error", "Error general obteniendo posiciones: " + e.getMessage());
