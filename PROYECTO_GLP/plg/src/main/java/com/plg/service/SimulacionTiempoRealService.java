@@ -150,37 +150,37 @@ public class SimulacionTiempoRealService {
                 return;
             }
             
-            // Obtener todos los camiones en ruta
-            List<Camion> camionesEnRuta = camionRepository.findByEstado(0); // 1 = En ruta
-            // Agrega tambien los camiones en estado 0 (disponible) para verificar si tienen rutas pendientes
-            List<Camion> camionesDisponibles = camionRepository.findByEstado(1);
-  
+            // Obtener todos los camiones en ruta (estado 1)
+            List<Camion> camionesEnRuta = camionRepository.findByEstado(1); // 1 = En ruta
+            // Agregar también los camiones en estado 0 (disponible) para verificar si tienen rutas pendientes
+            List<Camion> camionesDisponibles = camionRepository.findByEstado(0);
             
             camionesEnRuta.addAll(camionesDisponibles);
-            // Si no hay camiones en ruta, no hay nada que simular
+            
+            // Si no hay camiones en ruta o disponibles, no hay nada que simular
             if (camionesEnRuta.isEmpty()) {
-                logger.info("No hay camiones en ruta para simular");
+                logger.info("No hay camiones para simular");
                 return;
             }
             
-            logger.debug("Procesando {} camiones en ruta", camionesEnRuta.size());
+            logger.debug("Procesando {} camiones en la simulación", camionesEnRuta.size());
             
-            // Procesar cada camión en ruta
+            // Procesar cada camión
             for (Camion camion : camionesEnRuta) {
                 procesarMovimientoCamion(camion);
             }
             
             // Contar estadísticas para incluir en la actualización
             Map<String, Object> estadisticas = new HashMap<>();
-            estadisticas.put("camionesTotal", Optional.of(camionRepository.count()));
-            estadisticas.put("camionesEnRuta", Optional.of(camionRepository.findByEstado(1).size()));
-            estadisticas.put("almacenesTotal", Optional.of(almacenRepository.count()));
-            estadisticas.put("pedidosTotal", Optional.of(pedidoRepository.count()));
-            estadisticas.put("pedidosPendientes", Optional.of(pedidoRepository.findByEstado(0).size()));
-            estadisticas.put("pedidosEnRuta", Optional.of(pedidoRepository.findByEstado(1).size()));
-            estadisticas.put("pedidosEntregados", Optional.of(pedidoRepository.findByEstado(2).size()));
-            estadisticas.put("rutasTotal", Optional.of(rutaRepository.count()));
-            estadisticas.put("rutasActivas", Optional.of(rutaRepository.findByEstado(1).size()));
+            estadisticas.put("camionesTotal", camionRepository.count());
+            estadisticas.put("camionesEnRuta", camionRepository.findByEstado(1).size());
+            estadisticas.put("almacenesTotal", almacenRepository.count());
+            estadisticas.put("pedidosTotal", pedidoRepository.count());
+            estadisticas.put("pedidosPendientes", pedidoRepository.findByEstado(0).size());
+            estadisticas.put("pedidosEnRuta", pedidoRepository.findByEstado(1).size());
+            estadisticas.put("pedidosEntregados", pedidoRepository.findByEstado(2).size());
+            estadisticas.put("rutasTotal", rutaRepository.count());
+            estadisticas.put("rutasActivas", rutaRepository.findByEstado(1).size());
             
             // Enviar actualización a los clientes conectados vía WebSocket
             enviarActualizacionPosiciones(estadisticas);
@@ -725,18 +725,20 @@ public class SimulacionTiempoRealService {
             try {
                 List<Map<String, Object>> rutasList = new ArrayList<>();
                 
-                for (Ruta ruta : rutaRepository.findByEstado(1)) {
+                // Usar el nuevo método que incluye un FETCH JOIN para evitar LazyInitializationException
+                for (Ruta ruta : rutaRepository.findByEstadoWithNodos(1)) {
                     try {
                         Map<String, Object> rutaMap = new HashMap<>();
                         rutaMap.put("id", ruta.getId());
                         rutaMap.put("codigo", ruta.getCodigo());
                         rutaMap.put("estado", ruta.getEstado());
                         
-                        // Extraer nodos de la ruta si existen
-                        if (ruta.getNodos() != null && !ruta.getNodos().isEmpty()) {
+                        // Ahora los nodos ya vienen inicializados, evitando el LazyInitializationException
+                        List<NodoRuta> nodos = ruta.getNodos();
+                        if (nodos != null && !nodos.isEmpty()) {
                             List<Map<String, Object>> nodosList = new ArrayList<>();
                             
-                            for (NodoRuta nodo : ruta.getNodos()) {
+                            for (NodoRuta nodo : nodos) {
                                 try {
                                     if (Double.isNaN(nodo.getPosX()) || Double.isNaN(nodo.getPosY())) {
                                         continue; // Ignorar nodos sin coordenadas
@@ -744,7 +746,7 @@ public class SimulacionTiempoRealService {
                                     
                                     Map<String, Object> nodoMap = new HashMap<>();
                                     nodoMap.put("id", nodo.getId());
-                                    nodoMap.put("orden", Optional.of(nodo.getOrden()));
+                                    nodoMap.put("orden", nodo.getOrden());
                                     nodoMap.put("posX", nodo.getPosX());
                                     nodoMap.put("posY", nodo.getPosY());
                                     nodoMap.put("tipo", nodo.getTipo());

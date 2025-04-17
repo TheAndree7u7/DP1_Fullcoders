@@ -17,4 +17,5 @@ public class RutaDTO {
     private List<PedidoDTO> pedidos;
     private Integer numeroPedidos;
     private List<PuntoRutaDTO> puntos;
+    private String camionCodigo;
 }

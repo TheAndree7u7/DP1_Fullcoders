@@ -28,6 +28,12 @@ public interface RutaRepository extends JpaRepository<Ruta, Long> {
     List<Ruta> findByEstado(int estado);
     
     /**
+     * Busca rutas con todos sus nodos inicializados por estado
+     */
+    @Query("SELECT DISTINCT r FROM Ruta r LEFT JOIN FETCH r.nodos WHERE r.estado = :estado")
+    List<Ruta> findByEstadoWithNodos(@Param("estado") int estado);
+    
+    /**
      * Busca rutas asignadas a un camión específico
      */
     List<Ruta> findByCamionId(Long camionId);

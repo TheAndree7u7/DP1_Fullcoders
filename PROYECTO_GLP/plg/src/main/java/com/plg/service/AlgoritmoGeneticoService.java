@@ -1,13 +1,23 @@
 package com.plg.service;
 
 import com.plg.dto.*;
+import com.plg.entity.Almacen;
+import com.plg.entity.Camion;
+import com.plg.entity.NodoRuta;
 import com.plg.entity.Pedido;
+import com.plg.entity.Ruta;
+import com.plg.repository.AlmacenRepository;
+import com.plg.repository.CamionRepository;
 import com.plg.repository.PedidoRepository;
+import com.plg.repository.RutaRepository;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -19,12 +29,22 @@ public class AlgoritmoGeneticoService {
     @Autowired
     private PedidoRepository pedidoRepository;
     
+    @Autowired
+    private CamionRepository camionRepository;
+    
+    @Autowired
+    private RutaRepository rutaRepository;
+    
+    @Autowired
+    private AlmacenRepository almacenRepository;
+    
     // Parámetros configurables del algoritmo genético
     private final int POBLACION_INICIAL = 50;
     private final int MAX_GENERACIONES = 100;
     private final double TASA_MUTACION = 0.1;
     private final double TASA_CRUCE = 0.8;
     
+    @Transactional
     public AlgoritmoGeneticoResultadoDTO generarRutas(Map<String, Object> params) {
         logger.info("Iniciando generación de rutas con algoritmo genético. Parámetros: {}", params);
         
@@ -45,66 +65,138 @@ public class AlgoritmoGeneticoService {
         
         // Parámetros opcionales
         int numeroRutas = params.containsKey("numeroRutas") ? 
-                         (int) params.get("numeroRutas") : 3;
+                         Integer.parseInt(params.get("numeroRutas").toString()) : 3;
         logger.info("Generando {} rutas para {} pedidos", numeroRutas, pedidos.size());
         
-        // Implementación simplificada - en un caso real aquí iría el algoritmo genético completo
-        // que optimizaría las rutas considerando capacidades de camiones, restricciones temporales, etc.
+        // Obtener camiones disponibles
+        List<Camion> camionesDisponibles = camionRepository.findByEstado(0); // Estado 0 = Disponible
+        logger.info("Camiones disponibles encontrados: {}", camionesDisponibles.size());
         
-        // Generamos rutas simuladas
-        List<RutaDTO> rutas = generarRutasSimuladas(pedidos, numeroRutas);
-        logger.info("Rutas generadas exitosamente: {}", rutas.size());
+        if (camionesDisponibles.isEmpty()) {
+            logger.warn("No hay camiones disponibles para asignar a las rutas");
+            return AlgoritmoGeneticoResultadoDTO.builder()
+                .metodo("algoritmoGenetico")
+                .totalPedidos(pedidos.size())
+                .pedidosAsignados(0)
+                .mensaje("No hay camiones disponibles para asignar")
+                .rutas(Collections.emptyList())
+                .build();
+        }
         
-        // Preparamos el resultado usando DTO
-        AlgoritmoGeneticoResultadoDTO resultado = AlgoritmoGeneticoResultadoDTO.builder()
-            .rutas(rutas)
-            .metodo("algoritmoGenetico")
-            .totalPedidos(pedidos.size())
-            .pedidosAsignados(pedidos.size())
-            .build();
+        // Ajustar el número de rutas según los camiones disponibles
+        numeroRutas = Math.min(numeroRutas, camionesDisponibles.size());
         
-        logger.info("Generación de rutas completada. Pedidos asignados: {}/{}", 
-            resultado.getPedidosAsignados(), resultado.getTotalPedidos());
+        // Obtener almacén central
+        Almacen almacenCentral = almacenRepository.findByEsCentralAndActivoTrue(true);
+        if (almacenCentral == null) {
+            logger.error("No se encontró el almacén central activo");
+            return AlgoritmoGeneticoResultadoDTO.builder()
+                .metodo("algoritmoGenetico")
+                .totalPedidos(pedidos.size())
+                .pedidosAsignados(0)
+                .mensaje("Error: No se encontró el almacén central")
+                .rutas(Collections.emptyList())
+                .build();
+        }
         
-        return resultado;
-    }
-    
-    // Método que simula la generación de rutas - en un caso real esto implementaría el AG completo
-    private List<RutaDTO> generarRutasSimuladas(List<Pedido> pedidos, int numeroRutas) {
-        logger.debug("Iniciando generación de rutas simuladas con {} pedidos", pedidos.size());
-        List<RutaDTO> rutas = new ArrayList<>();
+        // Generamos grupos de pedidos para las rutas
+        List<List<Pedido>> gruposPedidos = dividirEnGrupos(pedidos, numeroRutas);
+        logger.info("Pedidos divididos en {} grupos", gruposPedidos.size());
         
-        // Dividir los pedidos en grupos (clusters) para simular las rutas
-        List<List<Pedido>> grupos = dividirEnGrupos(pedidos, numeroRutas);
-        logger.debug("Pedidos divididos en {} grupos", grupos.size());
+        // Crear rutas y asignar camiones
+        List<RutaDTO> rutasDTO = new ArrayList<>();
+        List<Ruta> rutasCreadas = new ArrayList<>();
         
-        // Para cada grupo creamos una ruta
-        for (int i = 0; i < grupos.size(); i++) {
-            logger.debug("Generando ruta {} con {} pedidos", (i+1), grupos.get(i).size());
+        for (int i = 0; i < gruposPedidos.size(); i++) {
+            if (i >= camionesDisponibles.size()) break;
             
-            // Convertir pedidos a DTOs
-            List<PedidoDTO> pedidosDTO = grupos.get(i).stream()
+            List<Pedido> pedidosGrupo = gruposPedidos.get(i);
+            Camion camion = camionesDisponibles.get(i);
+            
+            logger.info("Creando ruta {} con {} pedidos para camión {}", (i+1), pedidosGrupo.size(), camion.getCodigo());
+            
+            // Crear una nueva entidad Ruta
+            Ruta ruta = new Ruta("R" + System.currentTimeMillis() + "-" + (i+1));
+            ruta.setCamion(camion);
+            ruta.setEstado(1); // Estado 1 = En curso
+            ruta.setFechaCreacion(LocalDateTime.now());
+            ruta.setFechaInicioRuta(LocalDateTime.now());
+            ruta.setConsideraBloqueos(true);
+            
+            // Agregar nodo inicial (almacén central)
+            ruta.agregarNodo(almacenCentral.getPosX(), almacenCentral.getPosY(), "ALMACEN");
+            
+            // Agregar pedidos como nodos
+            for (Pedido pedido : pedidosGrupo) {
+                pedido.setEstado(1); // Estado 1 = En ruta
+                pedidoRepository.save(pedido);
+                
+                // Agregar a la ruta como nodo cliente
+                ruta.agregarNodoCliente(pedido.getPosX(), pedido.getPosY(), pedido, 
+                                       pedido.getVolumenGLPAsignado(), 100.0);
+            }
+            
+            // Agregar nodo final (retorno al almacén)
+            ruta.agregarNodo(almacenCentral.getPosX(), almacenCentral.getPosY(), "ALMACEN");
+            
+            // Calcular distancia total y optimizar ruta si es necesario
+            ruta.calcularDistanciaTotal();
+            
+            // Cambiar estado del camión a "En ruta"
+            camion.setEstado(1); // Estado 1 = En ruta
+            camionRepository.save(camion);
+            
+            // Guardar la ruta
+            rutaRepository.save(ruta);
+            rutasCreadas.add(ruta);
+            
+            // Crear DTO para la respuesta
+            List<PedidoDTO> pedidosDTO = pedidosGrupo.stream()
                 .map(this::convertirAPedidoDTO)
                 .collect(Collectors.toList());
             
-            // Generar puntos de la ruta
-            List<PuntoRutaDTO> puntosRuta = generarPuntosRuta(grupos.get(i));
+            List<PuntoRutaDTO> puntosRuta = new ArrayList<>();
+            for (NodoRuta nodo : ruta.getNodos()) {
+                PuntoRutaDTO punto = PuntoRutaDTO.builder()
+                    .tipo(nodo.getTipo())
+                    .posX(nodo.getPosX())
+                    .posY(nodo.getPosY())
+                    .idPedido(nodo.getPedido() != null ? nodo.getPedido().getId() : null)
+                    .build();
+                puntosRuta.add(punto);
+            }
             
-            // Crear la ruta como DTO
-            RutaDTO ruta = RutaDTO.builder()
-                .idRuta("R" + (i + 1))
-                .distanciaTotal(120.0 + (20 * Math.random())) // Valor simulado
-                .tiempoEstimado(180 + (i * 30)) // Minutos (simulado)
+            RutaDTO rutaDTO = RutaDTO.builder()
+                .idRuta(ruta.getCodigo())
+                .distanciaTotal(ruta.getDistanciaTotal())
+                .tiempoEstimado(180) // Valor simulado en minutos
                 .pedidos(pedidosDTO)
-                .numeroPedidos(grupos.get(i).size())
+                .numeroPedidos(pedidosGrupo.size())
                 .puntos(puntosRuta)
+                .camionCodigo(camion.getCodigo())
                 .build();
             
-            rutas.add(ruta);
-            logger.debug("Ruta R{} generada con éxito", (i+1));
+            rutasDTO.add(rutaDTO);
+            logger.info("Ruta {} creada exitosamente con id: {}", (i+1), ruta.getId());
         }
         
-        return rutas;
+        int pedidosAsignados = gruposPedidos.stream()
+            .mapToInt(List::size)
+            .sum();
+        
+        logger.info("Generación de rutas completada. Rutas creadas: {}, Pedidos asignados: {}/{}",
+            rutasCreadas.size(), pedidosAsignados, pedidos.size());
+        
+        // Preparamos el resultado usando DTO
+        AlgoritmoGeneticoResultadoDTO resultado = AlgoritmoGeneticoResultadoDTO.builder()
+            .rutas(rutasDTO)
+            .metodo("algoritmoGenetico")
+            .totalPedidos(pedidos.size())
+            .pedidosAsignados(pedidosAsignados)
+            .rutasGeneradas(rutasCreadas.size())
+            .build();
+        
+        return resultado;
     }
     
     // Método auxiliar para dividir pedidos en grupos (simulado)
@@ -140,38 +232,5 @@ public class AlgoritmoGeneticoService {
             .clienteId(pedido.getCliente() != null ? pedido.getCliente().getId() : null)
             .clienteNombre(pedido.getCliente() != null ? pedido.getCliente().getNombre() : null)
             .build();
-    }
-    
-    // Genera puntos de ruta (simulado - en un escenario real se utilizaría el AG)
-    private List<PuntoRutaDTO> generarPuntosRuta(List<Pedido> pedidos) {
-        logger.debug("Generando puntos de ruta para {} pedidos", pedidos.size());
-        List<PuntoRutaDTO> puntos = new ArrayList<>();
-        
-        // El primer punto es el almacén (origen)
-        puntos.add(PuntoRutaDTO.builder()
-            .tipo("ALMACEN")
-            .posX(0)
-            .posY(0)
-            .build());
-        
-        // Agregamos cada pedido como un punto de la ruta
-        for (Pedido pedido : pedidos) {
-            puntos.add(PuntoRutaDTO.builder()
-                .tipo("CLIENTE")
-                .posX(pedido.getPosX())
-                .posY(pedido.getPosY())
-                .idPedido(pedido.getId())
-                .build());
-        }
-        
-        // El último punto es el retorno al almacén
-        puntos.add(PuntoRutaDTO.builder()
-            .tipo("ALMACEN")
-            .posX(0)
-            .posY(0)
-            .build());
-        
-        logger.debug("Generados {} puntos de ruta", puntos.size());
-        return puntos;
     }
 }

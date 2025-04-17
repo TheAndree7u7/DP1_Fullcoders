@@ -15,4 +15,6 @@ public class AlgoritmoGeneticoResultadoDTO {
     private String metodo;
     private Integer totalPedidos;
     private Integer pedidosAsignados;
+    private String mensaje;
+    private Integer rutasGeneradas;
 }
