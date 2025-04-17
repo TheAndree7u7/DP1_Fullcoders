@@ -17,10 +17,10 @@ import java.time.LocalDateTime;
 public class PedidoDTO {
     private Long id;
     private String codigo;
-    private Integer posX;
-    private Integer posY;
-    private Double m3; // Cambiado de Double a Integer para coincidir con la entidad
-    private Integer horasLimite;
+    private double posX;
+    private double posY;
+    private double m3; // Cambiado de Double a Integer para coincidir con la entidad
+    private double horasLimite;
     private String clienteId; // Cambiado de Long a String para coincidir con la entidad
     private String clienteNombre;
     private String fechaHora; // Cambiado de LocalDateTime a String para coincidir con la entidad

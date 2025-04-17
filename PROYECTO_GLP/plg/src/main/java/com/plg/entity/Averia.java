@@ -24,8 +24,8 @@ public class Averia {
     private String descripcion;
     private String turno; // T1, T2, T3
     private String tipoIncidente; // TI1, TI2, TI3
-    private int posX;
-    private int posY;
+    private double posX;
+    private double posY;
     private double kilometroOcurrencia; // Punto del trayecto donde ocurre la avería
     private int estado; // 0: reportada, 1: atendida, 2: reparada
     private boolean conCarga; // Indica si el camión llevaba carga cuando ocurrió la avería

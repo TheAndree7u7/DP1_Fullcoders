@@ -21,17 +21,17 @@ public class MapaConfig {
     
     // Dimensiones del mapa
     @Value("${mapa.largo:70}")
-    private int largo; // Largo del mapa en km (eje X)
+    private double largo; // Largo del mapa en km (eje X)
     
     @Value("${mapa.ancho:50}")
-    private int ancho; // Ancho del mapa en km (eje Y)
+    private double ancho; // Ancho del mapa en km (eje Y)
     
     // Origen del mapa
     @Value("${mapa.origen.x:0}")
-    private int origenX; // Coordenada X del origen
+    private double origenX; // Coordenada X del origen
     
     @Value("${mapa.origen.y:0}")
-    private int origenY; // Coordenada Y del origen
+    private double origenY; // Coordenada Y del origen
     
     // Distancia entre nodos
     @Value("${mapa.distancia.nodos:1}")
@@ -54,7 +54,7 @@ public class MapaConfig {
     /**
      * Verifica si unas coordenadas están dentro de los límites del mapa
      */
-    public boolean estaEnMapa(int x, int y) {
+    public boolean estaEnMapa(double x, double y) {
         return x >= origenX && x <= origenX + largo &&
                y >= origenY && y <= origenY + ancho;
     }
@@ -63,7 +63,7 @@ public class MapaConfig {
      * Calcula la distancia entre dos puntos en el mapa reticular (Manhattan)
      * En un mapa reticular, sólo se puede mover horizontal y verticalmente
      */
-    public double calcularDistanciaReticular(int x1, int y1, int x2, int y2) {
+    public double calcularDistanciaReticular(double x1, double y1, double x2, double y2) {
         // Distancia Manhattan = |x1 - x2| + |y1 - y2|
         return Math.abs(x1 - x2) + Math.abs(y1 - y2);
     }
@@ -71,7 +71,7 @@ public class MapaConfig {
     /**
      * Calcula la distancia en km entre dos puntos en coordenadas
      */
-    public double calcularDistanciaRealKm(int x1, int y1, int x2, int y2) {
+    public double calcularDistanciaRealKm(double x1, double y1, double x2, double y2) {
         // La distancia real es la distancia Manhattan multiplicada por la distancia entre nodos
         return calcularDistanciaReticular(x1, y1, x2, y2) * distanciaNodos;
     }
@@ -79,25 +79,25 @@ public class MapaConfig {
     /**
      * Obtiene los nodos adyacentes a un nodo dado (hasta 4: arriba, abajo, izquierda, derecha)
      */
-    public int[][] obtenerNodosAdyacentes(int x, int y) {
+    public double[][] obtenerNodosAdyacentes(double x, double y) {
         // Posibles movimientos: arriba, derecha, abajo, izquierda
-        int[][] movimientos = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+        double[][] movimientos = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
         
         // Inicializar lista para almacenar nodos válidos
-        java.util.List<int[]> nodosAdyacentes = new java.util.ArrayList<>();
+        java.util.List<double[]> nodosAdyacentes = new java.util.ArrayList<>();
         
         // Verificar cada posible movimiento
-        for (int[] mov : movimientos) {
-            int newX = x + mov[0];
-            int newY = y + mov[1];
+        for (double[] mov : movimientos) {
+            double newX = x + mov[0];
+            double newY = y + mov[1];
             
             // Verificar si el nuevo nodo está dentro del mapa
             if (estaEnMapa(newX, newY)) {
-                nodosAdyacentes.add(new int[]{newX, newY});
+                nodosAdyacentes.add(new double[]{newX, newY});
             }
         }
         
         // Convertir lista a array 2D
-        return nodosAdyacentes.toArray(new int[0][]);
+        return nodosAdyacentes.toArray(new double[0][]);
     } 
 }

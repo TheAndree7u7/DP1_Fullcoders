@@ -116,7 +116,7 @@ public class AgrupamientoAPService {
         
         // Simulación de agrupamiento espacial
         // Ordenamos por coordenada X para simular cercanía
-        pedidos.sort(Comparator.comparingInt(Pedido::getPosX));
+        pedidos.sort(Comparator.comparingDouble(Pedido::getPosX));
         
         // Distribuir pedidos aproximadamente igual en cada grupo
         int pedidosPorGrupo = pedidos.size() / numeroGrupos;

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>com.plg.entity</OriginalElement>
+  <nodes>
+    <node x="856.6972412874579" y="1900.2617303440609">com.plg.entity.Almacen</node>
+    <node x="856.6972412874579" y="2340.655159156494">com.plg.entity.Mantenimiento</node>
+    <node x="-1113.0841218201995" y="2031.037432186459">com.plg.entity.Cliente</node>
+    <node x="856.6972412874579" y="1199.4240889678156">com.plg.entity.Bloqueo</node>
+    <node x="-298.5019125416204" y="1813.8643935627097">com.plg.entity.EntregaParcial</node>
+    <node x="-736.8913504106547" y="1415.4276563817987">com.plg.entity.AsignacionCamion</node>
+    <node x="-736.8913504106547" y="1761.9569589345176">com.plg.entity.Pedido</node>
+    <node x="-977.9877361154271" y="735.3514233962261">com.plg.entity.NodoRuta</node>
+    <node x="-271.7422254384014" y="735.3514233962261">com.plg.entity.Ruta</node>
+    <node x="856.6972412874579" y="1441.8429096559382">com.plg.entity.Averia</node>
+    <node x="157.88752532741387" y="1441.8429096559385">com.plg.entity.Camion</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="com.plg.entity.EntregaParcial" target="com.plg.entity.Pedido" relationship="TO_ONE">
+      <point x="-155.0" y="0.0" />
+      <point x="146.0" y="-164.09256537180772" />
+    </edge>
+    <edge source="com.plg.entity.AsignacionCamion" target="com.plg.entity.Ruta" relationship="TO_ONE">
+      <point x="0.0" y="-115.5" />
+      <point x="-603.3913504106547" y="1139.885634628191" />
+      <point x="-183.5" y="133.03421123196472" />
+    </edge>
+    <edge source="com.plg.entity.Pedido" target="com.plg.entity.Cliente" relationship="TO_ONE">
+      <point x="-146.0" y="41.08047325194184" />
+      <point x="-582.8196934073253" y="2146.5374321864592" />
+      <point x="92.5" y="0.0" />
+    </edge>
+    <edge source="com.plg.entity.Camion" target="com.plg.entity.Almacen" relationship="TO_ONE">
+      <point x="224.58561598224185" y="117.01269593784514" />
+      <point x="-155.0" y="0.0" />
+    </edge>
+    <edge source="com.plg.entity.Camion" target="com.plg.entity.Averia" relationship="CREATE">
+      <point x="224.58561598224185" y="-338.40612475027774" />
+      <point x="-146.5" y="15.0" />
+    </edge>
+    <edge source="com.plg.entity.Mantenimiento" target="com.plg.entity.Camion" relationship="TO_ONE">
+      <point x="-90.0" y="0.0" />
+      <point x="224.58561598224185" y="449.40612475027797" />
+    </edge>
+    <edge source="com.plg.entity.Ruta" target="com.plg.entity.Camion" relationship="TO_ONE">
+      <point x="185.205654517202" y="-67.80152328523843" />
+      <point x="96.96342907880057" y="945.852499889012" />
+      <point x="352.01109318534907" y="945.852499889012" />
+      <point x="352.01109318534907" y="1521.9706654827967" />
+      <point x="224.58561598224185" y="-472.7783689234195" />
+    </edge>
+    <edge source="com.plg.entity.NodoRuta" target="com.plg.entity.Pedido" relationship="TO_ONE">
+      <point x="0.0" y="175.4999999999999" />
+      <point x="-832.4877361154271" y="2105.4569589345174" />
+      <point x="-146.0" y="0.0" />
+    </edge>
+    <edge source="com.plg.entity.Ruta" target="com.plg.entity.NodoRuta" relationship="CREATE">
+      <point x="-183.5" y="-15.000000000000114" />
+      <point x="-116.85079653718088" y="991.851423396226" />
+      <point x="-116.85079653718088" y="910.8514233962261" />
+      <point x="145.5" y="0.0" />
+    </edge>
+    <edge source="com.plg.entity.Camion" target="com.plg.entity.EntregaParcial" relationship="CREATE">
+      <point x="-224.58561598224185" y="-53.38464084350653" />
+      <point x="155.0" y="0.0" />
+    </edge>
+    <edge source="com.plg.entity.Averia" target="com.plg.entity.Camion" relationship="TO_ONE">
+      <point x="-148.47062996670434" y="-57.424712097669726" />
+      <point x="731.8779992896777" y="1583.9181975582685" />
+      <point x="731.8779992896777" y="1583.9181975582685" />
+      <point x="210.02764093229655" y="-410.8308368479477" />
+    </edge>
+    <edge source="com.plg.entity.AsignacionCamion" target="com.plg.entity.Pedido" relationship="TO_ONE">
+      <point x="12.5" y="115.5" />
+      <point x="0.0" y="-343.4999999999998" />
+    </edge>
+    <edge source="com.plg.entity.Pedido" target="com.plg.entity.AsignacionCamion" relationship="CREATE">
+      <point x="15.0" y="-343.4999999999998" />
+      <point x="27.5" y="115.5" />
+    </edge>
+    <edge source="com.plg.entity.AsignacionCamion" target="com.plg.entity.Camion" relationship="TO_ONE">
+      <point x="133.5" y="0.0" />
+      <point x="-224.58561598224185" y="-463.8213780244175" />
+    </edge>
+    <edge source="com.plg.entity.EntregaParcial" target="com.plg.entity.Camion" relationship="TO_ONE">
+      <point x="155.0" y="53.38464084350653" />
+      <point x="-224.58561598224185" y="0.0" />
+    </edge>
+    <edge source="com.plg.entity.Pedido" target="com.plg.entity.Camion" relationship="TO_ONE">
+      <point x="146.0" y="0.0" />
+      <point x="-224.58561598224185" y="110.70792452830142" />
+    </edge>
+    <edge source="com.plg.entity.NodoRuta" target="com.plg.entity.Ruta" relationship="TO_ONE">
+      <point x="148.34397974161982" y="86.59263055271936" />
+      <point x="-116.85079653718088" y="997.4440539489455" />
+      <point x="-116.85079653718088" y="1006.8514233962261" />
+      <point x="-183.5" y="0.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="0.7521272285251216" showDependencies="true" x="-182.62848484848473" y="1389.3939393939397" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Properties</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

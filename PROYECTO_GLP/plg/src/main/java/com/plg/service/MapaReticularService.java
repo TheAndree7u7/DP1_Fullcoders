@@ -31,7 +31,7 @@ public class MapaReticularService {
      * @param bloqueos Lista de bloqueos activos a evitar
      * @return Lista de nodos que forman la ruta óptima
      */
-    public List<int[]> calcularRutaOptima(int xInicio, int yInicio, int xFin, int yFin, List<Bloqueo> bloqueos) {
+    public List<double[]> calcularRutaOptima(double xInicio, double yInicio, double xFin, double yFin, List<Bloqueo> bloqueos) {
         // Verificar que las coordenadas estén dentro del mapa
         if (!mapaConfig.estaEnMapa(xInicio, yInicio) || !mapaConfig.estaEnMapa(xFin, yFin)) {
             throw new IllegalArgumentException("Coordenadas fuera de los límites del mapa");
@@ -73,14 +73,14 @@ public class MapaReticularService {
             nodosCerrados.add(nodoActual);
             
             // Extraer coordenadas del nodo actual
-            int[] coords = keyACoordenada(nodoActual);
-            int x = coords[0];
-            int y = coords[1];
+            double[] coords = keyACoordenada(nodoActual);
+            double x = coords[0];
+            double y = coords[1];
             
             // Obtener vecinos
-            int[][] nodosAdyacentes = mapaConfig.obtenerNodosAdyacentes(x, y);
+            double[][] nodosAdyacentes = mapaConfig.obtenerNodosAdyacentes(x, y);
             
-            for (int[] vecino : nodosAdyacentes) {
+            for (double[] vecino : nodosAdyacentes) {
                 String vecinoKey = coordenadaAKey(vecino[0], vecino[1]);
                 
                 // Si el vecino ya fue evaluado, continuar
@@ -119,7 +119,7 @@ public class MapaReticularService {
     /**
      * Verifica si hay un bloqueo entre dos puntos adyacentes
      */
-    private boolean verificarBloqueoEntrePuntos(int x1, int y1, int x2, int y2, List<Bloqueo> bloqueos) {
+    private boolean verificarBloqueoEntrePuntos(double x1, double y1, double x2, double y2, List<Bloqueo> bloqueos) {
         // Los puntos deben ser adyacentes (diferencia en solo una coordenada y valor 1)
         boolean sonAdyacentes = (Math.abs(x1 - x2) + Math.abs(y1 - y2)) == 1;
         if (!sonAdyacentes) {
@@ -139,7 +139,7 @@ public class MapaReticularService {
     /**
      * Verifica si un bloqueo intersecta un tramo de calle
      */
-    private boolean intersectaConTramo(int x1, int y1, int x2, int y2, Bloqueo bloqueo) {
+    private boolean intersectaConTramo(double x1, double y1, double x2, double y2, Bloqueo bloqueo) {
         List<Bloqueo.Coordenada> coordenadasBloqueo = bloqueo.getCoordenadas();
         
         // Si hay menos de 2 coordenadas en el bloqueo, no puede haber intersección
@@ -176,15 +176,15 @@ public class MapaReticularService {
     /**
      * Heurística para el algoritmo A* (distancia Manhattan)
      */
-    private double heuristica(int x1, int y1, int x2, int y2) {
+    private double heuristica(double x1, double y1, double x2, double y2) {
         return mapaConfig.calcularDistanciaReticular(x1, y1, x2, y2);
     }
     
     /**
      * Reconstruye el camino desde el mapa de padres
      */
-    private List<int[]> reconstruirCamino(Map<String, String> caminoPadre, String nodoActual) {
-        List<int[]> camino = new ArrayList<>();
+    private List<double[]> reconstruirCamino(Map<String, String> caminoPadre, String nodoActual) {
+        List<double[]> camino = new ArrayList<>();
         
         // Agregar el nodo final
         camino.add(keyACoordenada(nodoActual));
@@ -201,22 +201,22 @@ public class MapaReticularService {
     /**
      * Convierte coordenadas (x,y) a un string clave
      */
-    private String coordenadaAKey(int x, int y) {
+    private String coordenadaAKey(double x, double y) {
         return x + "," + y;
     }
     
     /**
      * Convierte una clave string a coordenadas
      */
-    private int[] keyACoordenada(String key) {
+    private double[] keyACoordenada(String key) {
         String[] parts = key.split(",");
-        return new int[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])};
+        return new double[]{Integer.parseInt(parts[0]), Integer.parseInt(parts[1])};
     }
     
     /**
      * Calcula la longitud total de una ruta en km
      */
-    public double calcularLongitudRuta(List<int[]> ruta) {
+    public double calcularLongitudRuta(List<double[]> ruta) {
         // Si la ruta está vacía o tiene un solo punto, la longitud es 0
         if (ruta == null || ruta.size() <= 1) {
             return 0;
@@ -226,8 +226,8 @@ public class MapaReticularService {
         
         // Sumar las distancias entre nodos consecutivos
         for (int i = 0; i < ruta.size() - 1; i++) {
-            int[] puntoActual = ruta.get(i);
-            int[] puntoSiguiente = ruta.get(i + 1);
+            double[] puntoActual = ruta.get(i);
+            double[] puntoSiguiente = ruta.get(i + 1);
             
             longitud += mapaConfig.calcularDistanciaRealKm(
                 puntoActual[0], puntoActual[1], 
@@ -241,7 +241,7 @@ public class MapaReticularService {
     /**
      * Obtiene todos los bloqueos activos y los utiliza para calcular una ruta óptima
      */
-    public List<int[]> calcularRutaOptimaConsiderandoBloqueos(int xInicio, int yInicio, int xFin, int yFin) {
+    public List<double[]> calcularRutaOptimaConsiderandoBloqueos(double xInicio, double yInicio, double xFin, double yFin) {
         // Obtener bloqueos activos
         List<Bloqueo> bloqueosActivos = bloqueoService.obtenerBloqueosActivos(java.time.LocalDateTime.now());
         
@@ -255,7 +255,7 @@ public class MapaReticularService {
      * @param velocidadKmh Velocidad promedio en km/h
      * @return Tiempo estimado en minutos
      */
-    public double estimarTiempoViajeMinutos(List<int[]> ruta, double velocidadKmh) {
+    public double estimarTiempoViajeMinutos(List<double[]> ruta, double velocidadKmh) {
         double longitudKm = calcularLongitudRuta(ruta);
         
         // Tiempo = distancia / velocidad (en horas)

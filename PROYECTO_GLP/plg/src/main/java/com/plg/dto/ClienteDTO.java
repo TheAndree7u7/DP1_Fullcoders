@@ -16,6 +16,6 @@ public class ClienteDTO {
     private String telefono;
     private String email;
     private String direccion;
-    private Integer posX; // Añadido para completitud
-    private Integer posY; // Añadido para completitud
+    private double posX; // Añadido para completitud
+    private double posY; // Añadido para completitud
 }

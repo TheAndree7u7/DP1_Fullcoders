@@ -17,8 +17,8 @@ public class Almacen {
     private Long id;
     
     private String nombre;
-    private Integer posX; // Posición X en el mapa
-    private Integer posY; // Posición Y en el mapa
+    private double posX; // Posición X en el mapa
+    private double posY; // Posición Y en el mapa
     
     // !Capacidades para GLPP
     private double capacidadGLP; // Capacidad total de GLP en m3
@@ -75,7 +75,7 @@ public class Almacen {
     }
     
     // Método para calcular la distancia desde este almacén hasta una posición
-    public double calcularDistancia(int posX2, int posY2) {
+    public double calcularDistancia(double posX2, double posY2) {
         // Distancia Manhattan: suma de las diferencias absolutas en cada dimensión
         return Math.abs(posX - posX2) + Math.abs(posY - posY2);
     }

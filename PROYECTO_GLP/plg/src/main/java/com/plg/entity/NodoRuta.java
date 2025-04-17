@@ -30,10 +30,10 @@ public class NodoRuta {
     private int orden;
     
     @Column(name = "pos_x")
-    private Integer posX;
+    private double posX;
     
     @Column(name = "pos_y")
-    private Integer posY;
+    private double posY;
     
     @Column(name = "tipo")
     private String tipo; // "ALMACEN", "CLIENTE", "INTERMEDIO"
@@ -71,7 +71,7 @@ public class NodoRuta {
     /**
      * Constructor con coordenadas y tipo
      */
-    public NodoRuta(int posX, int posY, String tipo) {
+    public NodoRuta(double posX, double posY, String tipo) {
         this();
         this.posX = posX;
         this.posY = posY;
@@ -81,7 +81,7 @@ public class NodoRuta {
     /**
      * Constructor con todos los campos relevantes para un nodo de cliente
      */
-    public NodoRuta(int posX, int posY, String tipo, Pedido pedido, double volumenGLP, double porcentajePedido) {
+    public NodoRuta(double posX, double posY, String tipo, Pedido pedido, double volumenGLP, double porcentajePedido) {
         this(posX, posY, tipo);
         this.pedido = pedido;
         this.volumenGLP = volumenGLP;

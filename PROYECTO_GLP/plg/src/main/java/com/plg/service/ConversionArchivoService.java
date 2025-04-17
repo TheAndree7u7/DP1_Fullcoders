@@ -131,13 +131,13 @@ public class ConversionArchivoService {
     /**
      * Ajusta las coordenadas para que estén dentro de los límites del mapa
      */
-    private int[] ajustarCoordenadasALimites(int x, int y) {
-        int xAjustado = Math.max(mapaConfig.getOrigenX(), 
+    private double[] ajustarCoordenadasALimites(double x, double y) {
+        double xAjustado = Math.max(mapaConfig.getOrigenX(), 
                        Math.min(x, mapaConfig.getOrigenX() + mapaConfig.getLargo()));
         
-        int yAjustado = Math.max(mapaConfig.getOrigenY(), 
+                       double yAjustado = Math.max(mapaConfig.getOrigenY(), 
                        Math.min(y, mapaConfig.getOrigenY() + mapaConfig.getAncho()));
         
-        return new int[]{xAjustado, yAjustado};
+        return new double[]{xAjustado, yAjustado};
     }
 }

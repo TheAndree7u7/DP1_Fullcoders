@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PuntoRutaDTO {
     private String tipo;  // "ALMACEN", "CLIENTE"
-    private Integer posX;
-    private Integer posY;
+    private double posX;
+    private double posY;
     private Long idPedido;
 }

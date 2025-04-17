@@ -158,8 +158,8 @@ public class BloqueoService {
         
         List<Bloqueo.Coordenada> coordenadas = new ArrayList<>();
         for (int i = 0; i < coordValores.length; i += 2) {
-            int x = Integer.parseInt(coordValores[i]);
-            int y = Integer.parseInt(coordValores[i + 1]);
+            double x = Integer.parseInt(coordValores[i]);
+            double y = Integer.parseInt(coordValores[i + 1]);
             
             // Verificar que la coordenada esté dentro del mapa reticular
             if (!mapaConfig.estaEnMapa(x, y)) {
@@ -321,7 +321,7 @@ public class BloqueoService {
     /**
      * Verifica si dos segmentos de línea se intersectan
      */
-    private boolean hayInterseccion(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) {
+    private boolean hayInterseccion(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
         // Calculamos orientación de los puntos
         int o1 = orientacion(x1, y1, x2, y2, x3, y3);
         int o2 = orientacion(x1, y1, x2, y2, x4, y4);
@@ -349,8 +349,8 @@ public class BloqueoService {
      * 1 --> Sentido horario
      * 2 --> Sentido antihorario
      */
-    private int orientacion(int x1, int y1, int x2, int y2, int x3, int y3) {
-        int val = (y2 - y1) * (x3 - x2) - (x2 - x1) * (y3 - y2);
+    private int orientacion(double x1, double y1, double x2, double y2, double x3, double y3) {
+        double val = (y2 - y1) * (x3 - x2) - (x2 - x1) * (y3 - y2);
         
         if (val == 0) return 0;  // Colineal
         return (val > 0) ? 1 : 2; // Sentido horario o antihorario
@@ -359,7 +359,7 @@ public class BloqueoService {
     /**
      * Verifica si un punto está dentro de un segmento de línea
      */
-    private boolean estaPuntoEnSegmento(int x, int y, int x1, int y1, int x2, int y2) {
+    private boolean estaPuntoEnSegmento(double x, double y, double x1, double y1, double x2, double y2) {
         return x >= Math.min(x1, x2) && x <= Math.max(x1, x2) &&
                y >= Math.min(y1, y2) && y <= Math.max(y1, y2);
     }

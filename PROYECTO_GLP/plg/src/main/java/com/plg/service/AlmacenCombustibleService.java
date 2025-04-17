@@ -243,8 +243,8 @@ public class AlmacenCombustibleService {
         Map<String, Object> resultado = new HashMap<>();
         
         // Obtener posición actual del camión
-        int posXActual = camion.getPosX();
-        int posYActual = camion.getPosY();
+        double posXActual = camion.getPosX();
+        double posYActual = camion.getPosY();
         
         double distanciaTotal = 0;
         double combustibleNecesario = 0;
@@ -337,8 +337,8 @@ public class AlmacenCombustibleService {
         List<Almacen> almacenes = obtenerAlmacenesActivos();
         
         // Posición actual del camión
-        int posXActual = camion.getPosX();
-        int posYActual = camion.getPosY();
+        double posXActual = camion.getPosX();
+        double posYActual = camion.getPosY();
         
         // Combustible actual
         double combustibleActual = camion.getCombustibleActual();
@@ -392,8 +392,8 @@ public class AlmacenCombustibleService {
                     for (Ruta ruta : rutasAsignadas) {
                         // Obtener nodos de la ruta
                         for (int i = 0; i < ruta.getNodos().size() - 1; i++) {
-                            int nodoX = ruta.getNodos().get(i).getPosX();
-                            int nodoY = ruta.getNodos().get(i).getPosY();
+                            double nodoX = ruta.getNodos().get(i).getPosX();
+                            double nodoY = ruta.getNodos().get(i).getPosY();
                             
                             // Distancia Manhattan desde el nodo al almacén
                             double distanciaNodoAlmacen = Math.abs(almacen.getPosX() - nodoX) + 
@@ -450,17 +450,12 @@ public class AlmacenCombustibleService {
         return recomendaciones;
     }
     
-    /**
-     * Calcula la distancia euclidiana entre dos puntos
-     */
-    private double calcularDistancia(int x1, int y1, int x2, int y2) {
-        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-    }
+ 
     
     /**
      * Calcula la distancia en mapa reticular entre dos puntos (Manhattan)
      */
-    private double calcularDistanciaReticular(int x1, int y1, int x2, int y2) {
+    private double calcularDistanciaReticular(double x1, double y1, double x2, double y2) {
         // Distancia Manhattan = |x1 - x2| + |y1 - y2|
         return Math.abs(x1 - x2) + Math.abs(y1 - y2);
     }

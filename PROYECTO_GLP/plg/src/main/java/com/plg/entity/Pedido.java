@@ -29,10 +29,10 @@ public class Pedido {
     @JoinColumn(name = "cliente_id")
     @JsonBackReference(value="cliente-pedido")
     private Cliente cliente;
-    private int posX; // Coordenada X del cliente
-    private int posY; // Coordenada Y del cliente
+    private double posX; // Coordenada X del cliente
+    private double posY; // Coordenada Y del cliente
     //horas limite
-    private int horasLimite; // Hora límite para la entrega (en horas)
+    private double horasLimite; // Hora límite para la entrega (en horas)
     //m3
     //fecha creacion
     private LocalDateTime fechaCreacion; // Fecha de creación del pedido

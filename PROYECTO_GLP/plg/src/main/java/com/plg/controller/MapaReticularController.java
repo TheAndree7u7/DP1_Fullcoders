@@ -42,10 +42,10 @@ public class MapaReticularController {
      */
     @GetMapping("/ruta")
     public ResponseEntity<Map<String, Object>> calcularRutaOptima(
-            @RequestParam("xInicio") int xInicio,
-            @RequestParam("yInicio") int yInicio,
-            @RequestParam("xFin") int xFin,
-            @RequestParam("yFin") int yFin,
+            @RequestParam("xInicio") double xInicio,
+            @RequestParam("yInicio") double yInicio,
+            @RequestParam("xFin") double xFin,
+            @RequestParam("yFin") double yFin,
             @RequestParam(value = "velocidad", defaultValue = "50") double velocidad) {
         
         Map<String, Object> response = new HashMap<>();
@@ -59,7 +59,7 @@ public class MapaReticularController {
             }
             
             // Calcular la ruta óptima
-            List<int[]> ruta = mapaReticularService.calcularRutaOptimaConsiderandoBloqueos(
+            List<double[]> ruta = mapaReticularService.calcularRutaOptimaConsiderandoBloqueos(
                 xInicio, yInicio, xFin, yFin);
             
             if (ruta.isEmpty()) {
@@ -69,11 +69,11 @@ public class MapaReticularController {
             }
             
             // Convertir la ruta a formato más amigable para JSON
-            List<Map<String, Integer>> rutaFormateada = ruta.stream()
+            List<Map<String, Double>> rutaFormateada = ruta.stream()
                 .map(punto -> {
-                    Map<String, Integer> coordenada = new HashMap<>();
-                    coordenada.put("x", punto[0]);
-                    coordenada.put("y", punto[1]);
+                    Map<String, Double> coordenada = new HashMap<>();
+                    coordenada.put("x",  punto[0]);
+                    coordenada.put("y",  punto[1]);
                     return coordenada;
                 })
                 .collect(java.util.stream.Collectors.toList());
@@ -85,8 +85,8 @@ public class MapaReticularController {
             double tiempoMinutos = mapaReticularService.estimarTiempoViajeMinutos(ruta, velocidad);
             
             response.put("success", true);
-            response.put("desde", new int[]{xInicio, yInicio});
-            response.put("hasta", new int[]{xFin, yFin});
+            response.put("desde", new double[]{xInicio, yInicio});
+            response.put("hasta", new double[]{xFin, yFin});
             response.put("ruta", rutaFormateada);
             response.put("nodos", ruta.size());
             response.put("longitudKm", Math.round(longitudKm * 100) / 100.0); // Redondear a 2 decimales
@@ -122,12 +122,12 @@ public class MapaReticularController {
             response.put("message", "La coordenada (" + x + "," + y + ") está fuera del mapa");
             
             // Sugerir la coordenada válida más cercana
-            int xValido = Math.max(mapaConfig.getOrigenX(), 
+            double xValido = Math.max(mapaConfig.getOrigenX(), 
                           Math.min(x, mapaConfig.getOrigenX() + mapaConfig.getLargo()));
-            int yValido = Math.max(mapaConfig.getOrigenY(), 
+            double yValido = Math.max(mapaConfig.getOrigenY(), 
                           Math.min(y, mapaConfig.getOrigenY() + mapaConfig.getAncho()));
             
-            response.put("coordenadaValida", new int[]{xValido, yValido});
+            response.put("coordenadaValida", new double[]{xValido, yValido});
             response.put("sugerencia", "La coordenada válida más cercana es (" + xValido + "," + yValido + ")");
         }
         

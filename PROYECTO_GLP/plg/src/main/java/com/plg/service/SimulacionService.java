@@ -872,7 +872,7 @@ public class SimulacionService {
     /**
      * Busca el almacén más cercano a una posición
      */
-    private Almacen buscarAlmacenCercano(int posX, int posY) {
+    private Almacen buscarAlmacenCercano(double posX, double posY) {
         List<Almacen> almacenes = almacenRepository.findByActivo(true);
         
         if (almacenes.isEmpty()) {
@@ -1145,8 +1145,8 @@ public class SimulacionService {
         double distanciaTotal = 0;
         
         // Posición actual del camión
-        int posXActual = camion.getPosX();
-        int posYActual = camion.getPosY();
+        double posXActual = camion.getPosX();
+        double posYActual = camion.getPosY();
         
         // Sumar distancias entre puntos consecutivos
         for (Pedido pedido : pedidos) {

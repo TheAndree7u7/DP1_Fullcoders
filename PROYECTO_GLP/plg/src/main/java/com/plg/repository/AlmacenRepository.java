@@ -12,7 +12,7 @@ public interface AlmacenRepository extends JpaRepository<Almacen, Long> {
     List<Almacen> findByEsCentralAndActivo(boolean esCentral, boolean activo);
     //busca el almacen central activo
     Almacen findByEsCentralAndActivoTrue(boolean esCentral);//Esto devuleve uno solo, el primero que encuentra
-    List<Almacen> findByPosXAndPosY(int posX, int posY);
+    List<Almacen> findByPosXAndPosY(double posX, double posY);
  
  
 }

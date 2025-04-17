@@ -63,7 +63,7 @@ public class Ruta {
     private double distanciaTotal;
     
     @Column(name = "tiempo_estimado")
-    private int tiempoEstimadoMinutos;
+    private double tiempoEstimadoMinutos;
     
     @Column(name = "considera_bloqueos")
     private boolean consideraBloqueos;
@@ -108,7 +108,7 @@ public class Ruta {
     /**
      * Añade un nodo a la ruta
      */
-    public void agregarNodo(int posX, int posY, String tipo) {
+    public void agregarNodo(double posX, double posY, String tipo) {
         NodoRuta nodo = new NodoRuta(posX, posY, tipo);
         nodo.setRuta(this);
         nodo.setOrden(nodos.size());
@@ -118,7 +118,7 @@ public class Ruta {
     /**
      * Añade un nodo a la ruta con un pedido asociado y una entrega parcial
      */
-    public void agregarNodoCliente(int posX, int posY, Pedido pedido, double volumenGLP, double porcentajePedido) {
+    public void agregarNodoCliente(double posX, double posY, Pedido pedido, double volumenGLP, double porcentajePedido) {
         NodoRuta nodo = new NodoRuta(posX, posY, "CLIENTE");
         nodo.setRuta(this);
         nodo.setOrden(nodos.size());
@@ -269,8 +269,8 @@ public class Ruta {
      * Obtiene la ruta como array bidimensional para algoritmos de navegación
      */
     @Transient
-    public int[][] obtenerRutaComoArray() {
-        int[][] rutaArray = new int[nodos.size()][2];
+    public double[][] obtenerRutaComoArray() {
+        double[][] rutaArray = new double[nodos.size()][2];
         for (int i = 0; i < nodos.size(); i++) {
             NodoRuta nodo = nodos.get(i);
             rutaArray[i][0] = nodo.getPosX();
@@ -415,17 +415,17 @@ public class Ruta {
     /**
      * Verifica si un segmento de ruta intersecta con un bloqueo
      */
-    private boolean intersectaBloqueo(int x1, int y1, int x2, int y2, Bloqueo bloqueo) {
+    private boolean intersectaBloqueo(double x1, double y1, double x2, double y2, Bloqueo bloqueo) {
         try {
             // Primero intentamos usar el método específico del bloqueo
             return bloqueo.intersectaConSegmento(x1, y1, x2, y2);
         } catch (Exception e) {
             // Implementación alternativa si hay error
             // Calculamos los puntos intermedios del segmento
-            List<int[]> puntosIntermedios = generarPuntosIntermedios(x1, y1, x2, y2);
+            List<double[]> puntosIntermedios = generarPuntosIntermedios(x1, y1, x2, y2);
             
             // Verificamos si algún punto intermedio está en el bloqueo
-            for (int[] punto : puntosIntermedios) {
+            for (double[] punto : puntosIntermedios) {
                 if (bloqueo.contienePunto(punto[0], punto[1])) {
                     return true;
                 }
@@ -438,11 +438,11 @@ public class Ruta {
     /**
      * Genera una lista de puntos intermedios entre dos puntos (incluidos los extremos)
      */
-    private List<int[]> generarPuntosIntermedios(int x1, int y1, int x2, int y2) {
-        List<int[]> puntos = new ArrayList<>();
+    private List<double[]> generarPuntosIntermedios(double x1, double y1, double x2, double y2) {
+        List<double[]> puntos = new ArrayList<>();
         
         // Añadir el punto inicial
-        puntos.add(new int[]{x1, y1});
+        puntos.add(new double[]{x1, y1});
         
         // Si los puntos son iguales, no hay más que añadir
         if (x1 == x2 && y1 == y2) {
@@ -450,12 +450,12 @@ public class Ruta {
         }
         
         // Calcular dirección del movimiento
-        int dx = Integer.compare(x2, x1);
-        int dy = Integer.compare(y2, y1);
+        double dx = Double.compare(x2, x1);
+        double dy = Double.compare(y2, y1);
         
         // Generar puntos intermedios
-        int x = x1;
-        int y = y1;
+        double x = x1;
+        double y = y1;
         
         while (x != x2 || y != y2) {
             // Si aún no hemos llegado al destino en X, movernos
@@ -469,7 +469,7 @@ public class Ruta {
             }
             
             // Añadir el punto generado
-            puntos.add(new int[]{x, y});
+            puntos.add(new double[]{x, y});
         }
         
         return puntos;

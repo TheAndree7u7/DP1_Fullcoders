@@ -45,10 +45,10 @@ public class DtoConverter {
         cliente.setDireccion(dto.getDireccion());
         
         // Convertir Integer a int para posX y posY
-        if (dto.getPosX() != null) {
+        if (dto.getPosX() != 0.0) {
             cliente.setPosX(dto.getPosX());
         }
-        if (dto.getPosY() != null) {
+        if (dto.getPosY() != 0.0) {
             cliente.setPosY(dto.getPosY());
         }
         
@@ -96,20 +96,20 @@ public class DtoConverter {
         pedido.setCodigo(dto.getCodigo());
         
         // Convertir Integer a int para posX y posY
-        if (dto.getPosX() != null) {
+        if (!Double.isNaN(dto.getPosX())) {
             pedido.setPosX(dto.getPosX());
         }
-        if (dto.getPosY() != null) {
+        if (!Double.isNaN(dto.getPosY())) {
             pedido.setPosY(dto.getPosY());
         }
         
         // Convertir Integer a int para m3
-        if (dto.getM3() != null) {
+        if (!Double.isNaN(dto.getM3())) {
             pedido.setM3(dto.getM3());
         }
         
         // Establecer horasLimite si no es nulo
-        if (dto.getHorasLimite() != null) {
+        if (!Double.isNaN(dto.getHorasLimite())) {
             pedido.setHorasLimite(dto.getHorasLimite());
         }
         

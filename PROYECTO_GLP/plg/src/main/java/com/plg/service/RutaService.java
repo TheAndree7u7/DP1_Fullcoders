@@ -102,8 +102,8 @@ public class RutaService {
             throw new RuntimeException("No se encontró el almacén central");
         }
         // Obtener coordenadas del almacén central
-        int x_almacenCentral = almacenCentral.getPosX();
-        int y_almacenCentral = almacenCentral.getPosY(); 
+        double x_almacenCentral = almacenCentral.getPosX();
+        double y_almacenCentral = almacenCentral.getPosY(); 
         ruta.agregarNodo(x_almacenCentral, y_almacenCentral, "ALMACEN");
    
         return rutaRepository.save(ruta);
@@ -314,12 +314,12 @@ public class RutaService {
         if (almacenCentral == null) {
             throw new RuntimeException("No se encontró el almacén central");
         }
-        int xAlmacenCentral =  almacenCentral.getPosX();
-        int yAlmacenCentral = almacenCentral.getPosY();
+        double xAlmacenCentral =  almacenCentral.getPosX();
+        double yAlmacenCentral = almacenCentral.getPosY();
 
 
-        int xInicio = xAlmacenCentral;
-        int yInicio = yAlmacenCentral;
+        double xInicio = xAlmacenCentral;
+        double yInicio = yAlmacenCentral;
  
         // Inicializamos la lista de puntos de la ruta con el almacén
         List<Map<String, Object>> puntosRuta = new ArrayList<>();
@@ -331,17 +331,17 @@ public class RutaService {
             bloqueosActivos = bloqueoRepository.findByActivoTrue();
         }
         
-        int xActual = xInicio;
-        int yActual = yInicio;
+        double xActual = xInicio;
+        double yActual = yInicio;
         double distanciaTotal = 0;
         
         // Recorremos todos los pedidos añadiendo rutas óptimas entre ellos
         for (Pedido pedido : pedidosRuta) {
-            int xDestino = pedido.getPosX();
-            int yDestino = pedido.getPosY();
+            double xDestino = pedido.getPosX();
+            double yDestino = pedido.getPosY();
             
             // Calcular la ruta óptima entre el punto actual y el pedido
-            List<int[]> rutaOptima;
+            List<double[]> rutaOptima;
             if (considerarBloqueos) {
                 rutaOptima = mapaReticularService.calcularRutaOptima(
                     xActual, yActual, xDestino, yDestino, bloqueosActivos);
@@ -358,14 +358,14 @@ public class RutaService {
             
             // Añadir todos los puntos de la ruta excepto el primero (ya está incluido)
             for (int i = 1; i < rutaOptima.size(); i++) {
-                int[] punto = rutaOptima.get(i);
+                double[] punto = rutaOptima.get(i);
                 
                 // Si es el último punto (destino), marcarlo como CLIENTE
                 String tipo = (i == rutaOptima.size() - 1) ? "CLIENTE_" + pedido.getId() : "RUTA";
                 puntosRuta.add(createPunto(punto[0], punto[1], tipo));
                 
                 // Calcular distancia con el punto anterior
-                int[] puntoAnterior = rutaOptima.get(i-1);
+                double[] puntoAnterior = rutaOptima.get(i-1);
                 distanciaTotal += mapaConfig.calcularDistanciaRealKm(
                     puntoAnterior[0], puntoAnterior[1], punto[0], punto[1]);
             }
@@ -376,7 +376,7 @@ public class RutaService {
         }
         
         // Añadir ruta de regreso al almacén
-        List<int[]> rutaRegreso;
+        List<double[]> rutaRegreso;
         if (considerarBloqueos) {
             rutaRegreso = mapaReticularService.calcularRutaOptima(
                 xActual, yActual, xInicio, yInicio, bloqueosActivos);
@@ -387,11 +387,11 @@ public class RutaService {
         // Si se encontró una ruta de regreso, añadirla
         if (!rutaRegreso.isEmpty()) {
             for (int i = 1; i < rutaRegreso.size(); i++) {
-                int[] punto = rutaRegreso.get(i);
+                double[] punto = rutaRegreso.get(i);
                 String tipo = (i == rutaRegreso.size() - 1) ? "ALMACEN" : "RUTA";
                 puntosRuta.add(createPunto(punto[0], punto[1], tipo));
                 
-                int[] puntoAnterior = rutaRegreso.get(i-1);
+                double[] puntoAnterior = rutaRegreso.get(i-1);
                 distanciaTotal += mapaConfig.calcularDistanciaRealKm(
                     puntoAnterior[0], puntoAnterior[1], punto[0], punto[1]);
             }
@@ -467,25 +467,25 @@ public class RutaService {
      * Calcula una ruta directa en el mapa reticular, moviéndose primero horizontal
      * y luego verticalmente entre dos puntos
      */
-    private List<int[]> calcularRutaDirectaReticular(int x1, int y1, int x2, int y2) {
-        List<int[]> ruta = new ArrayList<>();
+    private List<double[]> calcularRutaDirectaReticular(double x1, double y1, double x2, double y2) {
+        List<double[]> ruta = new ArrayList<>();
         
         // Añadir punto de inicio
-        ruta.add(new int[]{x1, y1});
+        ruta.add(new double[]{x1, y1});
         
         // Moverse horizontalmente primero
         if (x1 != x2) {
-            for (int x = x1 + (x2 > x1 ? 1 : -1); x2 > x1 ? x <= x2 : x >= x2; x += (x2 > x1 ? 1 : -1)) {
-                ruta.add(new int[]{x, y1});
+            for (double x = x1 + (x2 > x1 ? 1 : -1); x2 > x1 ? x <= x2 : x >= x2; x += (x2 > x1 ? 1 : -1)) {
+                ruta.add(new double[]{x, y1});
             }
         }
         
         // Luego moverse verticalmente
-        int xFinal = ruta.get(ruta.size() - 1)[0];
+        double xFinal = ruta.get(ruta.size() - 1)[0];
         if (y1 != y2) {
-            for (int y = y1 + (y2 > y1 ? 1 : -1); y2 > y1 ? y <= y2 : y >= y2; y += (y2 > y1 ? 1 : -1)) {
+            for (double y = y1 + (y2 > y1 ? 1 : -1); y2 > y1 ? y <= y2 : y >= y2; y += (y2 > y1 ? 1 : -1)) {
                 if (y != y1) { // Evitar duplicar el punto inicial
-                    ruta.add(new int[]{xFinal, y});
+                    ruta.add(new double[]{xFinal, y});
                 }
             }
         }
@@ -504,7 +504,7 @@ public class RutaService {
     /**
      * Crea un objeto punto para la respuesta JSON
      */
-    private Map<String, Object> createPunto(int x, int y, String tipo) {
+    private Map<String, Object> createPunto(double x, double y, String tipo) {
         Map<String, Object> punto = new HashMap<>();
         punto.put("x", x);
         punto.put("y", y);
@@ -521,12 +521,12 @@ public class RutaService {
         // Si los puntos no están alineados horizontal o verticalmente,
         // calculamos una ruta reticular entre ellos
         if (x1 != x2 && y1 != y2) {
-            List<int[]> ruta = calcularRutaDirectaReticular(x1, y1, x2, y2);
+            List<double[]> ruta = calcularRutaDirectaReticular(x1, y1, x2, y2);
             
             // Verificamos cada segmento de la ruta
             for (int i = 0; i < ruta.size() - 1; i++) {
-                int[] p1 = ruta.get(i);
-                int[] p2 = ruta.get(i + 1);
+                double[] p1 = ruta.get(i);
+                double[] p2 = ruta.get(i + 1);
                 
                 if (estaSegmentoBloqueado(p1[0], p1[1], p2[0], p2[1], bloqueos)) {
                     return true;
@@ -544,7 +544,7 @@ public class RutaService {
      * Verifica si un segmento específico está bloqueado
      * Este método asume que el segmento es horizontal o vertical
      */
-    public boolean estaSegmentoBloqueado(int x1, int y1, int x2, int y2, List<Bloqueo> bloqueos) {
+    public boolean estaSegmentoBloqueado(double x1, double y1, double x2, double y2, List<Bloqueo> bloqueos) {
         // Validar que el segmento es horizontal o vertical
         if (x1 != x2 && y1 != y2) {
             throw new IllegalArgumentException("El segmento debe ser horizontal o vertical en un mapa reticular");
@@ -582,8 +582,8 @@ public class RutaService {
     /**
      * Verifica si dos segmentos rectilíneos (horizontales o verticales) se intersectan
      */
-    private boolean intersectaSegmentosReticulares(int x1, int y1, int x2, int y2, 
-                                                  int x3, int y3, int x4, int y4) {
+    private boolean intersectaSegmentosReticulares(double x1, double y1, double x2, double y2, 
+    double x3, double y3, double x4, double y4) {
         // En un mapa reticular, los segmentos son horizontales o verticales
         
         // Segmento horizontal intersecta con segmento vertical
@@ -609,7 +609,7 @@ public class RutaService {
     /**
      * Verifica si un punto está dentro de un segmento
      */
-    private boolean estaPuntoEnSegmento(int x, int y, int x1, int y1, int x2, int y2) {
+    private boolean estaPuntoEnSegmento(double x, double y, double x1, double y1, double x2, double y2) {
         return x >= Math.min(x1, x2) && x <= Math.max(x1, x2) && 
                y >= Math.min(y1, y2) && y <= Math.max(y1, y2);
     }
@@ -617,7 +617,7 @@ public class RutaService {
     /**
      * Verifica si hay solapamiento entre dos rangos
      */
-    private boolean hayOverlapEnRango(int a1, int a2, int b1, int b2) {
+    private boolean hayOverlapEnRango(double a1, double a2, double b1, double b2) {
         return Math.max(a1, a2) >= Math.min(b1, b2) && 
                Math.min(a1, a2) <= Math.max(b1, b2);
     }
@@ -635,7 +635,7 @@ public class RutaService {
         }
         
         // Usar el servicio de mapa reticular para buscar ruta alternativa
-        List<int[]> rutaAlternativa = mapaReticularService.calcularRutaOptima(
+        List<double[]> rutaAlternativa = mapaReticularService.calcularRutaOptima(
             x1, y1, x2, y2, bloqueosActivos);
         
         // Si encontramos una ruta válida, hay alternativa

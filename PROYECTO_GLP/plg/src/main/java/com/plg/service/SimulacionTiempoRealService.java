@@ -7,11 +7,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 @Service
 public class SimulacionTiempoRealService {
@@ -92,7 +90,7 @@ public class SimulacionTiempoRealService {
         }
         
         Map<String, Object> respuesta = crearRespuesta("Velocidad ajustada correctamente");
-        respuesta.put("factorVelocidad", factorVelocidad);
+        respuesta.put("factorVelocidad", Optional.of(factorVelocidad));
         return respuesta;
     }
     
@@ -114,15 +112,15 @@ public class SimulacionTiempoRealService {
             
             // Contar estadísticas para incluir en la actualización
             Map<String, Object> estadisticas = new HashMap<>();
-            estadisticas.put("camionesTotal", camionRepository.count());
-            estadisticas.put("camionesEnRuta", camionRepository.findByEstado(1).size());
-            estadisticas.put("almacenesTotal", almacenRepository.count());
-            estadisticas.put("pedidosTotal", pedidoRepository.count());
-            estadisticas.put("pedidosPendientes", pedidoRepository.findByEstado(0).size());
-            estadisticas.put("pedidosEnRuta", pedidoRepository.findByEstado(1).size());
-            estadisticas.put("pedidosEntregados", pedidoRepository.findByEstado(2).size());
-            estadisticas.put("rutasTotal", rutaRepository.count());
-            estadisticas.put("rutasActivas", rutaRepository.findByEstado(1).size());
+            estadisticas.put("camionesTotal", Optional.of(camionRepository.count()));
+            estadisticas.put("camionesEnRuta", Optional.of(camionRepository.findByEstado(1).size()));
+            estadisticas.put("almacenesTotal", Optional.of(almacenRepository.count()));
+            estadisticas.put("pedidosTotal", Optional.of(pedidoRepository.count()));
+            estadisticas.put("pedidosPendientes", Optional.of(pedidoRepository.findByEstado(0).size()));
+            estadisticas.put("pedidosEnRuta", Optional.of(pedidoRepository.findByEstado(1).size()));
+            estadisticas.put("pedidosEntregados", Optional.of(pedidoRepository.findByEstado(2).size()));
+            estadisticas.put("rutasTotal", Optional.of(rutaRepository.count()));
+            estadisticas.put("rutasActivas", Optional.of(rutaRepository.findByEstado(1).size()));
             
             // Enviar actualización a los clientes conectados vía WebSocket
             enviarActualizacionPosiciones(estadisticas);
@@ -133,7 +131,9 @@ public class SimulacionTiempoRealService {
             e.printStackTrace();
         }
     }
-    
+
+  
+
     // Procesa el movimiento de un camión específico
     private void procesarMovimientoCamion(Camion camion) {
         // Obtener las rutas activas del camión
@@ -147,7 +147,7 @@ public class SimulacionTiempoRealService {
         }
         
         // Procesar la primera ruta activa (asumiendo que un camión solo puede tener una ruta activa a la vez)
-        Ruta rutaActual = rutasActivas.get(0);
+        Ruta rutaActual = rutasActivas.getFirst();
         List<NodoRuta> nodos = rutaActual.getNodos();
         
         if (nodos.size() < 2) {
@@ -156,7 +156,7 @@ public class SimulacionTiempoRealService {
         
         // Inicializar el progreso si es la primera vez que procesamos esta ruta
         if (!progresoNodoActual.containsKey(rutaActual.getId())) {
-            progresoNodoActual.put(rutaActual.getId(), 0.0); // Comenzamos en 0%
+            progresoNodoActual.put(rutaActual.getId(), Double.valueOf(0.0)); // Comenzamos en 0%
         }
         
         // Determinar el nodo actual y siguiente
@@ -213,7 +213,7 @@ public class SimulacionTiempoRealService {
         }
         
         // Guardar el progreso actualizado
-        progresoNodoActual.put(rutaActual.getId(), progreso);
+        progresoNodoActual.put(rutaActual.getId(), Double.valueOf(progreso));
     }
     
     // Encuentra el índice del nodo actual en la ruta
@@ -249,19 +249,19 @@ public class SimulacionTiempoRealService {
     private void calcularPosicionIntermedia(Camion camion, NodoRuta origen, NodoRuta destino, double progreso) {
         // Calculamos la posición intermedia usando interpolación lineal
         // Para un movimiento más realista, primero nos movemos en X y luego en Y (Manhattan)
-        int deltaX = destino.getPosX() - origen.getPosX();
-        int deltaY = destino.getPosY() - origen.getPosY();
+        double deltaX = destino.getPosX() - origen.getPosX();
+        double deltaY = destino.getPosY() - origen.getPosY();
         
         // Si hay distancia en X, primero movemos en X
         if (deltaX != 0) {
             double progresoEnX = Math.min(1.0, progreso * Math.abs(deltaX + deltaY) / Math.abs(deltaX));
-            int nuevaX = origen.getPosX() + (int)(deltaX * progresoEnX);
+            double nuevaX = origen.getPosX() + (double)(deltaX * progresoEnX);
             camion.setPosX(nuevaX);
             
             // Solo movemos en Y si hemos completado el movimiento en X
             if (progresoEnX >= 1.0) {
                 double progresoEnY = (progreso * Math.abs(deltaX + deltaY) - Math.abs(deltaX)) / Math.abs(deltaY);
-                int nuevaY = origen.getPosY() + (int)(deltaY * progresoEnY);
+                double nuevaY = origen.getPosY() + (double)(deltaY * progresoEnY);
                 camion.setPosY(nuevaY);
             } else {
                 camion.setPosY(origen.getPosY());
@@ -269,7 +269,7 @@ public class SimulacionTiempoRealService {
         } 
         // Si no hay distancia en X, solo movemos en Y
         else if (deltaY != 0) {
-            int nuevaY = origen.getPosY() + (int)(deltaY * progreso);
+            double nuevaY = origen.getPosY() + (double)(deltaY * progreso);
             camion.setPosY(nuevaY);
         }
     }
@@ -320,8 +320,8 @@ public class SimulacionTiempoRealService {
             notificacion.put("pedidoCodigo", pedido.getCodigo());
             notificacion.put("posX", camion.getPosX());
             notificacion.put("posY", camion.getPosY());
-            notificacion.put("volumenEntregado", nodo.getVolumenGLP());
-            notificacion.put("porcentajeEntregado", nodo.getPorcentajePedido());
+            notificacion.put("volumenEntregado", Optional.of(nodo.getVolumenGLP()));
+            notificacion.put("porcentajeEntregado", Optional.of(nodo.getPorcentajePedido()));
             notificacion.put("fechaEntrega", LocalDateTime.now().toString());
             
             // Enviar notificación por WebSocket
@@ -362,8 +362,8 @@ public class SimulacionTiempoRealService {
             notificacion.put("camionCodigo", camion.getCodigo());
             notificacion.put("almacenId", almacen.getId());
             notificacion.put("almacenNombre", almacen.getNombre());
-            notificacion.put("combustibleRecargado", combustibleNecesario);
-            notificacion.put("combustibleActual", camion.getCombustibleActual());
+            notificacion.put("combustibleRecargado", Optional.of(combustibleNecesario));
+            notificacion.put("combustibleActual", Optional.of(camion.getCombustibleActual()));
             
             messagingTemplate.convertAndSend("/topic/recargas", notificacion);
         }
@@ -386,7 +386,7 @@ public class SimulacionTiempoRealService {
             rutaRepository.save(siguienteRuta);
             
             // Inicializar progreso para la nueva ruta
-            progresoNodoActual.put(siguienteRuta.getId(), 0.0);
+            progresoNodoActual.put(siguienteRuta.getId(), Double.valueOf(0.0));
             
             // Notificar inicio de nueva ruta
             Map<String, Object> notificacion = new HashMap<>();
@@ -435,7 +435,7 @@ public class SimulacionTiempoRealService {
     
     // Envía actualizaciones de posiciones al cliente
     @Scheduled(fixedRate = 1000) // cada 1 segundo
-    public void enviarActualizacionPosiciones() {
+    public void enviarActualizacionPosiciones(Map<String, Object> estadisticas) {
         try {
             long startTime = System.currentTimeMillis();
             
@@ -508,7 +508,7 @@ public class SimulacionTiempoRealService {
     }
     
     // NUEVO MÉTODO: Obtiene posiciones simplificadas para evitar el problema de anidamiento JSON
-    private Map<String, Object> obtenerPosicionesSimplificadas() {
+    public Map<String, Object> obtenerPosicionesSimplificadas() {
         Map<String, Object> result = new HashMap<>();
         long startGlobal = System.currentTimeMillis();
         
@@ -525,14 +525,14 @@ public class SimulacionTiempoRealService {
                         Map<String, Object> camionMap = new HashMap<>();
                         camionMap.put("id", camion.getId());
                         camionMap.put("codigo", camion.getCodigo());
-                        camionMap.put("estado", camion.getEstado());
+                        camionMap.put("estado", Optional.of(camion.getEstado()));
                         camionMap.put("capacidad", camion.getCapacidad());
-                        camionMap.put("combustibleActual", camion.getCombustibleActual());
+                        camionMap.put("combustibleActual", Optional.of(camion.getCombustibleActual()));
                         camionMap.put("posX", camion.getPosX());
                         camionMap.put("posY", camion.getPosY());
                         
                         // Solo añadir camiones con posición válida
-                        if (camion.getPosX() != null && camion.getPosY() != null) {
+                        if (!Double.isNaN(camion.getPosX()) && !Double.isNaN(camion.getPosY())) {
                             camionesList.add(camionMap);
                         }
                     } catch (Exception e) {
@@ -563,7 +563,7 @@ public class SimulacionTiempoRealService {
                         almacenMap.put("posY", almacen.getPosY());
                         
                         // Solo añadir almacenes con posición válida
-                        if (almacen.getPosX() != null && almacen.getPosY() != null) {
+                        if (!Double.isNaN(almacen.getPosX()) && !Double.isNaN(almacen.getPosY())) {
                             almacenesList.add(almacenMap);
                         }
                     } catch (Exception e) {
@@ -593,8 +593,8 @@ public class SimulacionTiempoRealService {
                         
                         Map<String, Object> pedidoMap = new HashMap<>();
                         pedidoMap.put("id", pedido.getId());
-                        pedidoMap.put("estado", pedido.getEstado());
-                        pedidoMap.put("m3", pedido.getM3());
+                        pedidoMap.put("estado", Optional.of(pedido.getEstado()));
+                        pedidoMap.put("m3", Optional.of(pedido.getM3()));
                         
                         // Solo enviar la ubicación del cliente si tenemos el cliente
                         if (pedido.getCliente() != null) {
@@ -605,8 +605,9 @@ public class SimulacionTiempoRealService {
                         
                         // Solo añadir pedidos con posición válida
                         if (pedido.getCliente() != null && 
-                            pedido.getCliente().getPosX() != null && 
-                            pedido.getCliente().getPosY() != null) {
+                            pedido.getCliente() != null &&
+                            pedido.getCliente().getPosX() != Double.NaN &&
+                            pedido.getCliente().getPosY() != Double.NaN) {
                             pedidosList.add(pedidoMap);
                         }
                     } catch (Exception e) {
@@ -641,13 +642,13 @@ public class SimulacionTiempoRealService {
                             
                             for (NodoRuta nodo : ruta.getNodos()) {
                                 try {
-                                    if (nodo.getPosX() == null || nodo.getPosY() == null) {
+                                    if (Double.isNaN(nodo.getPosX()) || Double.isNaN(nodo.getPosY())) {
                                         continue; // Ignorar nodos sin coordenadas
                                     }
                                     
                                     Map<String, Object> nodoMap = new HashMap<>();
                                     nodoMap.put("id", nodo.getId());
-                                    nodoMap.put("orden", nodo.getOrden());
+                                    nodoMap.put("orden", Optional.of(nodo.getOrden()));
                                     nodoMap.put("posX", nodo.getPosX());
                                     nodoMap.put("posY", nodo.getPosY());
                                     nodoMap.put("tipo", nodo.getTipo());

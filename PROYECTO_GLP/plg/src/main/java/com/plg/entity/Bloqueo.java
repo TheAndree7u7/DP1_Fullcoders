@@ -32,7 +32,7 @@ public class Bloqueo {
      * @param y Coordenada Y a verificar
      * @return true si el punto está en un tramo bloqueado
      */
-    public boolean contienePunto(int x, int y) {
+    public boolean contienePunto(double x, double y) {
         // Si hay menos de 2 coordenadas, no hay tramos
         if (coordenadas.size() < 2) {
             return false;
@@ -55,7 +55,7 @@ public class Bloqueo {
     /**
      * Verifica si un punto está en una línea dentro de un mapa reticular
      */
-    private boolean estaPuntoEnLinea(int puntoX, int puntoY, int lineaInicioX, int lineaInicioY, int lineaFinX, int lineaFinY) {
+    private boolean estaPuntoEnLinea(double puntoX, double puntoY, double lineaInicioX, double lineaInicioY, double lineaFinX, double lineaFinY) {
         // En un mapa reticular, verificamos si el punto está exactamente en la línea
         return estaPuntoEnSegmento(puntoX, puntoY, lineaInicioX, lineaInicioY, lineaFinX, lineaFinY);
     }
@@ -63,12 +63,12 @@ public class Bloqueo {
     /**
      * Verifica si un punto está dentro del segmento de línea
      */
-    private boolean estaPuntoEnSegmento(int puntoX, int puntoY, int segmentoInicioX, int segmentoInicioY, int segmentoFinX, int segmentoFinY) {
+    private boolean estaPuntoEnSegmento(double puntoX, double puntoY, double segmentoInicioX, double segmentoInicioY, double segmentoFinX, double segmentoFinY) {
         // Calculamos el rango de coordenadas del segmento
-        int rangoMinX = Math.min(segmentoInicioX, segmentoFinX);
-        int rangoMaxX = Math.max(segmentoInicioX, segmentoFinX);
-        int rangoMinY = Math.min(segmentoInicioY, segmentoFinY);
-        int rangoMaxY = Math.max(segmentoInicioY, segmentoFinY);
+        double rangoMinX = Math.min(segmentoInicioX, segmentoFinX);
+        double rangoMaxX = Math.max(segmentoInicioX, segmentoFinX);
+        double rangoMinY = Math.min(segmentoInicioY, segmentoFinY);
+        double rangoMaxY = Math.max(segmentoInicioY, segmentoFinY);
 
         // Verificamos si el punto está dentro del rango del segmento
         return puntoX >= rangoMinX && puntoX <= rangoMaxX && puntoY >= rangoMinY && puntoY <= rangoMaxY;
@@ -115,7 +115,7 @@ public class Bloqueo {
      * @param y2 Coordenada Y del punto final del segmento
      * @return true si el segmento intersecta con algún tramo bloqueado
      */
-    public boolean intersectaConSegmento(int x1, int y1, int x2, int y2) {
+    public boolean intersectaConSegmento(double x1, double y1, double x2, double y2) {
         // Si hay menos de 2 coordenadas, no hay tramos
         if (coordenadas.size() < 2) {
             return false;
@@ -147,13 +147,13 @@ public class Bloqueo {
      * Verifica si dos segmentos de línea se intersecan
      */
     private boolean seIntersecaConSegmento(
-            int x1, int y1, int x2, int y2,
-            int x3, int y3, int x4, int y4) {
+        double x1, double y1, double x2, double y2,
+        double x3, double y3, double x4, double y4) {
         
  
         
         // Primero calculamos los denominadores para las ecuaciones
-        int denominator = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+        double denominator = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
         
         // Si el denominador es 0, las líneas son paralelas
         if (denominator == 0) {
@@ -177,8 +177,8 @@ public class Bloqueo {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Coordenada {
-        private int x;
-        private int y;
+        private double x;
+        private double y;
     }
     
 }

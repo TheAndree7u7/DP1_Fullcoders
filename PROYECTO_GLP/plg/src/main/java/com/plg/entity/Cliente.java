@@ -20,8 +20,8 @@ public class Cliente {
     private String direccion;
     private String telefono;
     private String email;
-    private Integer posX;
-    private Integer posY;
+    private double posX;
+    private double posY;
     
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
     @JsonManagedReference(value="cliente-pedido")
