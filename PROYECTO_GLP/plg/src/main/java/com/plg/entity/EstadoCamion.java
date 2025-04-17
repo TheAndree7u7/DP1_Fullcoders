@@ -1,4 +1,4 @@
-package com.plg.enums;
+package com.plg.entity;
 
 public enum EstadoCamion {
 
@@ -8,6 +8,8 @@ public enum EstadoCamion {
 
     ENTREGANDO_GLP_A_CLIENTE("Camión en proceso de descarga de GLP al cliente", "#0066CC"),
 
+    //!MANTENIMIENTO
+    
     EN_MANTENIMIENTO_PREVENTIVO("Mantenimiento preventivo programado (1 día)", "#FFCC00"),
 
     EN_MANTENIMIENTO_CORRECTIVO("Aun no especificado por el profesor", "#FF9900"),

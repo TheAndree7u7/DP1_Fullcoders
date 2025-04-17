@@ -1,4 +1,4 @@
-package com.plg.enums;
+package com.plg.entity;
 
  
 public enum EstadoPedido {

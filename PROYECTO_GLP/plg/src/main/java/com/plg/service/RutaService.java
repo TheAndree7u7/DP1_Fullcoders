@@ -2,7 +2,7 @@ package com.plg.service;
 
 import com.plg.config.MapaConfig;
 import com.plg.entity.*;
-import com.plg.enums.EstadoCamion;
+import com.plg.entity.EstadoCamion;
 import com.plg.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

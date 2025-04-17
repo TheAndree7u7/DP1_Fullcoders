@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.plg.enums.EstadoCamion;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

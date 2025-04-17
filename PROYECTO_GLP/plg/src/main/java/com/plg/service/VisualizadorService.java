@@ -1,14 +1,13 @@
 package com.plg.service;
 
 import com.plg.entity.Almacen;
-import com.plg.entity.Bloqueo;
 import com.plg.entity.Camion;
 import com.plg.entity.Pedido;
 import com.plg.repository.AlmacenRepository;
 import com.plg.repository.CamionRepository;
 import com.plg.repository.PedidoRepository;
-import com.plg.enums.EstadoCamion;
-import com.plg.enums.EstadoPedido;
+import com.plg.entity.EstadoCamion;
+import com.plg.entity.EstadoPedido;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

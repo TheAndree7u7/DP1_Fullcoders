@@ -1,7 +1,7 @@
 package com.plg.repository;
 
 import com.plg.entity.Camion;
-import com.plg.enums.EstadoCamion;
+import com.plg.entity.EstadoCamion;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

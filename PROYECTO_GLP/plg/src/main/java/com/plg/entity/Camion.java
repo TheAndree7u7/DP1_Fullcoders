@@ -1,7 +1,6 @@
 package com.plg.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.plg.enums.EstadoCamion;
 
 import jakarta.persistence.*;
 import lombok.*;

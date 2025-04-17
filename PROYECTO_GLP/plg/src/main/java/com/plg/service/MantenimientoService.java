@@ -2,7 +2,7 @@ package com.plg.service;
 
 import com.plg.entity.Camion;
 import com.plg.entity.Mantenimiento;
-import com.plg.enums.EstadoCamion;
+import com.plg.entity.EstadoCamion;
 import com.plg.repository.CamionRepository;
 import com.plg.repository.MantenimientoRepository;
 import org.springframework.beans.factory.annotation.Autowired;

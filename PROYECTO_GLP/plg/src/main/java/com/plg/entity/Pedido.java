@@ -2,7 +2,6 @@ package com.plg.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.plg.enums.EstadoPedido;
 
 import jakarta.persistence.*;
 import lombok.*;

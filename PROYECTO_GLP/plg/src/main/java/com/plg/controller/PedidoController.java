@@ -2,7 +2,7 @@ package com.plg.controller;
 
 import com.plg.dto.PedidoDTO;
 import com.plg.entity.Pedido;
-import com.plg.enums.EstadoPedido;
+import com.plg.entity.EstadoPedido;
 import com.plg.service.PedidoService;
 import com.plg.util.DtoConverter;
 

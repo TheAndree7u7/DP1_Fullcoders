@@ -1,8 +1,8 @@
 package com.plg.service;
 
 import com.plg.entity.*;
-import com.plg.enums.EstadoCamion;
-import com.plg.enums.EstadoPedido;
+import com.plg.entity.EstadoCamion;
+import com.plg.entity.EstadoPedido;
 import com.plg.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;

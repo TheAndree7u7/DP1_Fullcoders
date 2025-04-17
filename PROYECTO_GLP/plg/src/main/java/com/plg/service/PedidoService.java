@@ -2,7 +2,7 @@ package com.plg.service;
 
 import com.plg.dto.PedidoDTO;
 import com.plg.entity.Pedido;
-import com.plg.enums.EstadoPedido;
+import com.plg.entity.EstadoPedido;
 import com.plg.repository.PedidoRepository;
 import com.plg.util.DtoConverter;
 import org.springframework.beans.factory.annotation.Autowired;

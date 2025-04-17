@@ -1,7 +1,7 @@
 package com.plg.repository;
 
 import com.plg.entity.Pedido;
-import com.plg.enums.EstadoPedido;
+import com.plg.entity.EstadoPedido;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
