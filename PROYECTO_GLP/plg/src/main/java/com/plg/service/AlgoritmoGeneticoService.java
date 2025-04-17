@@ -3,6 +3,8 @@ package com.plg.service;
 import com.plg.dto.*;
 import com.plg.entity.Pedido;
 import com.plg.repository.PedidoRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,8 @@ import java.util.stream.Collectors;
 @Service
 public class AlgoritmoGeneticoService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AlgoritmoGeneticoService.class);
+    
     @Autowired
     private PedidoRepository pedidoRepository;
     
@@ -22,11 +26,15 @@ public class AlgoritmoGeneticoService {
     private final double TASA_CRUCE = 0.8;
     
     public AlgoritmoGeneticoResultadoDTO generarRutas(Map<String, Object> params) {
+        logger.info("Iniciando generación de rutas con algoritmo genético. Parámetros: {}", params);
+        
         // Obtener pedidos pendientes
         List<Pedido> pedidos = pedidoRepository.findByEstado(0);
+        logger.info("Pedidos pendientes encontrados: {}", pedidos.size());
         
         // Verificar si hay suficientes pedidos para optimizar
         if (pedidos.isEmpty()) {
+            logger.warn("No hay pedidos pendientes para generar rutas");
             return AlgoritmoGeneticoResultadoDTO.builder()
                 .metodo("algoritmoGenetico")
                 .totalPedidos(0)
@@ -38,31 +46,42 @@ public class AlgoritmoGeneticoService {
         // Parámetros opcionales
         int numeroRutas = params.containsKey("numeroRutas") ? 
                          (int) params.get("numeroRutas") : 3;
+        logger.info("Generando {} rutas para {} pedidos", numeroRutas, pedidos.size());
         
         // Implementación simplificada - en un caso real aquí iría el algoritmo genético completo
         // que optimizaría las rutas considerando capacidades de camiones, restricciones temporales, etc.
         
         // Generamos rutas simuladas
         List<RutaDTO> rutas = generarRutasSimuladas(pedidos, numeroRutas);
+        logger.info("Rutas generadas exitosamente: {}", rutas.size());
         
         // Preparamos el resultado usando DTO
-        return AlgoritmoGeneticoResultadoDTO.builder()
+        AlgoritmoGeneticoResultadoDTO resultado = AlgoritmoGeneticoResultadoDTO.builder()
             .rutas(rutas)
             .metodo("algoritmoGenetico")
             .totalPedidos(pedidos.size())
             .pedidosAsignados(pedidos.size())
             .build();
+        
+        logger.info("Generación de rutas completada. Pedidos asignados: {}/{}", 
+            resultado.getPedidosAsignados(), resultado.getTotalPedidos());
+        
+        return resultado;
     }
     
     // Método que simula la generación de rutas - en un caso real esto implementaría el AG completo
     private List<RutaDTO> generarRutasSimuladas(List<Pedido> pedidos, int numeroRutas) {
+        logger.debug("Iniciando generación de rutas simuladas con {} pedidos", pedidos.size());
         List<RutaDTO> rutas = new ArrayList<>();
         
         // Dividir los pedidos en grupos (clusters) para simular las rutas
         List<List<Pedido>> grupos = dividirEnGrupos(pedidos, numeroRutas);
+        logger.debug("Pedidos divididos en {} grupos", grupos.size());
         
         // Para cada grupo creamos una ruta
         for (int i = 0; i < grupos.size(); i++) {
+            logger.debug("Generando ruta {} con {} pedidos", (i+1), grupos.get(i).size());
+            
             // Convertir pedidos a DTOs
             List<PedidoDTO> pedidosDTO = grupos.get(i).stream()
                 .map(this::convertirAPedidoDTO)
@@ -82,6 +101,7 @@ public class AlgoritmoGeneticoService {
                 .build();
             
             rutas.add(ruta);
+            logger.debug("Ruta R{} generada con éxito", (i+1));
         }
         
         return rutas;
@@ -89,6 +109,7 @@ public class AlgoritmoGeneticoService {
     
     // Método auxiliar para dividir pedidos en grupos (simulado)
     private List<List<Pedido>> dividirEnGrupos(List<Pedido> pedidos, int numeroGrupos) {
+        logger.debug("Dividiendo {} pedidos en {} grupos", pedidos.size(), numeroGrupos);
         List<List<Pedido>> grupos = new ArrayList<>();
         
         // Asegurar que no intentamos crear más grupos que pedidos disponibles
@@ -123,6 +144,7 @@ public class AlgoritmoGeneticoService {
     
     // Genera puntos de ruta (simulado - en un escenario real se utilizaría el AG)
     private List<PuntoRutaDTO> generarPuntosRuta(List<Pedido> pedidos) {
+        logger.debug("Generando puntos de ruta para {} pedidos", pedidos.size());
         List<PuntoRutaDTO> puntos = new ArrayList<>();
         
         // El primer punto es el almacén (origen)
@@ -149,6 +171,7 @@ public class AlgoritmoGeneticoService {
             .posY(0)
             .build());
         
+        logger.debug("Generados {} puntos de ruta", puntos.size());
         return puntos;
     }
 }

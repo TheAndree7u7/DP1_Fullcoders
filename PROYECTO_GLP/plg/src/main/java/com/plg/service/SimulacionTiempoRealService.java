@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -13,6 +15,8 @@ import java.util.concurrent.*;
 
 @Service
 public class SimulacionTiempoRealService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SimulacionTiempoRealService.class);
 
     @Autowired
     private CamionRepository camionRepository;
@@ -42,14 +46,57 @@ public class SimulacionTiempoRealService {
             return crearRespuesta("La simulación ya está en curso");
         }
         
+        logger.info("Iniciando simulación de tiempo real a las {}", LocalDateTime.now());
+        
         simulacionEnCurso = true;
         scheduler = Executors.newSingleThreadScheduledExecutor();
         progresoNodoActual.clear();
         
+        // Activar las rutas pendientes de los camiones en ruta si no tienen rutas activas
+        activarRutasPendientes();
+        
         // Iniciar simulación - actualizar cada segundo ajustado por el factor de velocidad
         scheduler.scheduleAtFixedRate(this::actualizarSimulacion, 0, 1000 / factorVelocidad, TimeUnit.MILLISECONDS);
         
+        logger.info("Simulación iniciada con factor de velocidad: {}", factorVelocidad);
+        
+        // Enviar notificación de inicio
+        Map<String, Object> notificacion = new HashMap<>();
+        notificacion.put("tipo", "simulacion");
+        notificacion.put("accion", "iniciada");
+        notificacion.put("factorVelocidad", factorVelocidad);
+        notificacion.put("timestamp", LocalDateTime.now().toString());
+        messagingTemplate.convertAndSend("/topic/simulacion", notificacion);
+        
         return crearRespuesta("Simulación iniciada correctamente");
+    }
+    
+    // Nuevo método para activar rutas pendientes
+    private void activarRutasPendientes() {
+        List<Camion> camionesEnRuta = camionRepository.findByEstado(1); // Camiones en ruta
+        
+        for (Camion camion : camionesEnRuta) {
+            // Verificar si tiene alguna ruta activa
+            List<Ruta> rutasActivas = rutaRepository.findByCamionIdAndEstado(camion.getId(), 1);
+            
+            if (rutasActivas.isEmpty()) {
+                // Buscar rutas pendientes para este camión
+                List<Ruta> rutasPendientes = rutaRepository.findByCamionIdAndEstado(camion.getId(), 0);
+                
+                if (!rutasPendientes.isEmpty()) {
+                    // Activar la primera ruta pendiente
+                    Ruta rutaParaActivar = rutasPendientes.get(0);
+                    rutaParaActivar.setEstado(1); // 1 = En curso
+                    rutaParaActivar.setFechaInicioRuta(LocalDateTime.now());
+                    rutaRepository.save(rutaParaActivar);
+                    
+                    logger.info("Activada ruta {} para camión {}", rutaParaActivar.getCodigo(), camion.getCodigo());
+                    
+                    // Inicializar progreso
+                    progresoNodoActual.put(rutaParaActivar.getId(), Double.valueOf(0.0));
+                }
+            }
+        }
     }
     
     // Método para detener la simulación
@@ -97,13 +144,26 @@ public class SimulacionTiempoRealService {
     // Método principal que se ejecuta periódicamente para actualizar la simulación
     private void actualizarSimulacion() {
         try {
-            // Obtener todos los camiones en ruta
-            List<Camion> camionesEnRuta = camionRepository.findByEstado(1); // 1 = En ruta
-            
-            // Si no hay camiones en ruta, no hay nada que simular
-            if (camionesEnRuta.isEmpty()) {
+            // Verificar si hay simulación en curso
+            if (!simulacionEnCurso) {
+                logger.warn("actualizarSimulacion() llamado pero simulacionEnCurso=false");
                 return;
             }
+            
+            // Obtener todos los camiones en ruta
+            List<Camion> camionesEnRuta = camionRepository.findByEstado(0); // 1 = En ruta
+            // Agrega tambien los camiones en estado 0 (disponible) para verificar si tienen rutas pendientes
+            List<Camion> camionesDisponibles = camionRepository.findByEstado(1);
+  
+            
+            camionesEnRuta.addAll(camionesDisponibles);
+            // Si no hay camiones en ruta, no hay nada que simular
+            if (camionesEnRuta.isEmpty()) {
+                logger.info("No hay camiones en ruta para simular");
+                return;
+            }
+            
+            logger.debug("Procesando {} camiones en ruta", camionesEnRuta.size());
             
             // Procesar cada camión en ruta
             for (Camion camion : camionesEnRuta) {
@@ -127,93 +187,123 @@ public class SimulacionTiempoRealService {
             
         } catch (Exception e) {
             // Registrar error pero no detener la simulación
-            System.err.println("Error en la simulación: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error en la simulación: {}", e.getMessage(), e);
         }
     }
 
-  
-
     // Procesa el movimiento de un camión específico
     private void procesarMovimientoCamion(Camion camion) {
-        // Obtener las rutas activas del camión
-        List<Ruta> rutasActivas = rutaRepository.findByCamionIdAndEstado(camion.getId(), 1); // 1 = En curso
-        
-        if (rutasActivas.isEmpty()) {
-            // El camión está marcado en ruta pero no tiene rutas activas
-            camion.setEstado(0); // Cambiar a disponible
-            camionRepository.save(camion);
-            return;
-        }
-        
-        // Procesar la primera ruta activa (asumiendo que un camión solo puede tener una ruta activa a la vez)
-        Ruta rutaActual = rutasActivas.getFirst();
-        List<NodoRuta> nodos = rutaActual.getNodos();
-        
-        if (nodos.size() < 2) {
-            return; // La ruta debe tener al menos un origen y un destino
-        }
-        
-        // Inicializar el progreso si es la primera vez que procesamos esta ruta
-        if (!progresoNodoActual.containsKey(rutaActual.getId())) {
-            progresoNodoActual.put(rutaActual.getId(), Double.valueOf(0.0)); // Comenzamos en 0%
-        }
-        
-        // Determinar el nodo actual y siguiente
-        int indiceNodoActual = encontrarIndiceNodoActual(rutaActual, nodos);
-        
-        // Si hemos llegado al último nodo, la ruta está completa
-        if (indiceNodoActual >= nodos.size() - 1) {
-            completarRuta(rutaActual, camion);
-            return;
-        }
-        
-        NodoRuta nodoActual = nodos.get(indiceNodoActual);
-        NodoRuta nodoSiguiente = nodos.get(indiceNodoActual + 1);
-        
-        // Aumentar el progreso hacia el siguiente nodo
-        double progreso = progresoNodoActual.get(rutaActual.getId());
-        double incremento = (5.0 * factorVelocidad) / 100.0; // Avance del 5% * factor de velocidad
-        progreso += incremento;
-        
-        // Verificar si llegamos al siguiente nodo
-        if (progreso >= 1.0) {
-            // Hemos llegado al siguiente nodo
-            progreso = 0.0; // Reiniciar progreso para el próximo tramo
+        try {
+            // Obtener las rutas activas del camión
+            List<Ruta> rutasActivas = rutaRepository.findByCamionIdAndEstado(camion.getId(), 1); // 1 = En curso
             
-            // Actualizar posición del camión al llegar al nodo siguiente
-            camion.setPosX(nodoSiguiente.getPosX());
-            camion.setPosY(nodoSiguiente.getPosY());
-            
-            // Consumir combustible por el tramo recorrido
-            double distanciaRecorrida = nodoActual.distanciaA(nodoSiguiente);
-            double consumo = camion.calcularConsumoCombustible(distanciaRecorrida);
-            camion.setCombustibleActual(Math.max(0, camion.getCombustibleActual() - consumo));
-            
-            // Si es un nodo cliente, procesar entrega
-            if ("CLIENTE".equals(nodoSiguiente.getTipo()) && !nodoSiguiente.isEntregado() && nodoSiguiente.getPedido() != null) {
-                procesarEntrega(camion, rutaActual, nodoSiguiente);
+            if (rutasActivas.isEmpty()) {
+                logger.warn("Camión {} está en ruta (estado 1) pero no tiene rutas activas", camion.getCodigo());
+                
+                // Intentar activar una ruta pendiente
+                List<Ruta> rutasPendientes = rutaRepository.findByCamionIdAndEstado(camion.getId(), 0);
+                if (!rutasPendientes.isEmpty()) {
+                    Ruta rutaParaActivar = rutasPendientes.get(0);
+                    rutaParaActivar.setEstado(1); // Activar la ruta
+                    rutaParaActivar.setFechaInicioRuta(LocalDateTime.now());
+                    rutaRepository.save(rutaParaActivar);
+                    
+                    // Inicializar progreso
+                    progresoNodoActual.put(rutaParaActivar.getId(), Double.valueOf(0.0));
+                    
+                    logger.info("Activada ruta pendiente {} para camión {}", rutaParaActivar.getCodigo(), camion.getCodigo());
+                    
+                    // Evitar cambiar el estado del camión, continuará en ruta
+                    return;
+                } else {
+                    // El camión está marcado en ruta pero no tiene rutas activas ni pendientes
+                    logger.info("Camión {} sin rutas, cambiando a disponible", camion.getCodigo());
+                    camion.setEstado(0); // Cambiar a disponible
+                    camionRepository.save(camion);
+                    return;
+                }
             }
             
-            // Si es un nodo de tipo ALMACEN y no es el primero, podría ser retorno al almacén para recargar
-            if ("ALMACEN".equals(nodoSiguiente.getTipo()) && indiceNodoActual > 0) {
-                recargarCamion(camion);
+            // Procesar la primera ruta activa (asumiendo que un camión solo puede tener una ruta activa a la vez)
+            Ruta rutaActual = rutasActivas.get(0);
+            List<NodoRuta> nodos = rutaActual.getNodos();
+            
+            if (nodos == null || nodos.size() < 2) {
+                logger.warn("Ruta {} no tiene suficientes nodos", rutaActual.getCodigo());
+                return; // La ruta debe tener al menos un origen y un destino
             }
             
-            // Guardar el camión con su nueva posición
-            camionRepository.save(camion);
+            logger.debug("Procesando movimiento de camión {} en ruta {} con {} nodos", camion.getCodigo(), rutaActual.getCodigo(), nodos.size());
             
-            // Enviar notificación de llegada a nodo
-            enviarNotificacionLlegadaNodo(camion, nodoSiguiente, rutaActual);
+            // Inicializar el progreso si es la primera vez que procesamos esta ruta
+            if (!progresoNodoActual.containsKey(rutaActual.getId())) {
+                progresoNodoActual.put(rutaActual.getId(), Double.valueOf(0.0)); // Comenzamos en 0%
+                logger.info("Inicializando progreso para ruta {}", rutaActual.getCodigo());
+            }
             
-        } else {
-            // Estamos en medio del camino entre nodos, calcular posición intermedia
-            calcularPosicionIntermedia(camion, nodoActual, nodoSiguiente, progreso);
-            camionRepository.save(camion);
+            // Determinar el nodo actual y siguiente
+            int indiceNodoActual = encontrarIndiceNodoActual(rutaActual, nodos);
+            
+            // Si hemos llegado al último nodo, la ruta está completa
+            if (indiceNodoActual >= nodos.size() - 1) {
+                logger.info("Ruta {} completada", rutaActual.getCodigo());
+                completarRuta(rutaActual, camion);
+                return;
+            }
+            
+            NodoRuta nodoActual = nodos.get(indiceNodoActual);
+            NodoRuta nodoSiguiente = nodos.get(indiceNodoActual + 1);
+            
+            logger.debug("Camión {} moviéndose del nodo {} al nodo {} - Progreso: {}", camion.getCodigo(), indiceNodoActual, (indiceNodoActual + 1), progresoNodoActual.get(rutaActual.getId()));
+            
+            // Aumentar el progreso hacia el siguiente nodo
+            double progreso = progresoNodoActual.get(rutaActual.getId());
+            double incremento = (5.0 * factorVelocidad) / 100.0; // Avance del 5% * factor de velocidad
+            progreso += incremento;
+            
+            // Verificar si llegamos al siguiente nodo
+            if (progreso >= 1.0) {
+                progreso = 0.0; // Reiniciar progreso para el próximo tramo
+                
+                // Actualizar posición del camión al llegar al nodo siguiente
+                camion.setPosX(nodoSiguiente.getPosX());
+                camion.setPosY(nodoSiguiente.getPosY());
+                
+                // Consumir combustible por el tramo recorrido
+                double distanciaRecorrida = nodoActual.distanciaA(nodoSiguiente);
+                double consumo = camion.calcularConsumoCombustible(distanciaRecorrida);
+                camion.setCombustibleActual(Math.max(0, camion.getCombustibleActual() - consumo));
+                
+                // Si es un nodo cliente, procesar entrega
+                if ("CLIENTE".equals(nodoSiguiente.getTipo()) && !nodoSiguiente.isEntregado() && nodoSiguiente.getPedido() != null) {
+                    procesarEntrega(camion, rutaActual, nodoSiguiente);
+                }
+                
+                // Si es un nodo de tipo ALMACEN y no es el primero, podría ser retorno al almacén para recargar
+                if ("ALMACEN".equals(nodoSiguiente.getTipo()) && indiceNodoActual > 0) {
+                    recargarCamion(camion);
+                }
+                
+                // Guardar el camión con su nueva posición
+                camionRepository.save(camion);
+                
+                // Enviar notificación de llegada a nodo
+                enviarNotificacionLlegadaNodo(camion, nodoSiguiente, rutaActual);
+                
+            } else {
+                // Estamos en medio del camino entre nodos, calcular posición intermedia
+                calcularPosicionIntermedia(camion, nodoActual, nodoSiguiente, progreso);
+                camionRepository.save(camion);
+                
+                logger.debug("Camión {} en posición intermedia X:{} Y:{} - Progreso: {}", camion.getCodigo(), camion.getPosX(), camion.getPosY(), progreso);
+            }
+            
+            // Guardar el progreso actualizado
+            progresoNodoActual.put(rutaActual.getId(), Double.valueOf(progreso));
+            
+        } catch (Exception e) {
+            logger.error("Error procesando movimiento de camión {}: {}", camion.getId(), e.getMessage(), e);
         }
-        
-        // Guardar el progreso actualizado
-        progresoNodoActual.put(rutaActual.getId(), Double.valueOf(progreso));
     }
     
     // Encuentra el índice del nodo actual en la ruta
@@ -245,32 +335,30 @@ public class SimulacionTiempoRealService {
         return indice;
     }
     
-    // Calcula una posición intermedia entre dos nodos
+    // Calcular posición intermedia entre dos nodos
     private void calcularPosicionIntermedia(Camion camion, NodoRuta origen, NodoRuta destino, double progreso) {
-        // Calculamos la posición intermedia usando interpolación lineal
-        // Para un movimiento más realista, primero nos movemos en X y luego en Y (Manhattan)
-        double deltaX = destino.getPosX() - origen.getPosX();
-        double deltaY = destino.getPosY() - origen.getPosY();
-        
-        // Si hay distancia en X, primero movemos en X
-        if (deltaX != 0) {
-            double progresoEnX = Math.min(1.0, progreso * Math.abs(deltaX + deltaY) / Math.abs(deltaX));
-            double nuevaX = origen.getPosX() + (double)(deltaX * progresoEnX);
-            camion.setPosX(nuevaX);
-            
-            // Solo movemos en Y si hemos completado el movimiento en X
-            if (progresoEnX >= 1.0) {
-                double progresoEnY = (progreso * Math.abs(deltaX + deltaY) - Math.abs(deltaX)) / Math.abs(deltaY);
-                double nuevaY = origen.getPosY() + (double)(deltaY * progresoEnY);
-                camion.setPosY(nuevaY);
-            } else {
-                camion.setPosY(origen.getPosY());
+        try {
+            // Validar coordenadas para evitar NaN
+            if (Double.isNaN(origen.getPosX()) || Double.isNaN(origen.getPosY()) || 
+                Double.isNaN(destino.getPosX()) || Double.isNaN(destino.getPosY())) {
+                logger.warn("Coordenadas NaN detectadas en nodos de ruta");
+                return;
             }
-        } 
-        // Si no hay distancia en X, solo movemos en Y
-        else if (deltaY != 0) {
-            double nuevaY = origen.getPosY() + (double)(deltaY * progreso);
+            
+            // Calculamos la posición intermedia usando interpolación lineal
+            double deltaX = destino.getPosX() - origen.getPosX();
+            double deltaY = destino.getPosY() - origen.getPosY();
+            
+            // Movimiento directo (interpolación lineal simple)
+            double nuevaX = origen.getPosX() + (deltaX * progreso);
+            double nuevaY = origen.getPosY() + (deltaY * progreso);
+            
+            // Actualizar posición del camión
+            camion.setPosX(nuevaX);
             camion.setPosY(nuevaY);
+            
+        } catch (Exception e) {
+            logger.error("Error calculando posición intermedia: {}", e.getMessage(), e);
         }
     }
     
@@ -485,10 +573,10 @@ public class SimulacionTiempoRealService {
                 
                 long endTime = System.currentTimeMillis();
                 if (endTime - startTime > 500) { // Solo logueamos si toma más de 500ms
-                    System.out.println("[PERF] Actualización posiciones completada en " + (endTime - startTime) + "ms");
+                    logger.info("Actualización posiciones completada en {}ms", (endTime - startTime));
                 }
             } catch (TimeoutException e) {
-                System.err.println("[ERROR CRÍTICO] Timeout obteniendoPosicionesSimplificadas (>10s): " + e.getMessage());
+                logger.error("Timeout obteniendoPosicionesSimplificadas (>10s): {}", e.getMessage());
                 // Enviar mensaje de error al cliente
                 Map<String, Object> error = new HashMap<>();
                 error.put("timestamp", LocalDateTime.now().toString());
@@ -496,8 +584,7 @@ public class SimulacionTiempoRealService {
                 error.put("status", "error");
                 messagingTemplate.convertAndSend("/topic/posiciones", error);
             } catch (Exception e) {
-                System.err.println("[ERROR] Error obteniendoPosicionesSimplificadas: " + e.getMessage());
-                e.printStackTrace();
+                logger.error("Error obteniendoPosicionesSimplificadas: {}", e.getMessage(), e);
                 // Enviar mensaje de error al cliente
                 Map<String, Object> error = new HashMap<>();
                 error.put("timestamp", LocalDateTime.now().toString());
@@ -508,8 +595,7 @@ public class SimulacionTiempoRealService {
                 executor.shutdownNow(); // Asegurarse de cerrar el executor
             }
         } catch (Exception e) {
-            System.err.println("[ERROR CRÍTICO] Error general en enviarActualizacionPosiciones: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error general en enviarActualizacionPosiciones: {}", e.getMessage(), e);
             try {
                 // Último intento para informar al cliente
                 Map<String, Object> error = new HashMap<>();
@@ -518,7 +604,7 @@ public class SimulacionTiempoRealService {
                 error.put("status", "criticalError");
                 messagingTemplate.convertAndSend("/topic/posiciones", error);
             } catch (Exception ex) {
-                System.err.println("[ERROR FATAL] No se pudo enviar mensaje de error al cliente: " + ex.getMessage());
+                logger.error("No se pudo enviar mensaje de error al cliente: {}", ex.getMessage(), ex);
             }
         }
     }
@@ -529,7 +615,7 @@ public class SimulacionTiempoRealService {
         long startGlobal = System.currentTimeMillis();
         
         try {
-            System.out.println("[DEBUG] Iniciando obtenerPosicionesSimplificadas: " + LocalDateTime.now());
+            logger.debug("Iniciando obtenerPosicionesSimplificadas: {}", LocalDateTime.now());
             
             // 1. PROCESAR CAMIONES
             long startCamiones = System.currentTimeMillis();
@@ -552,15 +638,13 @@ public class SimulacionTiempoRealService {
                             camionesList.add(camionMap);
                         }
                     } catch (Exception e) {
-                        System.err.println("[ERROR] Al procesar camión " + camion.getId() + ": " + e.getMessage());
+                        logger.error("Al procesar camión {}: {}", camion.getId(), e.getMessage(), e);
                     }
                 }
                 result.put("camiones", camionesList);
-                System.out.println("[DEBUG] Camiones procesados: " + camionesList.size() + " en " + 
-                    (System.currentTimeMillis() - startCamiones) + "ms");
+                logger.debug("Camiones procesados: {} en {}ms", camionesList.size(), (System.currentTimeMillis() - startCamiones));
             } catch (Exception e) {
-                System.err.println("[ERROR] Al procesar camiones: " + e.getMessage());
-                e.printStackTrace();
+                logger.error("Al procesar camiones: {}", e.getMessage(), e);
                 result.put("camiones", new ArrayList<>());
                 result.put("error_camiones", e.getMessage());
             }
@@ -583,15 +667,13 @@ public class SimulacionTiempoRealService {
                             almacenesList.add(almacenMap);
                         }
                     } catch (Exception e) {
-                        System.err.println("[ERROR] Al procesar almacén " + almacen.getId() + ": " + e.getMessage());
+                        logger.error("Al procesar almacén {}: {}", almacen.getId(), e.getMessage(), e);
                     }
                 }
                 result.put("almacenes", almacenesList);
-                System.out.println("[DEBUG] Almacenes procesados: " + almacenesList.size() + " en " + 
-                    (System.currentTimeMillis() - startAlmacenes) + "ms");
+                logger.debug("Almacenes procesados: {} en {}ms", almacenesList.size(), (System.currentTimeMillis() - startAlmacenes));
             } catch (Exception e) {
-                System.err.println("[ERROR] Al procesar almacenes: " + e.getMessage());
-                e.printStackTrace();
+                logger.error("Al procesar almacenes: {}", e.getMessage(), e);
                 result.put("almacenes", new ArrayList<>());
                 result.put("error_almacenes", e.getMessage());
             }
@@ -627,15 +709,13 @@ public class SimulacionTiempoRealService {
                             pedidosList.add(pedidoMap);
                         }
                     } catch (Exception e) {
-                        System.err.println("[ERROR] Al procesar pedido " + pedido.getId() + ": " + e.getMessage());
+                        logger.error("Al procesar pedido {}: {}", pedido.getId(), e.getMessage(), e);
                     }
                 }
                 result.put("pedidos", pedidosList);
-                System.out.println("[DEBUG] Pedidos procesados: " + pedidosList.size() + " en " + 
-                    (System.currentTimeMillis() - startPedidos) + "ms");
+                logger.debug("Pedidos procesados: {} en {}ms", pedidosList.size(), (System.currentTimeMillis() - startPedidos));
             } catch (Exception e) {
-                System.err.println("[ERROR] Al procesar pedidos: " + e.getMessage());
-                e.printStackTrace();
+                logger.error("Al procesar pedidos: {}", e.getMessage(), e);
                 result.put("pedidos", new ArrayList<>());
                 result.put("error_pedidos", e.getMessage());
             }
@@ -671,8 +751,7 @@ public class SimulacionTiempoRealService {
                                     
                                     nodosList.add(nodoMap);
                                 } catch (Exception e) {
-                                    System.err.println("[ERROR] Al procesar nodo " + nodo.getId() + 
-                                        " de ruta " + ruta.getId() + ": " + e.getMessage());
+                                    logger.error("Al procesar nodo {} de ruta {}: {}", nodo.getId(), ruta.getId(), e.getMessage(), e);
                                 }
                             }
                             
@@ -688,26 +767,22 @@ public class SimulacionTiempoRealService {
                             rutasList.add(rutaMap);
                         }
                     } catch (Exception e) {
-                        System.err.println("[ERROR] Al procesar ruta " + ruta.getId() + ": " + e.getMessage());
+                        logger.error("Al procesar ruta {}: {}", ruta.getId(), e.getMessage(), e);
                     }
                 }
                 result.put("rutas", rutasList);
-                System.out.println("[DEBUG] Rutas procesadas: " + rutasList.size() + " en " + 
-                    (System.currentTimeMillis() - startRutas) + "ms");
+                logger.debug("Rutas procesadas: {} en {}ms", rutasList.size(), (System.currentTimeMillis() - startRutas));
             } catch (Exception e) {
-                System.err.println("[ERROR] Al procesar rutas: " + e.getMessage());
-                e.printStackTrace();
+                logger.error("Al procesar rutas: {}", e.getMessage(), e);
                 result.put("rutas", new ArrayList<>());
                 result.put("error_rutas", e.getMessage());
             }
             
-            System.out.println("[DEBUG] Finalizado obtenerPosicionesSimplificadas en " + 
-                (System.currentTimeMillis() - startGlobal) + "ms");
+            logger.debug("Finalizado obtenerPosicionesSimplificadas en {}ms", (System.currentTimeMillis() - startGlobal));
             return result;
             
         } catch (Exception e) {
-            System.err.println("[ERROR GLOBAL] En obtenerPosicionesSimplificadas: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error general obteniendo posiciones: {}", e.getMessage(), e);
             
             // Devolver al menos un objeto vacío pero válido
             result.put("error", "Error general obteniendo posiciones: " + e.getMessage());
@@ -730,11 +805,33 @@ public class SimulacionTiempoRealService {
         List<Ruta> rutasActivas = rutaRepository.findByEstado(1);
         estado.put("rutasActivas", rutasActivas.size());
         
+        // Información adicional sobre las rutas activas
+        if (!rutasActivas.isEmpty()) {
+            List<Map<String, Object>> rutasInfo = new ArrayList<>();
+            for (Ruta ruta : rutasActivas) {
+                Map<String, Object> rutaInfo = new HashMap<>();
+                rutaInfo.put("id", ruta.getId());
+                rutaInfo.put("codigo", ruta.getCodigo());
+                if (ruta.getCamion() != null) {
+                    rutaInfo.put("camionCodigo", ruta.getCamion().getCodigo());
+                }
+                if (progresoNodoActual.containsKey(ruta.getId())) {
+                    rutaInfo.put("progreso", progresoNodoActual.get(ruta.getId()));
+                }
+                rutasInfo.add(rutaInfo);
+            }
+            estado.put("detalleRutasActivas", rutasInfo);
+        }
+        
         // Contar pedidos pendientes y en ruta
         List<Pedido> pedidosPendientes = pedidoRepository.findByEstado(0);
         List<Pedido> pedidosEnRuta = pedidoRepository.findByEstado(1);
         estado.put("pedidosPendientes", pedidosPendientes.size());
         estado.put("pedidosEnRuta", pedidosEnRuta.size());
+        
+        // Información de diagnóstico
+        estado.put("schedulerActivo", scheduler != null && !scheduler.isShutdown());
+        estado.put("timestamp", LocalDateTime.now().toString());
         
         return estado;
     }

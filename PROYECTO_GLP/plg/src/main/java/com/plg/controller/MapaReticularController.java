@@ -37,6 +37,23 @@ public class MapaReticularController {
     }
     
     /**
+     * Endpoint para obtener la configuración requerida por el frontend
+     */
+    @GetMapping("/configuracion")
+    public ResponseEntity<Map<String, Object>> obtenerConfiguracion() {
+        Map<String, Object> configuracion = new HashMap<>();
+        
+        configuracion.put("ancho", mapaConfig.getAncho());
+        configuracion.put("largo", mapaConfig.getLargo());
+        configuracion.put("origenX", mapaConfig.getOrigenX());
+        configuracion.put("origenY", mapaConfig.getOrigenY());
+        configuracion.put("distanciaNodos", mapaConfig.getDistanciaNodos());
+        configuracion.put("tamano", 1); // Tamaño para visualización
+        
+        return ResponseEntity.ok(configuracion);
+    }
+    
+    /**
      * Endpoint para calcular una ruta óptima entre dos puntos
      * considerando los bloqueos activos
      */

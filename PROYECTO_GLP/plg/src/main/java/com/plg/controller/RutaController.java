@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -21,6 +22,11 @@ public class RutaController {
     
     @Autowired
     private AgrupamientoAPService agrupamientoAPService;
+
+    @GetMapping
+    public ResponseEntity<List<Map<String, Object>>> obtenerTodasLasRutas() {
+        return ResponseEntity.ok(rutaService.obtenerResumeneRutas());
+    }
 
     @PostMapping("/generar")
     public ResponseEntity<?> generarRutas(@RequestBody Map<String, Object> params) {

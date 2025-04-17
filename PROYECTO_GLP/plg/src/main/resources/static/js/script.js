@@ -228,45 +228,93 @@ function toggleFullscreen() {
 
 // Cargar datos iniciales desde el servidor
 function cargarDatosIniciales() {
+    // Inicializar arrays vacíos para evitar errores
+    almacenes = [];
+    camiones = [];
+    pedidos = [];
+    rutas = [];
+
     // Cargar datos del mapa reticular
     fetch('/api/mapa/configuracion')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             mapaReticular = data;
             dibujarMapa();
         })
-        .catch(error => console.error('Error cargando configuración del mapa:', error));
+        .catch(error => {
+            console.error('Error cargando configuración del mapa:', error);
+            // Si falla, usar un valor predeterminado básico
+            mapaReticular = { 
+                ancho: 50, 
+                alto: 50, 
+                tamano: 1 
+            };
+        });
     
     // Cargar camiones
     fetch('/api/camiones')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            camiones = data;
+            camiones = Array.isArray(data) ? data : [];
             dibujarMapa();
         })
-        .catch(error => console.error('Error cargando camiones:', error));
+        .catch(error => {
+            console.error('Error cargando camiones:', error);
+            camiones = [];
+        });
     
     // Cargar almacenes
     fetch('/api/almacenes')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            almacenes = data;
+            almacenes = Array.isArray(data) ? data : [];
             dibujarMapa();
         })
-        .catch(error => console.error('Error cargando almacenes:', error));
+        .catch(error => {
+            console.error('Error cargando almacenes:', error);
+            almacenes = [];
+        });
     
     // Cargar pedidos
     fetch('/api/pedidos')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            pedidos = data;
+            pedidos = Array.isArray(data) ? data : [];
             dibujarMapa();
         })
-        .catch(error => console.error('Error cargando pedidos:', error));
+        .catch(error => {
+            console.error('Error cargando pedidos:', error);
+            pedidos = [];
+        });
         
     // Verificar estado de la simulación
     fetch('/api/simulacion/estado')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             simulacionEnCurso = data.simulacionEnCurso;
             velocidadSimulacion = data.factorVelocidad || 1;
@@ -289,7 +337,12 @@ function cargarDatosIniciales() {
                 simulacionEnCurso: simulacionEnCurso
             });
         })
-        .catch(error => console.error('Error verificando estado de simulación:', error));
+        .catch(error => {
+            console.error('Error verificando estado de simulación:', error);
+            simulacionEnCurso = false;
+            document.getElementById('btn-iniciar-simulacion').disabled = false;
+            document.getElementById('btn-detener-simulacion').disabled = true;
+        });
 }
 
 // Dibujar el mapa con todos los elementos
@@ -610,8 +663,19 @@ function actualizarPanelInformacion(data) {
 // Generar rutas utilizando el algoritmo de ruteo
 function generarRutas() {
     // Mostrar indicador de carga
-    document.getElementById('btn-generar-rutas').disabled = true;
-    document.getElementById('indicador-carga').style.display = 'inline-block';
+    const btnGenerarRutas = document.getElementById('btn-generar-rutas');
+    const indicadorCarga = document.getElementById('indicador-carga');
+    
+    if (btnGenerarRutas) {
+        btnGenerarRutas.disabled = true;
+    }
+    
+    if (indicadorCarga) {
+        indicadorCarga.style.display = 'inline-block';
+    }
+    
+    // Mostrar notificación inicial
+    mostrarNotificacion('Generando rutas...', 'info');
     
     // Llamar a la API para generar rutas
     fetch('/api/rutas/generar', {
@@ -620,11 +684,16 @@ function generarRutas() {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            metodo: 'algoritmoGenetico',
+            algoritmo: 'genetico',
             numeroRutas: 3
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         console.log('Rutas generadas:', data);
         
@@ -632,17 +701,29 @@ function generarRutas() {
         cargarRutasGeneradas();
         
         // Ocultar indicador de carga
-        document.getElementById('btn-generar-rutas').disabled = false;
-        document.getElementById('indicador-carga').style.display = 'none';
+        if (btnGenerarRutas) {
+            btnGenerarRutas.disabled = false;
+        }
+        
+        if (indicadorCarga) {
+            indicadorCarga.style.display = 'none';
+        }
         
         // Mostrar mensaje de éxito
         mostrarNotificacion('Rutas generadas correctamente', 'success');
     })
     .catch(error => {
         console.error('Error generando rutas:', error);
-        document.getElementById('btn-generar-rutas').disabled = false;
-        document.getElementById('indicador-carga').style.display = 'none';
-        mostrarNotificacion('Error al generar rutas', 'error');
+        
+        if (btnGenerarRutas) {
+            btnGenerarRutas.disabled = false;
+        }
+        
+        if (indicadorCarga) {
+            indicadorCarga.style.display = 'none';
+        }
+        
+        mostrarNotificacion('Error al generar rutas: ' + error.message, 'error');
     });
 }
 
