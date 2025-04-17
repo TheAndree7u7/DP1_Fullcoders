@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/DP1_Fullcoders.iml" filepath="$PROJECT_DIR$/.idea/DP1_Fullcoders.iml" />
+      <module fileurl="file://$PROJECT_DIR$/PROYECTO_GLP/plg/plg.iml" filepath="$PROJECT_DIR$/PROYECTO_GLP/plg/plg.iml" />
     </modules>
   </component>
 </project>

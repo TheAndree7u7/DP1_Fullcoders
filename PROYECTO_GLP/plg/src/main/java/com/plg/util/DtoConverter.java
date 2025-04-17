@@ -72,6 +72,9 @@ public class DtoConverter {
             .clienteNombre(pedido.getCliente() != null ? pedido.getCliente().getNombre() : null)
             .fechaHora(pedido.getFechaHora())
             .estado(pedido.getEstado()) // Usar directamente el enum
+            .fechaRegistro(pedido.getFechaRegistro())
+            .fechaEntregaRequerida(pedido.getFechaEntregaRequerida())
+            .fechaEnregaReal(pedido.getFechaEntregaReal())
             .build();
     }
     

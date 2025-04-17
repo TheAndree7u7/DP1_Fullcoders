@@ -2,10 +2,15 @@ package com.plg.entity;
 
  
 public enum EstadoPedido {
-
-    REGISTRADO("Pedido ingresado. Aún no planificado", "#CCCCCC"),
+    //!SIN_ASIGNAR
+    SIN_ASIGNAR("Pedido sin asignar, ya que recien seregistro el pedido", "#000000"),
+    REGISTRADO(
+            "Pedido ingresado. Aún no planificado", "#CCCCCC"),
 
     PENDIENTE_PLANIFICACION("En espera de planificación", "#FFCC00"),
+
+    //!PLANIFICADO
+    PLANIFICADO("Pedido planificado ya sea total o parcialmente", "#009900"),  
 
     PLANIFICADO_PARCIALMENTE("Solo una parte del pedido ha sido planificada", "#FFDD66"),
 
@@ -13,10 +18,12 @@ public enum EstadoPedido {
 
     EN_RUTA("Pedido en tránsito hacia el cliente", "#3399FF"),
 
+    //!RECIBIENDO GLP
+    RECIBIENDO("El cliente está recibiendo el GLP solicitado ya sea todo el GLP o de forma parcialmente ", "#FFCC33"),
     RECIBIENDO_PARCIALMENTE("El cliente está recibiendo una parte del GLP solicitado", "#6699FF"),
 
     RECIBIENDO_TOTALMENTE("El cliente está recibiendo todo el GLP del pedido", "#0066CC"),
-
+    //!ENTREGADO
     ENTREGADO_PARCIALMENTE("Entrega parcial completada. Aún falta parte del pedido", "#FF9966"),
 
     ENTREGADO_TOTALMENTE("Pedido completado. Se entregó el 100%", "#00CC66"),

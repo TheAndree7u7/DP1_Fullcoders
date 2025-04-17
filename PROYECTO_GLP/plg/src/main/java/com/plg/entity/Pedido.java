@@ -74,19 +74,6 @@ public class Pedido {
     private List<AsignacionCamion> asignaciones = new ArrayList<>();
 
  
-    /**
-     * Convierte un valor entero al enum EstadoPedido correspondiente
-     */
-    private EstadoPedido mapIntToEstado(int estado) {
-        switch (estado) {
-            case 0: return EstadoPedido.REGISTRADO;
-            case 1: return EstadoPedido.PENDIENTE_PLANIFICACION;
-            case 2: return EstadoPedido.EN_RUTA;
-            case 3: return EstadoPedido.ENTREGADO_TOTALMENTE;
-            case 4: return EstadoPedido.NO_ENTREGADO_EN_TIEMPO;
-            default: return EstadoPedido.REGISTRADO;
-        }
-    }
 
     /**
      * Asigna una parte del pedido a un camión
