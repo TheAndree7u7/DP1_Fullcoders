@@ -6,11 +6,10 @@ import com.plg.enums.EstadoPedido;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Entity
 @Data
@@ -83,7 +82,7 @@ public class Pedido {
         switch (estado) {
             case 0: return EstadoPedido.REGISTRADO;
             case 1: return EstadoPedido.PENDIENTE_PLANIFICACION;
-            case 2: return EstadoPedido.EN_CAMINO;
+            case 2: return EstadoPedido.EN_RUTA;
             case 3: return EstadoPedido.ENTREGADO_TOTALMENTE;
             case 4: return EstadoPedido.NO_ENTREGADO_EN_TIEMPO;
             default: return EstadoPedido.REGISTRADO;

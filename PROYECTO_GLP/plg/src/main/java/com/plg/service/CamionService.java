@@ -120,7 +120,7 @@ public class CamionService {
         
         // Cálculo de carga actual
         double cargaActual = pedidos.stream()
-            .filter(p -> p.getEstado() == EstadoPedido.PLANIFICADO_TOTALMENTE || p.getEstado() ==  EstadoPedido.EN_CAMINO) // Asignados o en ruta
+            .filter(p -> p.getEstado() == EstadoPedido.PLANIFICADO_TOTALMENTE || p.getEstado() ==  EstadoPedido.EN_RUTA) // Asignados o en ruta
             .mapToDouble(Pedido::getVolumenGLPAsignado)
             .sum();
         detalle.put("cargaActual", cargaActual);

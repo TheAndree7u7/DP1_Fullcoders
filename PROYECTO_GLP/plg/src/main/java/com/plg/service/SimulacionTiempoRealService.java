@@ -179,7 +179,7 @@ public class SimulacionTiempoRealService {
             estadisticas.put("almacenesTotal", almacenRepository.count());
             estadisticas.put("pedidosTotal", pedidoRepository.count());
             estadisticas.put("pedidosPendientes", pedidoRepository.findByEstado(EstadoPedido.REGISTRADO).size());
-            estadisticas.put("pedidosEnRuta", pedidoRepository.findByEstado(EstadoPedido.EN_CAMINO).size());
+            estadisticas.put("pedidosEnRuta", pedidoRepository.findByEstado(EstadoPedido.EN_RUTA).size());
             estadisticas.put("pedidosEntregados", pedidoRepository.findByEstado(EstadoPedido.ENTREGADO_TOTALMENTE).size());
             estadisticas.put("rutasTotal", rutaRepository.count());
             estadisticas.put("rutasActivas", rutaRepository.findByEstado(1).size());
@@ -674,7 +674,7 @@ public class SimulacionTiempoRealService {
         estadisticas.put("almacenesTotal", Optional.of(almacenRepository.count()));
         estadisticas.put("pedidosTotal", Optional.of(pedidoRepository.count()));
         estadisticas.put("pedidosPendientes", Optional.of(pedidoRepository.findByEstado(EstadoPedido.REGISTRADO).size()));
-        estadisticas.put("pedidosEnRuta", Optional.of(pedidoRepository.findByEstado(EstadoPedido.EN_CAMINO).size()));
+        estadisticas.put("pedidosEnRuta", Optional.of(pedidoRepository.findByEstado(EstadoPedido.EN_RUTA).size()));
         estadisticas.put("pedidosEntregados", Optional.of(pedidoRepository.findByEstado(EstadoPedido.ENTREGADO_TOTALMENTE).size()));
         estadisticas.put("rutasTotal", Optional.of(rutaRepository.count()));
         estadisticas.put("rutasActivas", Optional.of(rutaRepository.findByEstado(1).size()));
@@ -926,7 +926,7 @@ public class SimulacionTiempoRealService {
             try {
                 List<Map<String, Object>> pedidosList = new ArrayList<>();
                 
-                for (Pedido pedido : pedidoRepository.findByEstadoIn(Arrays.asList(EstadoPedido.REGISTRADO, EstadoPedido.EN_CAMINO))) {
+                for (Pedido pedido : pedidoRepository.findByEstadoIn(Arrays.asList(EstadoPedido.REGISTRADO, EstadoPedido.EN_RUTA))) {
                     try {
                         if (pedido.getCliente() == null) {
                             continue; // Ignorar pedidos sin cliente
@@ -1070,7 +1070,7 @@ public class SimulacionTiempoRealService {
         
         // Contar pedidos pendientes y en ruta
         List<Pedido> pedidosPendientes = pedidoRepository.findByEstado(EstadoPedido.PENDIENTE_PLANIFICACION);
-        List<Pedido> pedidosEnRuta = pedidoRepository.findByEstado(EstadoPedido.EN_CAMINO);
+        List<Pedido> pedidosEnRuta = pedidoRepository.findByEstado(EstadoPedido.EN_RUTA);
         estado.put("pedidosPendientes", pedidosPendientes.size());
         estado.put("pedidosEnRuta", pedidosEnRuta.size());
         

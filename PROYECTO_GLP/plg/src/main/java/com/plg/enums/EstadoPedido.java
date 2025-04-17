@@ -11,7 +11,7 @@ public enum EstadoPedido {
 
     PLANIFICADO_TOTALMENTE("El 100% del pedido ha sido planificado", "#00BFFF"),
 
-    EN_CAMINO("Pedido en tránsito hacia el cliente", "#3399FF"),
+    EN_RUTA("Pedido en tránsito hacia el cliente", "#3399FF"),
 
     RECIBIENDO_PARCIALMENTE("El cliente está recibiendo una parte del GLP solicitado", "#6699FF"),
 
