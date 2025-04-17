@@ -2,6 +2,7 @@ package com.plg.service;
 
 import com.plg.entity.Camion;
 import com.plg.entity.Mantenimiento;
+import com.plg.enums.EstadoCamion;
 import com.plg.repository.CamionRepository;
 import com.plg.repository.MantenimientoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,7 @@ public class MantenimientoService {
             Optional<Camion> camionOpt = camionRepository.findByCodigo(mantenimiento.getCamion().getCodigo());
             if (camionOpt.isPresent()) {
                 Camion camion = camionOpt.get();
-                camion.setEstado(2); // Camión en mantenimiento
+                camion.setEstado(EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO); // Usar el enum apropiado
                 camionRepository.save(camion);
             }
         }
@@ -71,7 +72,7 @@ public class MantenimientoService {
             Optional<Camion> camionOpt = camionRepository.findByCodigo(mantenimiento.getCamion().getCodigo());
             if (camionOpt.isPresent()) {
                 Camion camion = camionOpt.get();
-                camion.setEstado(0); // Camión disponible nuevamente
+                camion.setEstado(EstadoCamion.DISPONIBLE); // Usar el enum 
                 camionRepository.save(camion);
             }
         }

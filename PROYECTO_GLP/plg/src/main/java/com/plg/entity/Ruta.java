@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.plg.enums.EstadoCamion;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -536,7 +538,7 @@ public class Ruta {
         
         // Si hay camión asignado, actualizar su estado
         if (this.camion != null) {
-            this.camion.setEstado(1); // En ruta
+            this.camion.setEstado(EstadoCamion.EN_RUTA); // Usar el enum
             this.camion.actualizarEstadoEntregasARuta();
         }
     }
@@ -550,7 +552,7 @@ public class Ruta {
         
         // Si hay camión asignado, actualizar su estado
         if (this.camion != null) {
-            this.camion.setEstado(0); // Disponible
+            this.camion.setEstado(EstadoCamion.DISPONIBLE); // Usar el enum
         }
     }
     
@@ -562,7 +564,7 @@ public class Ruta {
         
         // Si hay camión asignado, actualizar su estado
         if (this.camion != null) {
-            this.camion.setEstado(0); // Disponible
+            this.camion.setEstado(EstadoCamion.DISPONIBLE); // Usar el enum
         }
     }
     

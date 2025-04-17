@@ -1,6 +1,7 @@
 package com.plg.config;
 
 import com.plg.entity.*;
+import com.plg.enums.EstadoCamion;
 import com.plg.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -115,7 +116,7 @@ public class DataLoader implements CommandLineRunner {
                     camion.setCapacidadDisponible(capacidadDisponible);
                     camion.setPesoCarga(pesoCarga);
                     camion.setPesoCombinado(tara + pesoCarga);
-                    camion.setEstado(estado);
+                    camion.setEstado(EstadoCamion.DISPONIBLE);
                     camion.setCombustibleActual(combustibleActual);
                     camion.setPosX(posX);
                     camion.setPosY(posY);

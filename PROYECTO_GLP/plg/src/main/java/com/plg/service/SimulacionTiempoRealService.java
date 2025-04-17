@@ -1,6 +1,7 @@
 package com.plg.service;
 
 import com.plg.entity.*;
+import com.plg.enums.EstadoCamion;
 import com.plg.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -198,7 +199,7 @@ public class SimulacionTiempoRealService {
             List<Ruta> rutasActivas = rutaRepository.findByCamionIdAndEstadoWithNodos(camion.getId(), 1); // Usar findByCamionIdAndEstadoWithNodos
             
             if (rutasActivas.isEmpty()) {
-                logger.warn("Camión {} está en ruta (estado 1) pero no tiene rutas activas", camion.getCodigo());
+                logger.warn("Camión {} está en ruta (estado {}) pero no tiene rutas activas", camion.getCodigo(), camion.getEstado());
                 
                 // Intentar activar una ruta pendiente
                 List<Ruta> rutasPendientes = rutaRepository.findByCamionIdAndEstado(camion.getId(), 0);
@@ -218,7 +219,7 @@ public class SimulacionTiempoRealService {
                 } else {
                     // El camión está marcado en ruta pero no tiene rutas activas ni pendientes
                     logger.info("Camión {} sin rutas, cambiando a disponible", camion.getCodigo());
-                    camion.setEstado(0); // Cambiar a disponible
+                    camion.setEstado(EstadoCamion.DISPONIBLE); // Cambiar a disponible
                     camionRepository.save(camion);
                     return;
                 }
@@ -272,8 +273,8 @@ public class SimulacionTiempoRealService {
             
             if (camion.getCombustibleActual() < consumoPrevisto) {
                 // No hay combustible suficiente para continuar
-                if (camion.getEstado() != 4) { // Solo cambiar si no estaba ya marcado sin combustible
-                    camion.setEstado(4); // 4: Sin combustible
+                if (camion.getEstado() != EstadoCamion.SIN_COMBUSTIBLE) { // Solo cambiar si no estaba ya marcado sin combustible
+                    camion.setEstado(EstadoCamion.SIN_COMBUSTIBLE); // Sin combustible
                     camionRepository.save(camion);
                     
                     // Enviar notificación de falta de combustible
@@ -310,7 +311,7 @@ public class SimulacionTiempoRealService {
                 // Verificar si después de consumir nos quedamos sin combustible
                 if (camion.getCombustibleActual() <= 0.1) { // Un umbral mínimo para considerar "sin combustible"
                     camion.setCombustibleActual(0);
-                    camion.setEstado(4); // 4: Sin combustible
+                    camion.setEstado(EstadoCamion.SIN_COMBUSTIBLE); // Sin combustible
                     
                     // Enviar notificación de falta de combustible
                     Map<String, Object> notificacion = new HashMap<>();
@@ -605,11 +606,11 @@ public class SimulacionTiempoRealService {
                 
             if (quedanPedidos) {
                 // Mantener el camión en estado "en ruta" si todavía tiene pedidos pendientes
-                camion.setEstado(1); // 1 = En ruta
+                camion.setEstado(EstadoCamion.EN_RUTA); // 1 = En ruta
                 logger.info("Camión {} sigue en ruta porque tiene pedidos pendientes", camion.getCodigo());
             } else {
                 // No hay pedidos pendientes, el camión debe regresar al almacén central
-                camion.setEstado(0); // 0 = Disponible
+                camion.setEstado(EstadoCamion.DISPONIBLE); // 0 = Disponible
                 // Posición del almacén central (normalmente en 12,8)
                 // Si existe un almacén central en la BD, usamos su posición
                 List<Almacen> almacenesCentrales = almacenRepository.findByEsCentral(true);

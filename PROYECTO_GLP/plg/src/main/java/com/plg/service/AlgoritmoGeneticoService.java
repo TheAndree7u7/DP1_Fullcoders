@@ -6,6 +6,7 @@ import com.plg.entity.Camion;
 import com.plg.entity.NodoRuta;
 import com.plg.entity.Pedido;
 import com.plg.entity.Ruta;
+import com.plg.enums.EstadoCamion;
 import com.plg.repository.AlmacenRepository;
 import com.plg.repository.CamionRepository;
 import com.plg.repository.PedidoRepository;
@@ -69,7 +70,7 @@ public class AlgoritmoGeneticoService {
         logger.info("Generando {} rutas para {} pedidos", numeroRutas, pedidos.size());
         
         // Obtener camiones disponibles
-        List<Camion> camionesDisponibles = camionRepository.findByEstado(0); // Estado 0 = Disponible
+        List<Camion> camionesDisponibles = camionRepository.findByEstado(EstadoCamion.DISPONIBLE.ordinal()); // Usar el enum
         logger.info("Camiones disponibles encontrados: {}", camionesDisponibles.size());
         
         if (camionesDisponibles.isEmpty()) {
@@ -143,7 +144,7 @@ public class AlgoritmoGeneticoService {
             ruta.calcularDistanciaTotal();
             
             // Cambiar estado del camión a "En ruta"
-            camion.setEstado(1); // Estado 1 = En ruta
+            camion.setEstado(EstadoCamion.EN_RUTA); // Usar el enum
             camionRepository.save(camion);
             
             // Guardar la ruta

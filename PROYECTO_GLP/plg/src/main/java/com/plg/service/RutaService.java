@@ -2,6 +2,7 @@ package com.plg.service;
 
 import com.plg.config.MapaConfig;
 import com.plg.entity.*;
+import com.plg.enums.EstadoCamion;
 import com.plg.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -88,7 +89,7 @@ public class RutaService {
             Camion camion = camionRepository.findByCodigo(codigoCamion)
                 .orElseThrow(() -> new RuntimeException("Camión no encontrado con código: " + codigoCamion));
             
-            if (camion.getEstado() != 0) {
+            if (camion.getEstado() != EstadoCamion.DISPONIBLE) {
                 throw new RuntimeException("El camión no está disponible. Estado actual: " + camion.getEstadoTexto());
             }
             
@@ -158,7 +159,7 @@ public class RutaService {
             .orElseThrow(() -> new RuntimeException("Camión no encontrado con código: " + codigoCamion));
         
         // Verificar si el camión está disponible
-        if (camion.getEstado() != 0) {
+        if (camion.getEstado() != EstadoCamion.DISPONIBLE) {
             throw new RuntimeException("El camión no está disponible. Estado actual: " + camion.getEstadoTexto());
         }
         

@@ -2,6 +2,7 @@ package com.plg.controller;
 
 import com.plg.entity.Camion;
 import com.plg.entity.Pedido;
+import com.plg.enums.EstadoCamion;
 import com.plg.service.CamionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -44,7 +45,7 @@ public class CamionController {
      * Lista los camiones filtrados por estado
      */
     @GetMapping("/estado/{estado}")
-    public ResponseEntity<List<Camion>> getCamionesByEstado(@PathVariable int estado) {
+    public ResponseEntity<List<Camion>> getCamionesByEstado(@PathVariable EstadoCamion estado) {
         return ResponseEntity.ok(camionService.findByEstado(estado));
     }
     

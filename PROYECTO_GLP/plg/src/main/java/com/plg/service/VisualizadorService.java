@@ -7,6 +7,7 @@ import com.plg.entity.Pedido;
 import com.plg.repository.AlmacenRepository;
 import com.plg.repository.CamionRepository;
 import com.plg.repository.PedidoRepository;
+import com.plg.enums.EstadoCamion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -73,10 +74,14 @@ public class VisualizadorService {
         
         List<Camion> camiones = camionRepository.findAll();
         estado.put("totalCamiones", camiones.size());
-        estado.put("camionesDisponibles", camiones.stream().filter(c -> c.getEstado() == 0).count());
-        estado.put("camionesEnRuta", camiones.stream().filter(c -> c.getEstado() == 1).count());
-        estado.put("camionesEnMantenimiento", camiones.stream().filter(c -> c.getEstado() == 2).count());
-        estado.put("camionesAveriados", camiones.stream().filter(c -> c.getEstado() == 3).count());
+        estado.put("camionesDisponibles", camiones.stream().filter(c -> c.getEstado() == EstadoCamion.DISPONIBLE).count());
+        estado.put("camionesEnRuta", camiones.stream().filter(c -> c.getEstado() == EstadoCamion.EN_RUTA).count());
+        estado.put("camionesEnMantenimiento", camiones.stream().filter(c -> 
+            c.getEstado() == EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO || 
+            c.getEstado() == EstadoCamion.EN_MANTENIMIENTO_CORRECTIVO || 
+            c.getEstado() == EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA).count());
+        estado.put("camionesAveriados", camiones.stream().filter(c -> 
+            c.getEstado() == EstadoCamion.INMOVILIZADO_POR_AVERIA).count());
         
         return estado;
     }
@@ -123,7 +128,9 @@ public class VisualizadorService {
         Map<String, Object> map = new HashMap<>();
         map.put("codigo", camion.getCodigo());
         map.put("tipo", camion.getTipo());
-        map.put("estado", camion.getEstado());
+        map.put("estado", camion.getEstado()); // Ahora retorna el enum directamente
+        map.put("estadoTexto", camion.getEstadoTexto());
+        map.put("estadoColorHex", camion.getEstado().getColorHex()); // Podemos usar el color asociado al enum
         map.put("capacidad", camion.getCapacidad());
         map.put("pesoCarga", camion.getPesoCarga());
         map.put("posX", 0);

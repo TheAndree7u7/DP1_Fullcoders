@@ -6,6 +6,7 @@ import com.plg.entity.Bloqueo;
 import com.plg.entity.Camion;
 import com.plg.entity.Mantenimiento;
 import com.plg.entity.Pedido;
+import com.plg.enums.EstadoCamion;
 import com.plg.repository.AlmacenRepository;
 import com.plg.repository.AveriaRepository;
 import com.plg.repository.BloqueoRepository;
@@ -359,7 +360,7 @@ public class SimulacionService {
         // Simulación - en un caso real dependería de la capacidad real vs demanda
         int capacidadTotal = 0;
         for (Camion camion : camiones) {
-            if (camion.getEstado() == 0) { // Disponible
+            if (camion.getEstado() == EstadoCamion.DISPONIBLE) { // Disponible
                 capacidadTotal += camion.getCapacidad();
             }
         }
@@ -382,7 +383,7 @@ public class SimulacionService {
         // Simulación
         int capacidadTotal = 0;
         for (Camion camion : camiones) {
-            if (camion.getEstado() == 0) { // Disponible
+            if (camion.getEstado() == EstadoCamion.DISPONIBLE) { // Disponible
                 capacidadTotal += camion.getCapacidad();
             }
         }
@@ -478,8 +479,8 @@ public class SimulacionService {
             Camion camion = mantenimiento.getCamion();
             
             // Si el camión está disponible (no en ruta), enviarlo a mantenimiento
-            if (camion.getEstado() == 0) { // 0: disponible
-                camion.setEstado(2); // 2: en mantenimiento
+            if (camion.getEstado() == EstadoCamion.DISPONIBLE) { // Disponible
+                camion.setEstado(EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO); // En mantenimiento
                 camionRepository.save(camion);
                 
                 // Actualizar estado del mantenimiento
@@ -499,7 +500,7 @@ public class SimulacionService {
         for (Mantenimiento mantenimiento : mantenimientosFinalizados) {
             if (mantenimiento.getEstado() == 1) { // En ejecución
                 Camion camion = mantenimiento.getCamion();
-                camion.setEstado(0); // 0: disponible
+                camion.setEstado(EstadoCamion.DISPONIBLE); // Disponible
                 camionRepository.save(camion);
                 
                 // Actualizar estado del mantenimiento
@@ -603,7 +604,7 @@ public class SimulacionService {
      */
     private void asignarPedidosACamiones(List<Pedido> pedidos) {
         // Obtener camiones disponibles
-        List<Camion> camionesDisponibles = camionRepository.findByEstado(0); // 0: disponible
+        List<Camion> camionesDisponibles = camionRepository.findByEstado(EstadoCamion.DISPONIBLE.ordinal());
         
         if (camionesDisponibles.isEmpty()) {
             System.out.println("No hay camiones disponibles para asignar pedidos");
@@ -629,7 +630,7 @@ public class SimulacionService {
                 pedidoRepository.save(pedido);
                 
                 // Actualizar estado del camión
-                camion.setEstado(1); // 1: en ruta
+                camion.setEstado(EstadoCamion.EN_RUTA); // En ruta
                 camion.setPesoCarga(camion.getPesoCarga() + (pedido.getVolumenGLPAsignado() * 0.5)); // GLP pesa 0.5 Ton por m3
                 camion.setPesoCombinado(camion.getTara() + camion.getPesoCarga());
                 camionRepository.save(camion);
@@ -651,7 +652,7 @@ public class SimulacionService {
         // Probabilidad de avería en algún camión en ruta (0.5%)
         if (Math.random() < 0.005) {
             // Buscar camiones en ruta
-            List<Camion> camionesEnRuta = camionRepository.findByEstado(1); // 1: en ruta
+            List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA.ordinal());
             
             if (!camionesEnRuta.isEmpty()) {
                 // Seleccionar un camión aleatorio
@@ -727,7 +728,7 @@ public class SimulacionService {
      */
     private void actualizarPosicionCamiones(LocalDateTime tiempo) {
         // Buscar camiones en ruta
-        List<Camion> camionesEnRuta = camionRepository.findByEstado(1); // 1: en ruta
+        List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA.ordinal());
         
         for (Camion camion : camionesEnRuta) {
             // Obtener pedidos asignados al camión
@@ -735,7 +736,7 @@ public class SimulacionService {
             
             if (pedidosCamion.isEmpty()) {
                 // No hay pedidos, camión debería volver al almacén central
-                camion.setEstado(0); // 0: disponible
+                camion.setEstado(EstadoCamion.DISPONIBLE);
                 camionRepository.save(camion);
                 continue;
             }
@@ -780,7 +781,7 @@ public class SimulacionService {
      */
     private void procesarEntregas(LocalDateTime tiempo) {
         // Buscar camiones en ruta
-        List<Camion> camionesEnRuta = camionRepository.findByEstado(1); // 1: en ruta
+        List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA.ordinal());
         
         for (Camion camion : camionesEnRuta) {
             // Obtener pedidos asignados al camión y que NO estén entregados
@@ -813,7 +814,7 @@ public class SimulacionService {
                         // No hay más pedidos pendientes, regresar al almacén central
                         // En implementación real, calcularíamos ruta al almacén
                         if (Math.random() < 0.2) { // 20% de probabilidad por paso de volver al almacén
-                            camion.setEstado(0); // 0: disponible
+                            camion.setEstado(EstadoCamion.DISPONIBLE);
                             camion.setPosX(12); // Posición del almacén central
                             camion.setPosY(8);
                             camion.setPesoCarga(0);
@@ -846,7 +847,7 @@ public class SimulacionService {
      */
     private void verificarCombustible(LocalDateTime tiempo) {
         // Buscar camiones en ruta
-        List<Camion> camionesEnRuta = camionRepository.findByEstado(1); // 1: en ruta
+        List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA.ordinal());
         
         for (Camion camion : camionesEnRuta) {
             // Verificar si el nivel de combustible es bajo (menos del 20%)
@@ -915,10 +916,10 @@ public class SimulacionService {
         long pedidosEntregados = pedidoRepository.countByEstado(2); // 2: Entregado
         
         // Contar camiones por estado
-        long camionesDisponibles = camionRepository.countByEstado(0); // 0: disponible
-        long camionesEnRuta = camionRepository.countByEstado(1);     // 1: en ruta
-        long camionesEnMantenimiento = camionRepository.countByEstado(2); // 2: en mantenimiento
-        long camionesAveriados = camionRepository.countByEstado(3);  // 3: averiado
+        long camionesDisponibles = camionRepository.countByEstado(EstadoCamion.DISPONIBLE.ordinal()); // Disponible
+        long camionesEnRuta = camionRepository.countByEstado(EstadoCamion.EN_RUTA.ordinal());     // En ruta
+        long camionesEnMantenimiento = camionRepository.countByEstado(EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA.ordinal()); // En mantenimiento
+        long camionesAveriados = camionRepository.countByEstado(EstadoCamion.INMOVILIZADO_POR_AVERIA.ordinal());  // Averiado
         
         // Calcular tiempos de entrega
         double tiempoPromedioEntrega = calcularTiempoPromedioEntrega();
@@ -1010,7 +1011,7 @@ public class SimulacionService {
     private double calcularConsumoTotalCombustible() {
         // En una implementación real, esto se calcularía sumando todos los consumos registrados
         // Para simulación, usamos un valor aproximado basado en camiones en ruta
-        List<Camion> camionesEnRuta = camionRepository.findByEstado(1); // 1: en ruta
+        List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA.ordinal());
         
         double consumoTotal = 0;
         for (Camion camion : camionesEnRuta) {
@@ -1089,7 +1090,7 @@ public class SimulacionService {
                 Camion camion = optCamion.get();
                 
                 // Verificar si el camión está en operación (estado 1: en ruta)
-                boolean estaEnOperacion = camion.getEstado() == 1;
+                boolean estaEnOperacion = camion.getEstado() == EstadoCamion.EN_RUTA;
                 
                 // Crear la avería
                 Averia averia = new Averia();
@@ -1190,7 +1191,7 @@ public class SimulacionService {
      */
     private void actualizarEstadoCamionPorAveria(Camion camion, Averia averia) {
         // Marcar el camión como averiado
-        camion.setEstado(3); // 3: averiado
+        camion.setEstado(EstadoCamion.INMOVILIZADO_POR_AVERIA); // Averiado
         
         // Guardar el camión con su nuevo estado
         camionRepository.save(camion);

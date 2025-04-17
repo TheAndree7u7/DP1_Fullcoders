@@ -1,6 +1,8 @@
 package com.plg.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.plg.enums.EstadoCamion;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -33,7 +35,10 @@ public class Camion {
     private double pesoCombinado; // Peso total (tara + carga)
     
     @Column(name = "estado")
-    private int estado; // 0: disponible, 1: en ruta, 2: en mantenimiento, 3: averiado, 4: sin combustible
+    private int estadoInt; // Campo en BD que guarda el valor entero del estado
+    
+    @Transient
+    private EstadoCamion estado; // Estado como enum
     
     //!combustible Atributos relacionados con 
     @Column(name = "capacidad_tanque")
@@ -94,11 +99,59 @@ public class Camion {
         this.capacidad = capacidad;
         this.capacidadDisponible = capacidad;
         this.tara = tara;
-        this.estado = 0; // Disponible por defecto
+        this.setEstado(EstadoCamion.DISPONIBLE); // Disponible por defecto
         this.porcentajeUso = 0.0;
         inicializar();
     }
  
+    // Métodos getter y setter para manejar la conversión entre int y enum
+    public EstadoCamion getEstado() {
+        if (estado == null) {
+            estado = mapIntToEstado(estadoInt);
+        }
+        return estado;
+    }
+    
+    public void setEstado(EstadoCamion estado) {
+        this.estado = estado;
+        this.estadoInt = mapEstadoToInt(estado);
+    }
+    
+    private EstadoCamion mapIntToEstado(int estadoInt) {
+        switch (estadoInt) {
+            case 0: return EstadoCamion.DISPONIBLE;
+            case 1: return EstadoCamion.EN_RUTA;
+            case 2: return EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO;
+            case 3: return EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA;
+            case 4: return EstadoCamion.SIN_COMBUSTIBLE;
+            default: return EstadoCamion.DISPONIBLE;
+        }
+    }
+    
+    private int mapEstadoToInt(EstadoCamion estado) {
+        if (estado == EstadoCamion.DISPONIBLE) return 0;
+        if (estado == EstadoCamion.EN_RUTA) return 1;
+        if (estado == EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO) return 2;
+        if (estado == EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA) return 3;
+        if (estado == EstadoCamion.SIN_COMBUSTIBLE) return 4;
+        return 0; // Por defecto disponible
+    }
+    
+    @PrePersist
+    @PreUpdate
+    private void actualizarEstadoInt() {
+        // Asegurar que el estadoInt siempre se actualice antes de persistir o actualizar
+        if (estado != null) {
+            estadoInt = mapEstadoToInt(estado);
+        }
+    }
+    
+    @PostLoad
+    private void actualizarEstadoEnum() {
+        // Asegurar que el estado enum siempre se actualice después de cargar
+        estado = mapIntToEstado(estadoInt);
+    }
+
     /**
      * Asigna un volumen parcial de GLP de un pedido a este camión
      * @param pedido Pedido a asignar
@@ -164,7 +217,6 @@ public class Camion {
      * Actualiza el peso de carga y combinado
      * El peso del GLP es aproximadamente 0.55 ton/m3
      */
-    //Peso de carga= 12,peso e carga es volumen de carga*0.
     private void actualizarPeso() {
         this.pesoCarga = (capacidad - capacidadDisponible) * 0.5; // Peso del GLP en toneladas
         this.pesoCombinado = tara + pesoCarga;
@@ -195,6 +247,11 @@ public class Camion {
         if (combustibleActual > capacidadTanque) {
             combustibleActual = capacidadTanque;
         }
+        
+        // Si estaba sin combustible, actualizar su estado
+        if (getEstado() == EstadoCamion.SIN_COMBUSTIBLE) {
+            setEstado(EstadoCamion.DISPONIBLE);
+        }
     }
     
     /**
@@ -208,6 +265,12 @@ public class Camion {
         }
         
         combustibleActual -= cantidadGalones;
+        
+        // Si se quedó sin combustible, actualizar su estado
+        if (combustibleActual <= 0.1) {
+            setEstado(EstadoCamion.SIN_COMBUSTIBLE);
+        }
+        
         return true;
     }
     
@@ -268,7 +331,6 @@ public class Camion {
      * @return Consumo en galones
      */
     public double calcularConsumoCombustible(double distanciaKm) {
-        // Consumo (Gal) = Distancia (km) × Peso combinado (Ton) / 180
         return distanciaKm * pesoCombinado / 180.0;
     }
     
@@ -277,7 +339,6 @@ public class Camion {
      * @return Distancia máxima en kilómetros
      */
     public double calcularDistanciaMaxima() {
-        // Dist Max = Combustible (Gal) * 180 / Peso combinado (Ton)
         if (pesoCombinado <= 0) {
             return 0.0; // Evitar división por cero
         }
@@ -310,7 +371,7 @@ public class Camion {
         averia.setFechaHoraReporte(LocalDateTime.now());
         averia.setEstado(0); // Pendiente
         
-        this.estado = 3; // Averiado
+        this.setEstado(EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA); // Averiado
         
         if (this.averias == null) {
             this.averias = new ArrayList<>();
@@ -342,14 +403,7 @@ public class Camion {
      */
     @Transient
     public String getEstadoTexto() {
-        switch (this.estado) {
-            case 0: return "Disponible";
-            case 1: return "En ruta";
-            case 2: return "En mantenimiento";
-            case 3: return "Averiado";
-            case 4: return "Sin combustible";
-            default: return "Desconocido";
-        }
+        return getEstado().getDescripcion();
     }
     
     /**
@@ -374,7 +428,7 @@ public class Camion {
         info.put("capacidad", this.capacidad);
         info.put("capacidadDisponible", this.capacidadDisponible);
         info.put("porcentajeUso", this.porcentajeUso);
-        info.put("estado", this.estado);
+        info.put("estado", this.estadoInt);
         info.put("estadoTexto", this.getEstadoTexto());
         info.put("posX", this.posX);
         info.put("posY", this.posY);

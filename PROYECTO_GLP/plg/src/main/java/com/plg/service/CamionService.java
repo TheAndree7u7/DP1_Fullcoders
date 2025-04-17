@@ -2,6 +2,7 @@ package com.plg.service;
 
 import com.plg.entity.Camion;
 import com.plg.entity.Pedido;
+import com.plg.enums.EstadoCamion;
 import com.plg.repository.CamionRepository;
 import com.plg.repository.PedidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,8 +37,8 @@ public class CamionService {
     /**
      * Obtiene camiones por estado
      */
-    public List<Camion> findByEstado(int estado) {
-        return camionRepository.findByEstado(estado);
+    public List<Camion> findByEstado(EstadoCamion estado) {
+        return camionRepository.findByEstado(estado.ordinal());
     }
     
     /**
@@ -66,10 +67,14 @@ public class CamionService {
         stats.put("capacidadPromedio", getCapacidadPromedio(allCamiones));
         
         // Información por estado
-        Map<Integer, Long> camionesEstado = allCamiones.stream()
+        Map<EstadoCamion, Long> camionesEstado = allCamiones.stream()
             .collect(Collectors.groupingBy(Camion::getEstado, Collectors.counting()));
         
-        stats.put("porEstado", mapEstadosToNombres(camionesEstado));
+        Map<String, Long> estadosMap = new HashMap<>();
+        camionesEstado.forEach((estado, count) -> {
+            estadosMap.put(estado.name(), count);
+        });
+        stats.put("porEstado", estadosMap);
         
         // Información por tipo
         Map<String, Long> camionesTipo = allCamiones.stream()
@@ -79,7 +84,7 @@ public class CamionService {
         
         // Información de capacidad disponible
         double capacidadTotal = allCamiones.stream()
-            .filter(c -> c.getEstado() == 0) // Solo disponibles
+            .filter(c -> c.getEstado() == EstadoCamion.DISPONIBLE) // Solo disponibles
             .mapToDouble(Camion::getCapacidad)
             .sum();
         stats.put("capacidadDisponible", capacidadTotal);
@@ -105,7 +110,7 @@ public class CamionService {
         detalle.put("capacidad", camion.getCapacidad());
         detalle.put("tara", camion.getTara());
         detalle.put("estado", camion.getEstado());
-        detalle.put("estadoNombre", mapEstadoToNombre(camion.getEstado()));
+        detalle.put("estadoNombre", camion.getEstado().name());
         
         // Pedidos asignados
         List<Pedido> pedidos = pedidoRepository.findByCamion_Codigo(codigo);
@@ -132,23 +137,5 @@ public class CamionService {
             .mapToDouble(Camion::getCapacidad)
             .average()
             .orElse(0);
-    }
-    
-    private Map<String, Long> mapEstadosToNombres(Map<Integer, Long> estadosCount) {
-        Map<String, Long> result = new HashMap<>();
-        estadosCount.forEach((estado, count) -> {
-            result.put(mapEstadoToNombre(estado), count);
-        });
-        return result;
-    }
-    
-    private String mapEstadoToNombre(int estado) {
-        switch(estado) {
-            case 0: return "Disponible";
-            case 1: return "En Ruta";
-            case 2: return "En Mantenimiento";
-            case 3: return "Averiado";
-            default: return "Desconocido";
-        }
     }
 }
