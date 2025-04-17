@@ -7,6 +7,7 @@ import com.plg.entity.NodoRuta;
 import com.plg.entity.Pedido;
 import com.plg.entity.Ruta;
 import com.plg.enums.EstadoCamion;
+import com.plg.enums.EstadoPedido;
 import com.plg.repository.AlmacenRepository;
 import com.plg.repository.CamionRepository;
 import com.plg.repository.PedidoRepository;
@@ -50,7 +51,7 @@ public class AlgoritmoGeneticoService {
         logger.info("Iniciando generación de rutas con algoritmo genético. Parámetros: {}", params);
         
         // Obtener pedidos pendientes
-        List<Pedido> pedidos = pedidoRepository.findByEstado(0);
+        List<Pedido> pedidos = pedidoRepository.findByEstado(EstadoPedido.PENDIENTE_PLANIFICACION);
         logger.info("Pedidos pendientes encontrados: {}", pedidos.size());
         
         // Verificar si hay suficientes pedidos para optimizar
@@ -70,7 +71,7 @@ public class AlgoritmoGeneticoService {
         logger.info("Generando {} rutas para {} pedidos", numeroRutas, pedidos.size());
         
         // Obtener camiones disponibles
-        List<Camion> camionesDisponibles = camionRepository.findByEstado(EstadoCamion.DISPONIBLE.ordinal()); // Usar el enum
+        List<Camion> camionesDisponibles = camionRepository.findByEstado(EstadoCamion.DISPONIBLE ); // Usar el enum
         logger.info("Camiones disponibles encontrados: {}", camionesDisponibles.size());
         
         if (camionesDisponibles.isEmpty()) {
@@ -129,7 +130,7 @@ public class AlgoritmoGeneticoService {
             
             // Agregar pedidos como nodos
             for (Pedido pedido : pedidosGrupo) {
-                pedido.setEstado(1); // Estado 1 = En ruta
+                pedido.setEstado( EstadoPedido.PLANIFICADO_TOTALMENTE); // Estado 1 = En ruta
                 pedidoRepository.save(pedido);
                 
                 // Agregar a la ruta como nodo cliente

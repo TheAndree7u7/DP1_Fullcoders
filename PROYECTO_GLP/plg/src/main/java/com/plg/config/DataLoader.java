@@ -2,6 +2,7 @@ package com.plg.config;
 
 import com.plg.entity.*;
 import com.plg.enums.EstadoCamion;
+import com.plg.enums.EstadoPedido;
 import com.plg.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -283,7 +284,7 @@ public class DataLoader implements CommandLineRunner {
                     pedido.setPosY(posY);
                     pedido.setVolumenGLPAsignado(volumen); 
                     pedido.setHorasLimite(horasLimite);
-                    pedido.setEstado(0);
+                    pedido.setEstado(EstadoPedido.PENDIENTE_PLANIFICACION);
                     pedido.setFechaRegistro(fechaPedido);
                     pedido.setFechaEntregaRequerida(fechaEntrega);
                     pedido.setAsignaciones(new ArrayList<>());

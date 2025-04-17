@@ -3,6 +3,7 @@ package com.plg.service;
 import com.plg.entity.Camion;
 import com.plg.entity.Pedido;
 import com.plg.enums.EstadoCamion;
+import com.plg.enums.EstadoPedido;
 import com.plg.repository.CamionRepository;
 import com.plg.repository.PedidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ public class CamionService {
      * Obtiene camiones por estado
      */
     public List<Camion> findByEstado(EstadoCamion estado) {
-        return camionRepository.findByEstado(estado.ordinal());
+        return camionRepository.findByEstado(estado );
     }
     
     /**
@@ -119,7 +120,7 @@ public class CamionService {
         
         // Cálculo de carga actual
         double cargaActual = pedidos.stream()
-            .filter(p -> p.getEstado() == 1 || p.getEstado() == 2) // Asignados o en ruta
+            .filter(p -> p.getEstado() == EstadoPedido.PLANIFICADO_TOTALMENTE || p.getEstado() ==  EstadoPedido.EN_CAMINO) // Asignados o en ruta
             .mapToDouble(Pedido::getVolumenGLPAsignado)
             .sum();
         detalle.put("cargaActual", cargaActual);

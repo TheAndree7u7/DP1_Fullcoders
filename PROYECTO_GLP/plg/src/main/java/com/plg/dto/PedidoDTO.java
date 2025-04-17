@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDateTime;
 
+import com.plg.enums.EstadoPedido;
+
 @Data
 @Builder
 @Getter
@@ -24,5 +26,5 @@ public class PedidoDTO {
     private String clienteId; // Cambiado de Long a String para coincidir con la entidad
     private String clienteNombre;
     private String fechaHora; // Cambiado de LocalDateTime a String para coincidir con la entidad
-    private Integer estado;
+    private EstadoPedido estado;
 }

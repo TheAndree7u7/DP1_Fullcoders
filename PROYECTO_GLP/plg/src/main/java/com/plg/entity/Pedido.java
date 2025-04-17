@@ -2,6 +2,8 @@ package com.plg.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.plg.enums.EstadoPedido;
+
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -37,11 +39,8 @@ public class Pedido {
     //fecha creacion
     // private LocalDateTime fechaCreacion; // Fecha de creación del pedido
     //fecha entrega
-    private LocalDateTime fechaRegistro; // Fecha de entrega del pedido
-    //m3
-     
-    // fecha pedido
-    // private LocalDateTime fechaPedido;
+    private LocalDateTime fechaRegistro; // Fecha de registro del pedido
+    
     private LocalDateTime fechaEntregaRequerida;
     private LocalDateTime fechaEntregaReal;
     
@@ -49,7 +48,11 @@ public class Pedido {
     private double volumenGLPEntregado; // Volumen ya entregado (m3)
     private double volumenGLPPendiente; // Volumen restante por asignar (m3) 
     private int prioridad; // 1: alta, 2: media, 3: baja
-    private int estado; // 0: registrado, 1: asignado, 2: entregado, 3: en ruta, 4: cancelado
+    
+    @Enumerated(EnumType.ORDINAL)
+    @Column(name = "estado")
+    private EstadoPedido estado;
+    
  
 
     private String fechaHora; //formato "ddmmyyyy hh:mm:ss"
@@ -59,7 +62,6 @@ public class Pedido {
     @JsonManagedReference(value="pedido-entregaparcial")
     private List<EntregaParcial> entregasParciales = new ArrayList<>();
     
-
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
     @JsonManagedReference(value="pedido-nodo")
     private List<NodoRuta> nodos = new ArrayList<>();
@@ -72,6 +74,21 @@ public class Pedido {
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
     @JsonManagedReference(value="pedido-asignacion")
     private List<AsignacionCamion> asignaciones = new ArrayList<>();
+
+ 
+    /**
+     * Convierte un valor entero al enum EstadoPedido correspondiente
+     */
+    private EstadoPedido mapIntToEstado(int estado) {
+        switch (estado) {
+            case 0: return EstadoPedido.REGISTRADO;
+            case 1: return EstadoPedido.PENDIENTE_PLANIFICACION;
+            case 2: return EstadoPedido.EN_CAMINO;
+            case 3: return EstadoPedido.ENTREGADO_TOTALMENTE;
+            case 4: return EstadoPedido.NO_ENTREGADO_EN_TIEMPO;
+            default: return EstadoPedido.REGISTRADO;
+        }
+    }
 
     /**
      * Asigna una parte del pedido a un camión
@@ -94,13 +111,12 @@ public class Pedido {
         
         // Actualizar los volúmenes
         volumenGLPEntregado += volumen;
-        volumenGLPPendiente = volumenGLPAsignado - volumenGLPEntregado; // Actualizar volumen pendiente
         
         // Asignar el volumen al camión
         camion.asignarPedidoParcial(this, volumen, porcentaje);
         
         // Actualizar estado del pedido
-        actualizarEstado();
+        actualizarEstadoDePedido();
         
         return true;
     }
@@ -115,16 +131,17 @@ public class Pedido {
         
         // Actualizar volúmenes
         this.volumenGLPEntregado += volumenEntregado;
-        this.volumenGLPPendiente = volumenGLPAsignado - this.volumenGLPEntregado; // Actualizar volumen pendiente
         
-        // Ya no liberamos la capacidad del camión aquí, eso se hará en SimulacionTiempoRealService
-        // donde tenemos la referencia correcta al camión
+        // Liberar capacidad del camión
+        if (camion != null) {
+            camion.liberarCapacidad(volumenEntregado);
+        }
         
         // Actualizar estado del pedido
-        actualizarEstado();
+        actualizarEstadoDePedido();
         
         // Si el pedido está completamente entregado, actualizar la fecha de entrega
-        if (estado == 2) {
+        if (estado == EstadoPedido.ENTREGADO_TOTALMENTE) {
             this.fechaEntregaReal = fechaEntrega;
         }
         
@@ -134,18 +151,22 @@ public class Pedido {
     /**
      * Actualiza el estado del pedido según las entregas
      */
-    private void actualizarEstado() {
+    private void actualizarEstadoDePedido() {
         if (volumenGLPEntregado == 0) {
-            estado = 0; // Registrado
+            estado = EstadoPedido.REGISTRADO;
         } else if (volumenGLPEntregado < volumenGLPAsignado) {
-            estado = 1; // Asignado
-            if (camion != null) {
-                estado = 3; // En ruta (si tiene camión asignado)
+            // Si está parcialmente entregado
+            if (volumenGLPEntregado > 0) {
+                estado = EstadoPedido.ENTREGADO_PARCIALMENTE;
+            } else {
+                estado = EstadoPedido.PENDIENTE_PLANIFICACION;
             }
-        } else if (Math.abs(volumenGLPEntregado - volumenGLPAsignado) < 0.01) {
-            estado = 2; // Entregado (con tolerancia de 0.01)
-            this.volumenGLPPendiente = 0; // Asegurar que no queda pendiente
+        } else if (volumenGLPEntregado == volumenGLPAsignado) {
+            estado = EstadoPedido.ENTREGADO_TOTALMENTE;
         }
+        
+        // Actualizar el estadoInt para mantener compatibilidad
+         
     }
     
     /**
@@ -156,7 +177,8 @@ public class Pedido {
             camion.liberarCapacidad(volumenGLPAsignado - volumenGLPEntregado);
         }
         
-        estado = 4; // Cancelado
+        estado = EstadoPedido.NO_ENTREGADO_EN_TIEMPO;
+        
     }
     
     /**
@@ -174,20 +196,18 @@ public class Pedido {
     }
     
     /**
-     * Inicializa el volumen pendiente al crear un pedido
+     * Método de utilidad para obtener la descripción del estado
      */
-    @PostLoad
-    @PostPersist
-    public void inicializarVolumenPendiente() {
-        // Si no está definido el volumen pendiente, lo calculamos
-        if (this.volumenGLPPendiente <= 0 && this.volumenGLPAsignado > 0) {
-            this.volumenGLPPendiente = this.volumenGLPAsignado - this.volumenGLPEntregado;
-        }
-        
-        // Verificar inconsistencias en estado
-        if (isCompletamenteEntregado() && estado != 2) {
-            estado = 2; // Corregir a estado entregado
-            this.volumenGLPPendiente = 0; // No queda pendiente
-        }
+    @Transient
+    public String getEstadoTexto() {
+        return estado != null ? estado.getDescripcion() : "Desconocido";
+    }
+    
+    /**
+     * Método de utilidad para obtener el color asociado al estado
+     */
+    @Transient
+    public String getEstadoColorHex() {
+        return estado != null ? estado.getColorHex() : "#CCCCCC"; // Color por defecto
     }
 }

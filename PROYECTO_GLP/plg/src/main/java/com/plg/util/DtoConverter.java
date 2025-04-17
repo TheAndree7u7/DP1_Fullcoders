@@ -56,77 +56,45 @@ public class DtoConverter {
     }
     
     /**
-     * Convierte un Pedido a PedidoDTO
+     * Convierte una entidad Pedido a un DTO
      */
     public static PedidoDTO toPedidoDTO(Pedido pedido) {
-        if (pedido == null) {
-            return null;
-        }
+        if (pedido == null) return null;
         
         return PedidoDTO.builder()
-                .id(pedido.getId())
-                .codigo(pedido.getCodigo())
-                .posX(pedido.getPosX())
-                .posY(pedido.getPosY())
-                .volumenGLPAsignado(pedido.getVolumenGLPAsignado())
-                .horasLimite(pedido.getHorasLimite())
-                .clienteId(pedido.getCliente() != null ? pedido.getCliente().getId() : null)
-                .clienteNombre(pedido.getCliente() != null ? pedido.getCliente().getNombre() : null)
-                .fechaHora(pedido.getFechaHora())
-                .estado(pedido.getEstado())
-                .build();
+            .id(pedido.getId())
+            .codigo(pedido.getCodigo())
+            .posX(pedido.getPosX())
+            .posY(pedido.getPosY())
+            .volumenGLPAsignado(pedido.getVolumenGLPAsignado())
+            .horasLimite(pedido.getHorasLimite())
+            .clienteId(pedido.getCliente() != null ? pedido.getCliente().getId() : null)
+            .clienteNombre(pedido.getCliente() != null ? pedido.getCliente().getNombre() : null)
+            .fechaHora(pedido.getFechaHora())
+            .estado(pedido.getEstado()) // Usar directamente el enum
+            .build();
     }
     
     /**
-     * Convierte un PedidoDTO a Pedido
+     * Convierte un PedidoDTO a una entidad Pedido
      */
     public static Pedido toPedido(PedidoDTO dto) {
-        if (dto == null) {
-            return null;
-        }
+        if (dto == null) return null;
         
         Pedido pedido = new Pedido();
-        
-        // Establecer ID solo si no es nulo
-        if (dto.getId() != null) {
-            pedido.setId(dto.getId());
-        }
-        
-        // Establecer código
+        pedido.setId(dto.getId());
         pedido.setCodigo(dto.getCodigo());
-        
-        // Convertir Integer a int para posX y posY
-        if (!Double.isNaN(dto.getPosX())) {
-            pedido.setPosX(dto.getPosX());
-        }
-        if (!Double.isNaN(dto.getPosY())) {
-            pedido.setPosY(dto.getPosY());
-        }
-        
-        // Convertir Integer a int para volumenGLPAsignado
-        if (!Double.isNaN(dto.getVolumenGLPAsignado())) {
-            pedido.setVolumenGLPAsignado(dto.getVolumenGLPAsignado());
-        }
-        
-        // Establecer horasLimite si no es nulo
-        if (!Double.isNaN(dto.getHorasLimite())) {
-            pedido.setHorasLimite(dto.getHorasLimite());
-        }
-        
-        // Establecer fechaHora como String
+        pedido.setPosX(dto.getPosX());
+        pedido.setPosY(dto.getPosY());
+        pedido.setVolumenGLPAsignado(dto.getVolumenGLPAsignado());
+        pedido.setHorasLimite(dto.getHorasLimite());
         pedido.setFechaHora(dto.getFechaHora());
         
-        // Establecer estado solo si no es nulo
-        if (dto.getEstado() != null) {
-            pedido.setEstado(dto.getEstado());
-        }
+        // Asignar estado usando el enum
+        pedido.setEstado(dto.getEstado());
         
-        // Si hay clienteId, creamos un cliente con ese ID
-        if (dto.getClienteId() != null) {
-            Cliente cliente = new Cliente();
-            cliente.setId(dto.getClienteId());
-            pedido.setCliente(cliente);
-        }
+        // Si tenemos un cliente, lo asignaremos en el servicio
+        // ya que necesitamos buscarlo en la base de datos
         
         return pedido;
     }

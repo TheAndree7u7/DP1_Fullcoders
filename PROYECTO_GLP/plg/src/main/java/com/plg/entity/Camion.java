@@ -34,11 +34,10 @@ public class Camion {
     private double pesoCarga; // Peso actual de la carga en toneladas
     private double pesoCombinado; // Peso total (tara + carga)
     
+ 
+    @Enumerated(EnumType.STRING)
     @Column(name = "estado")
-    private int estadoInt; // Campo en BD que guarda el valor entero del estado
-    
-    @Transient
-    private EstadoCamion estado; // Estado como enum
+    private EstadoCamion estado; 
     
     //!combustible Atributos relacionados con 
     @Column(name = "capacidad_tanque")
@@ -104,19 +103,7 @@ public class Camion {
         inicializar();
     }
  
-    // Métodos getter y setter para manejar la conversión entre int y enum
-    public EstadoCamion getEstado() {
-        if (estado == null) {
-            estado = mapIntToEstado(estadoInt);
-        }
-        return estado;
-    }
-    
-    public void setEstado(EstadoCamion estado) {
-        this.estado = estado;
-        this.estadoInt = mapEstadoToInt(estado);
-    }
-    
+ 
     private EstadoCamion mapIntToEstado(int estadoInt) {
         switch (estadoInt) {
             case 0: return EstadoCamion.DISPONIBLE;
@@ -137,20 +124,7 @@ public class Camion {
         return 0; // Por defecto disponible
     }
     
-    @PrePersist
-    @PreUpdate
-    private void actualizarEstadoInt() {
-        // Asegurar que el estadoInt siempre se actualice antes de persistir o actualizar
-        if (estado != null) {
-            estadoInt = mapEstadoToInt(estado);
-        }
-    }
-    
-    @PostLoad
-    private void actualizarEstadoEnum() {
-        // Asegurar que el estado enum siempre se actualice después de cargar
-        estado = mapIntToEstado(estadoInt);
-    }
+ 
 
     /**
      * Asigna un volumen parcial de GLP de un pedido a este camión
@@ -427,8 +401,8 @@ public class Camion {
         info.put("tipo", this.tipo);
         info.put("capacidad", this.capacidad);
         info.put("capacidadDisponible", this.capacidadDisponible);
-        info.put("porcentajeUso", this.porcentajeUso);
-        info.put("estado", this.estadoInt);
+        info.put("porcentajeUso", this.porcentajeUso); 
+        info.put("estado", this.estado);
         info.put("estadoTexto", this.getEstadoTexto());
         info.put("posX", this.posX);
         info.put("posY", this.posY);

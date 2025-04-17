@@ -2,6 +2,7 @@ package com.plg.service;
 
 import com.plg.dto.PedidoDTO;
 import com.plg.entity.Pedido;
+import com.plg.enums.EstadoPedido;
 import com.plg.repository.PedidoRepository;
 import com.plg.util.DtoConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,9 +42,9 @@ public class PedidoService {
         // Usar el convertidor para crear una entidad Pedido desde el DTO
         Pedido pedido = DtoConverter.toPedido(pedidoDTO);
         
-        // Si no se especificó un estado, establecerlo como pendiente (0)
-        if (pedido.getEstado() == 0 && pedidoDTO.getEstado() == null) {
-            pedido.setEstado(0);
+        // Si no se especificó un estado, establecerlo como REGISTRADO
+        if (pedido.getEstado() == null) {
+            pedido.setEstado(EstadoPedido.REGISTRADO);
         }
         
         return pedidoRepository.save(pedido);
@@ -65,11 +66,33 @@ public class PedidoService {
         pedidoRepository.deleteById(id);
     }
     
-    public List<Pedido> findByEstado(int estado) {
+    /**
+     * Encuentra pedidos por su estado usando valores enteros (para compatibilidad)
+     */
+    public List<Pedido> findByEstado(EstadoPedido estado) {
         return pedidoRepository.findByEstado(estado);
     }
     
-    public List<PedidoDTO> findByEstadoDTO(int estado) {
+    /**
+     * Encuentra pedidos por su estado usando el enum (método preferido)
+     */
+    public List<Pedido> findByEstadoEnum(EstadoPedido estado) {
+        return pedidoRepository.findByEstado(estado);
+    }
+    
+    /**
+     * Encuentra pedidos por su estado y los convierte a DTO (usando valores enteros)
+     */
+    public List<PedidoDTO> findByEstadoDTO(EstadoPedido estado) {
+        return pedidoRepository.findByEstado(estado).stream()
+                .map(DtoConverter::toPedidoDTO)
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Encuentra pedidos por su estado y los convierte a DTO (usando enum - método preferido)
+     */
+    public List<PedidoDTO> findByEstadoEnumDTO(EstadoPedido estado) {
         return pedidoRepository.findByEstado(estado).stream()
                 .map(DtoConverter::toPedidoDTO)
                 .collect(Collectors.toList());

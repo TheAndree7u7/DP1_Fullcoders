@@ -2,6 +2,7 @@ package com.plg.service;
 
 import com.plg.dto.*;
 import com.plg.entity.Pedido;
+import com.plg.enums.EstadoPedido;
 import com.plg.repository.PedidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,8 +23,8 @@ public class AgrupamientoAPService {
     
     public AgrupamientoAPResultadoDTO generarGrupos(Map<String, Object> params) {
         // Obtener pedidos pendientes
-        List<Pedido> pedidos = pedidoRepository.findByEstado(0);
-        
+        List<Pedido> pedidos = pedidoRepository.findByEstado(EstadoPedido.PENDIENTE_PLANIFICACION);
+         
         // Verificar si hay suficientes pedidos para agrupar
         if (pedidos.isEmpty()) {
             return AgrupamientoAPResultadoDTO.builder()

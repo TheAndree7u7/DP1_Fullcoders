@@ -8,6 +8,8 @@ import com.plg.repository.AlmacenRepository;
 import com.plg.repository.CamionRepository;
 import com.plg.repository.PedidoRepository;
 import com.plg.enums.EstadoCamion;
+import com.plg.enums.EstadoPedido;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -69,8 +71,8 @@ public class VisualizadorService {
         
         List<Pedido> pedidos = pedidoRepository.findAll();
         estado.put("totalPedidos", pedidos.size());
-        estado.put("pedidosPendientes", pedidos.stream().filter(p -> p.getEstado() == 0).count());
-        estado.put("pedidosEntregados", pedidos.stream().filter(p -> p.getEstado() == 3).count());
+        estado.put("pedidosPendientes", pedidos.stream().filter(p -> p.getEstado() == EstadoPedido.PENDIENTE_PLANIFICACION).count());
+        estado.put("pedidosEntregados", pedidos.stream().filter(p -> p.getEstado() == EstadoPedido.ENTREGADO_TOTALMENTE).count());
         
         List<Camion> camiones = camionRepository.findAll();
         estado.put("totalCamiones", camiones.size());

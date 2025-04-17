@@ -2,6 +2,7 @@ package com.plg.service;
 
 import com.plg.entity.*;
 import com.plg.enums.EstadoCamion;
+import com.plg.enums.EstadoPedido;
 import com.plg.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -74,7 +75,7 @@ public class SimulacionTiempoRealService {
     
     // Nuevo método para activar rutas pendientes
     private void activarRutasPendientes() {
-        List<Camion> camionesEnRuta = camionRepository.findByEstado(1); // Camiones en ruta
+        List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA); // Camiones en ruta
         
         for (Camion camion : camionesEnRuta) {
             // Verificar si tiene alguna ruta activa
@@ -152,9 +153,9 @@ public class SimulacionTiempoRealService {
             }
             
             // Obtener todos los camiones en ruta (estado 1)
-            List<Camion> camionesEnRuta = camionRepository.findByEstado(1); // 1 = En ruta
+            List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA); // 1 = En ruta
             // Agregar también los camiones en estado 0 (disponible) para verificar si tienen rutas pendientes
-            List<Camion> camionesDisponibles = camionRepository.findByEstado(0);
+            List<Camion> camionesDisponibles = camionRepository.findByEstado(EstadoCamion.EN_RUTA);
             
             camionesEnRuta.addAll(camionesDisponibles);
             
@@ -174,12 +175,12 @@ public class SimulacionTiempoRealService {
             // Contar estadísticas para incluir en la actualización
             Map<String, Object> estadisticas = new HashMap<>();
             estadisticas.put("camionesTotal", camionRepository.count());
-            estadisticas.put("camionesEnRuta", camionRepository.findByEstado(1).size());
+            estadisticas.put("camionesEnRuta", camionRepository.findByEstado(EstadoCamion.EN_RUTA).size());
             estadisticas.put("almacenesTotal", almacenRepository.count());
             estadisticas.put("pedidosTotal", pedidoRepository.count());
-            estadisticas.put("pedidosPendientes", pedidoRepository.findByEstado(0).size());
-            estadisticas.put("pedidosEnRuta", pedidoRepository.findByEstado(1).size());
-            estadisticas.put("pedidosEntregados", pedidoRepository.findByEstado(2).size());
+            estadisticas.put("pedidosPendientes", pedidoRepository.findByEstado(EstadoPedido.REGISTRADO).size());
+            estadisticas.put("pedidosEnRuta", pedidoRepository.findByEstado(EstadoPedido.EN_CAMINO).size());
+            estadisticas.put("pedidosEntregados", pedidoRepository.findByEstado(EstadoPedido.ENTREGADO_TOTALMENTE).size());
             estadisticas.put("rutasTotal", rutaRepository.count());
             estadisticas.put("rutasActivas", rutaRepository.findByEstado(1).size());
             
@@ -491,7 +492,7 @@ public class SimulacionTiempoRealService {
             
             // Si todas las entregas están completadas o el volumen entregado es suficiente, marcar pedido como completado
             if (todasEntregasCompletadas || Math.abs(volumenTotalEntregado - pedido.getVolumenGLPAsignado()) < 0.01) {
-                pedido.setEstado(2); // 2 = Entregado
+                pedido.setEstado(EstadoPedido.ENTREGADO_TOTALMENTE); // 2 = Entregado
                 pedido.setFechaEntregaReal(LocalDateTime.now());
                 pedido.setVolumenGLPPendiente(0); // Asegurar que no queda pendiente
             }
@@ -596,11 +597,12 @@ public class SimulacionTiempoRealService {
             // No hay más rutas planificadas
             // Verificar si quedan pedidos pendientes para este camión antes de marcarlo como disponible
             boolean quedanPedidos = pedidoRepository
-                .findByEstadoIn(Arrays.asList(0, 1)) // Pendientes o asignados
+                .findByEstadoIn(Arrays.asList(EstadoPedido.REGISTRADO, EstadoPedido.PLANIFICADO_PARCIALMENTE,
+                            EstadoPedido.PLANIFICADO_TOTALMENTE)) // Pendientes o asignados
                 .stream()
                 .filter(p -> p.getCamion() != null) // Solo pedidos con camión asignado
                 .filter(p -> p.getCamion().getId().equals(camion.getId())) // De este camión
-                .filter(p -> p.getEstado() != 2) // No entregados
+                .filter(p -> p.getEstado() != EstadoPedido.NO_ENTREGADO_EN_TIEMPO) // No entregados
                 .filter(p -> p.getVolumenGLPPendiente() > 0.01) // Con volumen pendiente significativo
                 .anyMatch(p -> true); // ¿Hay alguno que cumpla todas las condiciones?
                 
@@ -668,12 +670,12 @@ public class SimulacionTiempoRealService {
         // Genera estadísticas como lo haces en actualizarSimulacion
         Map<String, Object> estadisticas = new HashMap<>();
         estadisticas.put("camionesTotal", Optional.of(camionRepository.count()));
-        estadisticas.put("camionesEnRuta", Optional.of(camionRepository.findByEstado(1).size()));
+        estadisticas.put("camionesEnRuta", Optional.of(camionRepository.findByEstado(EstadoCamion.EN_RUTA).size()));
         estadisticas.put("almacenesTotal", Optional.of(almacenRepository.count()));
         estadisticas.put("pedidosTotal", Optional.of(pedidoRepository.count()));
-        estadisticas.put("pedidosPendientes", Optional.of(pedidoRepository.findByEstado(0).size()));
-        estadisticas.put("pedidosEnRuta", Optional.of(pedidoRepository.findByEstado(1).size()));
-        estadisticas.put("pedidosEntregados", Optional.of(pedidoRepository.findByEstado(2).size()));
+        estadisticas.put("pedidosPendientes", Optional.of(pedidoRepository.findByEstado(EstadoPedido.REGISTRADO).size()));
+        estadisticas.put("pedidosEnRuta", Optional.of(pedidoRepository.findByEstado(EstadoPedido.EN_CAMINO).size()));
+        estadisticas.put("pedidosEntregados", Optional.of(pedidoRepository.findByEstado(EstadoPedido.ENTREGADO_TOTALMENTE).size()));
         estadisticas.put("rutasTotal", Optional.of(rutaRepository.count()));
         estadisticas.put("rutasActivas", Optional.of(rutaRepository.findByEstado(1).size()));
     
@@ -768,12 +770,12 @@ public class SimulacionTiempoRealService {
                 List<Map<String, Object>> camionesOtrosList = new ArrayList<>();
                 
                 // Obtener camiones por estado
-                List<Camion> enRuta = camionRepository.findByEstado(1); // En ruta
-                List<Camion> disponibles = camionRepository.findByEstado(0); // Disponibles
-                List<Camion> sinCombustible = camionRepository.findByEstado(4); // Sin combustible
+                List<Camion> enRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA); // En ruta
+                List<Camion> disponibles = camionRepository.findByEstado(EstadoCamion.DISPONIBLE); // Disponibles
+                List<Camion> sinCombustible = camionRepository.findByEstado(EstadoCamion.SIN_COMBUSTIBLE); // Sin combustible
                 List<Camion> otros = new ArrayList<>(); // Otros estados (mantenimiento, averiado)
-                otros.addAll(camionRepository.findByEstado(2)); // En mantenimiento
-                otros.addAll(camionRepository.findByEstado(3)); // Averiado
+                otros.addAll(camionRepository.findByEstado(EstadoCamion.EN_MANTENIMIENTO_CORRECTIVO)); // En mantenimiento
+                otros.addAll(camionRepository.findByEstado(EstadoCamion.INMOVILIZADO_POR_AVERIA)); // Averiado
                 
                 // Procesar camiones en ruta
                 for (Camion camion : enRuta) {
@@ -924,7 +926,7 @@ public class SimulacionTiempoRealService {
             try {
                 List<Map<String, Object>> pedidosList = new ArrayList<>();
                 
-                for (Pedido pedido : pedidoRepository.findByEstadoIn(Arrays.asList(0, 1))) {
+                for (Pedido pedido : pedidoRepository.findByEstadoIn(Arrays.asList(EstadoPedido.REGISTRADO, EstadoPedido.EN_CAMINO))) {
                     try {
                         if (pedido.getCliente() == null) {
                             continue; // Ignorar pedidos sin cliente
@@ -1041,7 +1043,7 @@ public class SimulacionTiempoRealService {
         estado.put("factorVelocidad", factorVelocidad);
         
         // Contar camiones en ruta
-        List<Camion> camionesEnRuta = camionRepository.findByEstado(1);
+        List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA);
         estado.put("camionesEnRuta", camionesEnRuta.size());
         
         // Contar rutas activas
@@ -1067,8 +1069,8 @@ public class SimulacionTiempoRealService {
         }
         
         // Contar pedidos pendientes y en ruta
-        List<Pedido> pedidosPendientes = pedidoRepository.findByEstado(0);
-        List<Pedido> pedidosEnRuta = pedidoRepository.findByEstado(1);
+        List<Pedido> pedidosPendientes = pedidoRepository.findByEstado(EstadoPedido.PENDIENTE_PLANIFICACION);
+        List<Pedido> pedidosEnRuta = pedidoRepository.findByEstado(EstadoPedido.EN_CAMINO);
         estado.put("pedidosPendientes", pedidosPendientes.size());
         estado.put("pedidosEnRuta", pedidosEnRuta.size());
         

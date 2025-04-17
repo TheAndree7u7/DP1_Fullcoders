@@ -7,6 +7,7 @@ import com.plg.entity.Camion;
 import com.plg.entity.Mantenimiento;
 import com.plg.entity.Pedido;
 import com.plg.enums.EstadoCamion;
+import com.plg.enums.EstadoPedido;
 import com.plg.repository.AlmacenRepository;
 import com.plg.repository.AveriaRepository;
 import com.plg.repository.BloqueoRepository;
@@ -168,7 +169,7 @@ public class SimulacionService {
             pedido.setPosY(ThreadLocalRandom.current().nextInt(0, 100));
             pedido.setVolumenGLPAsignado(ThreadLocalRandom.current().nextInt(5, 20));
             pedido.setHorasLimite(ThreadLocalRandom.current().nextInt(2, 24));
-            pedido.setEstado(0); // Pendiente
+            pedido.setEstado(EstadoPedido.PENDIENTE_PLANIFICACION); // Pendiente
             pedido.setFechaHora("11d13h" + ThreadLocalRandom.current().nextInt(0, 60) + "m");
             
             pedidos.add(pedido);
@@ -604,7 +605,7 @@ public class SimulacionService {
      */
     private void asignarPedidosACamiones(List<Pedido> pedidos) {
         // Obtener camiones disponibles
-        List<Camion> camionesDisponibles = camionRepository.findByEstado(EstadoCamion.DISPONIBLE.ordinal());
+        List<Camion> camionesDisponibles = camionRepository.findByEstado(EstadoCamion.DISPONIBLE );
         
         if (camionesDisponibles.isEmpty()) {
             System.out.println("No hay camiones disponibles para asignar pedidos");
@@ -626,7 +627,7 @@ public class SimulacionService {
             if (camion.getCapacidad() >= pedido.getVolumenGLPAsignado()) {
                 // Asignar pedido al camión
                 pedido.setCamion(camion);
-                pedido.setEstado(1); // 1: Asignado
+                pedido.setEstado(EstadoPedido.PLANIFICADO_TOTALMENTE); // 1: Asignado
                 pedidoRepository.save(pedido);
                 
                 // Actualizar estado del camión
@@ -652,7 +653,7 @@ public class SimulacionService {
         // Probabilidad de avería en algún camión en ruta (0.5%)
         if (Math.random() < 0.005) {
             // Buscar camiones en ruta
-            List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA.ordinal());
+            List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA );
             
             if (!camionesEnRuta.isEmpty()) {
                 // Seleccionar un camión aleatorio
@@ -693,7 +694,7 @@ public class SimulacionService {
                 
                 if (esValida) {
                     // Calcular distancia total del recorrido
-                    List<Pedido> pedidosCamion = pedidoRepository.findByCamion_CodigoAndEstado(camion.getCodigo(), 1);
+                    List<Pedido> pedidosCamion = pedidoRepository.findByCamion_CodigoAndEstado(camion.getCodigo(), EstadoPedido.PLANIFICADO_TOTALMENTE);
                     double distanciaTotal = calcularDistanciaRecorrido(camion, pedidosCamion);
                     
                     // Calcular kilómetro de ocurrencia entre 5% y 35% del recorrido
@@ -728,11 +729,11 @@ public class SimulacionService {
      */
     private void actualizarPosicionCamiones(LocalDateTime tiempo) {
         // Buscar camiones en ruta
-        List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA.ordinal());
+        List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA );
         
         for (Camion camion : camionesEnRuta) {
             // Obtener pedidos asignados al camión
-            List<Pedido> pedidosCamion = pedidoRepository.findByCamion_CodigoAndEstado(camion.getCodigo(), 1); // 1: Asignado
+            List<Pedido> pedidosCamion = pedidoRepository.findByCamion_CodigoAndEstado(camion.getCodigo(), EstadoPedido.PLANIFICADO_TOTALMENTE); // 1: Asignado
             
             if (pedidosCamion.isEmpty()) {
                 // No hay pedidos, camión debería volver al almacén central
@@ -781,11 +782,11 @@ public class SimulacionService {
      */
     private void procesarEntregas(LocalDateTime tiempo) {
         // Buscar camiones en ruta
-        List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA.ordinal());
+        List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA );
         
         for (Camion camion : camionesEnRuta) {
             // Obtener pedidos asignados al camión y que NO estén entregados
-            List<Pedido> pedidosCamion = pedidoRepository.findByCamion_CodigoAndEstado(camion.getCodigo(), 1); // 1: Asignado
+            List<Pedido> pedidosCamion = pedidoRepository.findByCamion_CodigoAndEstado(camion.getCodigo(), EstadoPedido.PLANIFICADO_TOTALMENTE); // 1: Asignado
             
             if (!pedidosCamion.isEmpty()) {
                 // Verificar si el camión está en la posición del primer pedido
@@ -793,7 +794,7 @@ public class SimulacionService {
                 
                 if (camion.getPosX() == primerPedido.getPosX() && camion.getPosY() == primerPedido.getPosY()) {
                     // Camión está en la posición del pedido, realizar entrega
-                    primerPedido.setEstado(2); // 2: Entregado
+                    primerPedido.setEstado(EstadoPedido.ENTREGADO_TOTALMENTE); // 2: Entregado
                     // Actualizar fecha de entrega real
                     primerPedido.setFechaEntregaReal(tiempo);
                     pedidoRepository.save(primerPedido);
@@ -809,7 +810,7 @@ public class SimulacionService {
                     ));
                     
                     // Verificar si hay más pedidos asignados a este camión
-                    List<Pedido> pedidosRestantes = pedidoRepository.findByCamion_CodigoAndEstado(camion.getCodigo(), 1);
+                    List<Pedido> pedidosRestantes = pedidoRepository.findByCamion_CodigoAndEstado(camion.getCodigo(), EstadoPedido.PLANIFICADO_TOTALMENTE); // 1: Asignado
                     if (pedidosRestantes.isEmpty()) {
                         // No hay más pedidos pendientes, regresar al almacén central
                         // En implementación real, calcularíamos ruta al almacén
@@ -847,7 +848,7 @@ public class SimulacionService {
      */
     private void verificarCombustible(LocalDateTime tiempo) {
         // Buscar camiones en ruta
-        List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA.ordinal());
+        List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA );
         
         for (Camion camion : camionesEnRuta) {
             // Verificar si el nivel de combustible es bajo (menos del 20%)
@@ -911,15 +912,15 @@ public class SimulacionService {
         Map<String, Object> estadisticas = new HashMap<>();
         
         // Contar pedidos por estado
-        long pedidosPendientes = pedidoRepository.countByEstado(0); // 0: Pendiente
-        long pedidosAsignados = pedidoRepository.countByEstado(1);  // 1: Asignado
-        long pedidosEntregados = pedidoRepository.countByEstado(2); // 2: Entregado
+        long pedidosPendientes = pedidoRepository.countByEstado(EstadoPedido.REGISTRADO); // 0: Pendiente
+        long pedidosAsignados = pedidoRepository.countByEstado(EstadoPedido.PLANIFICADO_TOTALMENTE);  // 1: Asignado
+        long pedidosEntregados = pedidoRepository.countByEstado(EstadoPedido.ENTREGADO_TOTALMENTE); // 2: Entregado
         
         // Contar camiones por estado
-        long camionesDisponibles = camionRepository.countByEstado(EstadoCamion.DISPONIBLE.ordinal()); // Disponible
-        long camionesEnRuta = camionRepository.countByEstado(EstadoCamion.EN_RUTA.ordinal());     // En ruta
-        long camionesEnMantenimiento = camionRepository.countByEstado(EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA.ordinal()); // En mantenimiento
-        long camionesAveriados = camionRepository.countByEstado(EstadoCamion.INMOVILIZADO_POR_AVERIA.ordinal());  // Averiado
+        long camionesDisponibles = camionRepository.countByEstado(EstadoCamion.DISPONIBLE ); // Disponible
+        long camionesEnRuta = camionRepository.countByEstado(EstadoCamion.EN_RUTA );     // En ruta
+        long camionesEnMantenimiento = camionRepository.countByEstado(EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA ); // En mantenimiento
+        long camionesAveriados = camionRepository.countByEstado(EstadoCamion.INMOVILIZADO_POR_AVERIA);  // Averiado
         
         // Calcular tiempos de entrega
         double tiempoPromedioEntrega = calcularTiempoPromedioEntrega();
@@ -957,7 +958,7 @@ public class SimulacionService {
      * Calcula el tiempo promedio de entrega en minutos
      */
     private double calcularTiempoPromedioEntrega() {
-        List<Pedido> pedidosEntregados = pedidoRepository.findByEstadoAndFechaEntregaRequeridaNotNull(2); // 2: Entregado
+        List<Pedido> pedidosEntregados = pedidoRepository.findByEstadoAndFechaEntregaRequeridaNotNull(EstadoPedido.ENTREGADO_TOTALMENTE); // 2: Entregado
         
         if (pedidosEntregados.isEmpty()) {
             return 0;
@@ -982,7 +983,7 @@ public class SimulacionService {
      * Calcula la eficiencia de entrega (porcentaje de pedidos entregados a tiempo)
      */
     private double calcularEficienciaEntrega() {
-        List<Pedido> pedidosEntregados = pedidoRepository.findByEstado(2); // 2: Entregado
+        List<Pedido> pedidosEntregados = pedidoRepository.findByEstado(EstadoPedido.ENTREGADO_TOTALMENTE); // 2: Entregado
         
         if (pedidosEntregados.isEmpty()) {
             return 100; // No hay pedidos entregados para evaluar
@@ -1011,7 +1012,7 @@ public class SimulacionService {
     private double calcularConsumoTotalCombustible() {
         // En una implementación real, esto se calcularía sumando todos los consumos registrados
         // Para simulación, usamos un valor aproximado basado en camiones en ruta
-        List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA.ordinal());
+        List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA);
         
         double consumoTotal = 0;
         for (Camion camion : camionesEnRuta) {
@@ -1104,7 +1105,7 @@ public class SimulacionService {
                 averia.setEstado(0); // 0: reportada
                 
                 // Verificar si tiene carga asignada
-                List<Pedido> pedidosCamion = pedidoRepository.findByCamion_CodigoAndEstado(camion.getCodigo(), 1);
+                List<Pedido> pedidosCamion = pedidoRepository.findByCamion_CodigoAndEstado(camion.getCodigo(), EstadoPedido.PLANIFICADO_PARCIALMENTE);
                 averia.setConCarga(!pedidosCamion.isEmpty() && camion.getPesoCarga() > 0);
                 
                 // Validar si la avería es válida según las condiciones
