@@ -35,25 +35,23 @@ public class Pedido {
     private double horasLimite; // Hora límite para la entrega (en horas)
     //m3
     //fecha creacion
-    private LocalDateTime fechaCreacion; // Fecha de creación del pedido
+    // private LocalDateTime fechaCreacion; // Fecha de creación del pedido
     //fecha entrega
-    private LocalDateTime fechaEntrega; // Fecha de entrega del pedido
+    private LocalDateTime fechaRegistro; // Fecha de entrega del pedido
     //m3
-    private double m3; // Volumen total requerido (m3)
+     
     // fecha pedido
-    private LocalDateTime fechaPedido;
+    // private LocalDateTime fechaPedido;
     private LocalDateTime fechaEntregaRequerida;
     private LocalDateTime fechaEntregaReal;
     
-    private double volumenGLP; // Volumen total requerido (m3)
-    private double volumenEntregado; // Volumen ya entregado (m3)
-    
+    private double volumenGLPAsignado; // Volumen total requerido (m3)
+    private double volumenGLPEntregado; // Volumen ya entregado (m3)
+    private double volumenGLPPendiente; // Volumen restante por asignar (m3) 
     private int prioridad; // 1: alta, 2: media, 3: baja
     private int estado; // 0: registrado, 1: asignado, 2: en ruta, 3: entregado, 4: cancelado
-    //!m3
-    private double m3Asignados; // Volumen asignado al camión (m3)
-    private double m3Pendientes; // Volumen restante por asignar
-    private double m3Entregados; // Volumen entregado (m3)
+ 
+
     private String fechaHora; //formato "ddmmyyyy hh:mm:ss"
     private String fechaAsignaciones; //formato "ddmmyyyy hh:mm:ss" 
      
@@ -83,19 +81,19 @@ public class Pedido {
      */
     public boolean asignarACamion(Camion camion, double volumen) {
         // Validar que haya volumen pendiente y que el camión tenga capacidad
-        if (volumenGLP - volumenEntregado < volumen || !camion.tieneCapacidadPara(volumen)) {
+        if (volumenGLPAsignado - volumenGLPEntregado < volumen || !camion.tieneCapacidadPara(volumen)) {
             return false;
         }
         
         // Calcular el porcentaje que representa del total
-        double porcentaje = (volumen / volumenGLP) * 100;
+        double porcentaje = (volumen / volumenGLPAsignado) * 100;
         
         // Crear y agregar la asignación
         AsignacionCamion asignacion = new AsignacionCamion(camion, volumen, porcentaje);
         asignacion.setPedido(this);
         
         // Actualizar los volúmenes
-        volumenEntregado += volumen;
+        volumenGLPEntregado += volumen;
         
         // Asignar el volumen al camión
         camion.asignarPedidoParcial(this, volumen, porcentaje);
@@ -110,12 +108,12 @@ public class Pedido {
      * Registra la entrega de una parte del pedido por un camión
      */
     public boolean registrarEntregaParcial(String codigoCamion, double volumenEntregado, LocalDateTime fechaEntrega) {
-        if (volumenEntregado > volumenGLP) {
+        if (volumenEntregado > volumenGLPAsignado) {
             return false; // No puede entregar más de lo solicitado
         }
         
         // Actualizar volúmenes
-        this.volumenEntregado += volumenEntregado;
+        this.volumenGLPEntregado += volumenEntregado;
         
         // Liberar capacidad del camión
         camion.liberarCapacidad(volumenEntregado);
@@ -135,11 +133,11 @@ public class Pedido {
      * Actualiza el estado del pedido según las entregas
      */
     private void actualizarEstado() {
-        if (volumenEntregado == 0) {
+        if (volumenGLPEntregado == 0) {
             estado = 0; // Registrado
-        } else if (volumenEntregado < volumenGLP) {
+        } else if (volumenGLPEntregado < volumenGLPAsignado) {
             estado = 1; // Asignado
-        } else if (volumenEntregado == volumenGLP) {
+        } else if (volumenGLPEntregado == volumenGLPAsignado) {
             estado = 3; // Entregado
         }
     }
@@ -149,7 +147,7 @@ public class Pedido {
      */
     public void cancelar() {
         if (camion != null) {
-            camion.liberarCapacidad(volumenGLP - volumenEntregado);
+            camion.liberarCapacidad(volumenGLPAsignado - volumenGLPEntregado);
         }
         
         estado = 4; // Cancelado
@@ -159,13 +157,13 @@ public class Pedido {
      * Obtiene el porcentaje total entregado del pedido
      */
     public double getPorcentajeEntregado() {
-        return (volumenEntregado / volumenGLP) * 100;
+        return (volumenGLPEntregado / volumenGLPAsignado) * 100;
     }
     
     /**
      * Verifica si el pedido está completamente entregado
      */
     public boolean isCompletamenteEntregado() {
-        return Math.abs(volumenEntregado - volumenGLP) < 0.01; // Comparación con tolerancia
+        return Math.abs(volumenGLPEntregado - volumenGLPAsignado) < 0.01; // Comparación con tolerancia
     }
 }

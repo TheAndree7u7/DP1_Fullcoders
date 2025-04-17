@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.nio.file.Files;
 import java.time.LocalDate;
@@ -69,7 +70,7 @@ public class DataLoader implements CommandLineRunner {
             loadCamionesFromFile("camiones.txt");
 
             // Initialize demo data from files
-            loadPedidosFromFile("ventas202504.txt");
+            loadAllPedidos();
             loadMantenimientosFromFile("mantpreventivo.txt");
 
             logger.info("Data initialization completed!");
@@ -190,68 +191,117 @@ public class DataLoader implements CommandLineRunner {
         }
     }
     
-    
-    
-    
-    
-    
-    private void loadPedidosFromFile(String fileName) {
-        logger.info("Cargando pedidos desde el archivo: {}", fileName);
+    public void loadAllPedidos() {
+        logger.info("📦 Cargando todos los pedidos desde carpeta: data/pedidos/");
     
         try {
-            ClassPathResource resource = new ClassPathResource("data/pedidos/" + fileName);
-            BufferedReader reader = new BufferedReader(new FileReader(resource.getFile()));
-            
-            String line;
+            File carpeta = new ClassPathResource("data/pedidos/").getFile();
+            File[] archivos = carpeta.listFiles((dir, name) -> name.matches("ventas\\d{6}\\.txt"));
+    
+            if (archivos == null || archivos.length == 0) {
+                logger.warn("⚠️ No se encontraron archivos con patrón 'ventasaaaamm'");
+                return;
+            }
+    
+            for (File archivo : archivos) {
+                String fileName = archivo.getName();
+    
+                // Extraer año y mes del nombre: ventas202504
+                int anio = Integer.parseInt(fileName.substring(6, 10));
+                int mes = Integer.parseInt(fileName.substring(10, 12));
+    
+                logger.info("📝 Procesando archivo: {} (año: {}, mes: {})", fileName, anio, mes);
+    
+                loadPedidosFromFile(archivo, anio, mes);
+            }
+    
+        } catch (Exception e) {
+            logger.error("❌ Error leyendo archivos de pedidos: {}", e.getMessage(), e);
+        }
+    }
+    
+    
+    
+    
+    
+    private void loadPedidosFromFile(File archivo, int anio, int mes) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(archivo))) {
             int contador = 1;
+            String line;
+    
             while ((line = reader.readLine()) != null) {
-                String[] datos = line.split(",");
-                if (datos.length >= 6) {
-                    Pedido pedido = new Pedido();
-                    pedido.setFechaHora(datos[0].trim());
-                    pedido.setPosX(Integer.parseInt(datos[1].trim()));
-                    pedido.setPosY(Integer.parseInt(datos[2].trim()));
+                try {
+                    logger.info("📄 Línea leída: {}", line);
+
+                    String[] partes = line.split(":");
+                    logger.info("🧩 Partes detectadas: {}", Arrays.toString(partes));
+                    if (partes.length != 2) {
+                        logger.warn("❌ Línea ignorada por mal formato: {}", line);
+                        continue;
+                    }
+    
+                    // Parsear fecha de pedido
+                    String fechaRaw = partes[0].trim(); // Ej: 11d13h31m
+                    int dia = Integer.parseInt(fechaRaw.substring(0, 2));
+                    int hora = Integer.parseInt(fechaRaw.substring(3, 5));
+                    int minuto = Integer.parseInt(fechaRaw.substring(6, 8));
+    
+                    LocalDateTime fechaPedido = LocalDateTime.of(anio, mes, dia, hora, minuto);
+    
+                    // Parsear detalles
+                    String[] datos = partes[1].split(",");
+                    logger.info("🛠 Detalles extraídos: {}", Arrays.toString(datos));
+                    if (datos.length != 5) {
+                        logger.warn("❌ Datos incompletos: {}", line);
+                        continue;
+                    }
                     
-                    // Generar código único para el pedido
-                    String codigo = "P" + String.format("%04d", contador++);
-                    pedido.setCodigo(codigo);
-                    
-                    // Verificar si el cliente ya existe, si no, crearlo y guardarlo
-                    String clienteId = datos[3].trim();
+    
+                    int posX = Integer.parseInt(datos[0].trim());
+                    int posY = Integer.parseInt(datos[1].trim());
+                    String clienteId = datos[2].trim().replace("c-", "");
+                    int volumen = Integer.parseInt(datos[3].trim().replace("m3", ""));
+                    int horasLimite = Integer.parseInt(datos[4].trim().replace("h", ""));
+    
+                    LocalDateTime fechaEntrega = fechaPedido.plusHours(horasLimite);
+    
+                    // Buscar o crear cliente
                     Cliente cliente = clienteRepository.findById(clienteId).orElseGet(() -> {
                         Cliente nuevoCliente = new Cliente();
                         nuevoCliente.setId(clienteId);
-                        clienteRepository.save(nuevoCliente);  // Guardar el cliente si es nuevo
+                        nuevoCliente.setPosX(posX);
+                        nuevoCliente.setPosY(posY);
+                        clienteRepository.save(nuevoCliente);
                         return nuevoCliente;
                     });
+    
+                    // Crear pedido
+                    Pedido pedido = new Pedido();
+                    pedido.setCodigo("P" + String.format("%04d", contador++));
                     pedido.setCliente(cliente);
-                    
-                    // Asignar volumen y estado al pedido
-                    int volumenM3 = Integer.parseInt(datos[4].trim());
-                    pedido.setM3(volumenM3);
-                    pedido.setM3Pendientes(volumenM3);
-                    pedido.setM3Asignados(0.0);
-                    pedido.setM3Entregados(0.0);
-                    
-                    // Asignar hora límite y estado inicial
-                    pedido.setHorasLimite(Integer.parseInt(datos[5].trim()));
-                    pedido.setEstado(0); // Pendiente
-                    pedido.setFechaCreacion(LocalDateTime.now());
+                    pedido.setPosX(posX);
+                    pedido.setPosY(posY);
+                    pedido.setVolumenGLPAsignado(volumen); 
+                    pedido.setHorasLimite(horasLimite);
+                    pedido.setEstado(0);
+                    pedido.setFechaRegistro(fechaPedido);
+                    pedido.setFechaEntregaRequerida(fechaEntrega);
                     pedido.setAsignaciones(new ArrayList<>());
-                    
-                    // Guardar el pedido
+    
                     pedidoRepository.save(pedido);
-                    logger.info("Pedido guardado: {}", codigo);
+                    logger.info("✅ Pedido guardado: {} - Cliente: {}", pedido.getCodigo(), clienteId);
+    
+                } catch (Exception e) {
+                    logger.warn("⚠️ Línea inválida o error: [{}] - {}", line, e.getMessage());
                 }
             }
-            
-            reader.close();
-            logger.info("Pedidos cargados exitosamente");
     
         } catch (Exception e) {
-            logger.error("Error cargando pedidos: " + e.getMessage(), e);
+            logger.error("❌ Error procesando archivo '{}': {}", archivo.getName(), e.getMessage(), e);
         }
     }
+    
+    
     
     
     private void loadMantenimientosFromFile(String fileName) {

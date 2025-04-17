@@ -139,7 +139,7 @@ public class Ruta {
      */
     public void agregarNodoCliente(int posX, int posY, Pedido pedido) {
         // Si no especificamos volumen ni porcentaje, asumimos que se entrega el pedido completo (100%)
-        agregarNodoCliente(posX, posY, pedido, pedido.getM3(), 100.0);
+        agregarNodoCliente(posX, posY, pedido, pedido.getVolumenGLPAsignado(), 100.0);
     }
     
     /**
@@ -233,7 +233,7 @@ public class Ruta {
                     Map<String, Object> info = new HashMap<>();
                     info.put("pedidoId", pedidoId);
                     info.put("codigoPedido", nodo.getPedido().getCodigo());
-                    info.put("volumenTotalPedido", nodo.getPedido().getM3());
+                    info.put("volumenTotalPedido", nodo.getPedido().getVolumenGLPAsignado());
                     info.put("volumenAsignado", 0.0);
                     info.put("porcentajeAsignado", 0.0);
                     info.put("entregas", new ArrayList<Map<String, Object>>());

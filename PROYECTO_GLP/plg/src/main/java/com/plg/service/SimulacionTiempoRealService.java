@@ -305,9 +305,9 @@ public class SimulacionTiempoRealService {
             }
             
             // Si todas las entregas están completadas o el volumen entregado es suficiente, marcar pedido como completado
-            if (todasEntregasCompletadas || Math.abs(volumenTotalEntregado - pedido.getM3()) < 0.01) {
+            if (todasEntregasCompletadas || Math.abs(volumenTotalEntregado - pedido.getVolumenGLPAsignado()) < 0.01) {
                 pedido.setEstado(2); // 2 = Entregado
-                pedido.setFechaEntrega(LocalDateTime.now());
+                pedido.setFechaEntregaReal(LocalDateTime.now());
                 pedidoRepository.save(pedido);
             }
             
@@ -610,7 +610,7 @@ public class SimulacionTiempoRealService {
                         Map<String, Object> pedidoMap = new HashMap<>();
                         pedidoMap.put("id", pedido.getId());
                         pedidoMap.put("estado", Optional.of(pedido.getEstado()));
-                        pedidoMap.put("m3", Optional.of(pedido.getM3()));
+                        pedidoMap.put("m3", Optional.of(pedido.getVolumenGLPAsignado()));
                         
                         // Solo enviar la ubicación del cliente si tenemos el cliente
                         if (pedido.getCliente() != null) {

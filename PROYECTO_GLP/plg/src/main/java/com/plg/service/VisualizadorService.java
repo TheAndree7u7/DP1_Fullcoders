@@ -115,7 +115,7 @@ public class VisualizadorService {
         map.put("fechaHora", pedido.getFechaHora());
         map.put("cliente", pedido.getCliente() != null ? pedido.getCliente().getId() : null);
         map.put("estado", pedido.getEstado());
-        map.put("m3", pedido.getM3());
+        map.put("m3", pedido.getVolumenGLPAsignado());
         return map;
     }
     

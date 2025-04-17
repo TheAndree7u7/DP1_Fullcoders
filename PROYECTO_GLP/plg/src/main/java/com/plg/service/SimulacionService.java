@@ -165,7 +165,7 @@ public class SimulacionService {
             pedido.setId(Long.valueOf(i));
             pedido.setPosX(ThreadLocalRandom.current().nextInt(0, 100));
             pedido.setPosY(ThreadLocalRandom.current().nextInt(0, 100));
-            pedido.setM3(ThreadLocalRandom.current().nextInt(5, 20));
+            pedido.setVolumenGLPAsignado(ThreadLocalRandom.current().nextInt(5, 20));
             pedido.setHorasLimite(ThreadLocalRandom.current().nextInt(2, 24));
             pedido.setEstado(0); // Pendiente
             pedido.setFechaHora("11d13h" + ThreadLocalRandom.current().nextInt(0, 60) + "m");
@@ -366,7 +366,7 @@ public class SimulacionService {
         
         int demandaTotal = 0;
         for (Pedido pedido : pedidos) {
-            demandaTotal += pedido.getM3();
+            demandaTotal += pedido.getVolumenGLPAsignado();
         }
         
         // Si la demanda supera la capacidad, hay saturación
@@ -389,7 +389,7 @@ public class SimulacionService {
         
         int demandaTotal = 0;
         for (Pedido pedido : pedidos) {
-            demandaTotal += pedido.getM3();
+            demandaTotal += pedido.getVolumenGLPAsignado();
         }
         
         // Estimamos cuántos pedidos no se podrán atender
@@ -405,7 +405,7 @@ public class SimulacionService {
         map.put("id", pedido.getId());
         map.put("posX", pedido.getPosX());
         map.put("posY", pedido.getPosY());
-        map.put("m3", pedido.getM3());
+        map.put("m3", pedido.getVolumenGLPAsignado());
         map.put("horasLimite", pedido.getHorasLimite());
         map.put("fechaHora", pedido.getFechaHora());
         map.put("estado", pedido.getEstado());
@@ -584,7 +584,7 @@ public class SimulacionService {
             
             // Ajustar tiempo de creación
             for (Pedido pedido : nuevosPedidos) {
-                pedido.setFechaCreacion(tiempo);
+                pedido.setFechaRegistro(tiempo);
                 pedidoRepository.save(pedido);
             }
             
@@ -622,7 +622,7 @@ public class SimulacionService {
             Camion camion = camionesDisponibles.get(camionIndex);
             
             // Verificar si el camión tiene capacidad
-            if (camion.getCapacidad() >= pedido.getM3()) {
+            if (camion.getCapacidad() >= pedido.getVolumenGLPAsignado()) {
                 // Asignar pedido al camión
                 pedido.setCamion(camion);
                 pedido.setEstado(1); // 1: Asignado
@@ -630,7 +630,7 @@ public class SimulacionService {
                 
                 // Actualizar estado del camión
                 camion.setEstado(1); // 1: en ruta
-                camion.setPesoCarga(camion.getPesoCarga() + (pedido.getM3() * 0.5)); // GLP pesa 0.5 Ton por m3
+                camion.setPesoCarga(camion.getPesoCarga() + (pedido.getVolumenGLPAsignado() * 0.5)); // GLP pesa 0.5 Ton por m3
                 camion.setPesoCombinado(camion.getTara() + camion.getPesoCarga());
                 camionRepository.save(camion);
                 
@@ -798,7 +798,7 @@ public class SimulacionService {
                     pedidoRepository.save(primerPedido);
                     
                     // Actualizar carga del camión
-                    double pesoEntregado = primerPedido.getM3() * 0.5; // GLP pesa 0.5 Ton por m3
+                    double pesoEntregado = primerPedido.getVolumenGLPAsignado() * 0.5; // GLP pesa 0.5 Ton por m3
                     camion.setPesoCarga(Math.max(0, camion.getPesoCarga() - pesoEntregado));
                     camion.setPesoCombinado(camion.getTara() + camion.getPesoCarga());
                     
@@ -946,7 +946,7 @@ public class SimulacionService {
      * Calcula el tiempo promedio de entrega en minutos
      */
     private double calcularTiempoPromedioEntrega() {
-        List<Pedido> pedidosEntregados = pedidoRepository.findByEstadoAndFechaEntregaNotNull(2); // 2: Entregado
+        List<Pedido> pedidosEntregados = pedidoRepository.findByEstadoAndFechaEntregaRequeridaNotNull(2); // 2: Entregado
         
         if (pedidosEntregados.isEmpty()) {
             return 0;
@@ -956,9 +956,9 @@ public class SimulacionService {
         int conteo = 0;
         
         for (Pedido pedido : pedidosEntregados) {
-            if (pedido.getFechaCreacion() != null && pedido.getFechaEntrega() != null) {
+            if (pedido.getFechaRegistro() != null && pedido.getFechaEntregaRequerida() != null) {
                 // Calcular diferencia en minutos
-                long diferenciaMinutos = java.time.Duration.between(pedido.getFechaCreacion(), pedido.getFechaEntrega()).toMinutes();
+                long diferenciaMinutos = java.time.Duration.between(pedido.getFechaRegistro(), pedido.getFechaEntregaRequerida()).toMinutes();
                 tiempoTotal += diferenciaMinutos;
                 conteo++;
             }
@@ -980,9 +980,9 @@ public class SimulacionService {
         int pedidosATiempo = 0;
         
         for (Pedido pedido : pedidosEntregados) {
-            if (pedido.getFechaCreacion() != null && pedido.getFechaEntrega() != null) {
+            if (pedido.getFechaRegistro() != null && pedido.getFechaEntregaRequerida() != null) {
                 // Calcular diferencia en horas
-                long diferenciaHoras = java.time.Duration.between(pedido.getFechaCreacion(), pedido.getFechaEntrega()).toHours();
+                long diferenciaHoras = java.time.Duration.between(pedido.getFechaRegistro(), pedido.getFechaEntregaRequerida()).toHours();
                 
                 // Verificar si se entregó dentro del límite
                 if (diferenciaHoras <= pedido.getHorasLimite()) {

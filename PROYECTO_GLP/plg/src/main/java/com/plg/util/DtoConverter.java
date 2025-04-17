@@ -68,7 +68,7 @@ public class DtoConverter {
                 .codigo(pedido.getCodigo())
                 .posX(pedido.getPosX())
                 .posY(pedido.getPosY())
-                .m3(pedido.getM3())
+                .volumenGLPAsignado(pedido.getVolumenGLPAsignado())
                 .horasLimite(pedido.getHorasLimite())
                 .clienteId(pedido.getCliente() != null ? pedido.getCliente().getId() : null)
                 .clienteNombre(pedido.getCliente() != null ? pedido.getCliente().getNombre() : null)
@@ -103,9 +103,9 @@ public class DtoConverter {
             pedido.setPosY(dto.getPosY());
         }
         
-        // Convertir Integer a int para m3
-        if (!Double.isNaN(dto.getM3())) {
-            pedido.setM3(dto.getM3());
+        // Convertir Integer a int para volumenGLPAsignado
+        if (!Double.isNaN(dto.getVolumenGLPAsignado())) {
+            pedido.setVolumenGLPAsignado(dto.getVolumenGLPAsignado());
         }
         
         // Establecer horasLimite si no es nulo

@@ -114,7 +114,7 @@ public class AlgoritmoGeneticoService {
             .codigo(pedido.getCodigo())
             .posX(pedido.getPosX())
             .posY(pedido.getPosY())
-            .m3(pedido.getM3())
+            .volumenGLPAsignado(pedido.getVolumenGLPAsignado())
             .horasLimite(pedido.getHorasLimite())
             .clienteId(pedido.getCliente() != null ? pedido.getCliente().getId() : null)
             .clienteNombre(pedido.getCliente() != null ? pedido.getCliente().getNombre() : null)
