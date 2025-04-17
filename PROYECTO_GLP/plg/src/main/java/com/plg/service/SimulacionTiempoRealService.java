@@ -433,8 +433,24 @@ public class SimulacionTiempoRealService {
         messagingTemplate.convertAndSend("/topic/nodos", notificacion);
     }
     
-    // Envía actualizaciones de posiciones al cliente
-    @Scheduled(fixedRate = 1000) // cada 1 segundo
+    @Scheduled(fixedRate = 1000)
+    public void enviarActualizacionProgramada() {
+        // Genera estadísticas como lo haces en actualizarSimulacion
+        Map<String, Object> estadisticas = new HashMap<>();
+        estadisticas.put("camionesTotal", Optional.of(camionRepository.count()));
+        estadisticas.put("camionesEnRuta", Optional.of(camionRepository.findByEstado(1).size()));
+        estadisticas.put("almacenesTotal", Optional.of(almacenRepository.count()));
+        estadisticas.put("pedidosTotal", Optional.of(pedidoRepository.count()));
+        estadisticas.put("pedidosPendientes", Optional.of(pedidoRepository.findByEstado(0).size()));
+        estadisticas.put("pedidosEnRuta", Optional.of(pedidoRepository.findByEstado(1).size()));
+        estadisticas.put("pedidosEntregados", Optional.of(pedidoRepository.findByEstado(2).size()));
+        estadisticas.put("rutasTotal", Optional.of(rutaRepository.count()));
+        estadisticas.put("rutasActivas", Optional.of(rutaRepository.findByEstado(1).size()));
+    
+        // Llama al método que realmente hace el trabajo
+        enviarActualizacionPosiciones(estadisticas);
+    }
+    
     public void enviarActualizacionPosiciones(Map<String, Object> estadisticas) {
         try {
             long startTime = System.currentTimeMillis();
