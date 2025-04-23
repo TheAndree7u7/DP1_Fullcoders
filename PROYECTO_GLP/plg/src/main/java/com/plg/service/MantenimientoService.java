@@ -92,33 +92,31 @@ public class MantenimientoService {
         try {
             // Lee el archivo de mantenimientos preventivos programados
             Path path = Paths.get("src/main/resources/data/mantenimientos/mantpreventivo.txt");
-            BufferedReader reader = new BufferedReader(new FileReader(path.toFile()));
-            
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] datos = line.split(",");
-                if (datos.length >= 3) {
-                    String codigoCamion = datos[0];
-                    LocalDate fechaInicio = LocalDate.parse(datos[1]);
-                    LocalDate fechaFin = LocalDate.parse(datos[2]);
-                    
-                    // Verifica si existe el camión
-                    Optional<Camion> camionOpt = camionRepository.findByCodigo(codigoCamion);
-                    if (camionOpt.isPresent()) {
-                        Mantenimiento mantenimiento = new Mantenimiento();
-                        mantenimiento.setCamion(camionOpt.get());
-                        mantenimiento.setFechaInicio(fechaInicio);
-                        mantenimiento.setFechaFin(fechaFin);
-                        mantenimiento.setTipo("preventivo");
-                        mantenimiento.setDescripcion("Mantenimiento preventivo programado");
-                        mantenimiento.setEstado(0); // Programado
+            try (BufferedReader reader = new BufferedReader(new FileReader(path.toFile()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] datos = line.split(",");
+                    if (datos.length >= 3) {
+                        String codigoCamion = datos[0];
+                        LocalDate fechaInicio = LocalDate.parse(datos[1]);
+                        LocalDate fechaFin = LocalDate.parse(datos[2]);
                         
-                        nuevosMantenimientos.add(mantenimientoRepository.save(mantenimiento));
+                        // Verifica si existe el camión
+                        Optional<Camion> camionOpt = camionRepository.findByCodigo(codigoCamion);
+                        if (camionOpt.isPresent()) {
+                            Mantenimiento mantenimiento = new Mantenimiento();
+                            mantenimiento.setCamion(camionOpt.get());
+                            mantenimiento.setFechaInicio(fechaInicio);
+                            mantenimiento.setFechaFin(fechaFin);
+                            mantenimiento.setTipo("preventivo");
+                            mantenimiento.setDescripcion("Mantenimiento preventivo programado");
+                            mantenimiento.setEstado(0); // Programado
+                            
+                            nuevosMantenimientos.add(mantenimientoRepository.save(mantenimiento));
+                        }
                     }
                 }
             }
-            
-            reader.close();
             
         } catch (IOException e) {
             throw new RuntimeException("Error al leer el archivo de mantenimientos preventivos", e);

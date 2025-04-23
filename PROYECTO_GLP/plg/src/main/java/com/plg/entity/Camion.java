@@ -1,15 +1,30 @@
 package com.plg.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -102,27 +117,6 @@ public class Camion {
         inicializar();
     }
  
- 
-    private EstadoCamion mapIntToEstado(int estadoInt) {
-        switch (estadoInt) {
-            case 0: return EstadoCamion.DISPONIBLE;
-            case 1: return EstadoCamion.EN_RUTA;
-            case 2: return EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO;
-            case 3: return EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA;
-            case 4: return EstadoCamion.SIN_COMBUSTIBLE;
-            default: return EstadoCamion.DISPONIBLE;
-        }
-    }
-    
-    private int mapEstadoToInt(EstadoCamion estado) {
-        if (estado == EstadoCamion.DISPONIBLE) return 0;
-        if (estado == EstadoCamion.EN_RUTA) return 1;
-        if (estado == EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO) return 2;
-        if (estado == EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA) return 3;
-        if (estado == EstadoCamion.SIN_COMBUSTIBLE) return 4;
-        return 0; // Por defecto disponible
-    }
-    
  
 
     /**

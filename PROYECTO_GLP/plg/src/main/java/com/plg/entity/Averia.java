@@ -1,10 +1,19 @@
 package com.plg.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import jakarta.persistence.*;
-import lombok.*;
 import java.time.LocalDateTime;
 import java.util.Random;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
@@ -78,43 +87,34 @@ public class Averia {
      */
     public void calcularTiemposInoperatividad(int duracionTurnoHoras) {
         if (tipoIncidente == null || fechaHoraReporte == null) return;
-        
+
         LocalDateTime ahora = fechaHoraReporte;
-        
-        if (tipoIncidente.equals("TI1")) {
-            // Incidente tipo 1: inmoviliza 2 horas, continúa ruta
-            tiempoInmovilizacion = ahora.plusHours(2);
-            tiempoFinInoperatividad = tiempoInmovilizacion;
-            requiereTraslado = false;
-        } 
-        else if (tipoIncidente.equals("TI2")) {
-            // Incidente tipo 2: inmoviliza 2 horas + un turno completo
-            tiempoInmovilizacion = ahora.plusHours(2);
-            requiereTraslado = true;
-            
-            // Cálculo de disponibilidad según el turno
-            if (turno.equals("T1")) {
-                // Disponible en turno 3 del mismo día
-                tiempoFinInoperatividad = ahora.plusHours(duracionTurnoHoras * 2);
-            } 
-            else if (turno.equals("T2")) {
-                // Disponible en turno 1 del día siguiente
-                tiempoFinInoperatividad = ahora.plusHours(duracionTurnoHoras * 2);
-            } 
-            else if (turno.equals("T3")) {
-                // Disponible en turno 2 del día siguiente
-                tiempoFinInoperatividad = ahora.plusHours(duracionTurnoHoras * 2);
+
+        switch (tipoIncidente) {
+            case "TI1" -> {
+                // Incidente tipo 1: inmoviliza 2 horas, continúa ruta
+                tiempoInmovilizacion = ahora.plusHours(2);
+                tiempoFinInoperatividad = tiempoInmovilizacion;
+                requiereTraslado = false;
             }
-        } 
-        else if (tipoIncidente.equals("TI3")) {
-            // Incidente tipo 3: inmoviliza 4 horas + tres días completos
-            tiempoInmovilizacion = ahora.plusHours(4);
-            requiereTraslado = true;
-            
-            // Disponible en turno 1 del día A+3
-            tiempoFinInoperatividad = ahora.plusDays(3).withHour(0).plusHours(duracionTurnoHoras);
+            case "TI2" -> {
+                // Incidente tipo 2: inmoviliza 2 horas + un turno completo
+                tiempoInmovilizacion = ahora.plusHours(2);
+                requiereTraslado = true;
+                tiempoFinInoperatividad = ahora.plusHours(duracionTurnoHoras * 2);  
+            }
+            case "TI3" -> {
+                // Incidente tipo 3: inmoviliza 4 horas + tres días completos
+                tiempoInmovilizacion = ahora.plusHours(4);
+                requiereTraslado = true;
+                // Disponible en turno 1 del día A+3
+                tiempoFinInoperatividad = ahora.plusDays(3).withHour(0).plusHours(duracionTurnoHoras);
+            }
+            default -> {
+            }
         }
-    }
+        // Tipo de incidente no reconocido, no se realiza ninguna acción
+            }
     
     /**
      * Sobrecarga del método para usar la duración de turno por defecto (8 horas)
