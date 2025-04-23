@@ -23,7 +23,7 @@ public class MapaConfig {
     @Value("${mapa.largo:70}")
     private double largo; // Largo del mapa en km (eje X)
     
-    @Value("${mapa.ancho:50}")
+    @Value("${mapa.ancho:60}")
     private double ancho; // Ancho del mapa en km (eje Y)
     
     // Origen del mapa

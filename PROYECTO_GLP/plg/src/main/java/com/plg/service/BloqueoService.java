@@ -29,6 +29,16 @@ public class BloqueoService {
     private MapaConfig mapaConfig;
 
     /**
+     * Listar bloqueos activos
+     * 
+    /**
+     *
+     * @return Lista de bloqueos activos
+     */
+    public List<Bloqueo> listarBloqueos() {
+        return bloqueoRepository.findByActivoTrue();
+    }
+    /** 
      * Carga los bloqueos desde un archivo para un mes específico
      * @param anio Año (ej. 2025)
      * @param mes Mes (1-12)

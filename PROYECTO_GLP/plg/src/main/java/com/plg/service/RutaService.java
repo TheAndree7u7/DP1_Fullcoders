@@ -1,8 +1,10 @@
 package com.plg.service;
 
 import com.plg.config.MapaConfig;
+import com.plg.dto.PedidoDTO;
+import com.plg.dto.PuntoRutaDTO;
+import com.plg.dto.RutaDTO;
 import com.plg.entity.*;
-import com.plg.entity.EstadoCamion;
 import com.plg.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+//importar candidato
 
 @Service
 public class RutaService {
@@ -718,4 +721,173 @@ public class RutaService {
         
         return rutasAfectadas;
     }
+        /**
+     * Recorre las rutas en curso e intenta insertar cada pedido en
+     * la posición de menor costo; si no hay sitio, crea una nueva ruta.
+     */
+    @Transactional
+    public List<RutaDTO> insertarPedidosDinamicos(List<PedidoDTO> nuevosPedidos) {
+        List<RutaDTO> rutasActualizadas = new ArrayList<>();
+
+        for (PedidoDTO pedidoDTO : nuevosPedidos) {
+            // 1. Buscar camiones en estado DISPONIBLE
+            var disponibles = camionRepository.findByEstado(EstadoCamion.DISPONIBLE);
+            List<Candidate> candidatos = new ArrayList<>();
+
+            for (Camion cam : disponibles) {
+                Ruta ruta = rutaRepository.findByCamionIdAndEstado(cam.getId(), 1)  // rutas en curso
+                                           .stream().findFirst().orElse(null);
+                if (ruta == null) continue;
+
+                // 2. Generar posiciones de inserción en cada arista de ruta.getNodos()
+                for (int i = 0; i < ruta.getNodos().size() - 1; i++) {
+                    // copia de ruta, insertar el pedido entre nodo i y i+1
+                     
+                    Pedido pedidoEnt = pedidoRepository.findById(pedidoDTO.getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Pedido no encontrado"));
+                    Ruta prueba = new Ruta(ruta);  // ya existe ctor copia
+                    prueba.insertarNodoEn(
+                        i + 1,
+                        pedidoEnt.getPosX(),
+                        pedidoEnt.getPosY(),
+                        pedidoEnt,
+                        pedidoEnt.getVolumenGLPAsignado(),
+                        100.0     
+                    );
+                    prueba.calcularDistanciaTotal();
+                    double consumo = cam.calcularConsumoCombustible(prueba.getDistanciaTotal());
+                    // sólo válidas si cabe en tanque
+                    if (prueba.getDistanciaTotal() <= cam.calcularDistanciaMaxima()) {
+                        candidatos.add(new Candidate(cam, prueba, consumo, i + 1));
+                    }
+                }
+            }
+
+            if (candidatos.isEmpty()) {
+                // 3. No hay inserciones viables: crear una nueva ruta desde central
+                var nuevaRuta = crearRutaDesdeCentral(pedidoDTO);
+                rutasActualizadas.add(toDto(nuevaRuta));
+            } else {
+                // 4. Escoge la menor
+                Candidate mejor = candidatos.stream()
+                                            .min(Comparator.comparingDouble(Candidate::getCosto))
+                                            .get();
+                // Guarda la ruta modificada
+                rutaRepository.save(mejor.getRuta());
+                rutasActualizadas.add(toDto(mejor.getRuta()));
+            }
+        }
+
+        return rutasActualizadas;
+    }
+        /**
+     * Crea una ruta nueva partiendo del almacén central y
+     * asigna el pedido completo.
+     */
+    private Ruta crearRutaDesdeCentral(PedidoDTO pedidoDTO) {
+        Almacen central = almacenRepository.findByEsCentralAndActivoTrue(true);
+        if (central == null) {
+            throw new IllegalStateException("No hay almacén central activo");
+        }
+
+        List<Camion> disponibles = camionRepository.findByEstado(EstadoCamion.DISPONIBLE);
+        if (disponibles.isEmpty()) {
+            throw new IllegalStateException("No hay camiones disponibles");
+        }
+        Camion camion = disponibles.get(0);
+
+        // Construcción de la ruta
+        Ruta ruta = new Ruta("RD-" + System.currentTimeMillis());
+        ruta.setCamion(camion);
+        ruta.setFechaCreacion(LocalDateTime.now());
+        ruta.setEstado(1); // En curso
+
+        // Nodo inicial: almacén central
+        ruta.agregarNodo(central.getPosX(), central.getPosY(), "ALMACEN");
+
+        // Nodo cliente
+        Pedido pedidoEnt = pedidoRepository.findById(pedidoDTO.getId())
+                                           .orElseThrow();
+        ruta.agregarNodoCliente(
+            pedidoEnt.getPosX(),
+            pedidoEnt.getPosY(),
+            pedidoEnt,
+            pedidoEnt.getVolumenGLPAsignado(),
+            100.0
+        );
+
+        // Retorno al central
+        ruta.agregarNodo(central.getPosX(), central.getPosY(), "ALMACEN");
+        ruta.calcularDistanciaTotal();
+
+        return rutaRepository.save(ruta);
+    }
+
+    /**
+     * Transforma una entidad Ruta en un DTO listo para el controlador.
+     */
+    private RutaDTO toDto(Ruta ruta) {
+        List<PuntoRutaDTO> puntos = ruta.getNodos().stream()
+            .map(n -> PuntoRutaDTO.builder()
+                .tipo(n.getTipo())
+                .posX(n.getPosX())
+                .posY(n.getPosY())
+                .idPedido(n.getPedido() != null ? n.getPedido().getId() : null)
+                .build())
+            .collect(Collectors.toList());
+
+        List<PedidoDTO> pedidos = ruta.getNodos().stream()
+            .filter(n -> n.getPedido() != null)
+            .map(n -> {
+                Pedido p = n.getPedido();
+                return PedidoDTO.builder()
+                    .id(p.getId())
+                    .codigo(p.getCodigo())
+                    .posX(p.getPosX())
+                    .posY(p.getPosY())
+                    .volumenGLPAsignado(p.getVolumenGLPAsignado())
+                    .horasLimite(p.getHorasLimite())
+                    .clienteId(p.getCliente().getId())
+                    .clienteNombre(p.getCliente().getNombre())
+                    .build();
+            })
+            .collect(Collectors.toList());
+
+        return RutaDTO.builder()
+            .idRuta(ruta.getCodigo())
+            .distanciaTotal(ruta.getDistanciaTotal())
+            .tiempoEstimado((int) ruta.getTiempoEstimadoMinutos())
+            .pedidos(pedidos)
+            .numeroPedidos(pedidos.size())
+            .puntos(puntos)
+            .camionCodigo(ruta.getCamion().getCodigo())
+            .build();
+    }
+
+    /**
+     * Candidate helper para tabular costo de cada inserción.
+     */
+    private static class Candidate {
+        private final Camion camion;
+        private final Ruta ruta;
+        private final double costo;
+        @SuppressWarnings("unused")
+        private final int posicion;
+
+        public Candidate(Camion camion, Ruta ruta, double costo, int posicion) {
+            this.camion = camion;
+            this.ruta = ruta;
+            this.costo = costo;
+            this.posicion = posicion;
+        }
+
+        public double getCosto() {
+            return costo;
+        }
+
+        public Ruta getRuta() {
+            return ruta;
+        }
+    }
 }
+ 

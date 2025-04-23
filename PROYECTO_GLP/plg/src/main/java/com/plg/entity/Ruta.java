@@ -22,6 +22,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
@@ -40,6 +41,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Ruta {
 
     @Id
@@ -649,5 +651,59 @@ public class Ruta {
             .anyMatch(b -> b.isActivo() && 
                     ahora.isAfter(b.getFechaInicio()) && 
                     ahora.isBefore(b.getFechaFin()));
+    }
+    public Ruta(Ruta other) {
+        this.codigo                 = other.codigo;
+        this.fechaCreacion          = other.fechaCreacion;
+        this.camion                 = other.camion;
+        this.estado                 = other.estado;
+        this.distanciaTotal         = other.distanciaTotal;
+        this.tiempoEstimadoMinutos  = other.tiempoEstimadoMinutos;
+        this.consideraBloqueos      = other.consideraBloqueos;
+        this.volumenTotalGLP        = other.volumenTotalGLP;
+        this.capacidadUtilizadaPorcentaje = other.capacidadUtilizadaPorcentaje;
+        this.bloqueosIds            = other.bloqueosIds;
+        // Clonar nodos
+        this.nodos = new ArrayList<>();
+        for (NodoRuta n : other.getNodos()) {
+            NodoRuta copia = new NodoRuta();
+            copia.setRuta(this);
+            copia.setOrden(n.getOrden());
+            copia.setPosX(n.getPosX());
+            copia.setPosY(n.getPosY());
+            copia.setTipo(n.getTipo());
+            copia.setPedido(n.getPedido());
+            copia.setVolumenGLP(n.getVolumenGLP());
+            copia.setPorcentajePedido(n.getPorcentajePedido());
+            copia.setEntregado(n.isEntregado());
+            copia.setTiempoLlegadaEstimado(n.getTiempoLlegadaEstimado());
+            copia.setTiempoLlegadaReal(n.getTiempoLlegadaReal());
+            copia.setObservaciones(n.getObservaciones());
+            this.nodos.add(copia);
+        }
+    }
+        /**
+     * Inserta un nodo cliente en la posición indicada.
+     */
+    @Transient
+    public void insertarNodoEn(int index,
+                               double posX,
+                               double posY,
+                               Pedido pedido,
+                               double volumenGLP,
+                               double porcentaje) {
+        // Crear el nodo
+        NodoRuta nodo = new NodoRuta(posX, posY, "CLIENTE", pedido, volumenGLP, porcentaje);
+        nodo.setRuta(this);
+        // Insertar en la lista
+        this.nodos.add(index, nodo);
+        // Reajustar los campos 'orden'
+        for (int i = 0; i < nodos.size(); i++) {
+            nodos.get(i).setOrden(i);
+        }
+        // Actualizar métricas de la ruta
+        this.volumenTotalGLP = this.volumenTotalGLP + volumenGLP;
+        this.actualizarCapacidadUtilizada();
+        this.calcularDistanciaTotal();
     }
 }

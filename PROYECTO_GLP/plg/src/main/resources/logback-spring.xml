@@ -50,4 +50,20 @@
         <appender-ref ref="STDOUT"/>
     </root>
 
+
+    <!-- Logger para el genetico -->
+    <logger name="com.plg.service.AlgoritmoGeneticoService" level="INFO" additivity="false">
+        <appender-ref ref="GENETICO-APPENDER"/>
+      </logger>
+      
+      <appender name="GENETICO-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/genetico.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+          <fileNamePattern>logs/genetico.%d{yyyy-MM-dd}.log</fileNamePattern>
+          <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+          <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+      </appender>
 </configuration>

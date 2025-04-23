@@ -20,6 +20,27 @@ public class BloqueoController {
     private ConversionArchivoService conversionArchivoService;
     
     /**
+     * Endpoint para listar todos los bloqueos
+     */
+    @GetMapping("/listar")
+    public ResponseEntity<Map<String, Object>> listarBloqueos() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            var bloqueos = bloqueoService.listarBloqueos();
+            response.put("success", true);
+            response.put("bloqueosCount", bloqueos.size());
+            response.put("bloqueos", bloqueos);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    /**
      * Endpoint para cargar bloqueos de un mes específico
      */
     @GetMapping("/cargar/{anio}/{mes}")
