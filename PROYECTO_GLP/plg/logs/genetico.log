@@ -26,3 +26,33 @@ Parámetros: {alpha=1.0, maxIter=100, damping=0.9, poblacion=50, beta=1.0}
 12:52:24.453 [http-nio-8085-exec-1] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 3 con 4 pedidos para camión C003
 12:52:24.502 [http-nio-8085-exec-1] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 3 creada exitosamente con id: 3
 12:52:24.502 [http-nio-8085-exec-1] INFO  c.p.service.AlgoritmoGeneticoService - Generación de rutas completada. Rutas creadas: 3, Pedidos asignados: 13/13
+14:23:24.843 [http-nio-8085-exec-6] INFO  c.p.service.AlgoritmoGeneticoService - Iniciando generación de rutas con algoritmo genético. Parámetros: {algoritmo=genetico, numeroRutas=3}
+14:23:24.845 [http-nio-8085-exec-6] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos pendientes encontrados: 13
+14:23:24.845 [http-nio-8085-exec-6] INFO  c.p.service.AlgoritmoGeneticoService - Generando 3 rutas para 13 pedidos
+14:23:24.845 [http-nio-8085-exec-6] INFO  c.p.service.AlgoritmoGeneticoService - Camiones disponibles encontrados: 8
+14:23:24.848 [http-nio-8085-exec-6] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos divididos en 3 grupos
+14:23:24.848 [http-nio-8085-exec-6] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 1 con 5 pedidos para camión C001
+14:23:24.849 [http-nio-8085-exec-6] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 1 con 5 pedidos para camión C001
+14:23:24.895 [http-nio-8085-exec-6] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 1 creada exitosamente con id: 1
+14:23:24.895 [http-nio-8085-exec-6] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 2 con 4 pedidos para camión C002
+14:23:24.895 [http-nio-8085-exec-6] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 2 con 4 pedidos para camión C002
+14:23:24.922 [http-nio-8085-exec-6] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 2 creada exitosamente con id: 2
+14:23:24.923 [http-nio-8085-exec-6] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 3 con 4 pedidos para camión C003
+14:23:24.923 [http-nio-8085-exec-6] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 3 con 4 pedidos para camión C003
+14:23:24.953 [http-nio-8085-exec-6] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 3 creada exitosamente con id: 3
+14:23:24.955 [http-nio-8085-exec-6] INFO  c.p.service.AlgoritmoGeneticoService - Generación de rutas completada. Rutas creadas: 3, Pedidos asignados: 13/13
+14:32:20.580 [http-nio-8085-exec-8] INFO  c.p.service.AlgoritmoGeneticoService - Iniciando generación de rutas con algoritmo genético. Parámetros: {algoritmo=genetico, numeroRutas=3}
+14:32:20.582 [http-nio-8085-exec-8] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos pendientes encontrados: 13
+14:32:20.582 [http-nio-8085-exec-8] INFO  c.p.service.AlgoritmoGeneticoService - Generando 3 rutas para 13 pedidos
+14:32:20.583 [http-nio-8085-exec-8] INFO  c.p.service.AlgoritmoGeneticoService - Camiones disponibles encontrados: 5
+14:32:20.584 [http-nio-8085-exec-8] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos divididos en 3 grupos
+14:32:20.584 [http-nio-8085-exec-8] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 1 con 5 pedidos para camión C004
+14:32:20.584 [http-nio-8085-exec-8] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 1 con 5 pedidos para camión C004
+14:32:20.626 [http-nio-8085-exec-8] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 1 creada exitosamente con id: 4
+14:32:20.626 [http-nio-8085-exec-8] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 2 con 4 pedidos para camión C005
+14:32:20.626 [http-nio-8085-exec-8] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 2 con 4 pedidos para camión C005
+14:32:20.662 [http-nio-8085-exec-8] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 2 creada exitosamente con id: 5
+14:32:20.662 [http-nio-8085-exec-8] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 3 con 4 pedidos para camión C006
+14:32:20.662 [http-nio-8085-exec-8] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 3 con 4 pedidos para camión C006
+14:32:20.697 [http-nio-8085-exec-8] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 3 creada exitosamente con id: 6
+14:32:20.697 [http-nio-8085-exec-8] INFO  c.p.service.AlgoritmoGeneticoService - Generación de rutas completada. Rutas creadas: 3, Pedidos asignados: 13/13
