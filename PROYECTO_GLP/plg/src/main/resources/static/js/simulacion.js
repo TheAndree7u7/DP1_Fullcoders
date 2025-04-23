@@ -10,6 +10,10 @@ const ultimaActualizacion = new Map();
 const ultimoNodo = new Map();
 // Variable para almacenar el índice del nodo actual en la ruta para cada camión
 const indiceNodoActual = new Map();
+// Variable para almacenar el historial de nodos recorridos por camión
+const historicoNodos = new Map();
+
+let stompClient = null;
 
 // Iniciar simulación en tiempo real
 export function iniciarSimulacion() {
@@ -30,6 +34,7 @@ export function iniciarSimulacion() {
         ultimaActualizacion.clear();
         ultimoNodo.clear();
         indiceNodoActual.clear();
+        historicoNodos.clear();
         
         // Conectar al WebSocket para recibir actualizaciones en tiempo real
         conectarWebSocket();
@@ -71,26 +76,23 @@ export function detenerSimulacion() {
 }
 
 // Cambiar velocidad de la simulación
-export function cambiarVelocidad() {
-    const nuevaVelocidad = parseInt(document.getElementById('velocidad-simulacion').value);
-    
-    // Validar que sea un número entre 1 y 10
-    if (isNaN(nuevaVelocidad) || nuevaVelocidad < 1 || nuevaVelocidad > 10) {
-        mostrarNotificacion('La velocidad debe ser un número entre 1 y 10', 'warning');
+export function cambiarVelocidadSimulacion(factor) {
+    // Validación básica del factor
+    if (factor < 1 || factor > 10 || isNaN(factor)) {
+        mostrarNotificacion('Factor de velocidad inválido. Debe ser un número entre 1 y 10.', 'warning');
         return;
     }
     
-    // Llamar a la API para ajustar velocidad
-    fetch(`/api/simulacion/ajustar-velocidad?factor=${nuevaVelocidad}`, {
+    // Llamar a la API para ajustar la velocidad
+    fetch(`/api/simulacion/ajustar-velocidad?factor=${factor}`, {
         method: 'POST'
     })
     .then(response => response.json())
     .then(data => {
         console.log('Velocidad ajustada:', data);
-        window.app.velocidadSimulacion = data.factorVelocidad || nuevaVelocidad;
         
         // Mostrar mensaje de éxito
-        mostrarNotificacion('Velocidad ajustada correctamente', 'success');
+        mostrarNotificacion(`Velocidad de simulación ajustada a ${factor}x`, 'info');
     })
     .catch(error => {
         console.error('Error ajustando velocidad:', error);
@@ -99,266 +101,187 @@ export function cambiarVelocidad() {
 }
 
 // Conectar al WebSocket para recibir actualizaciones en tiempo real
-export function conectarWebSocket() {
-    // Si ya hay una conexión, desconectar primero
-    if (window.app.stompClient !== null) {
-        desconectarWebSocket();
-    }
+function conectarWebSocket() {
+    const socket = new SockJS('/websocket-app');
+    stompClient = Stomp.over(socket);
     
-    // Crear nueva conexión
-    const socket = new SockJS('/ws');
-    window.app.stompClient = Stomp.over(socket);
-    
-    window.app.stompClient.connect({}, function(frame) {
-        console.log('Conectado a WebSocket: ' + frame);
+    stompClient.connect({}, frame => {
+        console.log('Conectado al WebSocket:', frame);
         
-        // Suscribirse a actualizaciones de posiciones
-        window.app.stompClient.subscribe('/topic/posiciones', function(message) {
-            const data = JSON.parse(message.body);
-            actualizarPosiciones(data);
+        // Suscribirse al tema de actualizaciones de simulación
+        stompClient.subscribe('/topic/simulacion', message => {
+            const actualizacion = JSON.parse(message.body);
+            procesarActualizacionSimulacion(actualizacion);
         });
         
-        // Suscribirse a notificaciones de entregas
-        window.app.stompClient.subscribe('/topic/entregas', function(message) {
-            const data = JSON.parse(message.body);
-            procesarEntrega(data);
+        // Suscribirse al tema de actualizaciones de camiones
+        stompClient.subscribe('/topic/camiones', message => {
+            const actualizacion = JSON.parse(message.body);
+            procesarActualizacionCamion(actualizacion);
         });
         
-        // Suscribirse a notificaciones de rutas
-        window.app.stompClient.subscribe('/topic/rutas', function(message) {
-            const data = JSON.parse(message.body);
-            procesarEventoRuta(data);
+        // Suscribirse al tema de eventos
+        stompClient.subscribe('/topic/eventos', message => {
+            const evento = JSON.parse(message.body);
+            procesarEvento(evento);
         });
         
-        // Suscribirse a notificaciones de llegadas a nodos
-        window.app.stompClient.subscribe('/topic/nodos', function(message) {
-            const data = JSON.parse(message.body);
-            procesarLlegadaNodo(data);
+        // Suscribirse al tema de estadísticas
+        stompClient.subscribe('/topic/estadisticas', message => {
+            const estadisticas = JSON.parse(message.body);
+            actualizarEstadisticas(estadisticas);
         });
-        
-        // Suscribirse a notificaciones de recargas
-        window.app.stompClient.subscribe('/topic/recargas', function(message) {
-            const data = JSON.parse(message.body);
-            procesarRecarga(data);
-        });
-    }, function(error) {
-        console.error('Error conectando a WebSocket:', error);
-        mostrarNotificacion('Error conectando a la simulación en tiempo real', 'error');
+    }, error => {
+        console.error('Error de conexión WebSocket:', error);
+        mostrarNotificacion('Error de conexión con el servidor de simulación', 'error');
     });
 }
 
 // Desconectar del WebSocket
-export function desconectarWebSocket() {
-    if (window.app.stompClient !== null) {
-        window.app.stompClient.disconnect();
-        window.app.stompClient = null;
+function desconectarWebSocket() {
+    if (stompClient !== null) {
+        stompClient.disconnect();
+        stompClient = null;
+        console.log('Desconectado del WebSocket');
     }
 }
 
-// Actualizar posiciones de todos los elementos
-export function actualizarPosiciones(data) {
-    const ahora = Date.now();
+// Procesar las actualizaciones de la simulación
+function procesarActualizacionSimulacion(actualizacion) {
+    console.log('Actualización de simulación recibida:', actualizacion);
     
-    // Actualizar camiones
-    if (data.camiones && Array.isArray(data.camiones)) {
-        window.app.camiones = data.camiones.map(nuevoCamion => {
-            // Inicializar el tracking de este camión si no existe
-            if (!ultimoNodo.has(nuevoCamion.id)) {
-                ultimoNodo.set(nuevoCamion.id, { posX: nuevoCamion.posX, posY: nuevoCamion.posY });
-                ultimaActualizacion.set(nuevoCamion.id, ahora);
-                indiceNodoActual.set(nuevoCamion.id, 0);
+    // Si es una notificación de inicio o fin, no hay que hacer más
+    if (actualizacion.accion === 'iniciada' || actualizacion.accion === 'detenida') {
+        return;
+    }
+    
+    // Actualizar información general
+    if (actualizacion.estadisticas) {
+        actualizarEstadisticas(actualizacion.estadisticas);
+    }
+}
+
+// Procesar las actualizaciones de un camión específico
+function procesarActualizacionCamion(actualizacion) {
+    console.log('Actualización de camión recibida:', actualizacion);
+    
+    const camionId = actualizacion.camionId;
+    const posicionActual = {
+        x: actualizacion.posX,
+        y: actualizacion.posY
+    };
+    
+    // Registrar última actualización para este camión
+    ultimaActualizacion.set(camionId, Date.now());
+    
+    // Si es la primera actualización, inicializar el histórico
+    if (!historicoNodos.has(camionId)) {
+        historicoNodos.set(camionId, [posicionActual]);
+        ultimoNodo.set(camionId, posicionActual);
+    } else {
+        const ultimaPosicion = ultimoNodo.get(camionId);
+        
+        // Si la posición cambió, actualizar
+        if (ultimaPosicion.x !== posicionActual.x || ultimaPosicion.y !== posicionActual.y) {
+            historicoNodos.get(camionId).push(posicionActual);
+            ultimoNodo.set(camionId, posicionActual);
+            
+            // Actualizar índice del nodo actual si corresponde
+            if (actualizacion.indiceNodoActual !== undefined) {
+                indiceNodoActual.set(camionId, actualizacion.indiceNodoActual);
             }
             
-            const posicionAnterior = ultimoNodo.get(nuevoCamion.id);
-            
-            // Verificar si realmente hubo un cambio de posición significativo
-            const hayCambioReal = 
-                Math.abs(nuevoCamion.posX - posicionAnterior.posX) > 0.01 || 
-                Math.abs(nuevoCamion.posY - posicionAnterior.posY) > 0.01;
-                
-            // Solo actualizar si el cambio es real y diferente al anterior
-            if (hayCambioReal) {
-                ultimoNodo.set(nuevoCamion.id, { posX: nuevoCamion.posX, posY: nuevoCamion.posY });
-                ultimaActualizacion.set(nuevoCamion.id, ahora);
-                
-                // Cuando hay un cambio real de posición, incrementamos el índice del nodo
-                // pero solo si no viene especificado en el mensaje
-                if (nuevoCamion.nodoActualIndex === undefined) {
-                    const indiceActual = indiceNodoActual.get(nuevoCamion.id) || 0;
-                    const nuevoIndice = indiceActual + 1;
-                    indiceNodoActual.set(nuevoCamion.id, nuevoIndice);
-                    nuevoCamion.nodoActualIndex = nuevoIndice;
-                    
-                    console.log(`Camión ${nuevoCamion.codigo || nuevoCamion.id} avanzó al nodo ${nuevoIndice}, posición: (${nuevoCamion.posX},${nuevoCamion.posY})`);
-                } else {
-                    // Si viene especificado, usamos ese valor pero comprobamos que sea válido
-                    const indiceActual = indiceNodoActual.get(nuevoCamion.id) || 0;
-                    // Solo aceptamos índices mayores para asegurar el avance
-                    if (nuevoCamion.nodoActualIndex >= indiceActual) {
-                        indiceNodoActual.set(nuevoCamion.id, nuevoCamion.nodoActualIndex);
-                    } else {
-                        nuevoCamion.nodoActualIndex = indiceActual;
-                    }
-                }
-            } else {
-                // Si no hay cambio real, mantenemos el último índice conocido
-                nuevoCamion.nodoActualIndex = indiceNodoActual.get(nuevoCamion.id) || 0;
-            }
-            
-            return nuevoCamion;
-        });
+            // Actualizar mapa con la nueva posición del camión
+            dibujarMapa();
+        }
     }
     
-    // Actualizar almacenes
-    if (data.almacenes && Array.isArray(data.almacenes)) {
-        window.app.almacenes = data.almacenes;
+    // Si hay evento de entrega, mostrar animación
+    if (actualizacion.evento === 'entrega') {
+        mostrarAnimacionEntrega(posicionActual.x, posicionActual.y);
+        agregarEventoAlHistorial(`Camión ${actualizacion.camionCodigo} entregó pedido ${actualizacion.pedidoCodigo}`);
     }
     
-    // Actualizar pedidos
-    if (data.pedidos && Array.isArray(data.pedidos)) {
-        window.app.pedidos = data.pedidos;
+    // Si hay evento de recarga, mostrar animación
+    if (actualizacion.evento === 'recarga') {
+        mostrarAnimacionRecarga(posicionActual.x, posicionActual.y);
+        agregarEventoAlHistorial(`Camión ${actualizacion.camionCodigo} recargó en almacén`);
     }
     
-    // Actualizar rutas
-    if (data.rutas && Array.isArray(data.rutas)) {
-        window.app.rutas = data.rutas;
-    }
-    
-    // Redibujar el mapa con las nuevas posiciones
-    dibujarMapa();
-    
-    // Actualizar panel de información con los datos proporcionados por el servidor
+    // Actualizar panel de información con datos del camión
     actualizarPanelInformacion({
-        camiones: window.app.camiones ? window.app.camiones.length : 0,
-        almacenes: window.app.almacenes ? window.app.almacenes.length : 0,
-        pedidos: window.app.pedidos ? window.app.pedidos.length : 0,
-        rutas: window.app.rutas ? window.app.rutas.length : 0,
-        simulacionEnCurso: window.app.simulacionEnCurso,
-        camionesEnRuta: data.camionesEnRuta || (window.app.camiones ? window.app.camiones.filter(c => c.estado === 1).length : 0),
-        pedidosPendientes: data.pedidosPendientes || (window.app.pedidos ? window.app.pedidos.filter(p => p.estado === 0).length : 0),
-        pedidosEnRuta: data.pedidosEnRuta || (window.app.pedidos ? window.app.pedidos.filter(p => p.estado === 1).length : 0),
-        rutasActivas: data.rutasActivas || (window.app.rutas ? window.app.rutas.filter(r => r.estado === 1).length : 0)
+        camion: {
+            id: camionId,
+            codigo: actualizacion.camionCodigo,
+            posicion: posicionActual,
+            combustible: actualizacion.combustibleActual,
+            carga: actualizacion.cargaActual,
+            estado: actualizacion.estado
+        }
     });
-    
-    // Actualizar contador de elementos en tiempo real con comprobación null
-    const contadorCamiones = document.getElementById('contador-camiones');
-    if (contadorCamiones) contadorCamiones.textContent = window.app.camiones ? window.app.camiones.length : 0;
-    
-    const contadorAlmacenes = document.getElementById('contador-almacenes');
-    if (contadorAlmacenes) contadorAlmacenes.textContent = window.app.almacenes ? window.app.almacenes.length : 0;
-    
-    const contadorPedidos = document.getElementById('contador-pedidos');
-    if (contadorPedidos) contadorPedidos.textContent = window.app.pedidos ? window.app.pedidos.length : 0;
-    
-    const contadorRutas = document.getElementById('contador-rutas');
-    if (contadorRutas) contadorRutas.textContent = window.app.rutas ? window.app.rutas.length : 0;
 }
 
-// Procesar entrega de pedido
-export function procesarEntrega(data) {
-    console.log('Entrega realizada:', data);
+// Procesar eventos especiales (bloqueos, averías, etc.)
+function procesarEvento(evento) {
+    console.log('Evento recibido:', evento);
     
-    // Mostrar animación de entrega
-    mostrarAnimacionEntrega(data.posX, data.posY);
-    
-    // Agregar a historial de eventos
-    agregarEventoAlHistorial({
-        tipo: 'Entrega',
-        mensaje: `Camión ${data.camionCodigo} entregó pedido ${data.pedidoCodigo}`,
-        fecha: new Date().toLocaleTimeString(),
-        detalles: `Volumen: ${data.volumenEntregado.toFixed(2)} m³ (${data.porcentajeEntregado.toFixed(0)}%)`
-    });
-    
-    // Mostrar notificación de entrega
-    mostrarNotificacion(`Entrega realizada: Camión ${data.camionCodigo} - Pedido ${data.pedidoCodigo}`, 'info');
-}
-
-// Procesar evento de ruta (inicio, fin)
-export function procesarEventoRuta(data) {
-    console.log('Evento ruta:', data);
-    
+    // Mostrar notificación según tipo de evento
     let mensaje = '';
+    let tipo = 'info';
     
-    switch(data.tipo) {
-        case 'inicioRuta':
-            mensaje = `Camión ${data.camionCodigo} inició ruta ${data.rutaCodigo}`;
+    switch (evento.tipo) {
+        case 'bloqueo':
+            mensaje = `Nuevo bloqueo detectado en (${evento.posX}, ${evento.posY}): ${evento.descripcion}`;
+            tipo = 'warning';
             break;
-        case 'finRutas':
-            mensaje = `Camión ${data.camionCodigo} completó todas sus rutas`;
+        case 'averia':
+            mensaje = `Avería en camión ${evento.camionCodigo}: ${evento.descripcion}`;
+            tipo = 'error';
+            break;
+        case 'mantenimiento':
+            mensaje = `Mantenimiento programado para camión ${evento.camionCodigo}`;
+            tipo = 'info';
+            break;
+        case 'pedido_entregado':
+            mensaje = `Pedido ${evento.pedidoCodigo} entregado exitosamente`;
+            tipo = 'success';
             break;
     }
     
-    // Agregar a historial de eventos
-    agregarEventoAlHistorial({
-        tipo: 'Ruta',
-        mensaje: mensaje,
-        fecha: new Date().toLocaleTimeString()
+    // Mostrar la notificación
+    if (mensaje) {
+        mostrarNotificacion(mensaje, tipo);
+        agregarEventoAlHistorial(mensaje);
+    }
+    
+    // Actualizar mapa si es necesario (bloqueos, nuevos pedidos, etc.)
+    if (['bloqueo', 'pedido_nuevo'].includes(evento.tipo)) {
+        dibujarMapa();
+    }
+}
+
+// Actualizar estadísticas generales
+function actualizarEstadisticas(estadisticas) {
+    console.log('Estadísticas recibidas:', estadisticas);
+    
+    // Actualizar panel de información con las estadísticas
+    actualizarPanelInformacion({
+        estadisticas: {
+            camionesTotal: estadisticas.camionesTotal,
+            camionesEnRuta: estadisticas.camionesEnRuta,
+            pedidosTotal: estadisticas.pedidosTotal,
+            pedidosPendientes: estadisticas.pedidosPendientes,
+            pedidosEnRuta: estadisticas.pedidosEnRuta,
+            pedidosEntregados: estadisticas.pedidosEntregados,
+            timestamp: estadisticas.timestamp
+        }
     });
 }
 
-// Procesar llegada a un nodo de la ruta
-export function procesarLlegadaNodo(data) {
-    console.log('Llegada a nodo:', data);
-    
-    // Actualizar el índice de nodo del camión para evitar retrocesos
-    const camion = window.app.camiones.find(c => c.id === data.camionId);
-    if (camion) {
-        // Asegurar avance consistente incrementando el nodo actual
-        const indiceActual = indiceNodoActual.get(camion.id) || 0;
-        const nuevoIndice = data.nodoIndex !== undefined ? data.nodoIndex : indiceActual + 1;
-        
-        // Solo actualizar si realmente avanza
-        if (nuevoIndice > indiceActual) {
-            indiceNodoActual.set(camion.id, nuevoIndice);
-            camion.nodoActualIndex = nuevoIndice;
-            
-            // También actualizamos la posición
-            if (data.posX !== undefined && data.posY !== undefined) {
-                ultimoNodo.set(camion.id, { posX: data.posX, posY: data.posY });
-                camion.posX = data.posX;
-                camion.posY = data.posY;
-            }
-            
-            console.log(`Camión ${data.camionCodigo} avanzó al nodo ${nuevoIndice}, posición: (${camion.posX},${camion.posY})`);
-        }
-    }
-    
-    // Solo mostrar notificación si es un nodo importante (cliente o almacén)
-    if (data.nodoTipo === 'CLIENTE' || data.nodoTipo === 'ALMACEN') {
-        let mensaje = `Camión ${data.camionCodigo} llegó a ${data.nodoTipo.toLowerCase()}`;
-        
-        if (data.pedidoCodigo) {
-            mensaje += ` - Pedido ${data.pedidoCodigo}`;
-        }
-        
-        // Agregar a historial de eventos
-        agregarEventoAlHistorial({
-            tipo: 'Llegada',
-            mensaje: mensaje,
-            fecha: new Date().toLocaleTimeString(),
-            detalles: `Posición: (${data.posX}, ${data.posY})`
-        });
-    }
-    
-    // Redibujar el mapa después de actualizar la posición
-    dibujarMapa();
-}
-
-// Procesar recarga de combustible y GLP
-export function procesarRecarga(data) {
-    console.log('Recarga realizada:', data);
-    
-    // Mostrar animación de recarga
-    const camion = window.app.camiones.find(c => c.id === data.camionId);
-    if (camion) {
-        mostrarAnimacionRecarga(camion.posX, camion.posY);
-    }
-    
-    // Agregar a historial de eventos
-    agregarEventoAlHistorial({
-        tipo: 'Recarga',
-        mensaje: `Camión ${data.camionCodigo} recargó en ${data.almacenNombre}`,
-        fecha: new Date().toLocaleTimeString(),
-        detalles: `Combustible: ${data.combustibleRecargado.toFixed(2)} galones`
-    });
-}
+// Exportar funciones y variables útiles para debugging
+export const debug = {
+    getUltimaActualizacion: () => ultimaActualizacion,
+    getUltimoNodo: () => ultimoNodo,
+    getHistoricoNodos: () => historicoNodos,
+    getIndiceNodoActual: () => indiceNodoActual
+};

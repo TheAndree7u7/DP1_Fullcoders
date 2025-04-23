@@ -2,6 +2,7 @@
 
 import { dibujarMapa } from './mapa.js';
 import { actualizarPanelInformacion, agregarEventoAlHistorial, mostrarNotificacion } from './ui.js';
+import { normalizarRutas } from './utils.js';
 
 // Ejecutar el algoritmo de Affinity Propagation
 export function ejecutarAffinityPropagation() {
@@ -77,6 +78,9 @@ export function ejecutarAffinityPropagation() {
         
         // Mostrar notificación de éxito
         mostrarNotificacion(`Agrupamiento completado: ${window.app.clusters.length} grupos generados`, 'success');
+        
+        // Devolver datos para encadenamiento
+        return data;
     })
     .catch(error => {
         console.error('Error ejecutando Affinity Propagation:', error);
@@ -269,8 +273,11 @@ export function generarRutas() {
     };
     
     // Si hay clusters, usarlos como input
-    if (window.app.clusters.length > 0) {
+    if (window.app.clusters && window.app.clusters.length > 0) {
         parametros.clusters = window.app.clusters.map(c => c.idGrupo);
+        console.log('[OPTIMIZACIÓN] Usando clusters para generación de rutas:', parametros.clusters);
+    } else {
+        console.log('[OPTIMIZACIÓN] ⚠️ No hay clusters disponibles, se generarán rutas sin agrupamiento');
     }
     
     return fetch('/api/rutas/generar', {
@@ -289,20 +296,27 @@ export function generarRutas() {
     .then(data => {
         console.log('Rutas generadas:', data);
         
-        // Actualizar la UI con las nuevas rutas
-        return cargarRutasGeneradas().then(() => data);
-    })
-    .then(data => {
-        // Actualizar estado
-        window.app.progresoPorcentaje = 100;
-        actualizarPanelInformacion({
-            etapaOptimizacion: window.app.etapaOptimizacion,
-            progresoOptimizacion: window.app.progresoPorcentaje
-        });
+        // Validar que las rutas tengan la estructura correcta
+        if (data && data.rutas && Array.isArray(data.rutas)) {
+            // Extraer las rutas generadas y guardarlas temporalmente
+            const rutasGeneradas = data.rutas;
+            
+            // Verificar cada ruta recibida
+            rutasGeneradas.forEach((ruta, index) => {
+                console.log(`[OPTIMIZACIÓN] Ruta generada #${index+1}: ${ruta.idRuta}, camión: ${ruta.camionCodigo}, ${ruta.numeroPedidos} pedidos, ${ruta.puntos ? ruta.puntos.length : 0} puntos`);
+                
+                if (!ruta.puntos || !Array.isArray(ruta.puntos) || ruta.puntos.length < 2) {
+                    console.warn(`[OPTIMIZACIÓN] ⚠️ Ruta generada ${index+1} sin puntos o con menos de 2 puntos`);
+                }
+            });
+        }
         
-        // Mostrar mensaje de éxito
-        mostrarNotificacion('Rutas generadas correctamente', 'success');
-        return data;
+        // Actualizar la UI con las nuevas rutas
+        return cargarRutasGeneradas().then(() => {
+            // Mostrar notificación
+            mostrarNotificacion(`Rutas generadas: ${window.app.rutas.length}`, 'success');
+            return data;
+        });
     })
     .catch(error => {
         console.error('Error generando rutas:', error);
@@ -331,11 +345,65 @@ export function cargarRutasGeneradas() {
             return response.json();
         })
         .then(data => {
-            console.log('Rutas generadas cargadas:', data);
-            window.app.rutas = Array.isArray(data) ? data : [];
+            console.log('Rutas cargadas desde API:', data);
+            
+            // Normalizar estructura de rutas antes de guardar
+            if (Array.isArray(data)) {
+                let rutasNormalizadas = normalizarRutas(data);
+                
+                // Asegurar que todas las rutas tengan puntos definidos
+                rutasNormalizadas = rutasNormalizadas.map((ruta, index) => {
+                    // Si después de normalizar sigue sin puntos, crear puntos vacíos
+                    if (!ruta.puntos || !Array.isArray(ruta.puntos) || ruta.puntos.length < 2) {
+                        console.warn(`[OPTIMIZACIÓN] ⚠️ Ruta ${index+1} (${ruta.idRuta || 'sin ID'}) sin puntos suficientes`);
+                        
+                        // Asegurar que hay un array para trabajar
+                        if (!ruta.puntos) {
+                            ruta.puntos = [];
+                        }
+                        
+                        // Si la ruta tiene camión asignado, intentar recuperar info de camión
+                        if (ruta.camionCodigo) {
+                            const camion = window.app.camiones.find(c => c.codigo === ruta.camionCodigo);
+                            if (camion && ruta.puntos.length === 0) {
+                                // Al menos agregar la posición actual del camión
+                                ruta.puntos.push({
+                                    tipo: "INICIO",
+                                    posX: camion.posX,
+                                    posY: camion.posY
+                                });
+                                
+                                // Si hay almacén central, agregar como punto final
+                                const almacenCentral = window.app.almacenes.find(a => a.esCentral === true);
+                                if (almacenCentral) {
+                                    ruta.puntos.push({
+                                        tipo: "ALMACEN",
+                                        posX: almacenCentral.posX,
+                                        posY: almacenCentral.posY
+                                    });
+                                }
+                                
+                                console.log(`[OPTIMIZACIÓN] 🛠️ Creados puntos básicos para ruta ${index+1} basado en camión ${camion.codigo}`);
+                            }
+                        }
+                    }
+                    return ruta;
+                });
+                
+                // Log para debug
+                rutasNormalizadas.forEach((ruta, idx) => {
+                    console.log(`[OPTIMIZACIÓN] Ruta #${idx+1}: ${ruta.idRuta || 'Sin ID'}, ${ruta.puntos ? ruta.puntos.length : 0} puntos, camión: ${ruta.camionCodigo || 'No asignado'}`);
+                });
+                
+                window.app.rutas = rutasNormalizadas;
+            } else {
+                console.error("[OPTIMIZACIÓN] API devolvió datos que no son un array");
+                window.app.rutas = [];
+            }
             
             // Actualizar contador de rutas en la UI
-            document.getElementById('contador-rutas').textContent = window.app.rutas.length;
+            const contadorRutas = document.getElementById('contador-rutas');
+            if (contadorRutas) contadorRutas.textContent = window.app.rutas.length;
             
             // Agregar evento al historial
             agregarEventoAlHistorial({
