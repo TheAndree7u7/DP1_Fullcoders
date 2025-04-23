@@ -1,92 +1,61 @@
 package com.plg.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
 import java.time.LocalTime;
-//importar column default
-import org.hibernate.annotations.ColumnDefault;
-@Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-public class Almacen {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    private String nombre;
-    private double posX; // Posición X en el mapa
-    private double posY; // Posición Y en el mapa
-    
-    // !Capacidades para GLPP
-    private double capacidadGLP; // Capacidad total de GLP en m3
-    private double capacidadActualGLP; // Capacidad actual disponible de GLP en m3
-    private double capacidadMaximaGLP; // Capacidad máxima para restaurar en reabastecimiento
-    
-    //!Capacidades para combustible (gasolina/petróleo)
-    private double capacidadCombustible; // Capacidad total de combustible en galones
-    private double capacidadActualCombustible; // Capacidad actual disponible de combustible en galones 
-    private double capacidadMaximaCombustible; // Capacidad máxima para restaurar en reabastecimiento
-    
 
-    //! Tipo de almacén
-    private boolean esCentral; // Indica si es el almacén central (true) o intermedio (false)
-    private boolean permiteCamionesEstacionados; // Solo el central permite esto por defecto
+@Data
+public class Almacen {
+
+    private String nombre;
+    private double posX;
+    private double posY;
+
+    // GLP
+    private double capacidadGLP;
+    private double capacidadActualGLP;
+    private double capacidadMaximaGLP;
+
+    // Combustible
+    private double capacidadCombustible;
+    private double capacidadActualCombustible;
+    private double capacidadMaximaCombustible;
+
+    // Tipo de almacén
+    private boolean esCentral;
+    private boolean permiteCamionesEstacionados;
     private String tipo;
-    //el tio se asigna segun el b
-    // Hora de reabastecimiento para almacenes intermedios
-    private LocalTime horaReabastecimiento = LocalTime.MIDNIGHT; // Por defecto a las 00:00
-    private boolean ultimoReabastecimientoRealizado = false; // Indica si ya se realizó el reabastecimiento hoy
-    @Column(name = "activo")
-    @ColumnDefault("true")
-    private boolean activo; // Estado del almacén (activo/inactivo)
-     
-    //!Puede recargar?
-    // Método para verificar si el almacén puede recargar combustible
+
+    private LocalTime horaReabastecimiento = LocalTime.MIDNIGHT;
+    private boolean ultimoReabastecimientoRealizado = false;
+    private boolean activo;
+
     public boolean puedeRecargarCombustible(double cantidadRequerida) {
-        return capacidadActualCombustible >= cantidadRequerida && activo;
+        return activo && capacidadActualCombustible >= cantidadRequerida;
     }
-    
-    // Método para verificar si el almacén puede suplir GLP
+
     public boolean puedeProveerGLP(double cantidadRequerida) {
-        return capacidadActualGLP >= cantidadRequerida && activo;
+        return activo && capacidadActualGLP >= cantidadRequerida;
     }
-    
-    // Método para recargar combustible a un camión
+
     public boolean recargarCombustible(Camion camion, double cantidad) {
-        if (!puedeRecargarCombustible(cantidad)) {
-            return false;
-        }
-        
-        // Verificar capacidad disponible en el tanque del camión
-        double espacioDisponibleCamion = camion.getCapacidadTanque() - camion.getCombustibleActual();
-        double cantidadEfectiva = Math.min(cantidad, Math.min(espacioDisponibleCamion, capacidadActualCombustible));
-        
-        if (cantidadEfectiva <= 0) {
-            return false;
-        }
-        
-        // Realizar la recarga
-        this.capacidadActualCombustible -= cantidadEfectiva;
-        camion.setCombustibleActual(camion.getCombustibleActual() + cantidadEfectiva);
+        if (!puedeRecargarCombustible(cantidad)) return false;
+        double espacio = camion.getCapacidadTanque() - camion.getCombustibleActual();
+        double efectivo = Math.min(cantidad, Math.min(espacio, capacidadActualCombustible));
+        if (efectivo <= 0) return false;
+        capacidadActualCombustible -= efectivo;
+        camion.setCombustibleActual(camion.getCombustibleActual() + efectivo);
         return true;
     }
-    
-    // Método para calcular la distancia desde este almacén hasta una posición
+
     public double calcularDistancia(double posX2, double posY2) {
-        // Distancia Manhattan: suma de las diferencias absolutas en cada dimensión
         return Math.abs(posX - posX2) + Math.abs(posY - posY2);
     }
-    
-    // Método para reabastecer el almacén
+
     public void reabastecer() {
         if (!esCentral) {
-            // Solo reabastecemos los almacenes intermedios
-            this.capacidadActualGLP = this.capacidadMaximaGLP;
-            this.capacidadActualCombustible = this.capacidadMaximaCombustible;
-            this.ultimoReabastecimientoRealizado = true;
+            capacidadActualGLP = capacidadMaximaGLP;
+            capacidadActualCombustible = capacidadMaximaCombustible;
+            ultimoReabastecimientoRealizado = true;
         }
     }
 }
