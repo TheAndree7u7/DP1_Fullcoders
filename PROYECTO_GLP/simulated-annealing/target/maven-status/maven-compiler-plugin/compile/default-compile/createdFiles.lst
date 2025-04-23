@@ -1,0 +1,10 @@
+com/plg/simulator/DataLoader.class
+com/plg/model/Coordenada.class
+com/plg/planner/Planner.class
+com/plg/simulator/TestData.class
+com/plg/simulator/FileParser.class
+com/plg/model/Bloqueo.class
+com/plg/Main.class
+com/plg/simulator/SimulatedAnnealing.class
+com/plg/model/Pedido.class
+com/plg/model/Camion.class

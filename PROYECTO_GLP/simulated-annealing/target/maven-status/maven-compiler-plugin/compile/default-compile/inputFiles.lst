@@ -1,0 +1,10 @@
+/Users/gerard/Documents/repositorios/planner/src/main/java/com/plg/Main.java
+/Users/gerard/Documents/repositorios/planner/src/main/java/com/plg/model/Bloqueo.java
+/Users/gerard/Documents/repositorios/planner/src/main/java/com/plg/model/Camion.java
+/Users/gerard/Documents/repositorios/planner/src/main/java/com/plg/model/Coordenada.java
+/Users/gerard/Documents/repositorios/planner/src/main/java/com/plg/model/Pedido.java
+/Users/gerard/Documents/repositorios/planner/src/main/java/com/plg/planner/Planner.java
+/Users/gerard/Documents/repositorios/planner/src/main/java/com/plg/simulator/DataLoader.java
+/Users/gerard/Documents/repositorios/planner/src/main/java/com/plg/simulator/FileParser.java
+/Users/gerard/Documents/repositorios/planner/src/main/java/com/plg/simulator/SimulatedAnnealing.java
+/Users/gerard/Documents/repositorios/planner/src/main/java/com/plg/simulator/TestData.java
