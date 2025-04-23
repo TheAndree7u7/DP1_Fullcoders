@@ -1,25 +1,36 @@
 package com.plg.config;
 
-import com.plg.entity.*;
-import com.plg.entity.EstadoCamion;
-import com.plg.entity.EstadoPedido;
-import com.plg.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
-import org.springframework.core.io.ClassPathResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
+
+import com.plg.entity.Almacen;
+import com.plg.entity.Camion;
+import com.plg.entity.Cliente;
+import com.plg.entity.EstadoCamion;
+import com.plg.entity.EstadoPedido;
+import com.plg.entity.Mantenimiento;
+import com.plg.entity.Pedido;
+import com.plg.repository.AlmacenRepository;
+import com.plg.repository.CamionRepository;
+import com.plg.repository.ClienteRepository;
+import com.plg.repository.MantenimientoRepository;
+import com.plg.repository.PedidoRepository;
 
 @Component
 public class DataLoader implements CommandLineRunner {
@@ -41,23 +52,23 @@ public class DataLoader implements CommandLineRunner {
     @Autowired
     private ClienteRepository clienteRepository;
 
-    @Value("${app.data.pedidos-path}")
-    private String pedidosPath;
+    // @Value("${app.data.pedidos-path}")
+    // private String pedidosPath;
     
-    @Value("${app.data.mantenimientos-path}")
-    private String mantenimientosPath;
+    // @Value("${app.data.mantenimientos-path}")
+    // private String mantenimientosPath;
     
-    @Value("${app.data.bloqueos-path}")
-    private String bloqueosPath;
+    // @Value("${app.data.bloqueos-path}")
+    // private String bloqueosPath;
     
-    @Value("${app.data.averias-path}")
-    private String averiasPath;
+    // @Value("${app.data.averias-path}")
+    // private String averiasPath;
     
-    @Value("${app.data.almacenes-path}")
-    private String almacenesPath;
+    // @Value("${app.data.almacenes-path}")
+    // private String almacenesPath;
     
-    @Value("${app.data.camiones-path}")
-    private String camionesPath;
+    // @Value("${app.data.camiones-path}")
+    // private String camionesPath;
 
     @Override
     public void run(String... args) throws Exception {
@@ -89,56 +100,54 @@ public class DataLoader implements CommandLineRunner {
             ClassPathResource resource = new ClassPathResource("data/camiones/" + fileName);
             logger.info("File located at: {}", resource.getURI());
 
-            // Read the file from the classpath
-            BufferedReader reader = new BufferedReader(new FileReader(resource.getFile()));
-            
-            String line;
-            reader.readLine(); // Skip header line
-            
-            while ((line = reader.readLine()) != null) {
-                String[] datos = line.split(";");
-                if (datos.length >= 9) {
-                    String codigo = datos[0].trim();
-                    String tipo = datos[1].trim();
-                    double capacidad = Double.parseDouble(datos[2].trim());
-                    double cargaActual = Double.parseDouble(datos[3].trim());
-                    double capacidadDisponible = capacidad - cargaActual;
-                    double tara = Double.parseDouble(datos[4].trim());
-                    double pesoCarga = cargaActual * 0.5; // Approximate weight from volume
-                    int estado = Integer.parseInt(datos[5].trim());
-                    double combustibleActual = Double.parseDouble(datos[6].trim());
-                    int posX = Integer.parseInt(datos[7].trim());
-                    int posY = Integer.parseInt(datos[8].trim());
-                    
-                    double velocidadPromedio = (datos.length >= 10) ? Double.parseDouble(datos[9].trim()) : 50.0;
-                    double capacidadTanque = (datos.length >= 11) ? Double.parseDouble(datos[10].trim()) : 25.0;
-                    
-                    Camion camion = new Camion(codigo, tipo, capacidad, tara);
-                    camion.setCapacidadDisponible(capacidadDisponible);
-                    camion.setPesoCarga(pesoCarga);
-                    camion.setPesoCombinado(tara + pesoCarga);
-                    camion.setEstado(EstadoCamion.DISPONIBLE);
-                    camion.setCombustibleActual(combustibleActual);
-                    camion.setPosX(posX);
-                    camion.setPosY(posY);
-                    camion.setVelocidadPromedio(velocidadPromedio);
-                    camion.setCapacidadTanque(capacidadTanque);
-                    
-                    // Assign default central warehouse
-                    Optional<Almacen> almacenCentral = almacenRepository.findById(1L);
-                    if (almacenCentral.isPresent()) {
-                        camion.setUltimoAlmacen(almacenCentral.get());
+            try ( // Read the file from the classpath
+                BufferedReader reader = new BufferedReader(new FileReader(resource.getFile()))) {
+                String line;
+                reader.readLine(); // Skip header line
+                
+                while ((line = reader.readLine()) != null) {
+                    String[] datos = line.split(";");
+                    if (datos.length >= 9) {
+                        String codigo = datos[0].trim();
+                        String tipo = datos[1].trim();
+                        double capacidad = Double.parseDouble(datos[2].trim());
+                        double cargaActual = Double.parseDouble(datos[3].trim());
+                        double capacidadDisponible = capacidad - cargaActual;
+                        double tara = Double.parseDouble(datos[4].trim());
+                        double pesoCarga = cargaActual * 0.5; // Approximate weight from volume
+                        
+                        double combustibleActual = Double.parseDouble(datos[6].trim());
+                        int posX = Integer.parseInt(datos[7].trim());
+                        int posY = Integer.parseInt(datos[8].trim());
+                        
+                        double velocidadPromedio = (datos.length >= 10) ? Double.parseDouble(datos[9].trim()) : 50.0;
+                        double capacidadTanque = (datos.length >= 11) ? Double.parseDouble(datos[10].trim()) : 25.0;
+                        
+                        Camion camion = new Camion(codigo, tipo, capacidad, tara);
+                        camion.setCapacidadDisponible(capacidadDisponible);
+                        camion.setPesoCarga(pesoCarga);
+                        camion.setPesoCombinado(tara + pesoCarga);
+                        camion.setEstado(EstadoCamion.DISPONIBLE);
+                        camion.setCombustibleActual(combustibleActual);
+                        camion.setPosX(posX);
+                        camion.setPosY(posY);
+                        camion.setVelocidadPromedio(velocidadPromedio);
+                        camion.setCapacidadTanque(capacidadTanque);
+                        
+                        // Assign default central warehouse
+                        Optional<Almacen> almacenCentral = almacenRepository.findById(1L);
+                        if (almacenCentral.isPresent()) {
+                            camion.setUltimoAlmacen(almacenCentral.get());
+                        }
+                        
+                        camionRepository.save(camion);
+                        logger.info("Camion saved: {}", codigo);
                     }
-                    
-                    camionRepository.save(camion);
-                    logger.info("Camion saved: {}", codigo);
                 }
             }
-            
-            reader.close();
             logger.info("Camiones loaded successfully");
 
-        } catch (Exception e) {
+        } catch (IOException | NumberFormatException e) {
             logger.error("Error loading camiones: " + e.getMessage(), e);
         }
     }
@@ -216,7 +225,7 @@ public class DataLoader implements CommandLineRunner {
                 loadPedidosFromFile(archivo, anio, mes);
             }
     
-        } catch (Exception e) {
+        } catch (IOException | NumberFormatException e) {
             logger.error("❌ Error leyendo archivos de pedidos: {}", e.getMessage(), e);
         }
     }
@@ -292,7 +301,7 @@ public class DataLoader implements CommandLineRunner {
                     pedidoRepository.save(pedido);
                     logger.info("✅ Pedido guardado: {} - Cliente: {}", pedido.getCodigo(), clienteId);
     
-                } catch (Exception e) {
+                } catch (NumberFormatException e) {
                     logger.warn("⚠️ Línea inválida o error: [{}] - {}", line, e.getMessage());
                 }
             }
@@ -310,47 +319,45 @@ public class DataLoader implements CommandLineRunner {
 
         try {
             ClassPathResource resource = new ClassPathResource("data/mantenimientos/" + fileName);
-            BufferedReader reader = new BufferedReader(new FileReader(resource.getFile()));
-            
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] datos = line.split(",");
-                if (datos.length >= 3) {
-                    String codigoCamion = datos[0].trim();
-                    LocalDate fechaInicio = LocalDate.parse(datos[1].trim(), formatter);
-                    LocalDate fechaFin = LocalDate.parse(datos[2].trim(), formatter);
-                    
-                    Optional<Camion> camionOpt = camionRepository.findByCodigo(codigoCamion);
-                    if (camionOpt.isPresent()) {
-                        Camion camion = camionOpt.get();
-                        Mantenimiento mantenimiento = Mantenimiento.builder()
-                            .camion(camion)
-                            .fechaInicio(fechaInicio)
-                            .fechaFin(fechaFin)
-                            .tipo("preventivo")
-                            .descripcion("Mantenimiento preventivo programado")
-                            .estado(0) // Programado
-                            .build();
+            try (BufferedReader reader = new BufferedReader(new FileReader(resource.getFile()))) {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] datos = line.split(",");
+                    if (datos.length >= 3) {
+                        String codigoCamion = datos[0].trim();
+                        LocalDate fechaInicio = LocalDate.parse(datos[1].trim(), formatter);
+                        LocalDate fechaFin = LocalDate.parse(datos[2].trim(), formatter);
                         
-                        if (camion.getMantenimientos() == null) {
-                            camion.setMantenimientos(new ArrayList<>());
+                        Optional<Camion> camionOpt = camionRepository.findByCodigo(codigoCamion);
+                        if (camionOpt.isPresent()) {
+                            Camion camion = camionOpt.get();
+                            Mantenimiento mantenimiento = Mantenimiento.builder()
+                                    .camion(camion)
+                                    .fechaInicio(fechaInicio)
+                                    .fechaFin(fechaFin)
+                                    .tipo("preventivo")
+                                    .descripcion("Mantenimiento preventivo programado")
+                                    .estado(0) // Programado
+                                    .build();
+                            
+                            if (camion.getMantenimientos() == null) {
+                                camion.setMantenimientos(new ArrayList<>());
+                            }
+                            camion.getMantenimientos().add(mantenimiento);
+                            
+                            mantenimientoRepository.save(mantenimiento);
+                            logger.info("Mantenimiento saved for camion: {}", codigoCamion);
+                        } else {
+                            logger.warn("Camión not found: {}", codigoCamion);
                         }
-                        camion.getMantenimientos().add(mantenimiento);
-                        
-                        mantenimientoRepository.save(mantenimiento);
-                        logger.info("Mantenimiento saved for camion: {}", codigoCamion);
-                    } else {
-                        logger.warn("Camión not found: {}", codigoCamion);
                     }
                 }
             }
-            
-            reader.close();
             logger.info("Mantenimientos loaded successfully");
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.error("Error loading mantenimientos: " + e.getMessage(), e);
         }
     }
