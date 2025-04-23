@@ -8,6 +8,12 @@ let rutas = [];
 let simulacionEnCurso = false;
 let velocidadSimulacion = 1;
 
+// Nuevas variables para algoritmos de optimización
+let clusters = [];
+let mostrarClusters = true;
+let etapaOptimizacion = 'ninguna'; // 'ap', 'genetico', 'rutas', 'completo'
+let progresoPorcentaje = 0;
+
 // Tamaño de la celda para visualización en el mapa
 const TAMANO_CELDA = 30;
 
@@ -30,6 +36,14 @@ const COLORES = {
     BLOQUEO: '#95a5a6'
 };
 
+// Colores para clusters (para visualizar grupos del AP)
+const COLORES_CLUSTER = [
+    '#1abc9c', '#2ecc71', '#3498db', '#9b59b6', '#f1c40f',
+    '#e67e22', '#e74c3c', '#34495e', '#16a085', '#27ae60',
+    '#2980b9', '#8e44ad', '#f39c12', '#d35400', '#c0392b',
+    '#7f8c8d', '#2c3e50'
+];
+
 // Inicializar la aplicación cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
     inicializarUI();
@@ -40,6 +54,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('btn-detener-simulacion').addEventListener('click', detenerSimulacion);
     document.getElementById('btn-ajustar-velocidad').addEventListener('click', cambiarVelocidad);
     document.getElementById('btn-generar-rutas').addEventListener('click', generarRutas);
+    
+    // Nuevos botones para algoritmos de optimización
+    document.getElementById('btn-ejecutar-ap').addEventListener('click', ejecutarAffinityPropagation);
+    document.getElementById('btn-ejecutar-genetico').addEventListener('click', ejecutarAlgoritmoGenetico);
+    document.getElementById('btn-optimizacion-completa').addEventListener('click', ejecutarOptimizacionCompleta);
+    document.getElementById('btn-toggle-clusters').addEventListener('click', toggleVisualizacionClusters);
 });
 
 // Modificar la función inicializarUI
@@ -274,6 +294,12 @@ function cargarDatosIniciales() {
         })
         .then(data => {
             camiones = Array.isArray(data) ? data : [];
+            // Inicializar propiedades de seguimiento de ruta para cada camión
+            camiones.forEach(camion => {
+                camion.nodoActualIndex = 0;
+                camion.progresoRuta = 0;
+                camion.siguienteNodo = null;
+            });
             dibujarMapa();
         })
         .catch(error => {
@@ -314,6 +340,9 @@ function cargarDatosIniciales() {
             console.error('Error cargando pedidos:', error);
             pedidos = [];
         });
+    
+    // Cargar rutas existentes
+    cargarRutasExistentes();
         
     // Verificar estado de la simulación
     fetch('/api/simulacion/estado')
@@ -349,7 +378,27 @@ function cargarDatosIniciales() {
             console.error('Error verificando estado de simulación:', error);
             simulacionEnCurso = false;
             document.getElementById('btn-iniciar-simulacion').disabled = false;
-            document.getElementById('btn-detener-simulacion').disabled = true;
+            document.getElementId('btn-detener-simulacion').disabled = true;
+        });
+}
+
+// Nueva función para cargar las rutas existentes en el sistema
+function cargarRutasExistentes() {
+    fetch('/api/rutas')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Rutas cargadas:', data);
+            rutas = Array.isArray(data) ? data : [];
+            dibujarMapa();
+        })
+        .catch(error => {
+            console.error('Error cargando rutas:', error);
+            rutas = [];
         });
 }
 
@@ -377,7 +426,7 @@ function dibujarMapa() {
     // Dibujar almacenes
     dibujarAlmacenes(ctx);
     
-    // Dibujar pedidos
+    // Dibujar pedidos (ahora considerando clusters)
     dibujarPedidos(ctx);
     
     // Dibujar camiones (último para que estén por encima)
@@ -385,6 +434,11 @@ function dibujarMapa() {
     
     // Dibujar bloqueos
     dibujarBloqueos(ctx, bloqueos, escalaActual, offsetX, offsetY);
+    
+    // Dibujar información de optimización si está en curso
+    if (etapaOptimizacion !== 'ninguna') {
+        dibujarEstadoOptimizacion(ctx);
+    }
     
     // Restaurar el estado del contexto
     ctx.restore();
@@ -435,55 +489,74 @@ function dibujarCuadricula(ctx) {
     }
 }
 
-// Dibujar almacenes en el mapa
+// Dibujar almacenes en el mapa (modificado para distinguir entre tipos)
 function dibujarAlmacenes(ctx) {
     almacenes.forEach(almacen => {
         // Calcular posición en el canvas (colocar en la intersección de las líneas)
         const x = almacen.posX * TAMANO_CELDA;
         const y = almacen.posY * TAMANO_CELDA;
         
-        // Dibujar almacén como un punto exactamente en la intersección de las líneas
-        ctx.fillStyle = COLORES.ALMACEN;
-        const tamanoPunto = TAMANO_CELDA / 4; // Un cuarto del tamaño de la celda
+        // Distinguir entre almacén central e intermedio
+        const esCentral = almacen.esCentral === true;
+        const tamanoPunto = TAMANO_CELDA / 3; // Un tercio del tamaño de la celda
         
-        // Dibujar un círculo pequeño en la intersección
-        ctx.beginPath();
-        ctx.arc(x, y, tamanoPunto, 0, 2 * Math.PI);
-        ctx.fill();
-        
-        // Agregar contorno
-        ctx.strokeStyle = '#27ae60';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        
-        // Agregar etiqueta
-        ctx.fillStyle = '#fff';
-        ctx.font = '10px Arial';
-        ctx.fillText('A', x - 3, y + 3);
+        // Color diferente para cada tipo de almacén
+        if (esCentral) {
+            // Almacén central - círculo grande con color principal
+            ctx.fillStyle = COLORES.ALMACEN;
+            ctx.beginPath();
+            ctx.arc(x, y, tamanoPunto, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.strokeStyle = '#27ae60'; // Borde verde oscuro
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Agregar símbolo central
+            ctx.fillStyle = '#fff';
+            ctx.font = '10px Arial';
+            ctx.fillText('C', x - 3, y + 3);
+        } else {
+            // Almacén intermedio - cuadrado con color secundario
+            ctx.fillStyle = '#16a085'; // Color diferente para intermedios
+            const mitadTamano = tamanoPunto * 0.8;
+            ctx.fillRect(x - mitadTamano, y - mitadTamano, mitadTamano * 2, mitadTamano * 2);
+            
+            // Agregar contorno
+            ctx.strokeStyle = '#27ae60';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x - mitadTamano, y - mitadTamano, mitadTamano * 2, mitadTamano * 2);
+            
+            // Agregar etiqueta
+            ctx.fillStyle = '#fff';
+            ctx.font = '10px Arial';
+            ctx.fillText('I', x - 3, y + 3);
+        }
     });
 }
 
-// Dibujar pedidos en el mapa
+// Dibujar pedidos en el mapa (modificado para considerar clusters)
 function dibujarPedidos(ctx) {
     pedidos.forEach(pedido => {
         // Calcular posición en el canvas (colocar en la intersección de las líneas)
         const x = pedido.posX * TAMANO_CELDA;
         const y = pedido.posY * TAMANO_CELDA;
         
-        // Color según el estado del pedido
+        // Color según el estado del pedido o cluster
         let color;
-        switch (pedido.estado) {
-            case 0: // Pendiente
-                color = COLORES.PEDIDO_PENDIENTE;
-                break;
-            case 1: // En ruta
-                color = COLORES.PEDIDO_EN_RUTA;
-                break;
-            case 2: // Entregado
-                color = COLORES.PEDIDO_ENTREGADO;
-                break;
-            default:
-                color = '#999';
+        
+        if (clusters.length > 0 && mostrarClusters) {
+            // Si hay clusters y está activada la visualización de clusters
+            const cluster = encontrarClusterDelPedido(pedido.id);
+            if (cluster !== -1) {
+                // Usar color del cluster (con índice módulo para reutilizar colores)
+                color = COLORES_CLUSTER[cluster % COLORES_CLUSTER.length];
+            } else {
+                // Si no está en ningún cluster, usar colores normales
+                color = obtenerColorPorEstadoPedido(pedido);
+            }
+        } else {
+            // Usar colores según estado normal
+            color = obtenerColorPorEstadoPedido(pedido);
         }
         
         // Dibujar pedido como un pequeño rombo en la intersección
@@ -509,6 +582,33 @@ function dibujarPedidos(ctx) {
         ctx.font = '8px Arial';
         ctx.fillText('P', x - 3, y + 3);
     });
+}
+
+// Función auxiliar para obtener el color según estado del pedido
+function obtenerColorPorEstadoPedido(pedido) {
+    switch (pedido.estado) {
+        case 0: // Pendiente
+            return COLORES.PEDIDO_PENDIENTE;
+        case 1: // En ruta
+            return COLORES.PEDIDO_EN_RUTA;
+        case 2: // Entregado
+            return COLORES.PEDIDO_ENTREGADO;
+        default:
+            return '#999';
+    }
+}
+
+// Función para encontrar el cluster al que pertenece un pedido
+function encontrarClusterDelPedido(pedidoId) {
+    for (let i = 0; i < clusters.length; i++) {
+        const pedidosEnCluster = clusters[i].pedidos;
+        for (let j = 0; j < pedidosEnCluster.length; j++) {
+            if (pedidosEnCluster[j].id === pedidoId) {
+                return i;  // Devuelve el índice del cluster
+            }
+        }
+    }
+    return -1;  // No está en ningún cluster
 }
 
 // Dibujar camiones en el mapa
@@ -573,49 +673,77 @@ function dibujarCamiones(ctx) {
     });
 }
 
-// Dibujar rutas en el mapa
+// Dibujar rutas en el mapa (mejorado para manejar diferentes formatos de rutas)
 function dibujarRutas(ctx) {
+    if (!rutas || rutas.length === 0) return;
+    
     rutas.forEach(ruta => {
-        if (!ruta.nodos || ruta.nodos.length < 2) return;
+        // Verificar si la ruta tiene puntos o nodos
+        const puntosRuta = ruta.puntos || ruta.nodos;
+        if (!puntosRuta || puntosRuta.length < 2) return;
         
         // Configurar estilo para la línea de ruta
         ctx.strokeStyle = COLORES.RUTA;
         ctx.lineWidth = 2;
         ctx.setLineDash([5, 3]); // Línea punteada
         
-        // Dibujar línea que conecta los nodos
+        // Dibujar línea que conecta los puntos
         ctx.beginPath();
         
-        const primerNodo = ruta.nodos[0];
-        ctx.moveTo(
-            primerNodo.posX * TAMANO_CELDA, 
-            primerNodo.posY * TAMANO_CELDA
-        );
+        // Extraer coordenadas del primer punto
+        const primerPunto = puntosRuta[0];
+        const x1 = (primerPunto.posX !== undefined ? primerPunto.posX : primerPunto.x) * TAMANO_CELDA;
+        const y1 = (primerPunto.posY !== undefined ? primerPunto.posY : primerPunto.y) * TAMANO_CELDA;
+        ctx.moveTo(x1, y1);
         
-        for (let i = 1; i < ruta.nodos.length; i++) {
-            const nodo = ruta.nodos[i];
-            ctx.lineTo(
-                nodo.posX * TAMANO_CELDA, 
-                nodo.posY * TAMANO_CELDA
-            );
+        // Dibujar resto de puntos
+        for (let i = 1; i < puntosRuta.length; i++) {
+            const punto = puntosRuta[i];
+            const x = (punto.posX !== undefined ? punto.posX : punto.x) * TAMANO_CELDA;
+            const y = (punto.posY !== undefined ? punto.posY : punto.y) * TAMANO_CELDA;
+            ctx.lineTo(x, y);
         }
         
         ctx.stroke();
         ctx.setLineDash([]); // Restaurar línea continua
         
         // Dibujar puntos en cada nodo de la ruta para mayor claridad
-        ruta.nodos.forEach((nodo, index) => {
-            const x = nodo.posX * TAMANO_CELDA;
-            const y = nodo.posY * TAMANO_CELDA;
+        puntosRuta.forEach((punto, index) => {
+            const x = (punto.posX !== undefined ? punto.posX : punto.x) * TAMANO_CELDA;
+            const y = (punto.posY !== undefined ? punto.posY : punto.y) * TAMANO_CELDA;
             
-            // Dibujar un pequeño círculo en cada nodo de la ruta
-            ctx.fillStyle = index === 0 ? '#27ae60' : '#e74c3c'; // Verde para origen, rojo para destino
-            ctx.beginPath();
-            ctx.arc(x, y, 3, 0, 2 * Math.PI);
-            ctx.fill();
+            // Personalizar visualización según el tipo de punto
+            const tipo = punto.tipo || (index === 0 ? 'INICIO' : 
+                        (index === puntosRuta.length - 1 ? 'FINAL' : 'INTERMEDIO'));
             
-            // Añadir número de orden si hay más de 2 nodos
-            if (ruta.nodos.length > 2 && index > 0 && index < ruta.nodos.length - 1) {
+            if (tipo === 'ALMACEN' || tipo === 'INICIO' || tipo === 'FINAL') {
+                // Punto de origen o destino - círculo verde/rojo
+                ctx.fillStyle = index === 0 ? '#27ae60' : '#e74c3c';
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, 2 * Math.PI);
+                ctx.fill();
+            } else if (tipo === 'CLIENTE') {
+                // Punto de cliente - rombo amarillo
+                ctx.fillStyle = '#f1c40f';
+                const tamanoPunto = 4;
+                ctx.beginPath();
+                ctx.moveTo(x, y - tamanoPunto);
+                ctx.lineTo(x + tamanoPunto, y);
+                ctx.lineTo(x, y + tamanoPunto);
+                ctx.lineTo(x - tamanoPunto, y);
+                ctx.closePath();
+                ctx.fill();
+            } else {
+                // Punto intermedio - pequeño punto gris
+                ctx.fillStyle = '#95a5a6';
+                ctx.beginPath();
+                ctx.arc(x, y, 2, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            
+            // Añadir número de orden si hay más de 2 nodos y no es un nodo intermedio
+            if (puntosRuta.length > 2 && index > 0 && 
+                index < puntosRuta.length - 1 && tipo !== 'INTERMEDIO') {
                 ctx.fillStyle = '#fff';
                 ctx.font = '8px Arial';
                 ctx.fillText(index.toString(), x - 2, y + 3);
@@ -701,6 +829,286 @@ function actualizarPanelInformacion(data) {
     if (data.pedidosEnRuta !== undefined) {
         document.getElementById('pedidos-en-ruta').textContent = data.pedidosEnRuta;
     }
+
+    // Actualizar estadísticas de optimización si están disponibles
+    if (data.numeroClusters !== undefined) {
+        document.getElementById('numero-clusters').textContent = data.numeroClusters;
+    }
+    
+    if (data.etapaOptimizacion !== undefined) {
+        document.getElementById('etapa-optimizacion').textContent = traducirEtapaOptimizacion(data.etapaOptimizacion);
+    }
+    
+    if (data.progresoOptimizacion !== undefined) {
+        const progresoBar = document.getElementById('progreso-optimizacion');
+        if (progresoBar) {
+            progresoBar.style.width = data.progresoOptimizacion + '%';
+            progresoBar.setAttribute('aria-valuenow', data.progresoOptimizacion);
+        }
+    }
+}
+
+// Traducir etapa de optimización a texto amigable
+function traducirEtapaOptimizacion(etapa) {
+    switch (etapa) {
+        case 'ninguna': return 'Ninguna';
+        case 'ap': return 'Agrupamiento (AP)';
+        case 'genetico': return 'Algoritmo Genético';
+        case 'rutas': return 'Generando Rutas';
+        case 'completo': return 'Optimización Completa';
+        default: return etapa;
+    }
+}
+
+// Dibujar estado de optimización en el canvas
+function dibujarEstadoOptimizacion(ctx) {
+    // Calcular posición en la parte superior del canvas considerando zoom y offset
+    const mapaCanvas = document.getElementById('mapa-canvas');
+    const x = (10 - offsetX) / escalaActual;
+    const y = (30 - offsetY) / escalaActual;
+    
+    // Configurar estilo de texto
+    ctx.font = `${14/escalaActual}px Arial`;
+    ctx.fillStyle = '#2c3e50';
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2 / escalaActual;
+    
+    // Texto a mostrar
+    let textoEtapa = traducirEtapaOptimizacion(etapaOptimizacion);
+    let texto = `Optimización: ${textoEtapa} (${progresoPorcentaje}%)`;
+    
+    // Aplicar stroke para hacer más visible el texto
+    ctx.strokeText(texto, x, y);
+    ctx.fillText(texto, x, y);
+}
+
+// Ejecutar el algoritmo de Affinity Propagation
+function ejecutarAffinityPropagation() {
+    // Mostrar indicador de carga y deshabilitar botón
+    const btnExecutarAP = document.getElementById('btn-ejecutar-ap');
+    btnExecutarAP.disabled = true;
+    mostrarNotificacion('Ejecutando algoritmo de Affinity Propagation...', 'info');
+    
+    // Actualizar estado de optimización
+    etapaOptimizacion = 'ap';
+    progresoPorcentaje = 10;
+    actualizarPanelInformacion({
+        etapaOptimizacion: etapaOptimizacion,
+        progresoOptimizacion: progresoPorcentaje
+    });
+    
+    // Construir parámetros para la API con valores por defecto seguros
+    const params = {
+        alpha: 1.0,
+        beta: 0.5,
+        damping: 0.9,
+        maxIter: 100
+    };
+
+    console.log('Enviando solicitud AP con parámetros:', params);
+    
+    // Llamar a la API para ejecutar AP
+    fetch('/api/optimizacion/ap', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(params)
+    })
+    .then(response => {
+        if (!response.ok) {
+            // Intentar obtener más información del error
+            return response.text().then(text => {
+                console.error('Error response:', text);
+                throw new Error(`Error HTTP: ${response.status} - ${text || 'No details available'}`);
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Respuesta AP recibida:', data);
+        
+        // Verificar que la respuesta contiene la estructura esperada
+        if (!data || !data.grupos) {
+            throw new Error('La respuesta no contiene información de clusters válida');
+        }
+        
+        // Almacenar los clusters recibidos
+        clusters = data.grupos || [];
+        
+        // Actualizar estado
+        progresoPorcentaje = 100;
+        actualizarPanelInformacion({
+            numeroClusters: clusters.length,
+            etapaOptimizacion: etapaOptimizacion,
+            progresoOptimizacion: progresoPorcentaje
+        });
+        
+        // Agregar evento al historial
+        agregarEventoAlHistorial({
+            tipo: 'Optimización',
+            mensaje: `Agrupamiento completado: ${clusters.length} grupos generados`,
+            fecha: new Date().toLocaleTimeString()
+        });
+        
+        // Redibujar el mapa para mostrar los clusters
+        dibujarMapa();
+        
+        // Mostrar notificación de éxito
+        mostrarNotificacion(`Agrupamiento completado: ${clusters.length} grupos generados`, 'success');
+    })
+    .catch(error => {
+        console.error('Error ejecutando Affinity Propagation:', error);
+        
+        // Actualizar estado para reflejar el error
+        etapaOptimizacion = 'ninguna';
+        progresoPorcentaje = 0;
+        actualizarPanelInformacion({
+            etapaOptimizacion: 'ninguna',
+            progresoOptimizacion: 0
+        });
+        
+        // Agregar evento al historial
+        agregarEventoAlHistorial({
+            tipo: 'Error',
+            mensaje: `Error en agrupamiento: ${error.message}`,
+            fecha: new Date().toLocaleTimeString()
+        });
+        
+        mostrarNotificacion('Error en el agrupamiento: ' + error.message, 'error');
+    })
+    .finally(() => {
+        // Habilitar botón nuevamente
+        btnExecutarAP.disabled = false;
+    });
+}
+
+// Ejecutar el algoritmo Genético
+function ejecutarAlgoritmoGenetico() {
+    // Verificar que existan clusters previos
+    if (clusters.length === 0) {
+        mostrarNotificacion('Primero debe ejecutar Affinity Propagation', 'warning');
+        return;
+    }
+    
+    // Mostrar indicador de carga y deshabilitar botón
+    const btnEjecutarGA = document.getElementById('btn-ejecutar-genetico');
+    btnEjecutarGA.disabled = true;
+    mostrarNotificacion('Ejecutando algoritmo Genético...', 'info');
+    
+    // Actualizar estado de optimización
+    etapaOptimizacion = 'genetico';
+    progresoPorcentaje = 10;
+    actualizarPanelInformacion({
+        etapaOptimizacion: etapaOptimizacion,
+        progresoOptimizacion: progresoPorcentaje
+    });
+    
+    // Llamar a la API para ejecutar GA
+    fetch('/api/optimizacion/genetico', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            poblacionInicial: 50,
+            maxGeneraciones: 100,
+            tasaMutacion: 0.1,
+            tasaCruce: 0.8,
+            clusters: clusters.map(c => c.idGrupo)
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Actualizamos progreso
+        progresoPorcentaje = 100;
+        actualizarPanelInformacion({
+            etapaOptimizacion: etapaOptimizacion,
+            progresoOptimizacion: progresoPorcentaje
+        });
+        
+        // Mostrar notificación de éxito
+        mostrarNotificacion(`Optimización genética completada: ${data.fitness} fitness`, 'success');
+        
+        // La función generarRutas se puede llamar automáticamente después
+        generarRutas();
+    })
+    .catch(error => {
+        console.error('Error ejecutando Algoritmo Genético:', error);
+        mostrarNotificacion('Error en la optimización genética: ' + error.message, 'error');
+    })
+    .finally(() => {
+        // Habilitar botón nuevamente
+        btnEjecutarGA.disabled = false;
+    });
+}
+
+// Ejecutar el proceso completo de optimización: AP → GA → Rutas
+function ejecutarOptimizacionCompleta() {
+    // Mostrar indicador de carga y deshabilitar botón
+    const btnOptimizacionCompleta = document.getElementById('btn-optimizacion-completa');
+    btnOptimizacionCompleta.disabled = true;
+    mostrarNotificacion('Iniciando proceso de optimización completa...', 'info');
+    
+    // Actualizar estado
+    etapaOptimizacion = 'completo';
+    progresoPorcentaje = 0;
+    actualizarPanelInformacion({
+        etapaOptimizacion: etapaOptimizacion,
+        progresoOptimizacion: progresoPorcentaje
+    });
+    
+    // Paso 1: Ejecutar AP
+    ejecutarAffinityPropagation()
+        .then(() => {
+            // Paso 2: Ejecutar GA
+            progresoPorcentaje = 33;
+            actualizarPanelInformacion({
+                progresoOptimizacion: progresoPorcentaje
+            });
+            return ejecutarAlgoritmoGenetico();
+        })
+        .then(() => {
+            // Paso 3: Generar Rutas
+            progresoPorcentaje = 66;
+            actualizarPanelInformacion({
+                progresoOptimizacion: progresoPorcentaje
+            });
+            return generarRutas();
+        })
+        .then(() => {
+            // Proceso completo
+            progresoPorcentaje = 100;
+            actualizarPanelInformacion({
+                progresoOptimizacion: progresoPorcentaje
+            });
+            mostrarNotificacion('Optimización completa finalizada', 'success');
+        })
+        .catch(error => {
+            console.error('Error en proceso de optimización completa:', error);
+            mostrarNotificacion('Error en optimización completa: ' + error.message, 'error');
+        })
+        .finally(() => {
+            // Habilitar botón nuevamente
+            btnOptimizacionCompleta.disabled = false;
+        });
+}
+
+// Alternar visualización de clusters
+function toggleVisualizacionClusters() {
+    mostrarClusters = !mostrarClusters;
+    // Actualizar botón
+    const btnToggleClusters = document.getElementById('btn-toggle-clusters');
+    if (btnToggleClusters) {
+        btnToggleClusters.textContent = mostrarClusters ? 'Ocultar Clusters' : 'Mostrar Clusters';
+    }
+    // Redibujar mapa
+    dibujarMapa();
 }
 
 // Generar rutas utilizando el algoritmo de ruteo
@@ -720,16 +1128,31 @@ function generarRutas() {
     // Mostrar notificación inicial
     mostrarNotificacion('Generando rutas...', 'info');
     
+    // Actualizar estado de optimización
+    etapaOptimizacion = 'rutas';
+    progresoPorcentaje = 10;
+    actualizarPanelInformacion({
+        etapaOptimizacion: etapaOptimizacion,
+        progresoOptimizacion: progresoPorcentaje
+    });
+    
     // Llamar a la API para generar rutas
+    const parametros = {
+        algoritmo: 'genetico',
+        numeroRutas: 3
+    };
+    
+    // Si hay clusters, usarlos como input
+    if (clusters.length > 0) {
+        parametros.clusters = clusters.map(c => c.idGrupo);
+    }
+    
     fetch('/api/rutas/generar', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-            algoritmo: 'genetico',
-            numeroRutas: 3
-        })
+        body: JSON.stringify(parametros)
     })
     .then(response => {
         if (!response.ok) {
@@ -742,6 +1165,13 @@ function generarRutas() {
         
         // Actualizar la UI con las nuevas rutas
         cargarRutasGeneradas();
+        
+        // Actualizar estado
+        progresoPorcentaje = 100;
+        actualizarPanelInformacion({
+            etapaOptimizacion: etapaOptimizacion,
+            progresoOptimizacion: progresoPorcentaje
+        });
         
         // Ocultar indicador de carga
         if (btnGenerarRutas) {
@@ -770,15 +1200,36 @@ function generarRutas() {
     });
 }
 
-// Cargar las rutas generadas
+// Cargar las rutas generadas (modificado para actualizar la UI correctamente)
 function cargarRutasGeneradas() {
     fetch('/api/rutas')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            rutas = data;
+            console.log('Rutas generadas cargadas:', data);
+            rutas = Array.isArray(data) ? data : [];
+            
+            // Actualizar contador de rutas en la UI
+            document.getElementById('contador-rutas').textContent = rutas.length;
+            
+            // Agregar evento al historial
+            agregarEventoAlHistorial({
+                tipo: 'Sistema',
+                mensaje: `Rutas cargadas: ${rutas.length}`,
+                fecha: new Date().toLocaleTimeString()
+            });
+            
+            // Redibujar mapa
             dibujarMapa();
         })
-        .catch(error => console.error('Error cargando rutas:', error));
+        .catch(error => {
+            console.error('Error cargando rutas:', error);
+            mostrarNotificacion('Error cargando rutas: ' + error.message, 'error');
+        });
 }
 
 // Iniciar simulación en tiempo real
@@ -922,9 +1373,35 @@ function desconectarWebSocket() {
 
 // Actualizar posiciones de todos los elementos
 function actualizarPosiciones(data) {
+    // Guardar estado previo de camiones para mantener información de nodo y progreso
+    const camionesAnteriores = [...camiones];
+    
     // Actualizar camiones
     if (data.camiones) {
-        camiones = data.camiones;
+        camiones = data.camiones.map(nuevoCamion => {
+            const camionAnterior = camionesAnteriores.find(c => c.id === nuevoCamion.id);
+            
+            // Si el camión ya existe, conservar datos de progreso si no vienen en el mensaje
+            if (camionAnterior) {
+                nuevoCamion.nodoActualIndex = 
+                    nuevoCamion.nodoActualIndex !== undefined ? 
+                    nuevoCamion.nodoActualIndex : camionAnterior.nodoActualIndex || 0;
+                
+                nuevoCamion.progresoRuta = 
+                    nuevoCamion.progresoRuta !== undefined ? 
+                    nuevoCamion.progresoRuta : camionAnterior.progresoRuta || 0;
+                    
+                // Si no viene especificado, mantener el último nodo visitado
+                nuevoCamion.ultimoCambioNodo = camionAnterior.ultimoCambioNodo;
+                nuevoCamion.ultimoProgreso = camionAnterior.ultimoProgreso;
+            } else {
+                // Si es un camión nuevo, inicializar valores
+                nuevoCamion.nodoActualIndex = 0;
+                nuevoCamion.progresoRuta = 0;
+            }
+            
+            return nuevoCamion;
+        });
     }
     
     // Actualizar almacenes
@@ -1010,6 +1487,16 @@ function procesarEventoRuta(data) {
 // Procesar llegada a un nodo de la ruta
 function procesarLlegadaNodo(data) {
     console.log('Llegada a nodo:', data);
+    
+    // Actualizar el índice de nodo del camión
+    const camion = camiones.find(c => c.id === data.camionId);
+    if (camion) {
+        // Incrementar el nodo actual para avanzar en la ruta
+        camion.nodoActualIndex = data.nodoIndex || camion.nodoActualIndex + 1;
+        camion.ultimoCambioNodo = new Date().getTime();
+        
+        console.log(`Camión ${data.camionCodigo} avanzó al nodo ${camion.nodoActualIndex}, progreso: ${camion.progresoRuta}%`);
+    }
     
     // Solo mostrar notificación si es un nodo importante (cliente o almacén)
     if (data.nodoTipo === 'CLIENTE' || data.nodoTipo === 'ALMACEN') {
@@ -1206,3 +1693,5 @@ window.addEventListener('DOMContentLoaded', async () => {
         dibujarMapa();
     }
 });
+
+

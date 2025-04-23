@@ -2,6 +2,7 @@ package com.plg.controller;
 
 import com.plg.service.SimulacionService;
 import com.plg.service.SimulacionTiempoRealService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -10,19 +11,28 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import jakarta.persistence.EntityNotFoundException;
+import com.plg.entity.Camion;
+import com.plg.repository.CamionRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
 @RestController
 @RequestMapping("/api/simulacion")
 public class SimulacionController {
 
     @Autowired
     private SimulacionService simulacionService;
-    
+    @Autowired
+    private CamionRepository camionRepository;
     @Autowired
     private SimulacionTiempoRealService simulacionTiempoRealService;
     
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
-
+    //Loger
+    private static final Logger logger = LoggerFactory.getLogger(SimulacionController.class);
     @GetMapping("/diario")
     public ResponseEntity<?> simularEscenarioDiario() {
         return ResponseEntity.ok(simulacionService.simularEscenarioDiario());
@@ -106,6 +116,39 @@ public class SimulacionController {
             error.put("error", "Error al obtener las posiciones");
             error.put("mensaje", e.getMessage());
             return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    /**
+     * Endpoint para reiniciar la posición de los camiones si se han quedado atascados
+     */
+    @PostMapping("/reiniciar-camion/{camionId}")
+    public ResponseEntity<Map<String, Object>> reiniciarCamion(@PathVariable Long camionId) {
+        logger.info("Reiniciando la posición del camión con ID: {}", camionId);
+        
+        try {
+            // Obtener el camión
+            Camion camion = camionRepository.findById(camionId)
+                .orElseThrow(() -> new EntityNotFoundException("Camión no encontrado"));
+            
+            // Reiniciar el nodo actual y progreso
+            if (simulacionService != null) {
+                simulacionService.reiniciarProgresoNodoCamion(camion);
+                
+                return ResponseEntity.ok(Map.of(
+                    "resultado", "éxito",
+                    "mensaje", "Camión reiniciado correctamente",
+                    "camionId", camion.getId(),
+                    "codigo", camion.getCodigo()
+                ));
+            } else {
+                return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                        .body(Map.of("error", "Servicio de simulación no disponible"));
+            }
+        } catch (Exception e) {
+            logger.error("Error reiniciando camión", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 }

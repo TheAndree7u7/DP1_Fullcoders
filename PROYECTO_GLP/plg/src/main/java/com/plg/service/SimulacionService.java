@@ -1209,4 +1209,13 @@ public class SimulacionService {
         List<Averia> averiasCargadas = cargarArchivoAverias(rutaArchivo);
         System.out.println("Se cargaron " + averiasCargadas.size() + " averías válidas desde el archivo");
     }
+    public void reiniciarProgresoNodoCamion(Camion camion) {
+        // Reiniciar el progreso del nodo del camión a su posición inicial
+        camion.setPosX(0);
+        camion.setPosY(0);
+        camion.setEstado(EstadoCamion.DISPONIBLE); // Cambiar estado a disponible
+        camionRepository.save(camion);
+        
+        System.out.println("Progreso del camión " + camion.getCodigo() + " reiniciado a la posición inicial");
+    }
 }

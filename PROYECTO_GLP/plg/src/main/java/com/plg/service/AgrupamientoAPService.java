@@ -38,24 +38,34 @@ public class AgrupamientoAPService {
     public AgrupamientoAPResultadoDTO generarGrupos(Map<String, Object> params) {
         logger.info("Iniciando el proceso de generación de grupos con los parámetros: {}", params);
         
-        double alpha       = (double) params.getOrDefault("alpha", 1.0);
-        double beta        = (double) params.getOrDefault("beta", 1.0);
-        double damping     = (double) params.getOrDefault("damping", DAMPING);
-        int maxIter        = (int)    params.getOrDefault("maxIter", MAX_ITERATIONS);
+        // Proteger contra null params
+        if (params == null) {
+            params = new HashMap<>();
+        }
+        
+        try {
+            double alpha       = params.containsKey("alpha") ? Double.parseDouble(params.get("alpha").toString()) : 1.0;
+            double beta        = params.containsKey("beta") ? Double.parseDouble(params.get("beta").toString()) : 1.0;
+            double damping     = params.containsKey("damping") ? Double.parseDouble(params.get("damping").toString()) : DAMPING;
+            int maxIter        = params.containsKey("maxIter") ? Integer.parseInt(params.get("maxIter").toString()) : MAX_ITERATIONS;
 
-        // Ejecutar el algoritmo de Affinity Propagation
-        logger.info("Ejecutando el algoritmo de Affinity Propagation...");
-        List<GrupoDTO> grupos = apService.clusterizar(alpha, beta, damping, maxIter);
+            // Ejecutar el algoritmo de Affinity Propagation
+            logger.info("Ejecutando el algoritmo de Affinity Propagation...");
+            List<GrupoDTO> grupos = apService.clusterizar(alpha, beta, damping, maxIter);
 
-        logger.info("Generación de grupos completada. Total de pedidos: {}, Total de grupos: {}", 
-                    grupos.stream().mapToInt(GrupoDTO::getNumeroPedidos).sum(), grupos.size());
+            logger.info("Generación de grupos completada. Total de pedidos: {}, Total de grupos: {}", 
+                        grupos.stream().mapToInt(GrupoDTO::getNumeroPedidos).sum(), grupos.size());
 
-        return AgrupamientoAPResultadoDTO.builder()
-            .metodo("affinityPropagation")
-            .totalPedidos(grupos.stream().mapToInt(GrupoDTO::getNumeroPedidos).sum())
-            .totalGrupos(grupos.size())
-            .grupos(grupos)
-            .build();
+            return AgrupamientoAPResultadoDTO.builder()
+                .metodo("affinityPropagation")
+                .totalPedidos(grupos.stream().mapToInt(GrupoDTO::getNumeroPedidos).sum())
+                .totalGrupos(grupos.size())
+                .grupos(grupos)
+                .build();
+        } catch (Exception e) {
+            logger.error("Error en la generación de grupos", e);
+            throw new RuntimeException("Error en la generación de grupos: " + e.getMessage(), e);
+        }
     }
 
     // Método que simula la generación de grupos - en un caso real esto implementaría el AP completo

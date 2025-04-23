@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    
+    <!-- Precargar los módulos principales para reducir el tiempo de carga (corregido) -->
+    <link rel="preload" href="js/app.js" as="script" crossorigin="anonymous">
+    <link rel="preload" href="js/mapa.js" as="script" crossorigin="anonymous">
+    <link rel="preload" href="js/simulacion.js" as="script" crossorigin="anonymous">
 </head>
 <body>
     <div class="container">
@@ -28,10 +33,18 @@
                 <div class="dashboard-header">
                     <h2>Panel de Control</h2>
                     <div class="control-buttons">
+                        <!-- Botones originales -->
                         <button id="btn-generar-rutas" class="btn primary">Generar Rutas</button>
                         <button id="btn-iniciar-simulacion" class="btn success">Iniciar Simulación</button>
                         <button id="btn-detener-simulacion" class="btn danger" disabled>Detener Simulación</button>
                         <button id="btn-cargar-bloqueos" class="btn warning">Cargar Bloqueos</button>
+                        
+                        <!-- Nuevos botones para algoritmos -->
+                        <button id="btn-ejecutar-ap" class="btn info">Ejecutar AP</button>
+                        <button id="btn-ejecutar-genetico" class="btn info">Ejecutar Genético</button>
+                        <button id="btn-optimizacion-completa" class="btn info">Optimizar Todo</button>
+                        <button id="btn-toggle-clusters" class="btn secondary">Mostrar Clusters</button>
+                        
                         <div class="speed-control">
                             <label for="velocidad-simulacion">Velocidad:</label>
                             <input type="number" id="velocidad-simulacion" min="1" max="10" value="1">
@@ -97,6 +110,26 @@
                             </div>
                         </div>
 
+                        <!-- Nuevo panel para optimización -->
+                        <div class="card">
+                            <h3>Estado de Optimización</h3>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <span class="stat-label">Clusters</span>
+                                    <span id="numero-clusters" class="stat-value">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Etapa</span>
+                                    <span id="etapa-optimizacion" class="stat-value">Ninguna</span>
+                                </div>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress">
+                                    <div id="progreso-optimizacion" class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="card">
                             <h3>Historial de Eventos</h3>
                             <div id="historial-eventos" class="historial-container">
@@ -146,6 +179,11 @@
                                         <div class="leyenda-color" style="background-color: #8e44ad; border-radius: 50%;"></div>
                                         <div>Bloqueo</div>
                                     </div>
+                                    <!-- Nueva entrada en la leyenda para clusters -->
+                                    <div class="leyenda-item">
+                                        <div class="leyenda-color" style="background-image: linear-gradient(45deg, #1abc9c, #3498db, #9b59b6, #f1c40f);"></div>
+                                        <div>Clusters</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -161,6 +199,7 @@
 
     <div id="contenedor-notificaciones"></div>
 
-    <script src="js/script.js"></script>
+    <!-- Cargar el módulo principal de la aplicación -->
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>

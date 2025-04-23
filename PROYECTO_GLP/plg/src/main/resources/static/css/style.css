@@ -611,3 +611,145 @@ footer {
 .leyenda .bloqueo-calle-info {
     background-color: red;
 }
+
+/* Estilos para componentes de optimización */
+.progress-container {
+    margin-top: 10px;
+    padding: 5px;
+}
+
+.progress {
+    height: 8px;
+    background-color: #ecf0f1;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: var(--color-primary);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.btn.secondary {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.btn.secondary:hover {
+    background-color: #7f8c8d;
+}
+
+/* Animación para indicador de optimización */
+@keyframes pulsate {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+}
+
+.optimizacion-activa {
+    animation: pulsate 1.5s infinite;
+}
+
+/* Colores para clusters */
+.cluster-pedido-0 { fill: #1abc9c; }
+.cluster-pedido-1 { fill: #2ecc71; }
+.cluster-pedido-2 { fill: #3498db; }
+.cluster-pedido-3 { fill: #9b59b6; }
+.cluster-pedido-4 { fill: #f1c40f; }
+.cluster-pedido-5 { fill: #e67e22; }
+.cluster-pedido-6 { fill: #e74c3c; }
+.cluster-pedido-7 { fill: #34495e; }
+.cluster-pedido-8 { fill: #16a085; }
+.cluster-pedido-9 { fill: #27ae60; }
+.cluster-pedido-10 { fill: #2980b9; }
+
+/* Estilos para el modal de monitoreo */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-large);
+    padding: 1.5rem;
+    width: 80%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    color: var(--color-dark);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 0.5rem;
+}
+
+.camiones-lista {
+    margin: 1rem 0;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.camion-item {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    background-color: var(--color-background);
+}
+
+.camion-item.en-ruta {
+    background-color: #f8f9fa;
+    border-left: 4px solid var(--color-warning);
+}
+
+.camion-item span {
+    margin-right: 1rem;
+    padding: 0.25rem 0;
+}
+
+.btn-reiniciar-camion {
+    background-color: var(--color-warning);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    transition: background-color var(--transition-speed);
+}
+
+.btn-reiniciar-camion:hover {
+    background-color: #d35400;
+}
+
+.btn-cerrar {
+    background-color: var(--color-gray);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    margin-top: 1rem;
+    float: right;
+}
+
+.btn-cerrar:hover {
+    background-color: var(--color-dark);
+}
