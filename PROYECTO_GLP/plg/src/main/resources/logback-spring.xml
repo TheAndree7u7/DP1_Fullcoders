@@ -1,20 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
-    <property name="CONSOLE_LOG_PATTERN"
-              value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID}){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} : %m%n%wEx"/>
-
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <withJansi>true</withJansi> <!-- ¡Esto es clave en Windows! -->
+    <!-- Appender para la consola -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>true</withJansi> <!-- Habilitar colores en la consola (solo para Windows) -->
         <encoder>
-            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <pattern>%d{HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <logger name="com.plg" level="DEBUG"/>
+    <!-- Appender para el flujo general del algoritmo -->
+    <appender name="ALGORITHM_FLOW" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/algorithm-flow.log</file>  <!-- Archivo donde se guardará el flujo general -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Un archivo por día, retener 30 días -->
+            <fileNamePattern>logs/algorithm-flow.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory> <!-- Retener 30 días -->
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
 
+    <!-- Appender dedicado para AffinityPropagation -->
+    <appender name="AFFINITY_PROP" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/affinity-propagation.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Un archivo por día, retener 14 días -->
+            <fileNamePattern>logs/affinity-propagation.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>14</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Logger para el flujo general del algoritmo -->
+    <logger name="com.plg.algorithm" level="DEBUG" additivity="false">
+        <appender-ref ref="ALGORITHM_FLOW"/>
+    </logger>
+
+    <!-- Logger para AffinityPropagationService -->
+    <logger name="com.plg.service.AffinityPropagationService" level="DEBUG" additivity="false">
+        <appender-ref ref="AFFINITY_PROP"/>
+    </logger>
+
+    <!-- Logger raíz para todo lo demás (incluir la consola) -->
     <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="STDOUT"/>
     </root>
+
 </configuration>

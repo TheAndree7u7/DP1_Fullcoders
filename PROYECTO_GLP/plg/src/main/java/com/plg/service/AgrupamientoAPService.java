@@ -1,66 +1,70 @@
 package com.plg.service;
 
-import com.plg.dto.*;
-import com.plg.entity.Pedido;
-import com.plg.entity.EstadoPedido;
-import com.plg.repository.PedidoRepository;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import com.plg.dto.AgrupamientoAPResultadoDTO;
+import com.plg.dto.GrupoDTO;
+import com.plg.dto.PedidoDTO;
+import com.plg.entity.Pedido;
+import com.plg.repository.PedidoRepository;
+import com.plg.service.ap.AffinityPropagationService;
 
 @Service
 public class AgrupamientoAPService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AgrupamientoAPService.class);
+
     @Autowired
     private PedidoRepository pedidoRepository;
-    
+
+    @Autowired 
+    private AffinityPropagationService apService;
+
     // Parámetros para el algoritmo de Affinity Propagation
     private final double DAMPING = 0.9;
     private final int MAX_ITERATIONS = 200;
     private final double CONVERGENCE_THRESHOLD = 0.001;
     
     public AgrupamientoAPResultadoDTO generarGrupos(Map<String, Object> params) {
-        // Obtener pedidos pendientes
-        List<Pedido> pedidos = pedidoRepository.findByEstado(EstadoPedido.PENDIENTE_PLANIFICACION);
-         
-        // Verificar si hay suficientes pedidos para agrupar
-        if (pedidos.isEmpty()) {
-            return AgrupamientoAPResultadoDTO.builder()
-                .metodo("affinityPropagation")
-                .totalPedidos(0)
-                .totalGrupos(0)
-                .grupos(Collections.emptyList())
-                .build();
-        }
+        logger.info("Iniciando el proceso de generación de grupos con los parámetros: {}", params);
         
-        // Parámetros opcionales
-        int numeroClusterDeseado = params.containsKey("numeroClusters") ? 
-                                  (int) params.get("numeroClusters") : 3;
-        
-        // Implementación simplificada - en un caso real aquí iría el algoritmo AP completo
-        // que agruparía los pedidos basado en distancias y otras métricas
-        
-        // Generamos grupos simulados
-        List<GrupoDTO> grupos = generarGruposSimulados(pedidos, numeroClusterDeseado);
-        
-        // Preparamos el resultado usando DTO
+        double alpha       = (double) params.getOrDefault("alpha", 1.0);
+        double beta        = (double) params.getOrDefault("beta", 1.0);
+        double damping     = (double) params.getOrDefault("damping", DAMPING);
+        int maxIter        = (int)    params.getOrDefault("maxIter", MAX_ITERATIONS);
+
+        // Ejecutar el algoritmo de Affinity Propagation
+        logger.info("Ejecutando el algoritmo de Affinity Propagation...");
+        List<GrupoDTO> grupos = apService.clusterizar(alpha, beta, damping, maxIter);
+
+        logger.info("Generación de grupos completada. Total de pedidos: {}, Total de grupos: {}", 
+                    grupos.stream().mapToInt(GrupoDTO::getNumeroPedidos).sum(), grupos.size());
+
         return AgrupamientoAPResultadoDTO.builder()
-            .grupos(grupos)
             .metodo("affinityPropagation")
-            .totalPedidos(pedidos.size())
+            .totalPedidos(grupos.stream().mapToInt(GrupoDTO::getNumeroPedidos).sum())
             .totalGrupos(grupos.size())
+            .grupos(grupos)
             .build();
     }
-    
+
     // Método que simula la generación de grupos - en un caso real esto implementaría el AP completo
     private List<GrupoDTO> generarGruposSimulados(List<Pedido> pedidos, int numeroGruposDeseado) {
+        logger.info("Generando grupos simulados con {} grupos deseados...", numeroGruposDeseado);
+        
         List<GrupoDTO> grupos = new ArrayList<>();
         
         // Dividir los pedidos en grupos (clusters)
-        // En un caso real, esto se haría con el algoritmo AP que encuentra automáticamente el número óptimo
-        // Aquí simplemente dividimos equitativamente
         List<List<Pedido>> clustersSimulados = dividirEnGrupos(pedidos, numeroGruposDeseado);
         
         // Para cada cluster creamos un grupo
@@ -97,11 +101,14 @@ public class AgrupamientoAPService {
             grupos.add(grupo);
         }
         
+        logger.info("Generación de grupos simulados completada. Total de grupos generados: {}", grupos.size());
         return grupos;
     }
     
     // Método auxiliar para dividir pedidos en grupos (simulado)
     private List<List<Pedido>> dividirEnGrupos(List<Pedido> pedidos, int numeroGrupos) {
+        logger.info("Dividiendo los pedidos en {} grupos...", numeroGrupos);
+        
         List<List<Pedido>> grupos = new ArrayList<>();
         
         // Asegurar que no intentamos crear más grupos que pedidos disponibles
@@ -112,11 +119,7 @@ public class AgrupamientoAPService {
             grupos.add(new ArrayList<>());
         }
         
-        // Distribuir pedidos (enfoque simple espacial - en un caso real
-        // se usaría AP o K-means para una mejor agrupación por proximidad)
-        
         // Simulación de agrupamiento espacial
-        // Ordenamos por coordenada X para simular cercanía
         pedidos.sort(Comparator.comparingDouble(Pedido::getPosX));
         
         // Distribuir pedidos aproximadamente igual en cada grupo
