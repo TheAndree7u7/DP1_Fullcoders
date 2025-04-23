@@ -334,3 +334,168 @@ Los parámetros de los algoritmos pueden ser ajustados en los respectivos servic
 - `AlgoritmoGeneticoService`: Parámetros genéticos (población, generaciones)
 - `AgrupamientoAPService`: Parámetros de clustering (factor de amortiguación)
 - `SimulacionService`: Variantes de escenarios
+
+# Sistema de Gestión y Simulación de Transporte de GLP
+
+## Estructura del Backend
+
+### Capas de la Aplicación
+El sistema está construido siguiendo una arquitectura por capas que separa claramente las responsabilidades:
+
+- **Capa de Presentación**: Controllers que exponen endpoints REST API
+- **Capa de Negocio**: Services que implementan la lógica de negocio
+- **Capa de Acceso a Datos**: Repositories que interactúan con la base de datos
+- **Capa de Dominio**: Entities que representan los objetos del dominio
+
+### Estructura de Carpetas
+```
+plg/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/
+│   │   │       └── plg/
+│   │   │           ├── config/       # Configuración de la aplicación
+│   │   │           ├── controller/   # Endpoints REST API
+│   │   │           ├── dto/          # Objetos de transferencia de datos
+│   │   │           ├── entity/       # Entidades del dominio
+│   │   │           ├── repository/   # Interfaces de acceso a datos
+│   │   │           ├── service/      # Lógica de negocio
+│   │   │           └── util/         # Clases utilitarias
+│   │   └── resources/
+│   │       ├── application.properties # Configuración de la aplicación
+│   │       ├── logback-spring.xml    # Configuración de logs
+│   │       ├── data/                 # Datos para cargar en la aplicación
+│   │       └── static/               # Archivos estáticos (frontend)
+│   └── test/                         # Pruebas unitarias e integración
+```
+
+### Convenciones de Nomenclatura
+- **Clases y Tipos**: PascalCase (ej: `CamionController`, `MapaReticularService`)
+- **Métodos y Funciones**: camelCase (ej: `obtenerAlmacenesPorTipo()`, `calcularRutaOptima()`)
+- **Variables y Parámetros**: camelCase (ej: `codigoCamion`, `posicionActual`)
+- **Constantes**: SCREAMING_SNAKE_CASE (ej: `MAX_ITERATIONS`, `TAMANO_CELDA`)
+- **Sufijos**: Controller, Service, Repository (ej: `AlmacenController`, `BloqueoService`)
+- **Archivos**: PascalCase para clases (ej: `CamionService.java`, `AlmacenRepository.java`)
+
+## Arquitectura del Sistema
+
+### Diagrama de Flujo del Sistema
+```
+Cliente Web <--> Controllers <--> Services <--> Repositories <--> Base de Datos
+      ^                ^
+      |                |
+      v                v
+WebSockets <----> Simulación en Tiempo Real
+```
+
+### Componentes Principales
+
+#### 1. Entidades (Entities)
+- **Camion**: Representa un camión de transporte de GLP con propiedades como capacidad, estado, posición actual y combustible.
+- **Almacen**: Representa un almacén de GLP y combustible (central o intermedio).
+- **Pedido**: Representa un pedido de GLP con ubicación, volumen y estado.
+- **Ruta**: Representa una ruta planificada para entrega de pedidos.
+- **Bloqueo**: Representa bloqueos en el mapa reticular (obstáculos).
+- **Averia**: Representa una avería de un camión.
+- **Mantenimiento**: Representa un mantenimiento programado o correctivo.
+
+#### 2. Servicios (Services)
+- **MapaReticularService**: Gestiona la navegación en el mapa reticular y cálculo de rutas óptimas utilizando el algoritmo A*.
+- **SimulacionService**: Gestiona las simulaciones por escenarios (diario, semanal, colapso).
+- **SimulacionTiempoRealService**: Gestiona la simulación en tiempo real con actualización vía WebSockets.
+- **CamionService**: Gestiona operaciones relacionadas con los camiones.
+- **AlmacenService**: Gestiona operaciones relacionadas con los almacenes.
+- **PedidoService**: Gestiona operaciones relacionadas con los pedidos.
+- **BloqueoService**: Gestiona bloqueos en el mapa reticular.
+- **AlgoritmoGeneticoService**: Implementa algoritmo genético para optimización de rutas.
+- **AgrupamientoAPService**: Implementa algoritmo de Affinity Propagation para agrupar pedidos.
+
+#### 3. Controladores (Controllers)
+- **VisualizadorController**: Endpoints para visualización del estado del sistema.
+- **MapaReticularController**: Endpoints para interactuar con el mapa y rutas.
+- **SimulacionController**: Endpoints para iniciar/detener simulaciones.
+- **AlmacenController**: Endpoints para gestionar almacenes.
+- **CamionController**: Endpoints para gestionar camiones.
+- **PedidoController**: Endpoints para gestionar pedidos.
+- **MantenimientoController**: Endpoints para gestionar mantenimientos.
+- **AlgoritmosController**: Endpoints para ejecutar algoritmos de optimización.
+
+#### 4. Repositorios (Repositories)
+- Interfaces que extienden JpaRepository para interactuar con la base de datos.
+- Ejemplos: CamionRepository, AlmacenRepository, PedidoRepository.
+
+#### 5. Configuración (Config)
+- **WebSocketConfig**: Configuración para comunicación en tiempo real.
+- **MapaConfig**: Configuración del mapa reticular (dimensiones, distancias).
+- **DataLoaderConfig**: Carga inicial de datos desde archivos.
+
+## Flujos Principales del Sistema
+
+### 1. Carga y Gestión de Datos
+- El sistema carga datos iniciales desde archivos en la carpeta `/data` (almacenes, camiones, etc.).
+- Los controllers exponen endpoints para listar, crear, actualizar y eliminar entidades.
+
+### 2. Visualización del Estado
+- `VisualizadorService` proporciona métodos para obtener datos del estado actual.
+- `VisualizadorController` expone endpoints para acceder a estos datos.
+- El frontend consume estos endpoints para mostrar el estado actual del sistema.
+
+### 3. Cálculo de Rutas
+- `MapaReticularService` implementa el algoritmo A* para encontrar rutas óptimas.
+- Considera bloqueos y distancias para calcular rutas eficientes.
+- `MapaReticularController` expone endpoints para calcular rutas.
+
+### 4. Simulación en Tiempo Real
+1. El cliente inicia una simulación a través del endpoint `/api/simulacion/iniciar-tiempo-real`.
+2. `SimulacionTiempoRealService` comienza a actualizar el estado de camiones y pedidos a intervalos regulares.
+3. Los cambios de estado se envían al frontend a través de WebSockets.
+4. El frontend actualiza la visualización en tiempo real.
+5. El cliente puede ajustar la velocidad de simulación o detenerla.
+
+### 5. Optimización de Rutas
+1. `AgrupamientoAPService` agrupa pedidos basados en proximidad geográfica.
+2. `AlgoritmoGeneticoService` genera rutas optimizadas para cada grupo de pedidos.
+3. Los resultados se devuelven como DTOs estructurados.
+
+### 6. Gestión de Bloqueos y Eventos
+- El sistema carga bloqueos desde archivos por mes.
+- `SimulacionService` puede generar eventos aleatorios (averías, bloqueos).
+- `MapaReticularService` considera los bloqueos al calcular rutas.
+
+### 7. Monitoreo de Recursos
+- `AlmacenCombustibleService` gestiona niveles de GLP y combustible.
+- `CamionService` monitorea el estado, capacidad y combustible de camiones.
+- Los almacenes intermedios se reabastecen automáticamente o manualmente.
+
+## Comunicación con el Frontend
+
+### API REST
+- Todos los controladores exponen endpoints RESTful para interactuar con el sistema.
+- Los endpoints siguen convenciones RESTful (GET para consultas, POST para creación, etc.).
+
+### WebSockets
+- `SimulacionTiempoRealService` utiliza WebSockets para transmitir actualizaciones en tiempo real.
+- El frontend se suscribe a estos eventos para mostrar cambios sin recargar la página.
+
+### Visualización en el Mapa
+- El frontend utiliza un mapa reticular para representar camiones, almacenes, pedidos y bloqueos.
+- Se utilizan colores distintos para representar diferentes estados (COLORES en script.js).
+- El mapa admite zoom y desplazamiento para una mejor visualización.
+
+## Algoritmos Implementados
+
+### Algoritmo A* (A-Star)
+- Implementado en `MapaReticularService` para encontrar rutas óptimas.
+- Utiliza una heurística (distancia Manhattan) para guiar la búsqueda.
+- Considera bloqueos y distancias para encontrar el camino más corto.
+
+### Algoritmo de Affinity Propagation
+- Implementado en `AgrupamientoAPService` para agrupar pedidos cercanos.
+- Identifica ejemplares (pedidos representativos) para cada grupo.
+- Proporciona métricas como densidad y radio para cada grupo.
+
+### Algoritmo Genético
+- Implementado en `AlgoritmoGeneticoService` para optimizar rutas.
+- Utiliza operadores genéticos (selección, cruce, mutación) para evolucionar soluciones.
+- Optimiza para minimizar distancias totales y maximizar capacidad utilizada.
