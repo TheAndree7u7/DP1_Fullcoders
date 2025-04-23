@@ -31,6 +31,7 @@
                         <button id="btn-generar-rutas" class="btn primary">Generar Rutas</button>
                         <button id="btn-iniciar-simulacion" class="btn success">Iniciar Simulación</button>
                         <button id="btn-detener-simulacion" class="btn danger" disabled>Detener Simulación</button>
+                        <button id="btn-cargar-bloqueos" class="btn warning">Cargar Bloqueos</button>
                         <div class="speed-control">
                             <label for="velocidad-simulacion">Velocidad:</label>
                             <input type="number" id="velocidad-simulacion" min="1" max="10" value="1">
@@ -63,6 +64,13 @@
                                 <div class="stat-item">
                                     <span class="stat-label">Estado Simulación</span>
                                     <span id="estado-simulacion" class="stat-value estado-inactivo">Detenida</span>
+                                </div>
+                            </div>
+                            <!-- Aquí incluiremos información sobre bloqueos activos -->
+                            <div id="info-bloqueos-activos" class="stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-label">Bloqueos Activos</div>
+                                    <div class="stat-value" id="count-bloqueos-activos">0</div>
                                 </div>
                             </div>
                         </div>
@@ -133,6 +141,10 @@
                                     <div class="leyenda-item">
                                         <div class="leyenda-color" style="background-color: #27ae60; border-radius: 50%;"></div>
                                         <div>Pedido Entregado</div>
+                                    </div>
+                                    <div class="leyenda-item">
+                                        <div class="leyenda-color" style="background-color: #8e44ad; border-radius: 50%;"></div>
+                                        <div>Bloqueo</div>
                                     </div>
                                 </div>
                             </div>

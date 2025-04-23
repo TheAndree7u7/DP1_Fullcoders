@@ -1,14 +1,21 @@
 package com.plg.controller;
 
-import com.plg.service.RutaService;
-import com.plg.service.AlgoritmoGeneticoService;
-import com.plg.service.AgrupamientoAPService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.plg.service.AgrupamientoAPService;
+import com.plg.service.AlgoritmoGeneticoService;
+import com.plg.service.RutaService;
 
 @RestController
 @RequestMapping("/api/rutas")
@@ -54,5 +61,15 @@ public class RutaController {
                                              @RequestParam int x2, 
                                              @RequestParam int y2) {
         return ResponseEntity.ok(rutaService.calcularDistancia(x1, y1, x2, y2));
+    }
+
+    /**
+     * Endpoint para obtener todas las rutas bloqueadas actuales
+     * Esto es útil para visualización en el mapa
+     */
+    @GetMapping("/bloqueadas")
+    public ResponseEntity<List<Map<String, Object>>> getRutasBloqueadas() {
+        List<Map<String, Object>> rutasBloqueadas = rutaService.obtenerRutasBloqueadas();
+        return ResponseEntity.ok(rutasBloqueadas);
     }
 }

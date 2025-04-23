@@ -119,11 +119,19 @@ function agregarControlesMapa(contenedor) {
     fullscreenBtn.title = 'Pantalla completa';
     fullscreenBtn.addEventListener('click', toggleFullscreen);
     
+    // Botón para mostrar/ocultar bloqueos
+    const toggleBlocksBtn = document.createElement('button');
+    toggleBlocksBtn.className = 'control-btn';
+    toggleBlocksBtn.innerHTML = '🚫';
+    toggleBlocksBtn.title = 'Mostrar/Ocultar bloqueos';
+    toggleBlocksBtn.addEventListener('click', toggleBloqueos);
+    
     // Añadir botones al panel
     controlesDiv.appendChild(zoomInBtn);
     controlesDiv.appendChild(zoomOutBtn);
     controlesDiv.appendChild(resetBtn);
     controlesDiv.appendChild(fullscreenBtn);
+    controlesDiv.appendChild(toggleBlocksBtn);
     
     // Añadir panel al contenedor
     contenedor.appendChild(controlesDiv);
@@ -375,6 +383,9 @@ function dibujarMapa() {
     // Dibujar camiones (último para que estén por encima)
     dibujarCamiones(ctx);
     
+    // Dibujar bloqueos
+    dibujarBloqueos(ctx, bloqueos, escalaActual, offsetX, offsetY);
+    
     // Restaurar el estado del contexto
     ctx.restore();
 }
@@ -611,6 +622,38 @@ function dibujarRutas(ctx) {
             }
         });
     });
+}
+
+// Dibujar bloqueos en el mapa
+function dibujarBloqueos(context, bloqueos, escala, offsetX, offsetY) {
+    if (!mostrarBloqueos || !bloqueos || bloqueos.length === 0) return;
+
+    context.save();
+    context.strokeStyle = 'red';
+    context.lineWidth = 4;
+    
+    bloqueos.forEach(bloqueo => {
+        context.beginPath();
+        const x1 = (bloqueo.x1 * escala) + offsetX;
+        const y1 = (bloqueo.y1 * escala) + offsetY;
+        const x2 = (bloqueo.x2 * escala) + offsetX;
+        const y2 = (bloqueo.y2 * escala) + offsetY;
+        
+        context.moveTo(x1, y1);
+        context.lineTo(x2, y2);
+        context.stroke();
+        
+        // Agregar un tooltip o indicador visual adicional
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
+        
+        context.fillStyle = 'rgba(255, 0, 0, 0.3)';
+        context.beginPath();
+        context.arc(midX, midY, 5, 0, 2 * Math.PI);
+        context.fill();
+    });
+    
+    context.restore();
 }
 
 // Actualizar el panel de información con estadísticas actuales
@@ -1123,3 +1166,43 @@ function mostrarNotificacion(mensaje, tipo) {
         }, 300);
     }, 3000);
 }
+
+// Variable para controlar la visibilidad de los bloqueos
+let mostrarBloqueos = true;
+
+// Función para alternar la visualización de los bloqueos
+function toggleBloqueos() {
+    mostrarBloqueos = !mostrarBloqueos;
+    dibujarMapa(); // Redibujar el canvas
+}
+
+// Agregar esta función para cargar los bloqueos
+async function cargarBloqueos() {
+    try {
+        // Primero actualizamos el estado de los bloqueos
+        await fetch('/api/bloqueos/actualizar-estado', { method: 'POST' });
+        
+        // Luego obtenemos las rutas bloqueadas
+        const response = await fetch('/api/rutas/bloqueadas');
+        const bloqueos = await response.json();
+        
+        return bloqueos;
+    } catch (error) {
+        console.error('Error al cargar los bloqueos:', error);
+        return [];
+    }
+}
+
+// Inicialización: Cargar los bloqueos cuando se carga la página
+let bloqueos = [];
+window.addEventListener('DOMContentLoaded', async () => {
+    // ... código existente ...
+    
+    // Cargar los bloqueos
+    bloqueos = await cargarBloqueos();
+    
+    // Redibujar el canvas para mostrar los bloqueos
+    if (typeof dibujarMapa === 'function') {
+        dibujarMapa();
+    }
+});
