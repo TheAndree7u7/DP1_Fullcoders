@@ -40,9 +40,10 @@
         <appender-ref ref="ALGORITHM_FLOW"/>
     </logger>
 
-    <!-- Logger para AffinityPropagationService -->
-    <logger name="com.plg.service.AffinityPropagationService" level="DEBUG" additivity="false">
+    <!-- Logger para AffinityPropagationService - corregir para que incluya el paquete completo -->
+    <logger name="com.plg.service.ap.AffinityPropagationService" level="DEBUG" additivity="false">
         <appender-ref ref="AFFINITY_PROP"/>
+        <appender-ref ref="STDOUT"/>
     </logger>
 
     <!-- Logger raíz para todo lo demás (incluir la consola) -->

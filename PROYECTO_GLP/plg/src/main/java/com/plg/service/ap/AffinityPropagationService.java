@@ -47,7 +47,11 @@ public class AffinityPropagationService {
                                       double beta,
                                       double damping,
                                       int maxIter) {
-        logger.info("Iniciando la clusterización con alpha={}, beta={}, damping={}, maxIter={}", alpha, beta, damping, maxIter);
+        // Add ERROR level log to ensure it gets captured
+        logger.error("TEST ERROR LOG - Iniciando la clusterización");
+        logger.warn("TEST WARN LOG - Parámetros: alpha={}, beta={}, damping={}, maxIter={}", alpha, beta, damping, maxIter);
+        logger.info("TEST INFO LOG - Iniciando la clusterización con alpha={}, beta={}, damping={}, maxIter={}", alpha, beta, damping, maxIter);
+        logger.debug("TEST DEBUG LOG - Verificando niveles de log");
         
         // 2.1: carga datos
         logger.info("Cargando los almacenes y pedidos desde las bases de datos...");
@@ -223,7 +227,7 @@ public class AffinityPropagationService {
             resultado.add(grupo);
         }
 
-        logger.info("Clusterización completada. Se han generado {} grupos.", resultado.size());
+        logger.error("Clusterización completada. Se han generado {} grupos.", resultado.size());
         return resultado;
     }
 }
