@@ -189,8 +189,6 @@ public class Camion {
     public Averia reportarAveria(String descripcion) {
         Averia a = new Averia();
         a.setCamion(this);
-        a.setDescripcion(descripcion);
-        a.setFechaHoraReporte(LocalDateTime.now());
         a.setEstado(0); // Pendiente
         this.estado = EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA;
         averias.add(a);
