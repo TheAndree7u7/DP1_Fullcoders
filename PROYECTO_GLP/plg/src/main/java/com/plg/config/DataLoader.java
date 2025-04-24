@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -18,6 +20,7 @@ import java.util.*;
 @Component
 public class DataLoader {
 
+    private String pathAverias = "data/averias/averias.v1.txt";
 
     public List<Camion> initializeCamiones() {
         List<Camion> camiones = new ArrayList<>();
@@ -41,5 +44,32 @@ public class DataLoader {
             }
         }
         return camiones;
+    }
+
+    public List<Averia> initializeAverias() {
+        List<Averia> averias = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                getClass().getClassLoader().getResourceAsStream(pathAverias)))) {
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] partes = line.split("_");
+                String turno = partes[0];
+                String codigoCamion = partes[1];
+                String tipoIncidente = partes[2];
+                TipoTurno tipoTurno = new TipoTurno(turno);
+                TipoIncidente tipoIncidenteObj = new TipoIncidente(tipoIncidente);
+                Camion camion = Camion.builder().codigo(codigoCamion).build();
+                Averia averia = Averia.builder()
+                        .camion(camion)
+                        .turno(tipoTurno)
+                        .tipoIncidente(tipoIncidenteObj)
+                        .build();           
+                averias.add(averia);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return averias;
     }
 }
