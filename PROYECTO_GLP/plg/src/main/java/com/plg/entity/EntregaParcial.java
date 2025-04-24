@@ -8,8 +8,9 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 
 @Data
-@Builder
+@NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class EntregaParcial {
 
     private Long id;
@@ -22,14 +23,6 @@ public class EntregaParcial {
     private int estado;               // 0: Asignado, 1: En ruta, 2: Entregado, 3: Cancelado
     private String observaciones;
 
-    /**
-     * Constructor por defecto:
-     * asigna fechaActual y estado = 0 (Asignado)
-     */
-    public EntregaParcial() {
-        this.fechaAsignacion = LocalDateTime.now();
-        this.estado = 0;
-    }
 
     /**
      * Constructor con información básica

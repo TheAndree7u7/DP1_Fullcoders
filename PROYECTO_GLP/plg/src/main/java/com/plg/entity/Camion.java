@@ -8,7 +8,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Camion {
 
     private String codigo;
@@ -45,7 +55,6 @@ public class Camion {
     private List<Mantenimiento> mantenimientos     = new ArrayList<>();
     private List<Averia>      averias             = new ArrayList<>();
     private List<Pedido>      pedidos             = new ArrayList<>();
-    private List<Ruta>        rutas               = new ArrayList<>();
     private List<EntregaParcial> entregasParciales = new ArrayList<>();
 
     /** Constructor con parámetros básicos */

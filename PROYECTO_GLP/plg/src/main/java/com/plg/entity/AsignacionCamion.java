@@ -14,7 +14,6 @@ public class AsignacionCamion {
     private Pedido pedido;
     private double volumenAsignado;
     private double porcentajeAsignado;
-    private Ruta ruta;
     private boolean entregado;
     private LocalDateTime fechaEntregaParcial;
 
