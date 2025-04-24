@@ -16,8 +16,8 @@ public class Pedido {
     private Long id;
     private String codigo;
     private Cliente cliente;
-    private double posX;
-    private double posY;
+    private int posX;
+    private int posY;
     private double horasLimite;
     private LocalDateTime fechaRegistro;
     private LocalDateTime fechaEntregaRequerida;

@@ -28,8 +28,8 @@ public class PlgApplication implements CommandLineRunner {
     public void run(String... args) throws Exception {
         // Llamamos al método initializeCamiones() de DataLoader para obtener la lista de camiones
         List<Camion> camiones = dataLoader.initializeCamiones();
-        List<Averia> averias = dataLoader.initializeAverias();
-        // List<Pedido> pedidos = dataLoader.initializePedidos();
+        List<Averia> averias = dataLoader.initializeAverias(camiones);
+        //List<Pedido> pedidos = dataLoader.initializePedidos();
         // List<Mantenimiento> mantenimientos = dataLoader.initializeMantenimientos();
         // List<Bloqueo> bloqueos = dataLoader.initializeBloqueos();
 

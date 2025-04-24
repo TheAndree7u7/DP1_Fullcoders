@@ -46,7 +46,7 @@ public class DataLoader {
         return camiones;
     }
 
-    public List<Averia> initializeAverias() {
+    public List<Averia> initializeAverias(List<Camion> camiones) {
         List<Averia> averias = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
                 getClass().getClassLoader().getResourceAsStream(pathAverias)))) {
@@ -59,7 +59,12 @@ public class DataLoader {
                 String tipoIncidente = partes[2];
                 TipoTurno tipoTurno = new TipoTurno(turno);
                 TipoIncidente tipoIncidenteObj = new TipoIncidente(tipoIncidente);
-                Camion camion = Camion.builder().codigo(codigoCamion).build();
+                
+                Camion camion = camiones.stream()
+                        .filter(c -> c.getCodigo().equals(codigoCamion))
+                        .findFirst()
+                        .orElse(null);
+
                 Averia averia = Averia.builder()
                         .camion(camion)
                         .turno(tipoTurno)
