@@ -17,11 +17,10 @@ public class Averia {
 
     private LocalDateTime fechaHoraReporte;
     private String descripcion;
-    private String turno;           // T1, T2, T3
+    private TipoTurno turno;           // T1, T2, T3
     private String tipoIncidente;   // TI1, TI2, TI3
     private double posX;
     private double posY;
-    private double kilometroOcurrencia;
     private int estado;             // 0: reportada, 1: atendida, 2: reparada
     private boolean conCarga;
 
@@ -49,7 +48,6 @@ public class Averia {
         Random random = new Random();
         double minKm = distanciaTotal * 0.05;
         double maxKm = distanciaTotal * 0.35;
-        kilometroOcurrencia = minKm + (maxKm - minKm) * random.nextDouble();
     }
 
     /** Genera el registro según especificación */
