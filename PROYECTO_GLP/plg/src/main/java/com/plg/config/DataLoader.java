@@ -17,6 +17,8 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import com.plg.utils.Parametros;
+
 @Component
 public class DataLoader {
 
@@ -77,4 +79,47 @@ public class DataLoader {
         }
         return averias;
     }
+
+    public List<Pedido> initializePedidos() {
+        List<Pedido> pedidos = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                getClass().getClassLoader().getResourceAsStream(pathAverias)))) {
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] partes = line.split(":");
+                double m3, h_limite;
+
+                String[] horaRegistro = partes[0].split("[dhm]");
+                Long l = (Integer.parseInt(horaRegistro[0]) - 1) * 24 * 60L +
+                        Integer.parseInt(horaRegistro[1]) * 60L +
+                        Integer.parseInt(horaRegistro[2]);
+    
+                LocalDateTime fecha_registro = Parametros.getInstance().fecha_inicial.plusMinutes(l);
+    
+                String[] datosPedido = partes[1].split(",");
+                Coordenada coordenada = new Coordenada(Integer.parseInt(datosPedido[0]), Integer.parseInt(datosPedido[1]));
+                String codigo_cliente = datosPedido[2];
+                m3 = (double) (Integer.parseInt(datosPedido[3].substring(0, datosPedido[3].indexOf('m'))));
+                h_limite = (double) Integer.parseInt(datosPedido[4].substring(0, datosPedido[4].indexOf('h')));
+          
+                Pedido pedido = Pedido.builder()
+                        .codigo(codigo_cliente)
+                        .coordenada(coordenada)
+                        .horasLimite(h_limite)
+                        .fechaRegistro(fecha_registro)
+                        .volumenGLPAsignado(m3)
+                        .volumenGLPEntregado(0.0)
+                        .volumenGLPPendiente(m3)
+                        .prioridad(1) // Asignar prioridad por defecto
+                        .estado(EstadoPedido.REGISTRADO) // Estado inicial
+                        .build();
+                pedidos.add(pedido);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return pedidos;
+    }
+
 }
