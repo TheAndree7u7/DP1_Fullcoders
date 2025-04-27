@@ -1,24 +1,19 @@
 package com.plg;
 
-import java.util.List;
-
+import com.plg.model.*;
+import com.plg.service.DataLoaderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import com.plg.entity.Averia;
-import com.plg.entity.Bloqueo;
-import com.plg.entity.Camion;
-import com.plg.entity.Mantenimiento;
-import com.plg.entity.Pedido;
-import com.plg.config.DataLoader;
+import java.util.List;
 
 @SpringBootApplication
 public class PlgApplication implements CommandLineRunner {
 
     @Autowired
-    private DataLoader dataLoader;
+    private DataLoaderService dataLoaderService;
 
     public static void main(String[] args) {
         SpringApplication.run(PlgApplication.class, args);
@@ -26,16 +21,33 @@ public class PlgApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // Llamamos al método initializeCamiones() de DataLoader para obtener la lista de camiones
-        List<Camion> camiones = dataLoader.initializeCamiones();
-        List<Averia> averias = dataLoader.initializeAverias(camiones);
-        List<Pedido> pedidos = dataLoader.initializePedidos();
-       // List<Mantenimiento> mantenimientos = dataLoader.initializeMantenimientos();
-        // List<Bloqueo> bloqueos = dataLoader.initializeBloqueos();
+        System.out.println("Iniciando carga de archivos...");
 
-        for (Pedido pedido: pedidos) {
-            System.out.println("Pedido: " + pedido.getEstadoTexto() + ", Cliente: " + pedido.getCodigo() );
-        }
+        List<Almacen> almacenes = dataLoaderService.cargarAlmacenes();
+        List<Camion> camiones = dataLoaderService.cargarCamiones();
+        List<Averia> averias = dataLoaderService.cargarAverias();
+        List<Bloqueo> bloqueos = dataLoaderService.cargarBloqueos();
+        List<Mantenimiento> mantenimientos = dataLoaderService.cargarMantenimientos();
+        List<Pedido> pedidos = dataLoaderService.cargarPedidos();
 
+        System.out.println("📦 Almacenes:");
+        almacenes.forEach(System.out::println);
+
+        System.out.println("\n🚚 Camiones:");
+        camiones.forEach(System.out::println);
+
+        System.out.println("\n🔧 Averias:");
+        averias.forEach(System.out::println);
+
+        System.out.println("\n🚧 Bloqueos:");
+        bloqueos.forEach(System.out::println);
+
+        System.out.println("\n🛠️ Mantenimientos:");
+        mantenimientos.forEach(System.out::println);
+
+        System.out.println("\n🛒 Pedidos:");
+        pedidos.forEach(System.out::println);
+
+        System.out.println("\n✅ ¡Carga completa!");
     }
 }
