@@ -15,7 +15,6 @@ public class Pedido {
 
     private Long id;
     private String codigo;
-    private Cliente cliente;
     private Coordenada coordenada;
     private double horasLimite; 
     private LocalDateTime fechaRegistro;
@@ -88,4 +87,5 @@ public class Pedido {
     public String getEstadoColorHex() {
         return estado != null ? estado.getColorHex() : "#CCCCCC";
     }
+
 }

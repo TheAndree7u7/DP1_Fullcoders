@@ -23,6 +23,9 @@ import com.plg.utils.Parametros;
 public class DataLoader {
 
     private String pathAverias = "data/averias/averias.v1.txt";
+    private String pathPedidos = "data/pedidos/ventas202504.txt";
+    private String pathMantenimientos = "data/mantenimientos/mantenimientos.v1.txt";
+    private String pathBloqueos = "data/bloqueos/bloqueos.v1.txt";
 
     public List<Camion> initializeCamiones() {
         List<Camion> camiones = new ArrayList<>();
@@ -83,7 +86,7 @@ public class DataLoader {
     public List<Pedido> initializePedidos() {
         List<Pedido> pedidos = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                getClass().getClassLoader().getResourceAsStream(pathAverias)))) {
+                getClass().getClassLoader().getResourceAsStream(pathPedidos)))) {
 
             String line;
             while ((line = reader.readLine()) != null) {
@@ -102,7 +105,8 @@ public class DataLoader {
                 String codigo_cliente = datosPedido[2];
                 m3 = (double) (Integer.parseInt(datosPedido[3].substring(0, datosPedido[3].indexOf('m'))));
                 h_limite = (double) Integer.parseInt(datosPedido[4].substring(0, datosPedido[4].indexOf('h')));
-          
+                
+        
                 Pedido pedido = Pedido.builder()
                         .codigo(codigo_cliente)
                         .coordenada(coordenada)
@@ -121,5 +125,7 @@ public class DataLoader {
         }
         return pedidos;
     }
+
+
 
 }
