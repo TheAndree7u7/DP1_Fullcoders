@@ -30,8 +30,8 @@ public class PlgApplication implements CommandLineRunner {
         List<Camion> camiones = dataLoader.initializeCamiones();
         List<Averia> averias = dataLoader.initializeAverias(camiones);
         List<Pedido> pedidos = dataLoader.initializePedidos();
-       // List<Mantenimiento> mantenimientos = dataLoader.initializeMantenimientos();
-        // List<Bloqueo> bloqueos = dataLoader.initializeBloqueos();
+        List<Mantenimiento> mantenimientos = dataLoader.initializeMantenimientos(camiones);
+        List<Bloqueo> bloqueos = dataLoader.initializeBloqueos();
 
         for (Pedido pedido: pedidos) {
             System.out.println("Pedido: " + pedido.getEstadoTexto() + ", Cliente: " + pedido.getCodigo() );

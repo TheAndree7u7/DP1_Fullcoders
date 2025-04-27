@@ -115,12 +115,4 @@ public class Bloqueo {
         return t >= 0 && t <= 1 && u >= 0 && u <= 1;
     }
 
-    /** Clase interna para coordenadas de bloqueo */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Coordenada {
-        private double x;
-        private double y;
-    }
 }

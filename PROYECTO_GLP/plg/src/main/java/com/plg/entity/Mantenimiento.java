@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * Representa un mantenimiento de un camión (preventivo o correctivo).
@@ -16,12 +17,6 @@ import java.time.LocalDate;
 @Builder
 public class Mantenimiento {
 
-    private Long id;
+    private LocalDateTime fecha;
     private Camion camion;
-    private LocalDate fechaInicio;
-    private LocalDate fechaFin;
-    private String tipo;       // "preventivo" o "correctivo"
-    private String descripcion;
-    private int estado;        // 0: programado, 1: en proceso, 2: finalizado
-
 }
