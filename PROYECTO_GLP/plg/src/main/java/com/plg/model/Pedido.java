@@ -70,7 +70,7 @@ public class Pedido {
     public String toString() {
         return "Pedido{" +
                 "coordenada=" + coordenada +
-                ", idente='" + idCliente + '\'' +
+                ", idcliente='" + idCliente + '\'' +
                 ", cantidadM3=" + cantidadM3 +
                 ", horasLimite=" + horasLimite +
                 ", fechaRegistro=" + fechaRegistro +
