@@ -11,6 +11,7 @@ import com.plg.entity.Averia;
 import com.plg.entity.Bloqueo;
 import com.plg.entity.Camion;
 import com.plg.entity.Mantenimiento;
+import com.plg.entity.Mapa;
 import com.plg.entity.Pedido;
 import com.plg.config.DataLoader;
 
@@ -31,11 +32,14 @@ public class PlgApplication implements CommandLineRunner {
         List<Averia> averias = dataLoader.initializeAverias(camiones);
         List<Pedido> pedidos = dataLoader.initializePedidos();
         List<Mantenimiento> mantenimientos = dataLoader.initializeMantenimientos(camiones);
-        List<Bloqueo> bloqueos = dataLoader.initializeBloqueos();
+        //List<Bloqueo> bloqueos = dataLoader.initializeBloqueos();
 
-        for (Pedido pedido: pedidos) {
-            System.out.println("Pedido: " + pedido.getEstadoTexto() + ", Cliente: " + pedido.getCodigo() );
-        }
+        // for (Pedido pedido: pedidos) {
+        //     System.out.println("Pedido: " + pedido.getEstadoTexto() + ", Cliente: " + pedido.getCodigo() );
+        // }
+
+        Mapa mapa = new Mapa(5, 5);
+        mapa.imprimirMapa();
 
     }
 }
