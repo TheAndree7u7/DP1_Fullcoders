@@ -14,72 +14,54 @@
     </appender>
 
     <!-- Archivo de log para el flujo general del algoritmo -->
-    <appender name="ALGORITHM_FLOW" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="ALGORITHM_FLOW" class="ch.qos.logback.core.FileAppender">
         <file>logs/algorithm-flow.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/algorithm-flow.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory> <!-- Retener 30 días -->
-        </rollingPolicy>
+        <append>false</append> <!-- Sobrescribir en cada ejecución -->
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
     <!-- Archivo de log para AffinityPropagation -->
-    <appender name="AFFINITY_PROP" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="AFFINITY_PROP" class="ch.qos.logback.core.FileAppender">
         <file>logs/affinity-propagation.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/affinity-propagation.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>14</maxHistory> <!-- Retener 14 días -->
-        </rollingPolicy>
+        <append>false</append>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
     <!-- Archivo de log para el algoritmo genético -->
-    <appender name="GENETICO-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="GENETICO-APPENDER" class="ch.qos.logback.core.FileAppender">
         <file>logs/genetico.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/genetico.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>7</maxHistory> <!-- Retener 7 días -->
-        </rollingPolicy>
+        <append>false</append>
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
     <!-- Archivo de log para pruebas de TestAlgorithmService -->
-    <appender name="TEST-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="TEST-APPENDER" class="ch.qos.logback.core.FileAppender">
         <file>logs/test-algorithm.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/test-algorithm.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>7</maxHistory>
-        </rollingPolicy>
+        <append>false</append>
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
     <!-- Archivo de log para MapaReticularService -->
-    <appender name="MAPA-RETICULAR-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="MAPA-RETICULAR-APPENDER" class="ch.qos.logback.core.FileAppender">
         <file>logs/mapa-reticular.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/mapa-reticular.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>7</maxHistory> <!-- Retener 7 días -->
-        </rollingPolicy>
+        <append>false</append>
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
     <!-- Archivo de log para SimulacionTiempoRealService -->
-    <appender name="SIMULACION-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="SIMULACION-APPENDER" class="ch.qos.logback.core.FileAppender">
         <file>logs/simulacion-tiempo-real.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/simulacion-tiempo-real.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>7</maxHistory> <!-- Retener 7 días -->
-        </rollingPolicy>
+        <append>false</append>
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>

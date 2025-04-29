@@ -21,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
@@ -62,12 +64,28 @@ public class SimulacionTiempoRealService {
     private Map<Long, Double> progresoNodoActual = new HashMap<>();
     
     // Método para iniciar la simulación en tiempo real
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Map<String, Object> iniciarSimulacion() {
         if (simulacionEnCurso) {
             return crearRespuesta("La simulación ya está en curso");
         }
         
         logger.info("Iniciando simulación de tiempo real a las {}", LocalDateTime.now());
+        
+        // Antes de iniciar, verificar el estado actual de los camiones
+        logger.info("Estado de los camiones al iniciar simulación:");
+        List<Camion> camiones = camionRepository.findAll();
+        for (Camion c : camiones) {
+            logger.info("  - Camión {} estado: {}, posición: ({},{})", 
+                c.getCodigo(), c.getEstado(), c.getPosX(), c.getPosY());
+        }
+        
+        // Verificar específicamente los camiones en ruta
+        List<Camion> enRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA);
+        logger.info("Camiones en estado EN_RUTA: {} camiones", enRuta.size());
+        for (Camion c : enRuta) {
+            logger.info("  - Camión en ruta: {}, ID: {}", c.getCodigo(), c.getId());
+        }
         
         simulacionEnCurso = true;
         scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -93,8 +111,11 @@ public class SimulacionTiempoRealService {
     }
     
     // Nuevo método para activar rutas pendientes
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void activarRutasPendientes() {
         List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA); // Camiones en ruta
+        
+        logger.info("Activando rutas pendientes para {} camiones en ruta", camionesEnRuta.size());
         
         for (Camion camion : camionesEnRuta) {
             // Verificar si tiene alguna ruta activa
@@ -115,6 +136,17 @@ public class SimulacionTiempoRealService {
                     
                     // Inicializar progreso
                     progresoNodoActual.put(rutaParaActivar.getId(), Double.valueOf(0.0));
+                } else {
+                    logger.warn("Camión {} está en ruta pero no tiene rutas pendientes para activar", camion.getCodigo());
+                }
+            } else {
+                logger.info("Camión {} ya tiene {} rutas activas", camion.getCodigo(), rutasActivas.size());
+                // Asegurar que el progreso esté inicializado para las rutas activas
+                for (Ruta ruta : rutasActivas) {
+                    if (!progresoNodoActual.containsKey(ruta.getId())) {
+                        progresoNodoActual.put(ruta.getId(), Double.valueOf(0.0));
+                        logger.info("Inicializado progreso para ruta ya activa: {}", ruta.getCodigo());
+                    }
                 }
             }
         }
@@ -163,6 +195,7 @@ public class SimulacionTiempoRealService {
     }
     
     // Método principal que se ejecuta periódicamente para actualizar la simulación
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void actualizarSimulacion() {
         try {
             // Verificar si hay simulación en curso
@@ -171,13 +204,39 @@ public class SimulacionTiempoRealService {
                 return;
             }
             
-            // Obtener todos los camiones en ruta (estado 1)
+            // Obtener todos los camiones en ruta (estado EN_RUTA)
             List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA);
             
             // Si no hay camiones en ruta, no hay nada que simular
             if (camionesEnRuta.isEmpty()) {
-                logger.info("No hay camiones en ruta para simular");
-                return;
+                logger.warn("No hay camiones en ruta para simular");
+                // Verificar si hay alguna discrepancia, buscamos camiones que deberían estar en ruta
+                List<Ruta> rutasActivas = rutaRepository.findByEstado(1); // Rutas en curso
+                if (!rutasActivas.isEmpty()) {
+                    logger.warn("Hay {} rutas activas pero ningún camión en ruta", rutasActivas.size());
+                    for (Ruta ruta : rutasActivas) {
+                        if (ruta.getCamion() != null) {
+                            Camion camion = ruta.getCamion();
+                            logger.warn(" - Ruta {} asignada a camión {} con estado {}", 
+                                ruta.getCodigo(), camion.getCodigo(), camion.getEstado());
+                            
+                            // Corregir estado del camión si tiene ruta activa pero no está en ruta
+                            if (camion.getEstado() != EstadoCamion.EN_RUTA) {
+                                logger.info("Corrigiendo estado de camión {} a EN_RUTA", camion.getCodigo());
+                                camion.setEstado(EstadoCamion.EN_RUTA);
+                                camionRepository.save(camion);
+                                camionesEnRuta.add(camion); // Agregar a la lista para procesar
+                            }
+                        } else {
+                            logger.warn(" - Ruta {} sin camión asignado", ruta.getCodigo());
+                        }
+                    }
+                }
+                
+                // Si después de la corrección sigue sin haber camiones, terminamos
+                if (camionesEnRuta.isEmpty()) {
+                    return;
+                }
             }
             
             logger.info("Procesando {} camiones en la simulación", camionesEnRuta.size());
@@ -205,6 +264,7 @@ public class SimulacionTiempoRealService {
     }
 
     // Procesa el movimiento de un camión específico
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void procesarMovimientoCamion(Camion camion) {
         try {
             logger.info("DEBUG: Procesando movimiento del camión {} (ID:{})", camion.getCodigo(), camion.getId());
