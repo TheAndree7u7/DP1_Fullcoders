@@ -18,9 +18,17 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Mapa {
+
+    private int columnas;
+    private int filas;
+
     private List<List<Integer>> adj; 
+
+    // Construye el mapa como un grafo
     public Mapa(int columnas, int filas) {
         int totalNodos = filas * columnas;
+        this.columnas = columnas;
+        this.filas = filas;
         this.adj = new ArrayList<>(totalNodos);
 
         for (int i = 0; i < totalNodos; i++) {
@@ -50,6 +58,9 @@ public class Mapa {
         for (int i = 0; i < adj.size(); i++) {
             System.out.println("Nodo " + i + " conectado a " + adj.get(i));
         }
+    }
+    public int getValorNumerico(Coordenada coordenada) {
+        return coordenada.getX() * columnas + coordenada.getY();
     }
 }
 

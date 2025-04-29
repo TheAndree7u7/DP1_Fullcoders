@@ -1,23 +1,16 @@
 package com.plg.config;
 
 import com.plg.entity.*;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
+import com.plg.utils.Parametros;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-
-import com.plg.utils.Parametros;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class DataLoader {
@@ -27,10 +20,28 @@ public class DataLoader {
     private String pathMantenimientos = "data/mantenimientos/mantpreventivo.txt";
     private String pathBloqueos = "data/bloqueos/bloqueos.v1.txt";
 
+    // Método genérico para leer todas las líneas de un archivo de recursos
+    private List<String> readAllLines(String resourcePath) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                getClass().getClassLoader().getResourceAsStream(resourcePath)))) {
+            return reader.lines().collect(Collectors.toList());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ArrayList<>();
+    }
+
+    // Método génerico para leer fechas del siguiente formato ##d##h##m
+    private LocalDateTime readFecha(String fecha) {
+        String[] partes = fecha.split("[dhm]");
+        Long minutosAcumulados = (Integer.parseInt(partes[0]) - 1) * 24 * 60L +
+                Integer.parseInt(partes[1]) * 60L +
+                Integer.parseInt(partes[2]);
+        return Parametros.getInstance().fecha_inicial.plusMinutes(minutosAcumulados);
+    }
+
     public List<Camion> initializeCamiones() {
         List<Camion> camiones = new ArrayList<>();
-
-        // Create different truck types
         String[] tipos = { "TA", "TB", "TC", "TD" };
         double[] capacidades = { 25.0, 20.0, 15.0, 10.0 };
         double[] taras = { 15.0, 12.0, 9.0, 7.0 };
@@ -44,7 +55,7 @@ public class DataLoader {
                 camion.setTara(taras[i]);
                 camion.setPesoCarga(0);
                 camion.setPesoCombinado(taras[i]);
-                camion.setEstado(null); // Set to null for now
+                camion.setEstado(null); // Temporalmente null
                 camiones.add(camion);
             }
         }
@@ -53,117 +64,121 @@ public class DataLoader {
 
     public List<Averia> initializeAverias(List<Camion> camiones) {
         List<Averia> averias = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                getClass().getClassLoader().getResourceAsStream(pathAverias)))) {
+        List<String> lines = readAllLines(pathAverias);
+        for (String line : lines) {
+            String[] partes = line.split("_");
+            String turno = partes[0];
+            String codigoCamion = partes[1];
+            String tipoIncidente = partes[2];
+            TipoTurno tipoTurno = new TipoTurno(turno);
+            TipoIncidente tipoIncidenteObj = new TipoIncidente(tipoIncidente);
 
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] partes = line.split("_");
-                String turno = partes[0];
-                String codigoCamion = partes[1];
-                String tipoIncidente = partes[2];
-                TipoTurno tipoTurno = new TipoTurno(turno);
-                TipoIncidente tipoIncidenteObj = new TipoIncidente(tipoIncidente);
+            Camion camion = camiones.stream()
+                    .filter(c -> c.getCodigo().equals(codigoCamion))
+                    .findFirst()
+                    .orElse(null);
 
-                Camion camion = camiones.stream()
-                        .filter(c -> c.getCodigo().equals(codigoCamion))
-                        .findFirst()
-                        .orElse(null);
-
-                Averia averia = Averia.builder()
-                        .camion(camion)
-                        .turno(tipoTurno)
-                        .tipoIncidente(tipoIncidenteObj)
-                        .build();
-                averias.add(averia);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+            Averia averia = Averia.builder()
+                    .camion(camion)
+                    .turno(tipoTurno)
+                    .tipoIncidente(tipoIncidenteObj)
+                    .build();
+            averias.add(averia);
         }
         return averias;
     }
 
     public List<Pedido> initializePedidos() {
         List<Pedido> pedidos = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                getClass().getClassLoader().getResourceAsStream(pathPedidos)))) {
+        List<String> lines = readAllLines(pathPedidos);
+        for (String line : lines) {
+            String[] partes = line.split(":");
+            double m3, h_limite;
+            LocalDateTime fecha_registro = readFecha(partes[0]);
+            String[] datosPedido = partes[1].split(",");
+            Coordenada coordenada = new Coordenada(
+                    Integer.parseInt(datosPedido[0]),
+                    Integer.parseInt(datosPedido[1]));
+            String codigo_cliente = datosPedido[2];
+            m3 = Double.parseDouble(datosPedido[3].substring(0, datosPedido[3].indexOf('m')));
+            h_limite = Double.parseDouble(datosPedido[4].substring(0, datosPedido[4].indexOf('h')));
 
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] partes = line.split(":");
-                double m3, h_limite;
-
-                String[] horaRegistro = partes[0].split("[dhm]");
-                Long l = (Integer.parseInt(horaRegistro[0]) - 1) * 24 * 60L +
-                        Integer.parseInt(horaRegistro[1]) * 60L +
-                        Integer.parseInt(horaRegistro[2]);
-
-                LocalDateTime fecha_registro = Parametros.getInstance().fecha_inicial.plusMinutes(l);
-
-                String[] datosPedido = partes[1].split(",");
-                Coordenada coordenada = new Coordenada(Integer.parseInt(datosPedido[0]),
-                        Integer.parseInt(datosPedido[1]));
-                String codigo_cliente = datosPedido[2];
-                m3 = (double) (Integer.parseInt(datosPedido[3].substring(0, datosPedido[3].indexOf('m'))));
-                h_limite = (double) Integer.parseInt(datosPedido[4].substring(0, datosPedido[4].indexOf('h')));
-
-                Pedido pedido = Pedido.builder()
-                        .codigo(codigo_cliente)
-                        .coordenada(coordenada)
-                        .horasLimite(h_limite)
-                        .fechaRegistro(fecha_registro)
-                        .volumenGLPAsignado(m3)
-                        .volumenGLPEntregado(0.0)
-                        .volumenGLPPendiente(m3)
-                        .prioridad(1) // Asignar prioridad por defecto
-                        .estado(EstadoPedido.REGISTRADO) // Estado inicial
-                        .build();
-                pedidos.add(pedido);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+            Pedido pedido = Pedido.builder()
+                    .codigo(codigo_cliente)
+                    .coordenada(coordenada)
+                    .horasLimite(h_limite)
+                    .fechaRegistro(fecha_registro)
+                    .volumenGLPAsignado(m3)
+                    .volumenGLPEntregado(0.0)
+                    .volumenGLPPendiente(m3)
+                    .prioridad(1) // Prioridad por defecto
+                    .estado(EstadoPedido.REGISTRADO) // Estado inicial
+                    .build();
+            pedidos.add(pedido);
         }
         return pedidos;
-
     }
 
     public List<Mantenimiento> initializeMantenimientos(List<Camion> camiones) {
         List<Mantenimiento> mantenimientos = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                getClass().getClassLoader().getResourceAsStream(pathMantenimientos)))) {
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] partes = line.split(":");
-                String fechaSinAnio = partes[0].substring(4);
-                int mes = Integer.parseInt(fechaSinAnio.substring(0, 2));
-                int dia = Integer.parseInt(fechaSinAnio.substring(2));
-                int mesInicial = Parametros.getInstance().fecha_inicial.getMonthValue();
-    
-                LocalDateTime fecha = Parametros.getInstance().fecha_inicial.plusDays(dia - 1).plusMonths(mes - mesInicial);
-    
-                String codigo = partes[1].substring(0, 4);
-                Mantenimiento mantenimiento = null;
-                for (Camion camion : camiones){
-                    if (camion.getCodigo().equals(codigo)){
-                        mantenimiento = Mantenimiento.builder()
-                                .fecha(fecha)
-                                .camion(camion)
-                                .build();
-                        break;
-                    }
+        List<String> lines = readAllLines(pathMantenimientos);
+        for (String line : lines) {
+            String[] partes = line.split(":");
+            String fechaSinAnio = partes[0].substring(4);
+            int mes = Integer.parseInt(fechaSinAnio.substring(0, 2));
+            int dia = Integer.parseInt(fechaSinAnio.substring(2));
+            int mesInicial = Parametros.getInstance().fecha_inicial.getMonthValue();
+            LocalDateTime fecha = Parametros.getInstance().fecha_inicial.plusDays(dia - 1)
+                    .plusMonths(mes - mesInicial);
+            String codigo = partes[1].substring(0, 4);
+            Mantenimiento mantenimiento = null;
+            for (Camion camion : camiones) {
+                if (camion.getCodigo().equals(codigo)) {
+                    mantenimiento = Mantenimiento.builder()
+                            .fecha(fecha)
+                            .camion(camion)
+                            .build();
+                    break;
                 }
-                mantenimientos.add(mantenimiento);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+            mantenimientos.add(mantenimiento);
         }
         return mantenimientos;
     }
 
+    public void initializeBloqueos(Mapa mapa) {
+        List<String> lines = readAllLines(pathBloqueos);
+        for(String line : lines){
+            String[] partes = line.split(":");
+            LocalDateTime fecha_registro = readFecha(partes[0]);
+            List<Coordenada> coordenadas = new ArrayList<>();
+            String[] coordenadasBloqueo = partes[1].split(",");
+            if (coordenadasBloqueo.length > 0 && coordenadasBloqueo.length %2 == 0) {
+                for(int i = 0; i < coordenadasBloqueo.length; i += 2) {
+                    int x = Integer.parseInt(coordenadasBloqueo[i]);
+                    int y = Integer.parseInt(coordenadasBloqueo[i + 1]);
+                    Coordenada coordenada = new Coordenada(x, y);
+                    coordenadas.add(coordenada);
+                }
+            }else{
+                System.out.println("Error en el formato de coordenadas de bloqueo: " + partes[1]);
+                return ;
+            }
+            
+            // Realizamos el bloqueo de los nodos en el mapa
+            for (Coordenada coordenada : coordenadas) {
+                int valor_numerico = mapa.getValorNumerico(coordenada);
+                List<Integer> vecinos = mapa.getAdj(valor_numerico);
+                for (Integer vecino : vecinos) {
+                    // Eliminamos del vecino el nodo bloqueado
+                    mapa.getAdj(vecino).removeIf(v -> v == valor_numerico);
 
-    public void initializarBloqueos(Mapa mapa) {
-       
+                }
+                // Eliminamos del nodo bloqueado el vecino
+                mapa.getAdj(valor_numerico).clear();
+            }
+
+        }
     }
 }
 

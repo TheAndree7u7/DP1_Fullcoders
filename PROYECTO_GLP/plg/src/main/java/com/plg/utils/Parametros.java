@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter;
 public class Parametros {
     public String mes = "04";
     public DateTimeFormatter formatoFechaHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    public LocalDateTime fecha_inicial = LocalDateTime.parse("26/"+mes+"/2025 00:00", formatoFechaHora);
+    public LocalDateTime fecha_inicial = LocalDateTime.parse("29/"+mes+"/2025 00:00", formatoFechaHora);
 
     
     private static Parametros instance;
