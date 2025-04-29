@@ -168,14 +168,8 @@ public class DataLoader {
             // Realizamos el bloqueo de los nodos en el mapa
             for (Coordenada coordenada : coordenadas) {
                 int valor_numerico = mapa.getValorNumerico(coordenada);
-                List<Integer> vecinos = mapa.getAdj(valor_numerico);
-                for (Integer vecino : vecinos) {
-                    // Eliminamos del vecino el nodo bloqueado
-                    mapa.getAdj(vecino).removeIf(v -> v == valor_numerico);
-
-                }
-                // Eliminamos del nodo bloqueado el vecino
-                mapa.getAdj(valor_numerico).clear();
+                Nodo n = mapa.getNodo(valor_numerico);
+                n.setBloqueado(true);
             }
 
         }
