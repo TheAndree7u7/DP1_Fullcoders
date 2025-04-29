@@ -134,12 +134,12 @@ public class AlgoritmoGeneticoService {
             ruta.setFechaInicioRuta(LocalDateTime.now());
             ruta.setConsideraBloqueos(true);
 
-            // // Agregar nodo inicial (almacén central)
-            // ruta.agregarNodo(almacenCentral.getPosX(), almacenCentral.getPosY(), "ALMACEN");
-            // Agregar pedidos como nodos
             // Agregar cada tramo como una ruta reticular considerando bloqueos
-            logger.info("Creando ruta {} con {} pedidos para camión {}", (i + 1), pedidosGrupo.size(), camion.getCodigo());
             double xPrev = almacenCentral.getPosX(), yPrev = almacenCentral.getPosY();
+            
+            // Agrega el nodo de origen (almacén central) primero
+            ruta.agregarNodo(almacenCentral.getPosX(), almacenCentral.getPosY(), "ALMACEN");
+
             for (Pedido pedido : pedidosGrupo) {
                 logger.debug("  → Trazando tramo de ({},{}) a pedido {} en ({},{})",
                         xPrev, yPrev,
@@ -152,17 +152,35 @@ public class AlgoritmoGeneticoService {
 
                 long dt = System.currentTimeMillis() - t0;
                 logger.debug("    ← tramo calculado en {} ms ({} nodos)", dt, tramo.size());
-                for (double[] nodo : tramo) {
-                    // si coincide con cliente, es tipo CLIENTE, si no INTERMEDIO
-                    String tipo = (nodo[0] == pedido.getPosX() && nodo[1] == pedido.getPosY())
-                            ? "CLIENTE" : "INTERMEDIO";
-                    ruta.agregarNodo(nodo[0], nodo[1], tipo);
+                
+                // Agregar puntos intermedios del tramo excepto el último (que será el punto del cliente)
+                for (int j = 0; j < tramo.size() - 1; j++) {
+                    double[] nodo = tramo.get(j);
+                    ruta.agregarNodo(nodo[0], nodo[1], "INTERMEDIO");
                 }
+                
+                // Agregar el nodo del cliente con el pedido asociado
+                ruta.agregarNodoCliente(pedido.getPosX(), pedido.getPosY(), pedido, pedido.getVolumenGLPAsignado(), 100.0);
+                
+                // IMPORTANTE: Actualizar el estado del pedido a EN_RUTA y asignarle el camión
+                pedido.setEstado(EstadoPedido.EN_RUTA);
+                pedido.setCamion(camion);
+                // Las siguientes líneas dan error porque estos métodos no existen en la clase Pedido
+                // pedido.setFechaAsignacion(LocalDateTime.now());
+                // pedido.setRutaAsignada(ruta);
+                
+                // En lugar de usar los métodos anteriores, actualizamos la fechaRegistro que sí existe
+                pedido.setFechaRegistro(LocalDateTime.now());
+                pedidoRepository.save(pedido);
+                
+                logger.info("Pedido {} actualizado a estado EN_RUTA y asignado a camión {}", 
+                    pedido.getCodigo(), camion.getCodigo());
+                
                 xPrev = pedido.getPosX();
                 yPrev = pedido.getPosY();
             }
-// retorno al almacén
-// Finalmente el regreso
+            
+            // Trazar el tramo de regreso al almacén
             logger.debug("  → Trazando tramo de regreso a almacén en ({},{})",
                     xPrev, yPrev);
             long t1 = System.currentTimeMillis();
@@ -173,18 +191,26 @@ public class AlgoritmoGeneticoService {
                     );
             long dt2 = System.currentTimeMillis() - t1;
             logger.debug("    ← regreso calculado en {} ms ({} nodos)", dt2, regreso.size());
-            for (double[] nodo : regreso) {
-                ruta.agregarNodo(nodo[0], nodo[1], "ALMACEN");
+            
+            // Agregar puntos del tramo de regreso
+            for (int j = 0; j < regreso.size(); j++) {
+                double[] nodo = regreso.get(j);
+                String tipo = (j == regreso.size() - 1) ? "ALMACEN" : "INTERMEDIO";
+                ruta.agregarNodo(nodo[0], nodo[1], tipo);
             }
-
-            // Agregar nodo final (retorno al almacén)
-            ruta.agregarNodo(almacenCentral.getPosX(), almacenCentral.getPosY(), "ALMACEN");
 
             // Calcular distancia total y optimizar ruta si es necesario
             ruta.calcularDistanciaTotal();
+            
+            // Estimar tiempos de llegada con velocidad promedio de 30 km/h
+            ruta.estimarTiemposLlegada(30.0, LocalDateTime.now());
 
             // Cambiar estado del camión a "En ruta"
-            camion.setEstado(EstadoCamion.EN_RUTA); // Usar el enum
+            camion.setEstado(EstadoCamion.EN_RUTA);
+            camion.setPosX(almacenCentral.getPosX());
+            camion.setPosY(almacenCentral.getPosY());
+            camion.setUltimoAlmacen(almacenCentral);
+            camion.setFechaUltimaCarga(LocalDateTime.now());
             camionRepository.save(camion);
 
             // Guardar la ruta
@@ -210,7 +236,7 @@ public class AlgoritmoGeneticoService {
             RutaDTO rutaDTO = RutaDTO.builder()
                     .idRuta(ruta.getCodigo())
                     .distanciaTotal(ruta.getDistanciaTotal())
-                    .tiempoEstimado(180) // Valor simulado en minutos
+                    .tiempoEstimado((int)ruta.getTiempoEstimadoMinutos()) // Convertir a int para resolver el error de tipo
                     .pedidos(pedidosDTO)
                     .numeroPedidos(pedidosGrupo.size())
                     .puntos(puntosRuta)
@@ -218,7 +244,8 @@ public class AlgoritmoGeneticoService {
                     .build();
 
             rutasDTO.add(rutaDTO);
-            logger.info("Ruta {} creada exitosamente con id: {}", (i + 1), ruta.getId());
+            logger.info("Ruta {} creada exitosamente con id: {}, {} pedidos asignados", 
+                (i + 1), ruta.getId(), pedidosGrupo.size());
         }
 
         int pedidosAsignados = gruposPedidos.stream()

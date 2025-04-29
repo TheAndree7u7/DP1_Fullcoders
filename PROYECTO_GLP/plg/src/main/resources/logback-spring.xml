@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <!-- Appender para la consola -->
+    <!-- ============================= -->
+    <!-- 1. APPENDERS (Destinos de log) -->
+    <!-- ============================= -->
+
+    <!-- Consola -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <withJansi>true</withJansi> <!-- Habilitar colores en la consola (solo para Windows) -->
+        <withJansi>true</withJansi> <!-- Habilitar colores en consola -->
         <encoder>
             <pattern>%d{HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <!-- Appender para el flujo general del algoritmo -->
+    <!-- Archivo de log para el flujo general del algoritmo -->
     <appender name="ALGORITHM_FLOW" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/algorithm-flow.log</file>  <!-- Archivo donde se guardará el flujo general -->
+        <file>logs/algorithm-flow.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- Un archivo por día, retener 30 días -->
             <fileNamePattern>logs/algorithm-flow.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory> <!-- Retener 30 días -->
         </rollingPolicy>
@@ -22,56 +25,31 @@
         </encoder>
     </appender>
 
-    <!-- Appender dedicado para AffinityPropagation -->
+    <!-- Archivo de log para AffinityPropagation -->
     <appender name="AFFINITY_PROP" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/affinity-propagation.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- Un archivo por día, retener 14 días -->
             <fileNamePattern>logs/affinity-propagation.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>14</maxHistory>
+            <maxHistory>14</maxHistory> <!-- Retener 14 días -->
         </rollingPolicy>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <!-- Logger para el flujo general del algoritmo -->
-    <logger name="com.plg.algorithm" level="DEBUG" additivity="false">
-        <appender-ref ref="ALGORITHM_FLOW" />
-    </logger>
-
-    <!-- Logger para AffinityPropagationService - corregir para que incluya el paquete completo -->
-    <logger name="com.plg.service.ap.AffinityPropagationService" level="DEBUG" additivity="false">
-        <appender-ref ref="AFFINITY_PROP" />
-        <appender-ref ref="STDOUT" />
-    </logger>
-
-    <!-- Logger raíz para todo lo demás (incluir la consola) -->
-    <root level="INFO">
-        <appender-ref ref="STDOUT" />
-    </root>
-
-
-    <!-- Logger para el genetico -->
-    <logger name="com.plg.service.AlgoritmoGeneticoService" level="INFO" additivity="false">
-        <appender-ref ref="GENETICO-APPENDER" />
-    </logger>
-
+    <!-- Archivo de log para el algoritmo genético -->
     <appender name="GENETICO-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/genetico.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>logs/genetico.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>7</maxHistory>
+            <maxHistory>7</maxHistory> <!-- Retener 7 días -->
         </rollingPolicy>
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
-    <!--Logger
-    para el Test  de TestAlgorithmService-->
-    <logger name="com.plg.service.TestAlgorithmService" level="DEBUG" additivity="false">
-        <appender-ref ref="TEST-APPENDER" />
-    </logger>
+
+    <!-- Archivo de log para pruebas de TestAlgorithmService -->
     <appender name="TEST-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/test-algorithm.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -82,4 +60,75 @@
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
+
+    <!-- Archivo de log para MapaReticularService -->
+    <appender name="MAPA-RETICULAR-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/mapa-reticular.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/mapa-reticular.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory> <!-- Retener 7 días -->
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Archivo de log para SimulacionTiempoRealService -->
+    <appender name="SIMULACION-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/simulacion-tiempo-real.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/simulacion-tiempo-real.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory> <!-- Retener 7 días -->
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ======================= -->
+    <!-- 2. LOGGERS ESPECÍFICOS -->
+    <!-- ======================= -->
+
+    <!-- Logger para el flujo general del algoritmo -->
+    <logger name="com.plg.algorithm" level="DEBUG" additivity="false">
+        <appender-ref ref="ALGORITHM_FLOW" />
+    </logger>
+
+    <!-- Logger para AffinityPropagationService -->
+    <logger name="com.plg.service.ap.AffinityPropagationService" level="DEBUG" additivity="false">
+        <appender-ref ref="AFFINITY_PROP" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <!-- Logger para AlgoritmoGeneticoService -->
+    <logger name="com.plg.service.AlgoritmoGeneticoService" level="INFO" additivity="false">
+        <appender-ref ref="GENETICO-APPENDER" />
+    </logger>
+
+    <!-- Logger para TestAlgorithmService -->
+    <logger name="com.plg.service.TestAlgorithmService" level="DEBUG" additivity="false">
+        <appender-ref ref="TEST-APPENDER" />
+    </logger>
+
+    <!-- Logger para MapaReticularService -->
+    <logger name="com.plg.service.MapaReticularService" level="DEBUG" additivity="false">
+        <appender-ref ref="MAPA-RETICULAR-APPENDER" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <!-- Logger para SimulacionTiempoRealService -->
+    <logger name="com.plg.service.SimulacionTiempoRealService" level="DEBUG" additivity="false">
+        <appender-ref ref="SIMULACION-APPENDER" />
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <!-- ================== -->
+    <!-- 3. ROOT LOGGER     -->
+    <!-- ================== -->
+
+    <!-- Logger raíz para todo lo demás -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+
 </configuration>

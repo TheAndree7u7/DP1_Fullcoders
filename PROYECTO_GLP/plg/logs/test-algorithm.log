@@ -1,107 +1,406 @@
-09:45:43.640 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
-09:45:43.641 [restartedMain] INFO  c.plg.service.TestAlgorithmService - INICIANDO SECUENCIA DE PRUEBA DE ALGORITMOS
-09:45:43.641 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
-09:45:43.641 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Verificando datos cargados para prueba de algoritmos
-09:45:43.643 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 13 pedidos en la base de datos
-09:45:43.666 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Pedidos de muestra:
-09:45:43.669 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0001: Cliente CLI001, Posición (25.0,40.0), Volumen 15.0 m3
-09:45:43.669 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0002: Cliente CLI002, Posición (35.0,22.0), Volumen 8.0 m3
-09:45:43.669 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0003: Cliente CLI003, Posición (18.0,45.0), Volumen 12.0 m3
-09:45:43.673 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 8 camiones en la base de datos
-09:45:43.677 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 3 almacenes en la base de datos
-09:45:43.685 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Almacén central encontrado en la posición (12.0,8.0)
-09:45:43.685 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO PROPAGACIÓN DE AFINIDAD =====
-09:45:43.685 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Llamando al servicio AP con parámetros: {alpha=0.8, maxIter=100, damping=0.9, beta=0.2}
-09:45:43.728 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado AP: clusters=4, totalPedidos=13
-09:45:43.728 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 1: centroId=G1, centroX=35.0, centroY=22.0, puntos=4
-09:45:43.729 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=1, posición=(25.0,40.0), distanciaCentro=28.0
-09:45:43.729 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 2: centroId=G2, centroX=18.0, centroY=45.0, puntos=1
-09:45:43.729 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=5, posición=(30.0,25.0), distanciaCentro=32.0
-09:45:43.729 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 3: centroId=G3, centroX=28.0, centroY=32.0, puntos=3
-09:45:43.729 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=7, posición=(50.0,40.0), distanciaCentro=30.0
-09:45:43.729 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 4: centroId=G4, centroX=32.0, centroY=42.0, puntos=5
-09:45:43.729 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=6, posición=(15.0,55.0), distanciaCentro=30.0
-09:45:43.729 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Tiempo de cómputo de Propagación de Afinidad: 42 ms
-09:45:43.729 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Prueba de Propagación de Afinidad completada exitosamente
-09:45:43.729 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO ALGORITMO GENÉTICO =====
-09:45:43.735 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 13 pedidos pendientes para generación de ruta
-09:45:43.735 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Llamando al servicio AG con parámetros: {maxIter=100, poblacion=50, algoritmo=genetico, numeroRutas=3}
-09:45:44.381 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado AG: totalPedidos=13, pedidosAsignados=13, rutasGeneradas=3
-09:45:44.381 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Ruta 1: idRuta=R1745937943755-1, camión=C001, distancia=174.0, numeroPedidos=5
-09:45:44.381 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Pedidos en ruta 1:
-09:45:44.381 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 1: id=1, código=P0001, pos=(25.0,40.0), volumen=15.0
-09:45:44.381 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 2: id=4, código=P0004, pos=(42.0,38.0), volumen=10.0
-09:45:44.381 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 3: id=7, código=P0007, pos=(50.0,40.0), volumen=15.0
-09:45:44.381 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 4: id=10, código=P0010, pos=(38.0,15.0), volumen=14.0
-09:45:44.381 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 5: id=13, código=P0013, pos=(20.0,30.0), volumen=15.0
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Puntos exactos del camino de ruta: 181
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Primeros 3 y últimos 3 puntos:
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 0: (12.0,8.0) tipo=INTERMEDIO
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 1: (12.0,9.0) tipo=INTERMEDIO
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 2: (12.0,10.0) tipo=INTERMEDIO
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 178: (12.0,9.0) tipo=ALMACEN
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 179: (12.0,8.0) tipo=ALMACEN
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 180: (12.0,8.0) tipo=ALMACEN
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Ruta 2: idRuta=R1745937944036-2, camión=C002, distancia=128.0, numeroPedidos=4
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Pedidos en ruta 2:
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 1: id=2, código=P0002, pos=(35.0,22.0), volumen=8.0
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 2: id=5, código=P0005, pos=(30.0,25.0), volumen=18.0
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 3: id=8, código=P0008, pos=(28.0,32.0), volumen=10.0
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 4: id=11, código=P0011, pos=(45.0,28.0), volumen=9.0
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Puntos exactos del camino de ruta: 134
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Primeros 3 y últimos 3 puntos:
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 0: (12.0,8.0) tipo=INTERMEDIO
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 1: (12.0,9.0) tipo=INTERMEDIO
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 2: (12.0,10.0) tipo=INTERMEDIO
-09:45:44.382 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 131: (13.0,8.0) tipo=ALMACEN
-09:45:44.383 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 132: (12.0,8.0) tipo=ALMACEN
-09:45:44.383 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 133: (12.0,8.0) tipo=ALMACEN
-09:45:44.383 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Ruta 3: idRuta=R1745937944215-3, camión=C003, distancia=140.0, numeroPedidos=4
-09:45:44.383 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Pedidos en ruta 3:
-09:45:44.383 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 1: id=3, código=P0003, pos=(18.0,45.0), volumen=12.0
-09:45:44.383 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 2: id=6, código=P0006, pos=(15.0,55.0), volumen=5.0
-09:45:44.383 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 3: id=9, código=P0009, pos=(22.0,48.0), volumen=12.0
-09:45:44.383 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 4: id=12, código=P0012, pos=(32.0,42.0), volumen=20.0
-09:45:44.383 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Puntos exactos del camino de ruta: 146
-09:45:44.383 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Primeros 3 y últimos 3 puntos:
-09:45:44.383 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 0: (12.0,8.0) tipo=INTERMEDIO
-09:45:44.383 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 1: (12.0,9.0) tipo=INTERMEDIO
-09:45:44.383 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 2: (12.0,10.0) tipo=INTERMEDIO
-09:45:44.383 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 143: (12.0,9.0) tipo=ALMACEN
-09:45:44.383 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 144: (12.0,8.0) tipo=ALMACEN
-09:45:44.383 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 145: (12.0,8.0) tipo=ALMACEN
-09:45:44.390 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Total de rutas en la base de datos después de AG: 3
-09:45:44.682 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Camiones asignados a rutas: 3
-09:45:44.682 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Prueba de Algoritmo Genético completada exitosamente
-09:45:44.682 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO SIMULACIÓN EN TIEMPO REAL =====
-09:45:44.689 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 3 rutas para simulación
-09:45:44.698 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Camiones en estado de ruta: 3
-09:45:44.698 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Iniciando simulación en tiempo real
-09:45:44.730 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado de inicio de simulación: {fecha=2025-04-29T09:45:44.730286100, mensaje=Simulación iniciada correctamente, status=success}
-09:45:44.730 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Esperando 5 segundos para observar actualizaciones de simulación...
-09:45:49.741 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Ajustando velocidad de simulación a 3x
-09:45:49.775 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado de ajuste de velocidad: {fecha=2025-04-29T09:45:49.775962500, factorVelocidad=Optional[3], mensaje=Velocidad ajustada correctamente, status=success}
-09:45:49.775 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Esperando 5 segundos más con velocidad aumentada...
-09:45:54.787 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Deteniendo simulación
-09:45:54.787 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado de detención de simulación: {fecha=2025-04-29T09:45:54.787490500, mensaje=Simulación detenida correctamente, status=success}
-09:45:54.787 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Prueba de simulación en tiempo real completada exitosamente
-09:45:54.787 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO SI TODOS LOS PEDIDOS FUERON ENTREGADOS =====
-09:45:54.795 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Hay 13 pedidos no entregados
-09:45:54.796 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Distribución de estados de pedidos no entregados:
-09:45:54.797 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Estado PENDIENTE_PLANIFICACION: 13 pedidos
-09:45:54.797 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Muestra de pedidos no entregados (max 5):
-09:45:54.797 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido P0001: Cliente CLI001, Posición (25.0,40.0), Volumen 15.0 m3, Estado PENDIENTE_PLANIFICACION
-09:45:54.807 [restartedMain] INFO  c.plg.service.TestAlgorithmService -     * No está asignado a ninguna ruta
-09:45:54.807 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido P0002: Cliente CLI002, Posición (35.0,22.0), Volumen 8.0 m3, Estado PENDIENTE_PLANIFICACION
-09:45:54.813 [restartedMain] INFO  c.plg.service.TestAlgorithmService -     * No está asignado a ninguna ruta
-09:45:54.813 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido P0003: Cliente CLI003, Posición (18.0,45.0), Volumen 12.0 m3, Estado PENDIENTE_PLANIFICACION
-09:45:54.819 [restartedMain] INFO  c.plg.service.TestAlgorithmService -     * No está asignado a ninguna ruta
-09:45:54.819 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido P0004: Cliente CLI001, Posición (42.0,38.0), Volumen 10.0 m3, Estado PENDIENTE_PLANIFICACION
-09:45:54.824 [restartedMain] INFO  c.plg.service.TestAlgorithmService -     * No está asignado a ninguna ruta
-09:45:54.824 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido P0005: Cliente CLI004, Posición (30.0,25.0), Volumen 18.0 m3, Estado PENDIENTE_PLANIFICACION
-09:45:54.830 [restartedMain] INFO  c.plg.service.TestAlgorithmService -     * No está asignado a ninguna ruta
-09:45:54.847 [restartedMain] WARN  c.plg.service.TestAlgorithmService - Hay 3 camiones no disponibles que podrían estar afectando las entregas
-09:45:54.855 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - 3 camiones en estado: EN_RUTA
-09:45:54.855 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
-09:45:54.855 [restartedMain] INFO  c.plg.service.TestAlgorithmService - SECUENCIA DE PRUEBA DE ALGORITMOS COMPLETADA
-09:45:54.855 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+10:38:33.786 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+10:38:33.786 [restartedMain] INFO  c.plg.service.TestAlgorithmService - INICIANDO SECUENCIA DE PRUEBA DE ALGORITMOS
+10:38:33.786 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+10:38:33.786 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Verificando datos cargados para prueba de algoritmos
+10:38:33.789 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 13 pedidos en la base de datos
+10:38:33.819 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Pedidos de muestra:
+10:38:33.821 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0001: Cliente CLI001, Posición (25.0,40.0), Volumen 15.0 m3
+10:38:33.822 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0002: Cliente CLI002, Posición (35.0,22.0), Volumen 8.0 m3
+10:38:33.822 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0003: Cliente CLI003, Posición (18.0,45.0), Volumen 12.0 m3
+10:38:33.827 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 8 camiones en la base de datos
+10:38:33.832 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 3 almacenes en la base de datos
+10:38:33.841 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Almacén central encontrado en la posición (12.0,8.0)
+10:38:33.841 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO PROPAGACIÓN DE AFINIDAD =====
+10:38:33.841 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Llamando al servicio AP con parámetros: {alpha=0.8, maxIter=100, damping=0.9, beta=0.2}
+10:38:33.878 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado AP: clusters=4, totalPedidos=13
+10:38:33.878 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 1: centroId=G1, centroX=35.0, centroY=22.0, puntos=4
+10:38:33.878 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=1, posición=(25.0,40.0), distanciaCentro=28.0
+10:38:33.878 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 2: centroId=G2, centroX=18.0, centroY=45.0, puntos=1
+10:38:33.878 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=5, posición=(30.0,25.0), distanciaCentro=32.0
+10:38:33.878 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 3: centroId=G3, centroX=28.0, centroY=32.0, puntos=3
+10:38:33.879 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=7, posición=(50.0,40.0), distanciaCentro=30.0
+10:38:33.879 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 4: centroId=G4, centroX=32.0, centroY=42.0, puntos=5
+10:38:33.879 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=6, posición=(15.0,55.0), distanciaCentro=30.0
+10:38:33.879 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Tiempo de cómputo de Propagación de Afinidad: 35 ms
+10:38:33.879 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Prueba de Propagación de Afinidad completada exitosamente
+10:38:33.879 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO ALGORITMO GENÉTICO =====
+10:38:33.884 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 13 pedidos pendientes para generación de ruta
+10:38:33.885 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Llamando al servicio AG con parámetros: {maxIter=100, poblacion=50, algoritmo=genetico, numeroRutas=3}
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado AG: totalPedidos=13, pedidosAsignados=13, rutasGeneradas=3
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Ruta 1: idRuta=R1745941113909-1, camión=C001, distancia=174.0, numeroPedidos=5
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Pedidos en ruta 1:
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 1: id=1, código=P0001, pos=(25.0,40.0), volumen=15.0
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 2: id=4, código=P0004, pos=(42.0,38.0), volumen=10.0
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 3: id=7, código=P0007, pos=(50.0,40.0), volumen=15.0
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 4: id=10, código=P0010, pos=(38.0,15.0), volumen=14.0
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 5: id=13, código=P0013, pos=(20.0,30.0), volumen=15.0
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Puntos exactos del camino de ruta: 181
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Primeros 3 y últimos 3 puntos:
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 0: (12.0,8.0) tipo=INTERMEDIO
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 1: (12.0,9.0) tipo=INTERMEDIO
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 2: (12.0,10.0) tipo=INTERMEDIO
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 178: (12.0,9.0) tipo=ALMACEN
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 179: (12.0,8.0) tipo=ALMACEN
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 180: (12.0,8.0) tipo=ALMACEN
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Ruta 2: idRuta=R1745941114254-2, camión=C002, distancia=128.0, numeroPedidos=4
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Pedidos en ruta 2:
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 1: id=2, código=P0002, pos=(35.0,22.0), volumen=8.0
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 2: id=5, código=P0005, pos=(30.0,25.0), volumen=18.0
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 3: id=8, código=P0008, pos=(28.0,32.0), volumen=10.0
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 4: id=11, código=P0011, pos=(45.0,28.0), volumen=9.0
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Puntos exactos del camino de ruta: 134
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Primeros 3 y últimos 3 puntos:
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 0: (12.0,8.0) tipo=INTERMEDIO
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 1: (12.0,9.0) tipo=INTERMEDIO
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 2: (12.0,10.0) tipo=INTERMEDIO
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 131: (13.0,8.0) tipo=ALMACEN
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 132: (12.0,8.0) tipo=ALMACEN
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 133: (12.0,8.0) tipo=ALMACEN
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Ruta 3: idRuta=R1745941114462-3, camión=C003, distancia=140.0, numeroPedidos=4
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Pedidos en ruta 3:
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 1: id=3, código=P0003, pos=(18.0,45.0), volumen=12.0
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 2: id=6, código=P0006, pos=(15.0,55.0), volumen=5.0
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 3: id=9, código=P0009, pos=(22.0,48.0), volumen=12.0
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 4: id=12, código=P0012, pos=(32.0,42.0), volumen=20.0
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Puntos exactos del camino de ruta: 146
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Primeros 3 y últimos 3 puntos:
+10:38:34.664 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 0: (12.0,8.0) tipo=INTERMEDIO
+10:38:34.665 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 1: (12.0,9.0) tipo=INTERMEDIO
+10:38:34.665 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 2: (12.0,10.0) tipo=INTERMEDIO
+10:38:34.665 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 143: (12.0,9.0) tipo=ALMACEN
+10:38:34.665 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 144: (12.0,8.0) tipo=ALMACEN
+10:38:34.665 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 145: (12.0,8.0) tipo=ALMACEN
+10:38:34.674 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Total de rutas en la base de datos después de AG: 3
+10:38:35.110 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Camiones asignados a rutas: 3
+10:38:35.110 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Prueba de Algoritmo Genético completada exitosamente
+10:38:35.110 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO SIMULACIÓN EN TIEMPO REAL =====
+10:38:35.120 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 3 rutas para simulación
+10:38:35.132 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Camiones en estado de ruta: 3
+10:38:35.132 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Iniciando simulación en tiempo real
+10:38:35.173 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado de inicio de simulación: {fecha=2025-04-29T10:38:35.173352400, mensaje=Simulación iniciada correctamente, status=success}
+10:38:35.173 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Esperando 5 segundos para observar actualizaciones de simulación...
+10:38:40.182 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Ajustando velocidad de simulación a 3x
+10:38:40.221 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado de ajuste de velocidad: {fecha=2025-04-29T10:38:40.221449700, factorVelocidad=Optional[3], mensaje=Velocidad ajustada correctamente, status=success}
+10:38:40.221 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Esperando 5 segundos más con velocidad aumentada...
+10:38:45.224 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Deteniendo simulación
+10:38:45.230 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado de detención de simulación: {fecha=2025-04-29T10:38:45.230916900, mensaje=Simulación detenida correctamente, status=success}
+10:38:45.230 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Prueba de simulación en tiempo real completada exitosamente
+10:38:45.230 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO SI TODOS LOS PEDIDOS FUERON ENTREGADOS =====
+10:38:45.239 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Hay 13 pedidos no entregados
+10:38:45.241 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Distribución de estados de pedidos no entregados:
+10:38:45.241 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Estado PENDIENTE_PLANIFICACION: 13 pedidos
+10:38:45.241 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Muestra de pedidos no entregados (max 5):
+10:38:45.241 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido P0001: Cliente CLI001, Posición (25.0,40.0), Volumen 15.0 m3, Estado PENDIENTE_PLANIFICACION
+10:38:45.252 [restartedMain] INFO  c.plg.service.TestAlgorithmService -     * No está asignado a ninguna ruta
+10:38:45.253 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido P0002: Cliente CLI002, Posición (35.0,22.0), Volumen 8.0 m3, Estado PENDIENTE_PLANIFICACION
+10:38:45.259 [restartedMain] INFO  c.plg.service.TestAlgorithmService -     * No está asignado a ninguna ruta
+10:38:45.259 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido P0003: Cliente CLI003, Posición (18.0,45.0), Volumen 12.0 m3, Estado PENDIENTE_PLANIFICACION
+10:38:45.266 [restartedMain] INFO  c.plg.service.TestAlgorithmService -     * No está asignado a ninguna ruta
+10:38:45.266 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido P0004: Cliente CLI001, Posición (42.0,38.0), Volumen 10.0 m3, Estado PENDIENTE_PLANIFICACION
+10:38:45.274 [restartedMain] INFO  c.plg.service.TestAlgorithmService -     * No está asignado a ninguna ruta
+10:38:45.274 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido P0005: Cliente CLI004, Posición (30.0,25.0), Volumen 18.0 m3, Estado PENDIENTE_PLANIFICACION
+10:38:45.279 [restartedMain] INFO  c.plg.service.TestAlgorithmService -     * No está asignado a ninguna ruta
+10:38:45.297 [restartedMain] WARN  c.plg.service.TestAlgorithmService - Hay 3 camiones no disponibles que podrían estar afectando las entregas
+10:38:45.305 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - 3 camiones en estado: EN_RUTA
+10:38:45.305 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+10:38:45.305 [restartedMain] INFO  c.plg.service.TestAlgorithmService - SECUENCIA DE PRUEBA DE ALGORITMOS COMPLETADA
+10:38:45.305 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+11:00:45.783 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+11:00:45.783 [restartedMain] INFO  c.plg.service.TestAlgorithmService - INICIANDO SECUENCIA DE PRUEBA DE ALGORITMOS
+11:00:45.783 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+11:00:45.783 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Verificando datos cargados para prueba de algoritmos
+11:00:45.784 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 13 pedidos en la base de datos
+11:00:45.789 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Pedidos de muestra:
+11:00:45.790 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0001: Cliente CLI001, Posición (25.0,40.0), Volumen 15.0 m3
+11:00:45.790 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0002: Cliente CLI002, Posición (35.0,22.0), Volumen 8.0 m3
+11:00:45.790 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0003: Cliente CLI003, Posición (18.0,45.0), Volumen 12.0 m3
+11:00:45.793 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 8 camiones en la base de datos
+11:00:45.795 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 3 almacenes en la base de datos
+11:00:45.802 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Almacén central encontrado en la posición (12.0,8.0)
+11:00:45.802 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO PROPAGACIÓN DE AFINIDAD =====
+11:00:45.802 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Llamando al servicio AP con parámetros: {alpha=0.8, maxIter=100, damping=0.9, beta=0.2}
+11:00:45.835 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado AP: clusters=4, totalPedidos=13
+11:00:45.835 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 1: centroId=G1, centroX=35.0, centroY=22.0, puntos=4
+11:00:45.835 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=1, posición=(25.0,40.0), distanciaCentro=28.0
+11:00:45.835 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 2: centroId=G2, centroX=18.0, centroY=45.0, puntos=1
+11:00:45.835 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=5, posición=(30.0,25.0), distanciaCentro=32.0
+11:00:45.835 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 3: centroId=G3, centroX=28.0, centroY=32.0, puntos=3
+11:00:45.835 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=7, posición=(50.0,40.0), distanciaCentro=30.0
+11:00:45.835 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 4: centroId=G4, centroX=32.0, centroY=42.0, puntos=5
+11:00:45.835 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=6, posición=(15.0,55.0), distanciaCentro=30.0
+11:00:45.835 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Tiempo de cómputo de Propagación de Afinidad: 27 ms
+11:00:45.835 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Prueba de Propagación de Afinidad completada exitosamente
+11:00:45.835 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO ALGORITMO GENÉTICO =====
+11:00:45.838 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 13 pedidos pendientes para generación de ruta
+11:00:45.838 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Llamando al servicio AG con parámetros: {maxIter=100, poblacion=50, algoritmo=genetico, numeroRutas=3}
+11:02:58.405 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+11:02:58.405 [restartedMain] INFO  c.plg.service.TestAlgorithmService - INICIANDO SECUENCIA DE PRUEBA DE ALGORITMOS
+11:02:58.405 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+11:02:58.405 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Verificando datos cargados para prueba de algoritmos
+11:02:58.405 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 13 pedidos en la base de datos
+11:02:58.410 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Pedidos de muestra:
+11:02:58.410 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0001: Cliente CLI001, Posición (25.0,40.0), Volumen 15.0 m3
+11:02:58.410 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0002: Cliente CLI002, Posición (35.0,22.0), Volumen 8.0 m3
+11:02:58.410 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0003: Cliente CLI003, Posición (18.0,45.0), Volumen 12.0 m3
+11:02:58.411 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 8 camiones en la base de datos
+11:02:58.412 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 3 almacenes en la base de datos
+11:02:58.415 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Almacén central encontrado en la posición (12.0,8.0)
+11:02:58.416 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO PROPAGACIÓN DE AFINIDAD =====
+11:02:58.416 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Llamando al servicio AP con parámetros: {alpha=0.8, maxIter=100, damping=0.9, beta=0.2}
+11:02:58.436 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado AP: clusters=4, totalPedidos=13
+11:02:58.436 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 1: centroId=G1, centroX=35.0, centroY=22.0, puntos=4
+11:02:58.436 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=1, posición=(25.0,40.0), distanciaCentro=28.0
+11:02:58.436 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 2: centroId=G2, centroX=18.0, centroY=45.0, puntos=1
+11:02:58.436 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=5, posición=(30.0,25.0), distanciaCentro=32.0
+11:02:58.436 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 3: centroId=G3, centroX=28.0, centroY=32.0, puntos=3
+11:02:58.436 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=7, posición=(50.0,40.0), distanciaCentro=30.0
+11:02:58.436 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 4: centroId=G4, centroX=32.0, centroY=42.0, puntos=5
+11:02:58.436 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=6, posición=(15.0,55.0), distanciaCentro=30.0
+11:02:58.436 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Tiempo de cómputo de Propagación de Afinidad: 18 ms
+11:02:58.436 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Prueba de Propagación de Afinidad completada exitosamente
+11:02:58.436 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO ALGORITMO GENÉTICO =====
+11:02:58.438 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 13 pedidos pendientes para generación de ruta
+11:02:58.438 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Llamando al servicio AG con parámetros: {maxIter=100, poblacion=50, algoritmo=genetico, numeroRutas=3}
+11:10:12.637 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+11:10:12.637 [restartedMain] INFO  c.plg.service.TestAlgorithmService - INICIANDO SECUENCIA DE PRUEBA DE ALGORITMOS
+11:10:12.637 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+11:10:12.637 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Verificando datos cargados para prueba de algoritmos
+11:10:12.642 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 0 pedidos en la base de datos
+11:10:12.642 [restartedMain] ERROR c.plg.service.TestAlgorithmService - ¡No se encontraron pedidos! Las pruebas fallarán. Asegúrese de que DataLoader se está ejecutando correctamente.
+11:10:12.645 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 0 camiones en la base de datos
+11:10:12.645 [restartedMain] ERROR c.plg.service.TestAlgorithmService - ¡No se encontraron camiones! Las pruebas fallarán. Asegúrese de que DataLoader se está ejecutando correctamente.
+11:10:12.646 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 0 almacenes en la base de datos
+11:10:12.646 [restartedMain] ERROR c.plg.service.TestAlgorithmService - ¡No se encontraron almacenes! Las pruebas fallarán. Asegúrese de que DataLoader se está ejecutando correctamente.
+11:10:12.646 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO PROPAGACIÓN DE AFINIDAD =====
+11:10:12.646 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Llamando al servicio AP con parámetros: {alpha=0.8, maxIter=100, damping=0.9, beta=0.2}
+11:10:12.650 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado AP: clusters=0, totalPedidos=0
+11:10:12.650 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Tiempo de cómputo de Propagación de Afinidad: 0 ms
+11:10:12.650 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Prueba de Propagación de Afinidad completada exitosamente
+11:10:12.650 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO ALGORITMO GENÉTICO =====
+11:10:12.651 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 0 pedidos pendientes para generación de ruta
+11:10:12.651 [restartedMain] INFO  c.plg.service.TestAlgorithmService - No se encontraron pedidos pendientes. Configurando algunos pedidos como PENDIENTE_PLANIFICACION
+11:10:12.652 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se actualizaron 0 pedidos a PENDIENTE_PLANIFICACION
+11:10:12.652 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Llamando al servicio AG con parámetros: {maxIter=100, poblacion=50, algoritmo=genetico, numeroRutas=3}
+11:10:45.723 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+11:10:45.723 [restartedMain] INFO  c.plg.service.TestAlgorithmService - INICIANDO SECUENCIA DE PRUEBA DE ALGORITMOS
+11:10:45.723 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+11:10:45.723 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Verificando datos cargados para prueba de algoritmos
+11:10:45.726 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 0 pedidos en la base de datos
+11:10:45.726 [restartedMain] ERROR c.plg.service.TestAlgorithmService - ¡No se encontraron pedidos! Las pruebas fallarán. Asegúrese de que DataLoader se está ejecutando correctamente.
+11:10:45.728 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 0 camiones en la base de datos
+11:10:45.728 [restartedMain] ERROR c.plg.service.TestAlgorithmService - ¡No se encontraron camiones! Las pruebas fallarán. Asegúrese de que DataLoader se está ejecutando correctamente.
+11:10:45.729 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 0 almacenes en la base de datos
+11:10:45.729 [restartedMain] ERROR c.plg.service.TestAlgorithmService - ¡No se encontraron almacenes! Las pruebas fallarán. Asegúrese de que DataLoader se está ejecutando correctamente.
+11:10:45.729 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO PROPAGACIÓN DE AFINIDAD =====
+11:10:45.729 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Llamando al servicio AP con parámetros: {alpha=0.8, maxIter=100, damping=0.9, beta=0.2}
+11:10:45.733 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado AP: clusters=0, totalPedidos=0
+11:10:45.733 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Tiempo de cómputo de Propagación de Afinidad: 0 ms
+11:10:45.733 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Prueba de Propagación de Afinidad completada exitosamente
+11:10:45.733 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO ALGORITMO GENÉTICO =====
+11:10:45.734 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 0 pedidos pendientes para generación de ruta
+11:10:45.734 [restartedMain] INFO  c.plg.service.TestAlgorithmService - No se encontraron pedidos pendientes. Configurando algunos pedidos como PENDIENTE_PLANIFICACION
+11:10:45.735 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se actualizaron 0 pedidos a PENDIENTE_PLANIFICACION
+11:10:45.735 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Llamando al servicio AG con parámetros: {maxIter=100, poblacion=50, algoritmo=genetico, numeroRutas=3}
+11:10:45.736 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado AG: totalPedidos=0, pedidosAsignados=0, rutasGeneradas=null
+11:10:45.737 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Total de rutas en la base de datos después de AG: 0
+11:10:45.775 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Camiones asignados a rutas: 0
+11:10:45.775 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Prueba de Algoritmo Genético completada exitosamente
+11:10:45.775 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO SIMULACIÓN EN TIEMPO REAL =====
+11:10:45.775 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 0 rutas para simulación
+11:10:45.775 [restartedMain] ERROR c.plg.service.TestAlgorithmService - No se encontraron rutas para simulación. Por favor ejecute primero el algoritmo genético.
+11:10:45.775 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO SI TODOS LOS PEDIDOS FUERON ENTREGADOS =====
+11:10:45.776 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Todos los pedidos han sido entregados
+11:10:45.777 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+11:10:45.777 [restartedMain] INFO  c.plg.service.TestAlgorithmService - SECUENCIA DE PRUEBA DE ALGORITMOS COMPLETADA
+11:10:45.777 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+11:12:22.164 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+11:12:22.164 [restartedMain] INFO  c.plg.service.TestAlgorithmService - INICIANDO SECUENCIA DE PRUEBA DE ALGORITMOS
+11:12:22.164 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+11:12:22.164 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Verificando datos cargados para prueba de algoritmos
+11:12:22.165 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 13 pedidos en la base de datos
+11:12:22.170 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Pedidos de muestra:
+11:12:22.170 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0001: Cliente CLI001, Posición (25.0,40.0), Volumen 15.0 m3
+11:12:22.170 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0002: Cliente CLI002, Posición (35.0,22.0), Volumen 8.0 m3
+11:12:22.170 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0003: Cliente CLI003, Posición (18.0,45.0), Volumen 12.0 m3
+11:12:22.172 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 8 camiones en la base de datos
+11:12:22.173 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 3 almacenes en la base de datos
+11:12:22.176 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Almacén central encontrado en la posición (12.0,8.0)
+11:12:22.176 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO PROPAGACIÓN DE AFINIDAD =====
+11:12:22.176 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Llamando al servicio AP con parámetros: {alpha=0.8, maxIter=100, damping=0.9, beta=0.2}
+11:12:22.195 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado AP: clusters=4, totalPedidos=13
+11:12:22.195 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 1: centroId=G1, centroX=35.0, centroY=22.0, puntos=4
+11:12:22.195 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=1, posición=(25.0,40.0), distanciaCentro=28.0
+11:12:22.195 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 2: centroId=G2, centroX=18.0, centroY=45.0, puntos=1
+11:12:22.196 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=5, posición=(30.0,25.0), distanciaCentro=32.0
+11:12:22.196 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 3: centroId=G3, centroX=28.0, centroY=32.0, puntos=3
+11:12:22.196 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=7, posición=(50.0,40.0), distanciaCentro=30.0
+11:12:22.196 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 4: centroId=G4, centroX=32.0, centroY=42.0, puntos=5
+11:12:22.196 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=6, posición=(15.0,55.0), distanciaCentro=30.0
+11:12:22.196 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Tiempo de cómputo de Propagación de Afinidad: 17 ms
+11:12:22.196 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Prueba de Propagación de Afinidad completada exitosamente
+11:12:22.196 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO ALGORITMO GENÉTICO =====
+11:12:22.197 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 13 pedidos pendientes para generación de ruta
+11:12:22.197 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Llamando al servicio AG con parámetros: {maxIter=100, poblacion=50, algoritmo=genetico, numeroRutas=3}
+11:12:22.478 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado AG: totalPedidos=13, pedidosAsignados=13, rutasGeneradas=3
+11:12:22.478 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Ruta 1: idRuta=R1745943142201-1, camión=C001, distancia=174.0, numeroPedidos=5
+11:12:22.478 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Pedidos en ruta 1:
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 1: id=1, código=P0001, pos=(25.0,40.0), volumen=15.0
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 2: id=4, código=P0004, pos=(42.0,38.0), volumen=10.0
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 3: id=7, código=P0007, pos=(50.0,40.0), volumen=15.0
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 4: id=10, código=P0010, pos=(38.0,15.0), volumen=14.0
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 5: id=13, código=P0013, pos=(20.0,30.0), volumen=15.0
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Puntos exactos del camino de ruta: 181
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Primeros 3 y últimos 3 puntos:
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 0: (12.0,8.0) tipo=ALMACEN
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 1: (12.0,8.0) tipo=INTERMEDIO
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 2: (12.0,9.0) tipo=INTERMEDIO
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 178: (12.0,10.0) tipo=INTERMEDIO
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 179: (12.0,9.0) tipo=INTERMEDIO
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 180: (12.0,8.0) tipo=ALMACEN
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Ruta 2: idRuta=R1745943142319-2, camión=C002, distancia=128.0, numeroPedidos=4
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Pedidos en ruta 2:
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 1: id=2, código=P0002, pos=(35.0,22.0), volumen=8.0
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 2: id=5, código=P0005, pos=(30.0,25.0), volumen=18.0
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 3: id=8, código=P0008, pos=(28.0,32.0), volumen=10.0
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 4: id=11, código=P0011, pos=(45.0,28.0), volumen=9.0
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Puntos exactos del camino de ruta: 134
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Primeros 3 y últimos 3 puntos:
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 0: (12.0,8.0) tipo=ALMACEN
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 1: (12.0,8.0) tipo=INTERMEDIO
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 2: (12.0,9.0) tipo=INTERMEDIO
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 131: (14.0,8.0) tipo=INTERMEDIO
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 132: (13.0,8.0) tipo=INTERMEDIO
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 133: (12.0,8.0) tipo=ALMACEN
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Ruta 3: idRuta=R1745943142386-3, camión=C003, distancia=140.0, numeroPedidos=4
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Pedidos en ruta 3:
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 1: id=3, código=P0003, pos=(18.0,45.0), volumen=12.0
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 2: id=6, código=P0006, pos=(15.0,55.0), volumen=5.0
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 3: id=9, código=P0009, pos=(22.0,48.0), volumen=12.0
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 4: id=12, código=P0012, pos=(32.0,42.0), volumen=20.0
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Puntos exactos del camino de ruta: 146
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Primeros 3 y últimos 3 puntos:
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 0: (12.0,8.0) tipo=ALMACEN
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 1: (12.0,8.0) tipo=INTERMEDIO
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 2: (12.0,9.0) tipo=INTERMEDIO
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 143: (13.0,9.0) tipo=INTERMEDIO
+11:12:22.479 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 144: (12.0,9.0) tipo=INTERMEDIO
+11:12:22.480 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 145: (12.0,8.0) tipo=ALMACEN
+11:12:22.485 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Total de rutas en la base de datos después de AG: 3
+11:12:22.579 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Camiones asignados a rutas: 3
+11:12:22.579 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Prueba de Algoritmo Genético completada exitosamente
+11:12:22.579 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO SIMULACIÓN EN TIEMPO REAL =====
+11:12:22.584 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 3 rutas para simulación
+11:12:22.589 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Camiones en estado de ruta: 3
+11:12:22.589 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Iniciando simulación en tiempo real
+11:12:22.618 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado de inicio de simulación: {fecha=2025-04-29T11:12:22.618032500, mensaje=Simulación iniciada correctamente, status=success}
+11:12:22.618 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Esperando 5 segundos para observar actualizaciones de simulación...
+11:12:27.624 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Ajustando velocidad de simulación a 3x
+11:12:27.650 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado de ajuste de velocidad: {fecha=2025-04-29T11:12:27.650377200, factorVelocidad=Optional[3], mensaje=Velocidad ajustada correctamente, status=success}
+11:12:27.650 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Esperando 5 segundos más con velocidad aumentada...
+11:12:55.575 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+11:12:55.575 [restartedMain] INFO  c.plg.service.TestAlgorithmService - INICIANDO SECUENCIA DE PRUEBA DE ALGORITMOS
+11:12:55.575 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+11:12:55.575 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Verificando datos cargados para prueba de algoritmos
+11:12:55.578 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 13 pedidos en la base de datos
+11:12:55.607 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Pedidos de muestra:
+11:12:55.610 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0001: Cliente CLI001, Posición (25.0,40.0), Volumen 15.0 m3
+11:12:55.610 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0002: Cliente CLI002, Posición (35.0,22.0), Volumen 8.0 m3
+11:12:55.610 [restartedMain] INFO  c.plg.service.TestAlgorithmService -  - Pedido P0003: Cliente CLI003, Posición (18.0,45.0), Volumen 12.0 m3
+11:12:55.614 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 8 camiones en la base de datos
+11:12:55.618 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 3 almacenes en la base de datos
+11:12:55.630 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Almacén central encontrado en la posición (12.0,8.0)
+11:12:55.630 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO PROPAGACIÓN DE AFINIDAD =====
+11:12:55.630 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Llamando al servicio AP con parámetros: {alpha=0.8, maxIter=100, damping=0.9, beta=0.2}
+11:12:55.684 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado AP: clusters=4, totalPedidos=13
+11:12:55.684 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 1: centroId=G1, centroX=35.0, centroY=22.0, puntos=4
+11:12:55.685 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=1, posición=(25.0,40.0), distanciaCentro=28.0
+11:12:55.685 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 2: centroId=G2, centroX=18.0, centroY=45.0, puntos=1
+11:12:55.685 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=5, posición=(30.0,25.0), distanciaCentro=32.0
+11:12:55.685 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 3: centroId=G3, centroX=28.0, centroY=32.0, puntos=3
+11:12:55.685 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=7, posición=(50.0,40.0), distanciaCentro=30.0
+11:12:55.685 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Cluster 4: centroId=G4, centroX=32.0, centroY=42.0, puntos=5
+11:12:55.685 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Punto de muestra: id=6, posición=(15.0,55.0), distanciaCentro=30.0
+11:12:55.685 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Tiempo de cómputo de Propagación de Afinidad: 52 ms
+11:12:55.685 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Prueba de Propagación de Afinidad completada exitosamente
+11:12:55.685 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO ALGORITMO GENÉTICO =====
+11:12:55.696 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 13 pedidos pendientes para generación de ruta
+11:12:55.696 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Llamando al servicio AG con parámetros: {maxIter=100, poblacion=50, algoritmo=genetico, numeroRutas=3}
+11:12:56.802 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado AG: totalPedidos=13, pedidosAsignados=13, rutasGeneradas=3
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Ruta 1: idRuta=R1745943175717-1, camión=C001, distancia=174.0, numeroPedidos=5
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Pedidos en ruta 1:
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 1: id=1, código=P0001, pos=(25.0,40.0), volumen=15.0
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 2: id=4, código=P0004, pos=(42.0,38.0), volumen=10.0
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 3: id=7, código=P0007, pos=(50.0,40.0), volumen=15.0
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 4: id=10, código=P0010, pos=(38.0,15.0), volumen=14.0
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 5: id=13, código=P0013, pos=(20.0,30.0), volumen=15.0
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Puntos exactos del camino de ruta: 181
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Primeros 3 y últimos 3 puntos:
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 0: (12.0,8.0) tipo=ALMACEN
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 1: (12.0,8.0) tipo=INTERMEDIO
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 2: (12.0,9.0) tipo=INTERMEDIO
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 178: (12.0,10.0) tipo=INTERMEDIO
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 179: (12.0,9.0) tipo=INTERMEDIO
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 180: (12.0,8.0) tipo=ALMACEN
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Ruta 2: idRuta=R1745943176097-2, camión=C002, distancia=128.0, numeroPedidos=4
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Pedidos en ruta 2:
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 1: id=2, código=P0002, pos=(35.0,22.0), volumen=8.0
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 2: id=5, código=P0005, pos=(30.0,25.0), volumen=18.0
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 3: id=8, código=P0008, pos=(28.0,32.0), volumen=10.0
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 4: id=11, código=P0011, pos=(45.0,28.0), volumen=9.0
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Puntos exactos del camino de ruta: 134
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Primeros 3 y últimos 3 puntos:
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 0: (12.0,8.0) tipo=ALMACEN
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 1: (12.0,8.0) tipo=INTERMEDIO
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 2: (12.0,9.0) tipo=INTERMEDIO
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 131: (14.0,8.0) tipo=INTERMEDIO
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 132: (13.0,8.0) tipo=INTERMEDIO
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 133: (12.0,8.0) tipo=ALMACEN
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Ruta 3: idRuta=R1745943176415-3, camión=C003, distancia=140.0, numeroPedidos=4
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Pedidos en ruta 3:
+11:12:56.803 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 1: id=3, código=P0003, pos=(18.0,45.0), volumen=12.0
+11:12:56.804 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 2: id=6, código=P0006, pos=(15.0,55.0), volumen=5.0
+11:12:56.804 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 3: id=9, código=P0009, pos=(22.0,48.0), volumen=12.0
+11:12:56.804 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido 4: id=12, código=P0012, pos=(32.0,42.0), volumen=20.0
+11:12:56.804 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Puntos exactos del camino de ruta: 146
+11:12:56.804 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   Primeros 3 y últimos 3 puntos:
+11:12:56.804 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 0: (12.0,8.0) tipo=ALMACEN
+11:12:56.804 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 1: (12.0,8.0) tipo=INTERMEDIO
+11:12:56.804 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 2: (12.0,9.0) tipo=INTERMEDIO
+11:12:56.804 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 143: (13.0,9.0) tipo=INTERMEDIO
+11:12:56.804 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 144: (12.0,9.0) tipo=INTERMEDIO
+11:12:56.804 [restartedMain] INFO  c.plg.service.TestAlgorithmService -    - Punto 145: (12.0,8.0) tipo=ALMACEN
+11:12:56.815 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Total de rutas en la base de datos después de AG: 3
+11:12:57.427 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Camiones asignados a rutas: 3
+11:12:57.427 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Prueba de Algoritmo Genético completada exitosamente
+11:12:57.428 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO SIMULACIÓN EN TIEMPO REAL =====
+11:12:57.443 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Se encontraron 3 rutas para simulación
+11:12:57.458 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Camiones en estado de ruta: 3
+11:12:57.458 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Iniciando simulación en tiempo real
+11:12:57.510 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado de inicio de simulación: {fecha=2025-04-29T11:12:57.510260600, mensaje=Simulación iniciada correctamente, status=success}
+11:12:57.510 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Esperando 5 segundos para observar actualizaciones de simulación...
+11:13:02.517 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Ajustando velocidad de simulación a 3x
+11:13:02.591 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado de ajuste de velocidad: {fecha=2025-04-29T11:13:02.591969, factorVelocidad=Optional[3], mensaje=Velocidad ajustada correctamente, status=success}
+11:13:02.591 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Esperando 5 segundos más con velocidad aumentada...
+11:13:07.602 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Deteniendo simulación
+11:13:07.602 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Resultado de detención de simulación: {fecha=2025-04-29T11:13:07.602702300, mensaje=Simulación detenida correctamente, status=success}
+11:13:07.602 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Prueba de simulación en tiempo real completada exitosamente
+11:13:07.603 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ===== PROBANDO SI TODOS LOS PEDIDOS FUERON ENTREGADOS =====
+11:13:07.612 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Hay 13 pedidos no entregados
+11:13:07.613 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Distribución de estados de pedidos no entregados:
+11:13:07.614 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Estado EN_RUTA: 13 pedidos
+11:13:07.614 [restartedMain] INFO  c.plg.service.TestAlgorithmService - Muestra de pedidos no entregados (max 5):
+11:13:07.614 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido P0001: Cliente CLI001, Posición (25.0,40.0), Volumen 15.0 m3, Estado EN_RUTA
+11:13:07.630 [restartedMain] INFO  c.plg.service.TestAlgorithmService -     * Asignado a ruta ID=1, Camión=C001, Estado camión=EN_RUTA
+11:13:07.631 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido P0002: Cliente CLI002, Posición (35.0,22.0), Volumen 8.0 m3, Estado EN_RUTA
+11:13:07.638 [restartedMain] INFO  c.plg.service.TestAlgorithmService -     * Asignado a ruta ID=2, Camión=C002, Estado camión=EN_RUTA
+11:13:07.638 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido P0003: Cliente CLI003, Posición (18.0,45.0), Volumen 12.0 m3, Estado EN_RUTA
+11:13:07.649 [restartedMain] INFO  c.plg.service.TestAlgorithmService -     * Asignado a ruta ID=3, Camión=C003, Estado camión=EN_RUTA
+11:13:07.649 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido P0004: Cliente CLI001, Posición (42.0,38.0), Volumen 10.0 m3, Estado EN_RUTA
+11:13:07.658 [restartedMain] INFO  c.plg.service.TestAlgorithmService -     * Asignado a ruta ID=1, Camión=C001, Estado camión=EN_RUTA
+11:13:07.658 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - Pedido P0005: Cliente CLI004, Posición (30.0,25.0), Volumen 18.0 m3, Estado EN_RUTA
+11:13:07.667 [restartedMain] INFO  c.plg.service.TestAlgorithmService -     * Asignado a ruta ID=2, Camión=C002, Estado camión=EN_RUTA
+11:13:07.693 [restartedMain] WARN  c.plg.service.TestAlgorithmService - Hay 3 camiones no disponibles que podrían estar afectando las entregas
+11:13:07.704 [restartedMain] INFO  c.plg.service.TestAlgorithmService -   - 3 camiones en estado: EN_RUTA
+11:13:07.704 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================
+11:13:07.704 [restartedMain] INFO  c.plg.service.TestAlgorithmService - SECUENCIA DE PRUEBA DE ALGORITMOS COMPLETADA
+11:13:07.704 [restartedMain] INFO  c.plg.service.TestAlgorithmService - ======================================================

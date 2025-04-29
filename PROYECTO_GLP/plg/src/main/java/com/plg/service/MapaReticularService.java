@@ -1,11 +1,21 @@
 package com.plg.service;
 
-import com.plg.config.MapaConfig;
-import com.plg.entity.Bloqueo;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import com.plg.config.MapaConfig;
+import com.plg.entity.Bloqueo;
 
 /**
  * Servicio para la navegación en mapa reticular Proporciona funciones para
@@ -13,6 +23,8 @@ import java.util.*;
  */
 @Service
 public class MapaReticularService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(MapaReticularService.class);
 
     @Autowired
     private MapaConfig mapaConfig;
@@ -37,6 +49,12 @@ public class MapaReticularService {
             throw new IllegalArgumentException("Coordenadas fuera de los límites del mapa");
         }
 
+        logger.info("Iniciando cálculo de ruta óptima con A*: desde ({},{}) hasta ({},{})", 
+                xInicio, yInicio, xFin, yFin);
+        logger.info("Bloqueos activos considerados: {}", bloqueos.size());
+        
+        long startTime = System.currentTimeMillis();
+
         // Implementación del algoritmo A*
         // Conjuntos para el algoritmo
         Set<String> nodosAbiertos = new HashSet<>();
@@ -58,14 +76,31 @@ public class MapaReticularService {
                 Comparator.comparingDouble(nodo -> fScore.getOrDefault(nodo, Double.MAX_VALUE))
         );
         colaPrioridad.add(inicio);
+        
+        int iteraciones = 0;
+        int nodosExpandidos = 0;
+        int nodosEvaluados = 0;
+        int bloqueosSorteados = 0;
 
         while (!nodosAbiertos.isEmpty()) {
+            iteraciones++;
+            
             // Obtener el nodo con menor fScore
             String nodoActual = colaPrioridad.poll();
+            nodosExpandidos++;
 
             // Si llegamos al destino, reconstruir y devolver el camino
             if (nodoActual.equals(fin)) {
-                return reconstruirCamino(caminoPadre, nodoActual);
+                List<double[]> rutaFinal = reconstruirCamino(caminoPadre, nodoActual);
+                double distanciaRuta = calcularLongitudRuta(rutaFinal);
+                long tiempoTotal = System.currentTimeMillis() - startTime;
+                
+                logger.info("Ruta óptima encontrada: {} puntos, distancia: {} km", rutaFinal.size(), distanciaRuta);
+                logger.info("Estadísticas A*: {} iteraciones, {} nodos expandidos, {} nodos evaluados, {} bloqueos sorteados", 
+                        iteraciones, nodosExpandidos, nodosEvaluados, bloqueosSorteados);
+                logger.info("Tiempo de cálculo de ruta: {} ms", tiempoTotal);
+                
+                return rutaFinal;
             }
 
             // Mover el nodo actual de abiertos a cerrados
@@ -75,12 +110,12 @@ public class MapaReticularService {
             // Extraer coordenadas del nodo actual
             double[] coords = parseKeyToCoords(nodoActual);
             double x = coords[0], y = coords[1];
- 
 
             // Obtener vecinos
             double[][] nodosAdyacentes = mapaConfig.obtenerNodosAdyacentes(x, y);
 
             for (double[] vecino : nodosAdyacentes) {
+                nodosEvaluados++;
                 String vecinoKey = coordenadaAKey(vecino[0], vecino[1]);
 
                 // Si el vecino ya fue evaluado, continuar
@@ -89,7 +124,13 @@ public class MapaReticularService {
                 }
 
                 // Verificar si hay un bloqueo entre el nodo actual y el vecino
-                if (verificarBloqueoEntrePuntos(x, y, vecino[0], vecino[1], bloqueos)) {
+                boolean hayBloqueo = verificarBloqueoEntrePuntos(x, y, vecino[0], vecino[1], bloqueos);
+                if (hayBloqueo) {
+                    bloqueosSorteados++;
+                    if (iteraciones % 50 == 0) {  // Loguear solo ocasionalmente para no saturar
+                        logger.debug("Bloqueo detectado entre ({},{}) y ({},{})", 
+                                x, y, vecino[0], vecino[1]);
+                    }
                     continue; // Omitir este vecino si el camino está bloqueado
                 }
 
@@ -109,11 +150,45 @@ public class MapaReticularService {
                         colaPrioridad.add(vecinoKey);
                     }
                 }
+                
+                // Log de progreso ocasional
+                if (iteraciones % 1000 == 0) {
+                    logger.debug("Progreso A*: {} iteraciones, {} nodos abiertos, {} nodos cerrados", 
+                            iteraciones, nodosAbiertos.size(), nodosCerrados.size());
+                }
             }
         }
 
         // Si llegamos aquí, no encontramos un camino
+        logger.warn("No se encontró ruta posible desde ({},{}) hasta ({},{})", 
+                xInicio, yInicio, xFin, yFin);
+        logger.info("Estadísticas A* fallido: {} iteraciones, {} nodos expandidos, {} nodos evaluados, {} bloqueos sorteados", 
+                iteraciones, nodosExpandidos, nodosEvaluados, bloqueosSorteados);
+        
         return new ArrayList<>();
+    }
+    
+    /**
+     * Obtiene todos los bloqueos activos y los utiliza para calcular una ruta
+     * óptima
+     */
+    public List<double[]> calcularRutaOptimaConsiderandoBloqueos(double xInicio, double yInicio, double xFin, double yFin) {
+        // Obtener bloqueos activos
+        List<Bloqueo> bloqueosActivos = bloqueoService.obtenerBloqueosActivos(java.time.LocalDateTime.now());
+        logger.info("Calculando ruta con {} bloqueos activos en el momento actual", bloqueosActivos.size());
+        
+        // Calcular ruta evitando los bloqueos
+        List<double[]> ruta = calcularRutaOptima(xInicio, yInicio, xFin, yFin, bloqueosActivos);
+        
+        // Calcular métricas de la ruta
+        if (!ruta.isEmpty()) {
+            double distancia = calcularLongitudRuta(ruta);
+            double tiempoEstimado = estimarTiempoViajeMinutos(ruta, 30); // 30 km/h promedio
+            logger.info("Ruta generada: {} puntos, longitud: {} km, tiempo estimado: {} minutos", 
+                    ruta.size(), distancia, tiempoEstimado);
+        }
+        
+        return ruta;
     }
 
     /**
@@ -251,18 +326,6 @@ public class MapaReticularService {
         }
 
         return longitud;
-    }
-
-    /**
-     * Obtiene todos los bloqueos activos y los utiliza para calcular una ruta
-     * óptima
-     */
-    public List<double[]> calcularRutaOptimaConsiderandoBloqueos(double xInicio, double yInicio, double xFin, double yFin) {
-        // Obtener bloqueos activos
-        List<Bloqueo> bloqueosActivos = bloqueoService.obtenerBloqueosActivos(java.time.LocalDateTime.now());
-
-        // Calcular ruta evitando los bloqueos
-        return calcularRutaOptima(xInicio, yInicio, xFin, yFin, bloqueosActivos);
     }
 
     /**

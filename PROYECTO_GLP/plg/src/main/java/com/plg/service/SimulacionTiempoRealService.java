@@ -1,19 +1,38 @@
 package com.plg.service;
 
-import com.plg.entity.*;
-import com.plg.entity.EstadoCamion;
-import com.plg.entity.EstadoPedido;
-import com.plg.repository.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.*;
+import com.plg.entity.Almacen;
+import com.plg.entity.Camion;
+import com.plg.entity.EstadoCamion;
+import com.plg.entity.EstadoPedido;
+import com.plg.entity.NodoRuta;
+import com.plg.entity.Pedido;
+import com.plg.entity.Ruta;
+import com.plg.repository.AlmacenRepository;
+import com.plg.repository.CamionRepository;
+import com.plg.repository.PedidoRepository;
+import com.plg.repository.RutaRepository;
 
 @Service
 public class SimulacionTiempoRealService {
@@ -197,7 +216,7 @@ public class SimulacionTiempoRealService {
     private void procesarMovimientoCamion(Camion camion) {
         try {
             // Obtener las rutas activas del camión
-            List<Ruta> rutasActivas = rutaRepository.findByCamionIdAndEstadoWithNodos(camion.getId(), 1); // Usar findByCamionIdAndEstadoWithNodos
+            List<Ruta> rutasActivas = rutaRepository.findByCamionIdAndEstadoWithNodos(camion.getId(), 1);
             
             if (rutasActivas.isEmpty()) {
                 logger.warn("Camión {} está en ruta (estado {}) pero no tiene rutas activas", camion.getCodigo(), camion.getEstado());
@@ -235,8 +254,6 @@ public class SimulacionTiempoRealService {
                 return; // La ruta debe tener al menos un origen y un destino
             }
             
-            logger.debug("Procesando movimiento de camión {} en ruta {} con {} nodos", camion.getCodigo(), rutaActual.getCodigo(), nodos.size());
-            
             // Inicializar el progreso si es la primera vez que procesamos esta ruta
             if (!progresoNodoActual.containsKey(rutaActual.getId())) {
                 progresoNodoActual.put(rutaActual.getId(), Double.valueOf(0.0)); // Comenzamos en 0%
@@ -252,9 +269,18 @@ public class SimulacionTiempoRealService {
             // Determinar el nodo actual y siguiente
             int indiceNodoActual = encontrarIndiceNodoActual(rutaActual, nodos);
             
+            // Registrar el progreso actual del camión en la ruta (nodo actual / total nodos)
+            logger.info("Camión {}: Progreso en ruta {}: nodo {}/{} ({}%)", 
+                camion.getCodigo(),
+                rutaActual.getCodigo(), 
+                indiceNodoActual + 1,
+                nodos.size(),
+                Math.round((indiceNodoActual + 1) * 100.0 / nodos.size()));
+            
             // Si hemos llegado al último nodo, la ruta está completa
             if (indiceNodoActual >= nodos.size() - 1) {
-                logger.info("Ruta {} completada", rutaActual.getCodigo());
+                logger.info("Ruta {} completada (camión {} llegó al nodo final {}/{})", 
+                    rutaActual.getCodigo(), camion.getCodigo(), nodos.size(), nodos.size());
                 completarRuta(rutaActual, camion);
                 return;
             }
@@ -262,7 +288,10 @@ public class SimulacionTiempoRealService {
             NodoRuta nodoActual = nodos.get(indiceNodoActual);
             NodoRuta nodoSiguiente = nodos.get(indiceNodoActual + 1);
             
-            logger.debug("Camión {} moviéndose del nodo {} al nodo {} - Progreso: {}", camion.getCodigo(), indiceNodoActual, (indiceNodoActual + 1), progresoNodoActual.get(rutaActual.getId()));
+            logger.debug("Camión {} moviéndose del nodo {} ({},{}) al nodo {} ({},{}) - Progreso: {}", 
+                camion.getCodigo(), indiceNodoActual, nodoActual.getPosX(), nodoActual.getPosY(), 
+                (indiceNodoActual + 1), nodoSiguiente.getPosX(), nodoSiguiente.getPosY(),
+                progresoNodoActual.get(rutaActual.getId()));
             
             // Aumentar el progreso hacia el siguiente nodo
             double progreso = progresoNodoActual.get(rutaActual.getId());
