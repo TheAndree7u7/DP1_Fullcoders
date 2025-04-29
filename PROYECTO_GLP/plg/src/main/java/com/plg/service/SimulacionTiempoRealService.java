@@ -36,6 +36,9 @@ import com.plg.repository.CamionRepository;
 import com.plg.repository.PedidoRepository;
 import com.plg.repository.RutaRepository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+
 @Service
 public class SimulacionTiempoRealService {
 
@@ -55,6 +58,9 @@ public class SimulacionTiempoRealService {
     
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+    
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
     
     private ScheduledExecutorService scheduler;
     private boolean simulacionEnCurso = false;
@@ -113,6 +119,21 @@ public class SimulacionTiempoRealService {
     // Nuevo método para activar rutas pendientes
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     private void activarRutasPendientes() {
+        EntityManager em = null;
+        try {
+            // Obtener un EntityManager y forzar flush para asegurar visibilidad
+            em = entityManagerFactory.createEntityManager();
+            if (em != null) {
+                em.flush();
+            }
+        } catch (Exception e) {
+            logger.warn("No se pudo hacer flush inicial: {}", e.getMessage());
+        } finally {
+            if (em != null && em.isOpen()) {
+                em.close();
+            }
+        }
+        
         List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA); // Camiones en ruta
         
         logger.info("Activando rutas pendientes para {} camiones en ruta", camionesEnRuta.size());
@@ -148,6 +169,21 @@ public class SimulacionTiempoRealService {
                         logger.info("Inicializado progreso para ruta ya activa: {}", ruta.getCodigo());
                     }
                 }
+            }
+        }
+        
+        // Forzar un flush antes de terminar el método para asegurar visibilidad
+        // de los cambios realizados
+        try {
+            em = entityManagerFactory.createEntityManager();
+            if (em != null) {
+                em.flush();
+            }
+        } catch (Exception e) {
+            logger.warn("No se pudo hacer flush final: {}", e.getMessage());
+        } finally {
+            if (em != null && em.isOpen()) {
+                em.close();
             }
         }
     }
@@ -204,8 +240,30 @@ public class SimulacionTiempoRealService {
                 return;
             }
             
+            // Forzar un commit de la transacción anterior para asegurar visibilidad
+            // de los cambios realizados en otras transacciones
+            EntityManager em = null;
+            try {
+                em = entityManagerFactory.createEntityManager();
+                if (em != null) {
+                    em.flush();
+                }
+            } catch (Exception e) {
+                logger.warn("No se pudo hacer flush de la sesión: {}", e.getMessage());
+            } finally {
+                if (em != null && em.isOpen()) {
+                    em.close();
+                }
+            }
+            
             // Obtener todos los camiones en ruta (estado EN_RUTA)
             List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA);
+            
+            // Registrar información detallada sobre los camiones encontrados
+            logger.info("Camiones en estado EN_RUTA encontrados: {} camiones", camionesEnRuta.size());
+            for (Camion c : camionesEnRuta) {
+                logger.info("  - Camión en ruta: {}, ID: {}", c.getCodigo(), c.getId());
+            }
             
             // Si no hay camiones en ruta, no hay nada que simular
             if (camionesEnRuta.isEmpty()) {
