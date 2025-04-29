@@ -1,18 +1,15 @@
-01:34:01.027 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Iniciando generación de rutas con algoritmo genético. Parámetros: {maxIter=100, poblacion=50, algoritmo=genetico, numeroRutas=3}
-01:34:01.030 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos pendientes encontrados: 0
-01:34:01.030 [restartedMain] WARN  c.p.service.AlgoritmoGeneticoService - No hay pedidos pendientes para generar rutas
-01:35:11.300 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Iniciando generación de rutas con algoritmo genético. Parámetros: {maxIter=100, poblacion=50, algoritmo=genetico, numeroRutas=3}
-01:35:11.304 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos pendientes encontrados: 13
-01:35:11.305 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Generando 3 rutas para 13 pedidos
-01:35:11.311 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Camiones disponibles encontrados: 8
-01:35:11.316 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos divididos en 3 grupos
-01:35:11.316 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 1 con 5 pedidos para camión C001
-01:35:11.318 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 1 con 5 pedidos para camión C001
-01:35:11.566 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 1 creada exitosamente con id: 1
-01:35:11.566 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 2 con 4 pedidos para camión C002
-01:35:11.567 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 2 con 4 pedidos para camión C002
-01:35:11.764 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 2 creada exitosamente con id: 2
-01:35:11.764 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 3 con 4 pedidos para camión C003
-01:35:11.764 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 3 con 4 pedidos para camión C003
-01:35:11.954 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 3 creada exitosamente con id: 3
-01:35:11.955 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Generación de rutas completada. Rutas creadas: 3, Pedidos asignados: 13/13
+09:45:43.735 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Iniciando generación de rutas con algoritmo genético. Parámetros: {maxIter=100, poblacion=50, algoritmo=genetico, numeroRutas=3}
+09:45:43.741 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos pendientes encontrados: 13
+09:45:43.741 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Generando 3 rutas para 13 pedidos
+09:45:43.749 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Camiones disponibles encontrados: 8
+09:45:43.755 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos divididos en 3 grupos
+09:45:43.755 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 1 con 5 pedidos para camión C001
+09:45:43.757 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 1 con 5 pedidos para camión C001
+09:45:44.036 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 1 creada exitosamente con id: 1
+09:45:44.036 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 2 con 4 pedidos para camión C002
+09:45:44.036 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 2 con 4 pedidos para camión C002
+09:45:44.215 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 2 creada exitosamente con id: 2
+09:45:44.215 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 3 con 4 pedidos para camión C003
+09:45:44.215 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 3 con 4 pedidos para camión C003
+09:45:44.380 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 3 creada exitosamente con id: 3
+09:45:44.380 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Generación de rutas completada. Rutas creadas: 3, Pedidos asignados: 13/13

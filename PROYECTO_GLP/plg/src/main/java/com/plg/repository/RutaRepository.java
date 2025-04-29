@@ -1,15 +1,17 @@
 package com.plg.repository;
 
-import com.plg.entity.Camion;
-import com.plg.entity.Ruta;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import com.plg.entity.Camion;
+import com.plg.entity.Pedido;
+import com.plg.entity.Ruta;
 
 /**
  * Repositorio para operaciones de base de datos relacionadas con Rutas
@@ -83,4 +85,10 @@ public interface RutaRepository extends JpaRepository<Ruta, Long> {
     List<Ruta> findByEstadoInWithNodos(@Param("estados") List<Integer> estados);
 
     List<Ruta> findByCamion(Camion camion);
+
+    /**
+     * Busca rutas que contengan un pedido específico en alguno de sus nodos
+     */
+    @Query("SELECT DISTINCT r FROM Ruta r JOIN r.nodos n WHERE n.pedido = :pedido")
+    List<Ruta> findByPedidosContaining(@Param("pedido") Pedido pedido);
 }

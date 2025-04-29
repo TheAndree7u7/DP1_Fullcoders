@@ -3,6 +3,7 @@ package com.plg.service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -324,6 +325,60 @@ public class TestAlgorithmService implements ApplicationRunner {
             logger.info("Todos los pedidos han sido entregados");
         } else {
             logger.info("Hay {} pedidos no entregados", notDelivered.size());
+            
+            // Agrupar por estado para análisis
+            Map<EstadoPedido, Long> contadorPorEstado = notDelivered.stream()
+                .collect(Collectors.groupingBy(Pedido::getEstado, Collectors.counting()));
+            
+            // Mostrar conteo por cada tipo de estado
+            logger.info("Distribución de estados de pedidos no entregados:");
+            contadorPorEstado.forEach((estado, cantidad) -> 
+                logger.info("  - Estado {}: {} pedidos", estado, cantidad));
+            
+            // Mostrar detalles de hasta 5 pedidos no entregados para análisis
+            logger.info("Muestra de pedidos no entregados (max 5):");
+            notDelivered.stream().limit(5).forEach(p -> {
+                logger.info("  - Pedido {}: Cliente {}, Posición ({},{}), Volumen {} m3, Estado {}", 
+                    p.getCodigo(), p.getCliente().getId(), p.getPosX(), p.getPosY(), 
+                    p.getVolumenGLPAsignado(), p.getEstado());
+                
+                // Verificar si el pedido está en alguna ruta
+                List<Ruta> rutasConPedido = rutaRepository.findByPedidosContaining(p);
+                if (rutasConPedido.isEmpty()) {
+                    logger.info("    * No está asignado a ninguna ruta");
+                } else {
+                    rutasConPedido.forEach(r -> {
+                        Camion camion = r.getCamion();
+                        logger.info("    * Asignado a ruta ID={}, Camión={}, Estado camión={}", 
+                            r.getId(), camion != null ? camion.getCodigo() : "No asignado", 
+                            camion != null ? camion.getEstado() : "N/A");
+                    });
+                }
+            });
+            
+            // Verificar si hay problemas de capacidad
+            boolean posibleProblemaCamiones = camionRepository.count() < notDelivered.size() / 5;
+            if (posibleProblemaCamiones) {
+                logger.warn("Posible problema de capacidad: hay pocos camiones ({}) para la cantidad de pedidos pendientes ({})", 
+                    camionRepository.count(), notDelivered.size());
+            }
+            
+            // Verificar si hay problemas con camiones en mantenimiento o no disponibles
+            List<Camion> camionesDisponibles = camionRepository.findByEstado(EstadoCamion.DISPONIBLE);
+            long totalCamiones = camionRepository.count();
+            long camionesNoDisponibles = totalCamiones - camionesDisponibles.size();
+            
+            if (camionesNoDisponibles > 0) {
+                logger.warn("Hay {} camiones no disponibles que podrían estar afectando las entregas", camionesNoDisponibles);
+                
+                // Contabilizar camiones por estado para diagnóstico detallado
+                Map<EstadoCamion, Long> camionesEstadoCount = camionRepository.findAll().stream()
+                    .filter(c -> c.getEstado() != EstadoCamion.DISPONIBLE)
+                    .collect(Collectors.groupingBy(Camion::getEstado, Collectors.counting()));
+                
+                camionesEstadoCount.forEach((estado, cantidad) -> 
+                    logger.info("  - {} camiones en estado: {}", cantidad, estado));
+            }
         }
     }
 }
