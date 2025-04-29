@@ -1,9 +1,9 @@
 package com.plg.service;
 
-import com.plg.dto.AlgoritmoGeneticoResultadoDTO;
-import com.plg.dto.AgrupamientoAPResultadoDTO;
-import com.plg.entity.*;
-import com.plg.repository.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,13 +13,22 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.plg.dto.AlgoritmoGeneticoResultadoDTO;
+import com.plg.entity.Almacen;
+import com.plg.entity.Camion;
+import com.plg.entity.EstadoCamion;
+import com.plg.entity.EstadoPedido;
+import com.plg.entity.Pedido;
+import com.plg.entity.Ruta;
+import com.plg.repository.AlmacenRepository;
+import com.plg.repository.BloqueoRepository;
+import com.plg.repository.CamionRepository;
+import com.plg.repository.PedidoRepository;
+import com.plg.repository.RutaRepository;
 
 /**
- * Service for testing all algorithm flows with real data
- * Only runs when "test-algorithm" profile is active
+ * Servicio para probar todos los flujos de algoritmos con datos reales
+ * Solo se ejecuta cuando el perfil "test-algorithm" está activo
  */
 @Service
 @Profile("test-algorithm")
@@ -58,74 +67,74 @@ public class TestAlgorithmService implements ApplicationRunner {
     @Transactional
     public void run(ApplicationArguments args) {
         logger.info("======================================================");
-        logger.info("STARTING ALGORITHM TESTING SEQUENCE");
+        logger.info("INICIANDO SECUENCIA DE PRUEBA DE ALGORITMOS");
         logger.info("======================================================");
         
-        // Check if we have required data
-        verifyDataLoaded();
+        // Verificar si tenemos los datos requeridos
+        verificarDatosCargados();
         
-        // Test AP Clustering
-        testAffinityPropagation();
+        // Probar Agrupamiento por Afinidad
+        probarPropagacionAfinidad();
         
-        // Test Genetic Algorithm
-        testGeneticAlgorithm();
+        // Probar Algoritmo Genético
+        probarAlgoritmoGenetico();
         
-        // Test Real-time simulation
-        testRealTimeSimulation();
+        // Probar simulación en tiempo real
+        probarSimulacionTiempoReal();
         
-        testAllOrdersDelivered();
+        probarTodosPedidosEntregados();
         
         logger.info("======================================================");
-        logger.info("ALGORITHM TESTING SEQUENCE COMPLETED");
+        logger.info("SECUENCIA DE PRUEBA DE ALGORITMOS COMPLETADA");
         logger.info("======================================================");
         
     }
     
-    private void verifyDataLoaded() {
-        logger.info("Verifying data loaded for algorithm testing");
+    private void verificarDatosCargados() {
+        logger.info("Verificando datos cargados para prueba de algoritmos");
         
-        // Check pedidos
+        // Verificar pedidos
         long pedidosCount = pedidoRepository.count();
-        logger.info("Found {} orders in database", pedidosCount);
+        logger.info("Se encontraron {} pedidos en la base de datos", pedidosCount);
         if (pedidosCount == 0) {
-            logger.error("No orders found! Tests will fail. Make sure DataLoader is running correctly.");
+            logger.error("¡No se encontraron pedidos! Las pruebas fallarán. Asegúrese de que DataLoader se está ejecutando correctamente.");
         }
         
-        // Log some example orders for verification
+        // Registrar algunos pedidos de ejemplo para verificación
         List<Pedido> pedidos = pedidoRepository.findAll();
         if (!pedidos.isEmpty()) {
-            logger.info("Sample orders:");
+            logger.info("Pedidos de muestra:");
             pedidos.stream().limit(3).forEach(p -> 
                 logger.info(" - Pedido {}: Cliente {}, Posición ({},{}), Volumen {} m3", 
                     p.getCodigo(), p.getCliente().getId(), p.getPosX(), p.getPosY(), p.getVolumenGLPAsignado())
             );
         }
         
-        // Check trucks
+        // Verificar camiones
         long camionesCount = camionRepository.count();
-        logger.info("Found {} trucks in database", camionesCount);
+        logger.info("Se encontraron {} camiones en la base de datos", camionesCount);
         if (camionesCount == 0) {
-            logger.error("No trucks found! Tests will fail. Make sure DataLoader is running correctly.");
+            logger.error("¡No se encontraron camiones! Las pruebas fallarán. Asegúrese de que DataLoader se está ejecutando correctamente.");
         }
         
-        // Check warehouses
+        // Verificar almacenes
         long almacenesCount = almacenRepository.count();
-        logger.info("Found {} warehouses in database", almacenesCount);
+        logger.info("Se encontraron {} almacenes en la base de datos", almacenesCount);
         if (almacenesCount == 0) {
-            logger.error("No warehouses found! Tests will fail. Make sure DataLoader is running correctly.");
+            logger.error("¡No se encontraron almacenes! Las pruebas fallarán. Asegúrese de que DataLoader se está ejecutando correctamente.");
         } else {
             Almacen almacenCentral = almacenRepository.findByEsCentralAndActivoTrue(true);
             if (almacenCentral != null) {
-                logger.info("Central warehouse found at position ({},{})", 
+                logger.info("Almacén central encontrado en la posición ({},{})", 
                     almacenCentral.getPosX(), almacenCentral.getPosY());
             } else {
-                logger.error("No central warehouse found! Tests will fail.");
+                logger.error("¡No se encontró almacén central! Las pruebas fallarán.");
             }
         }
     }
     
-    private void testAffinityPropagation() {
-        logger.info("===== TESTING AFFINITY PROPAGATION =====");
+    private void probarPropagacionAfinidad() {
+        logger.info("===== PROBANDO PROPAGACIÓN DE AFINIDAD =====");
         try {
             Map<String, Object> params = new HashMap<>();
             params.put("alpha", 0.8);
@@ -133,51 +142,51 @@ public class TestAlgorithmService implements ApplicationRunner {
             params.put("damping", 0.9);
             params.put("maxIter", 100);
             
-            logger.info("Calling AP service with parameters: {}", params);
+            logger.info("Llamando al servicio AP con parámetros: {}", params);
             
             var result = agrupamientoAPService.generarGrupos(params);
             
-            logger.info("AP result: clusters={}, totalPedidos={}", 
+            logger.info("Resultado AP: clusters={}, totalPedidos={}", 
                 result.getClusters().size(), result.getTotalPedidos());
             
-            // Log detailed cluster information
+            // Registrar información detallada del cluster
             for (int i = 0; i < result.getClusters().size(); i++) {
                 var cluster = result.getClusters().get(i);
                 logger.info("Cluster {}: centroId={}, centroX={}, centroY={}, puntos={}", 
                     i+1, cluster.getIdGrupo(), cluster.getCentroX(), cluster.getCentroY(), 
                     cluster.getPuntos().size());
                 
-                // Log some sample points in this cluster
+                // Registrar algunos puntos de muestra en este cluster
                 if (!cluster.getPuntos().isEmpty()) {
                     var punto = cluster.getPuntos().get(0);
-                    logger.info("  - Sample point: id={}, posición=({},{}), distanciaCentro={}", 
+                    logger.info("  - Punto de muestra: id={}, posición=({},{}), distanciaCentro={}", 
                         punto.getId(), punto.getX(), punto.getY(), punto.getDistanciaCentro());
                 }
             }
             
-            logger.info("Affinity Propagation computation time: {} ms", result.getTiempoComputo());
-            logger.info("Affinity Propagation test completed successfully");
+            logger.info("Tiempo de cómputo de Propagación de Afinidad: {} ms", result.getTiempoComputo());
+            logger.info("Prueba de Propagación de Afinidad completada exitosamente");
             
         } catch (Exception e) {
-            logger.error("Error testing Affinity Propagation", e);
+            logger.error("Error al probar Propagación de Afinidad", e);
         }
     }
     
     @Transactional
-    private void testGeneticAlgorithm() {
-        logger.info("===== TESTING GENETIC ALGORITHM =====");
+    private void probarAlgoritmoGenetico() {
+        logger.info("===== PROBANDO ALGORITMO GENÉTICO =====");
         try {
-            // Ensure we have pending orders
+            // Asegurar que tenemos pedidos pendientes
             List<Pedido> pendientes = pedidoRepository.findByEstado(EstadoPedido.PENDIENTE_PLANIFICACION);
-            logger.info("Found {} pending orders for route generation", pendientes.size());
+            logger.info("Se encontraron {} pedidos pendientes para generación de ruta", pendientes.size());
             
             if (pendientes.isEmpty()) {
-                // If no pending orders, update some orders to make them pending
-                logger.info("No pending orders found. Setting some orders as PENDIENTE_PLANIFICACION");
+                // Si no hay pedidos pendientes, actualizar algunos pedidos para hacerlos pendientes
+                logger.info("No se encontraron pedidos pendientes. Configurando algunos pedidos como PENDIENTE_PLANIFICACION");
                 List<Pedido> orders = pedidoRepository.findAll();
                 int count = 0;
                 for (Pedido p : orders) {
-                    if (count < 10) {  // Update up to 10 orders
+                    if (count < 10) {  // Actualizar hasta 10 pedidos
                         p.setEstado(EstadoPedido.PENDIENTE_PLANIFICACION);
                         pedidoRepository.save(p);
                         count++;
@@ -185,136 +194,136 @@ public class TestAlgorithmService implements ApplicationRunner {
                         break;
                     }
                 }
-                logger.info("Updated {} orders to PENDIENTE_PLANIFICACION", count);
+                logger.info("Se actualizaron {} pedidos a PENDIENTE_PLANIFICACION", count);
             }
             
-            // Set up parameters for genetic algorithm
+            // Configurar parámetros para algoritmo genético
             Map<String, Object> params = new HashMap<>();
-            params.put("numeroRutas", 3);  // Try with 3 routes
+            params.put("numeroRutas", 3);  // Probar con 3 rutas
             params.put("algoritmo", "genetico");
             params.put("poblacion", 50);
             params.put("maxIter", 100);
             
-            logger.info("Calling GA service with parameters: {}", params);
+            logger.info("Llamando al servicio AG con parámetros: {}", params);
             
             AlgoritmoGeneticoResultadoDTO result = algoritmoGeneticoService.generarRutas(params);
             
-            logger.info("GA result: totalPedidos={}, pedidosAsignados={}, rutasGeneradas={}", 
+            logger.info("Resultado AG: totalPedidos={}, pedidosAsignados={}, rutasGeneradas={}", 
                 result.getTotalPedidos(), result.getPedidosAsignados(), result.getRutasGeneradas());
             
-            // Log detailed route information
+            // Registrar información detallada de la ruta
             for (int i = 0; i < result.getRutas().size(); i++) {
                 var ruta = result.getRutas().get(i);
-                logger.info("Route {}: idRuta={}, camion={}, distancia={}, numeroPedidos={}", 
+                logger.info("Ruta {}: idRuta={}, camión={}, distancia={}, numeroPedidos={}", 
                     i+1, ruta.getIdRuta(), ruta.getCamionCodigo(), 
                     ruta.getDistanciaTotal(), ruta.getNumeroPedidos());
                 
-                // Log individual orders in this route
-                logger.info("  Orders in route {}:", i+1);
+                // Registrar pedidos individuales en esta ruta
+                logger.info("  Pedidos en ruta {}:", i+1);
                 for (int j = 0; j < ruta.getPedidos().size(); j++) {
                     var pedido = ruta.getPedidos().get(j);
-                    logger.info("  - Order {}: id={}, codigo={}, pos=({},{}), volumen={}", 
+                    logger.info("  - Pedido {}: id={}, código={}, pos=({},{}), volumen={}", 
                         j+1, pedido.getId(), pedido.getCodigo(), 
                         pedido.getPosX(), pedido.getPosY(), pedido.getVolumenGLPAsignado());
                 }
                 
-                // Log route points
-                logger.info("  Exact route path points: {}", ruta.getPuntos().size());
-                logger.info("  First 3 and last 3 points:");
-                // Log first 3 points
+                // Registrar puntos de la ruta
+                logger.info("  Puntos exactos del camino de ruta: {}", ruta.getPuntos().size());
+                logger.info("  Primeros 3 y últimos 3 puntos:");
+                // Registrar primeros 3 puntos
                 for (int j = 0; j < Math.min(3, ruta.getPuntos().size()); j++) {
                     var punto = ruta.getPuntos().get(j);
-                    logger.info("   - Point {}: ({},{}) type={}", 
+                    logger.info("   - Punto {}: ({},{}) tipo={}", 
                         j, punto.getPosX(), punto.getPosY(), punto.getTipo());
                 }
-                // Log last 3 points if more than 6 points
+                // Registrar últimos 3 puntos si hay más de 6 puntos
                 if (ruta.getPuntos().size() > 6) {
                     for (int j = ruta.getPuntos().size() - 3; j < ruta.getPuntos().size(); j++) {
                         var punto = ruta.getPuntos().get(j);
-                        logger.info("   - Point {}: ({},{}) type={}", 
+                        logger.info("   - Punto {}: ({},{}) tipo={}", 
                             j, punto.getPosX(), punto.getPosY(), punto.getTipo());
                     }
                 }
             }
             
-            // Check that routes were saved in database
+            // Verificar que las rutas se guardaron en la base de datos
             List<Ruta> savedRoutes = rutaRepository.findAll();
-            logger.info("Total routes in database after GA: {}", savedRoutes.size());
+            logger.info("Total de rutas en la base de datos después de AG: {}", savedRoutes.size());
             
-            // Check that trucks have been assigned
+            // Verificar que se han asignado camiones
             List<Camion> enRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA);
-            logger.info("Trucks assigned to routes: {}", enRuta.size());
+            logger.info("Camiones asignados a rutas: {}", enRuta.size());
             
-            logger.info("Genetic Algorithm test completed successfully");
+            logger.info("Prueba de Algoritmo Genético completada exitosamente");
             
         } catch (Exception e) {
-            logger.error("Error testing Genetic Algorithm", e);
+            logger.error("Error al probar Algoritmo Genético", e);
         }
     }
     
-    private void testRealTimeSimulation() {
-        logger.info("===== TESTING REAL TIME SIMULATION =====");
+    private void probarSimulacionTiempoReal() {
+        logger.info("===== PROBANDO SIMULACIÓN EN TIEMPO REAL =====");
         try {
-            // Check if we have routes to simulate
+            // Verificar si tenemos rutas para simular
             List<Ruta> routes = rutaRepository.findAll();
-            logger.info("Found {} routes for simulation", routes.size());
+            logger.info("Se encontraron {} rutas para simulación", routes.size());
             
             if (routes.isEmpty()) {
-                logger.error("No routes found for simulation. Please run the genetic algorithm first.");
+                logger.error("No se encontraron rutas para simulación. Por favor ejecute primero el algoritmo genético.");
                 return;
             }
             
-            // Find trucks in route
+            // Encontrar camiones en ruta
             List<Camion> enRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA);
-            logger.info("Trucks in route status: {}", enRuta.size());
+            logger.info("Camiones en estado de ruta: {}", enRuta.size());
             
             if (enRuta.isEmpty()) {
-                logger.warn("No trucks in route status. Setting some trucks to EN_RUTA");
+                logger.warn("No hay camiones en estado de ruta. Configurando algunos camiones a EN_RUTA");
                 List<Camion> trucks = camionRepository.findAll();
                 for (int i = 0; i < Math.min(3, trucks.size()); i++) {
                     trucks.get(i).setEstado(EstadoCamion.EN_RUTA);
                     camionRepository.save(trucks.get(i));
                 }
-                logger.info("Set {} trucks to EN_RUTA status", Math.min(3, trucks.size()));
+                logger.info("Se configuraron {} camiones al estado EN_RUTA", Math.min(3, trucks.size()));
             }
             
-            // Start real-time simulation
-            logger.info("Starting real-time simulation");
+            // Iniciar simulación en tiempo real
+            logger.info("Iniciando simulación en tiempo real");
             Map<String, Object> result = simulacionTiempoRealService.iniciarSimulacion();
-            logger.info("Simulation start result: {}", result);
+            logger.info("Resultado de inicio de simulación: {}", result);
             
-            // Wait for a few updates
-            logger.info("Waiting for 5 seconds to observe simulation updates...");
+            // Esperar algunas actualizaciones
+            logger.info("Esperando 5 segundos para observar actualizaciones de simulación...");
             Thread.sleep(5000);
             
-            // Adjust speed
-            logger.info("Adjusting simulation speed to 3x");
+            // Ajustar velocidad
+            logger.info("Ajustando velocidad de simulación a 3x");
             result = simulacionTiempoRealService.ajustarVelocidad(3);
-            logger.info("Speed adjustment result: {}", result);
+            logger.info("Resultado de ajuste de velocidad: {}", result);
             
-            // Wait for a few more updates
-            logger.info("Waiting for 5 more seconds with increased speed...");
+            // Esperar algunas actualizaciones más
+            logger.info("Esperando 5 segundos más con velocidad aumentada...");
             Thread.sleep(5000);
             
-            // Stop simulation
-            logger.info("Stopping simulation");
+            // Detener simulación
+            logger.info("Deteniendo simulación");
             result = simulacionTiempoRealService.detenerSimulacion();
-            logger.info("Simulation stop result: {}", result);
+            logger.info("Resultado de detención de simulación: {}", result);
             
-            logger.info("Real-time simulation test completed successfully");
+            logger.info("Prueba de simulación en tiempo real completada exitosamente");
             
         } catch (Exception e) {
-            logger.error("Error testing real-time simulation", e);
+            logger.error("Error al probar simulación en tiempo real", e);
         }
     }
     
-    private void testAllOrdersDelivered() {
-        logger.info("===== TESTING IF ALL ORDERS WERE DELIVERED =====");
+    private void probarTodosPedidosEntregados() {
+        logger.info("===== PROBANDO SI TODOS LOS PEDIDOS FUERON ENTREGADOS =====");
         List<Pedido> notDelivered = pedidoRepository.findByEstadoNot(EstadoPedido.ENTREGADO_TOTALMENTE);
         if (notDelivered.isEmpty()) {
-            logger.info("All orders have been delivered");
+            logger.info("Todos los pedidos han sido entregados");
         } else {
-            logger.info("There are {} orders not delivered", notDelivered.size());
+            logger.info("Hay {} pedidos no entregados", notDelivered.size());
         }
     }
 }
