@@ -172,19 +172,15 @@ public class SimulacionTiempoRealService {
             }
             
             // Obtener todos los camiones en ruta (estado 1)
-            List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA); // 1 = En ruta
-            // Agregar también los camiones en estado 0 (disponible) para verificar si tienen rutas pendientes
-            List<Camion> camionesDisponibles = camionRepository.findByEstado(EstadoCamion.EN_RUTA);
+            List<Camion> camionesEnRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA);
             
-            camionesEnRuta.addAll(camionesDisponibles);
-            
-            // Si no hay camiones en ruta o disponibles, no hay nada que simular
+            // Si no hay camiones en ruta, no hay nada que simular
             if (camionesEnRuta.isEmpty()) {
-                logger.info("No hay camiones para simular");
+                logger.info("No hay camiones en ruta para simular");
                 return;
             }
             
-            logger.debug("Procesando {} camiones en la simulación", camionesEnRuta.size());
+            logger.info("Procesando {} camiones en la simulación", camionesEnRuta.size());
             
             // Procesar cada camión
             for (Camion camion : camionesEnRuta) {
@@ -195,12 +191,8 @@ public class SimulacionTiempoRealService {
             Map<String, Object> estadisticas = new HashMap<>();
             estadisticas.put("camionesTotal", camionRepository.count());
             estadisticas.put("camionesEnRuta", camionRepository.findByEstado(EstadoCamion.EN_RUTA).size());
-            estadisticas.put("almacenesTotal", almacenRepository.count());
-            estadisticas.put("pedidosTotal", pedidoRepository.count());
-            estadisticas.put("pedidosPendientes", pedidoRepository.findByEstado(EstadoPedido.REGISTRADO).size());
             estadisticas.put("pedidosEnRuta", pedidoRepository.findByEstado(EstadoPedido.EN_RUTA).size());
             estadisticas.put("pedidosEntregados", pedidoRepository.findByEstado(EstadoPedido.ENTREGADO_TOTALMENTE).size());
-            estadisticas.put("rutasTotal", rutaRepository.count());
             estadisticas.put("rutasActivas", rutaRepository.findByEstado(1).size());
             
             // Enviar actualización a los clientes conectados vía WebSocket
@@ -215,8 +207,10 @@ public class SimulacionTiempoRealService {
     // Procesa el movimiento de un camión específico
     private void procesarMovimientoCamion(Camion camion) {
         try {
+            logger.info("DEBUG: Procesando movimiento del camión {} (ID:{})", camion.getCodigo(), camion.getId());
+            
             // Obtener las rutas activas del camión
-            List<Ruta> rutasActivas = rutaRepository.findByCamionIdAndEstadoWithNodos(camion.getId(), 1);
+            List<Ruta> rutasActivas = rutaRepository.findByCamionIdAndEstadoWithNodos(camion.getId(), 1); // Usar findByCamionIdAndEstadoWithNodos
             
             if (rutasActivas.isEmpty()) {
                 logger.warn("Camión {} está en ruta (estado {}) pero no tiene rutas activas", camion.getCodigo(), camion.getEstado());
@@ -249,21 +243,28 @@ public class SimulacionTiempoRealService {
             Ruta rutaActual = rutasActivas.get(0);
             List<NodoRuta> nodos = rutaActual.getNodos();
             
+            logger.info("DEBUG: Camión {} procesando ruta {} con {} nodos", 
+                camion.getCodigo(), rutaActual.getCodigo(), nodos.size());
+            
             if (nodos == null || nodos.size() < 2) {
-                logger.warn("Ruta {} no tiene suficientes nodos", rutaActual.getCodigo());
+                logger.warn("Ruta {} no tiene suficientes nodos (tiene {})", 
+                    rutaActual.getCodigo(), nodos != null ? nodos.size() : 0);
                 return; // La ruta debe tener al menos un origen y un destino
             }
             
             // Inicializar el progreso si es la primera vez que procesamos esta ruta
             if (!progresoNodoActual.containsKey(rutaActual.getId())) {
                 progresoNodoActual.put(rutaActual.getId(), Double.valueOf(0.0)); // Comenzamos en 0%
-                logger.info("Inicializando progreso para ruta {}", rutaActual.getCodigo());
+                logger.info("Inicializando progreso para ruta {} (primera vez)", rutaActual.getCodigo());
                 
                 // Para asegurar que el camión empiece en el primer nodo de la ruta
                 NodoRuta nodoInicial = nodos.get(0);
                 camion.setPosX(nodoInicial.getPosX());
                 camion.setPosY(nodoInicial.getPosY());
                 camionRepository.save(camion);
+                
+                logger.info("Camión {} posicionado en nodo inicial ({},{}) de la ruta {}", 
+                    camion.getCodigo(), nodoInicial.getPosX(), nodoInicial.getPosY(), rutaActual.getCodigo());
             }
             
             // Determinar el nodo actual y siguiente
@@ -277,7 +278,7 @@ public class SimulacionTiempoRealService {
                 nodos.size(),
                 Math.round((indiceNodoActual + 1) * 100.0 / nodos.size()));
             
-            // Si hemos llegado al último nodo, la ruta está completa
+            // Verificar si ya estamos al final de la ruta
             if (indiceNodoActual >= nodos.size() - 1) {
                 logger.info("Ruta {} completada (camión {} llegó al nodo final {}/{})", 
                     rutaActual.getCodigo(), camion.getCodigo(), nodos.size(), nodos.size());
@@ -288,10 +289,10 @@ public class SimulacionTiempoRealService {
             NodoRuta nodoActual = nodos.get(indiceNodoActual);
             NodoRuta nodoSiguiente = nodos.get(indiceNodoActual + 1);
             
-            logger.debug("Camión {} moviéndose del nodo {} ({},{}) al nodo {} ({},{}) - Progreso: {}", 
+            logger.info("Camión {} moviéndose del nodo {} ({},{}) al nodo {} ({},{}) - Progreso: {}%", 
                 camion.getCodigo(), indiceNodoActual, nodoActual.getPosX(), nodoActual.getPosY(), 
                 (indiceNodoActual + 1), nodoSiguiente.getPosX(), nodoSiguiente.getPosY(),
-                progresoNodoActual.get(rutaActual.getId()));
+                Math.round(progresoNodoActual.get(rutaActual.getId()) * 100));
             
             // Aumentar el progreso hacia el siguiente nodo
             double progreso = progresoNodoActual.get(rutaActual.getId());
@@ -307,17 +308,6 @@ public class SimulacionTiempoRealService {
                     camion.setEstado(EstadoCamion.SIN_COMBUSTIBLE); // Sin combustible
                     camionRepository.save(camion);
                     
-                    // Enviar notificación de falta de combustible
-                    Map<String, Object> notificacion = new HashMap<>();
-                    notificacion.put("tipo", "sinCombustible");
-                    notificacion.put("camionId", camion.getId());
-                    notificacion.put("camionCodigo", camion.getCodigo());
-                    notificacion.put("posX", camion.getPosX());
-                    notificacion.put("posY", camion.getPosY());
-                    notificacion.put("combustibleRestante", camion.getCombustibleActual());
-                    notificacion.put("mensaje", "El camión " + camion.getCodigo() + " se ha quedado sin combustible");
-                    messagingTemplate.convertAndSend("/topic/alertas", notificacion);
-                    
                     logger.warn("Camión {} sin combustible en pos X:{} Y:{}", camion.getCodigo(), camion.getPosX(), camion.getPosY());
                 }
                 return; // No seguir procesando el camión
@@ -325,9 +315,14 @@ public class SimulacionTiempoRealService {
             
             // Hay suficiente combustible, continuar con el movimiento
             progreso += incremento;
+            logger.debug("Incremento de progreso para camión {}: +{}, nuevo progreso: {}%", 
+                camion.getCodigo(), incremento, Math.round(progreso * 100));
             
             // Verificar si llegamos al siguiente nodo
             if (progreso >= 1.0) {
+                logger.info("Camión {} llegó al siguiente nodo ({},{})", 
+                    camion.getCodigo(), nodoSiguiente.getPosX(), nodoSiguiente.getPosY());
+                    
                 progreso = 0.0; // Reiniciar progreso para el próximo tramo
                 
                 // Actualizar posición del camión al llegar al nodo siguiente
@@ -337,23 +332,16 @@ public class SimulacionTiempoRealService {
                 // Consumir combustible por el tramo recorrido
                 double consumo = camion.calcularConsumoCombustible(distanciaRecorrida * (1.0/incremento)); // Consumo total del tramo
                 camion.setCombustibleActual(Math.max(0, camion.getCombustibleActual() - consumo));
+                logger.debug("Camión {} consumió {} litros de combustible, restante: {}", 
+                    camion.getCodigo(), consumo, camion.getCombustibleActual());
                 
                 // Verificar si después de consumir nos quedamos sin combustible
                 if (camion.getCombustibleActual() <= 0.1) { // Un umbral mínimo para considerar "sin combustible"
                     camion.setCombustibleActual(0);
                     camion.setEstado(EstadoCamion.SIN_COMBUSTIBLE); // Sin combustible
                     
-                    // Enviar notificación de falta de combustible
-                    Map<String, Object> notificacion = new HashMap<>();
-                    notificacion.put("tipo", "sinCombustible");
-                    notificacion.put("camionId", camion.getId());
-                    notificacion.put("camionCodigo", camion.getCodigo());
-                    notificacion.put("posX", camion.getPosX());
-                    notificacion.put("posY", camion.getPosY());
-                    notificacion.put("mensaje", "El camión " + camion.getCodigo() + " se ha quedado sin combustible");
-                    messagingTemplate.convertAndSend("/topic/alertas", notificacion);
-                    
-                    logger.warn("Camión {} sin combustible en pos X:{} Y:{}", camion.getCodigo(), camion.getPosX(), camion.getPosY());
+                    logger.warn("Camión {} se quedó sin combustible en pos X:{} Y:{}", 
+                        camion.getCodigo(), camion.getPosX(), camion.getPosY());
                 }
                 
                 // Si es un nodo cliente, procesar entrega
@@ -377,7 +365,8 @@ public class SimulacionTiempoRealService {
                 calcularPosicionIntermedia(camion, nodoActual, nodoSiguiente, progreso);
                 camionRepository.save(camion);
                 
-                logger.debug("Camión {} en posición intermedia X:{} Y:{} - Progreso: {}", camion.getCodigo(), camion.getPosX(), camion.getPosY(), progreso);
+                logger.info("Camión {} en posición intermedia X:{} Y:{} - Progreso: {}%", 
+                    camion.getCodigo(), camion.getPosX(), camion.getPosY(), Math.round(progreso * 100));
             }
             
             // Guardar el progreso actualizado
@@ -391,30 +380,76 @@ public class SimulacionTiempoRealService {
     // Encuentra el índice del nodo actual en la ruta
     private int encontrarIndiceNodoActual(Ruta ruta, List<NodoRuta> nodos) {
         // Si la ruta acaba de iniciar, estamos en el primer nodo
-        if (progresoNodoActual.get(ruta.getId()) == 0.0) {
+        Double progreso = progresoNodoActual.get(ruta.getId());
+        if (progreso == null || progreso == 0.0) {
+            logger.debug("Ruta {}: Iniciando desde el primer nodo (progreso={})", ruta.getCodigo(), progreso);
             return 0;
         }
         
         // Buscar el último nodo que hemos visitado completamente
+        Camion camion = ruta.getCamion();
         int indice = 0;
-        for (int i = 0; i < nodos.size() - 1; i++) {
+        
+        // Verifica si el camión existe para evitar NPE
+        if (camion == null) {
+            logger.error("Ruta {} no tiene camión asignado", ruta.getCodigo());
+            return 0;
+        }
+        
+        logger.debug("Buscando nodo actual para camión {} en posición ({},{})", 
+            camion.getCodigo(), camion.getPosX(), camion.getPosY());
+            
+        // Si el camión está exactamente en algún nodo, consideramos que está en ese nodo
+        for (int i = 0; i < nodos.size(); i++) {
             NodoRuta nodo = nodos.get(i);
-            
-            // Si el camión está exactamente en este nodo y el progreso es 0, estamos iniciando desde aquí
-            if (indice == i && progresoNodoActual.get(ruta.getId()) == 0.0) {
+            if (Math.abs(camion.getPosX() - nodo.getPosX()) < 0.01 && 
+                Math.abs(camion.getPosY() - nodo.getPosY()) < 0.01) {
+                logger.debug("Camión {} encontrado en nodo exacto {} con coordenadas ({},{})", 
+                    camion.getCodigo(), i, nodo.getPosX(), nodo.getPosY());
                 return i;
-            }
-            
-            // Si la posición del camión coincide con la del nodo siguiente, hemos pasado este nodo
-            Camion camion = ruta.getCamion();
-            NodoRuta nodoSiguiente = nodos.get(i + 1);
-            
-            if (camion.getPosX() == nodoSiguiente.getPosX() && camion.getPosY() == nodoSiguiente.getPosY()) {
-                indice = i + 1;
             }
         }
         
-        return indice;
+        // Si el camión no está exactamente en ningún nodo, buscamos el último nodo que visitó
+        for (int i = 0; i < nodos.size() - 1; i++) {
+            NodoRuta nodoActual = nodos.get(i);
+            NodoRuta nodoSiguiente = nodos.get(i + 1);
+            
+            // Verificar si el camión está en el tramo entre nodoActual y nodoSiguiente
+            boolean enTramoX = (camion.getPosX() >= Math.min(nodoActual.getPosX(), nodoSiguiente.getPosX()) && 
+                                camion.getPosX() <= Math.max(nodoActual.getPosX(), nodoSiguiente.getPosX()));
+                                
+            boolean enTramoY = (camion.getPosY() >= Math.min(nodoActual.getPosY(), nodoSiguiente.getPosY()) && 
+                                camion.getPosY() <= Math.max(nodoActual.getPosY(), nodoSiguiente.getPosY()));
+                                
+            // En un mapa reticular, uno de X o Y debe ser igual entre nodos consecutivos (movimiento horizontal o vertical)
+            boolean movimientoHorizontal = Math.abs(nodoActual.getPosY() - nodoSiguiente.getPosY()) < 0.01;
+            
+            if ((movimientoHorizontal && enTramoX && Math.abs(camion.getPosY() - nodoActual.getPosY()) < 0.01) ||
+                (!movimientoHorizontal && enTramoY && Math.abs(camion.getPosX() - nodoActual.getPosX()) < 0.01)) {
+                
+                logger.debug("Camión {} encontrado en tramo entre nodo {} y nodo {}", 
+                    camion.getCodigo(), i, i + 1);
+                return i;
+            }
+        }
+        
+        // Si no se encontró en ningún tramo, asumimos que está en el último nodo que concuerda con la posición
+        // o en su defecto, en el primer nodo
+        for (int i = nodos.size() - 1; i >= 0; i--) {
+            NodoRuta nodo = nodos.get(i);
+            if (Math.abs(camion.getPosX() - nodo.getPosX()) < 1 && 
+                Math.abs(camion.getPosY() - nodo.getPosY()) < 1) {
+                
+                logger.debug("Camión {} encontrado cerca de nodo {} con coordenadas ({},{})", 
+                    camion.getCodigo(), i, nodo.getPosX(), nodo.getPosY());
+                return i;
+            }
+        }
+        
+        logger.warn("No se pudo determinar el nodo actual del camión {} en la ruta {}, asumiendo nodo 0", 
+            camion.getCodigo(), ruta.getCodigo());
+        return 0;
     }
     
     // Calcular posición intermedia entre dos nodos

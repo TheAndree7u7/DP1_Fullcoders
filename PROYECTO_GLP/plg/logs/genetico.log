@@ -66,3 +66,103 @@
 11:12:56.456 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0012 actualizado a estado EN_RUTA y asignado a camión C003
 11:12:56.799 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 3 creada exitosamente con id: 3, 4 pedidos asignados
 11:12:56.800 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Generación de rutas completada. Rutas creadas: 3, Pedidos asignados: 13/13
+11:18:29.982 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Iniciando generación de rutas con algoritmo genético. Parámetros: {maxIter=100, poblacion=50, algoritmo=genetico, numeroRutas=3}
+11:18:29.985 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos pendientes encontrados: 13
+11:18:29.985 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Generando 3 rutas para 13 pedidos
+11:18:29.989 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Camiones disponibles encontrados: 8
+11:18:29.992 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos divididos en 3 grupos
+11:18:29.993 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 1 con 5 pedidos para camión C001
+11:18:30.011 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0001 actualizado a estado EN_RUTA y asignado a camión C001
+11:18:30.016 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0004 actualizado a estado EN_RUTA y asignado a camión C001
+11:18:30.019 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0007 actualizado a estado EN_RUTA y asignado a camión C001
+11:18:30.024 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0010 actualizado a estado EN_RUTA y asignado a camión C001
+11:18:30.028 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0013 actualizado a estado EN_RUTA y asignado a camión C001
+11:18:30.163 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 1 creada exitosamente con id: 1, 5 pedidos asignados
+11:18:30.163 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 2 con 4 pedidos para camión C002
+11:18:30.171 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0002 actualizado a estado EN_RUTA y asignado a camión C002
+11:18:30.175 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0005 actualizado a estado EN_RUTA y asignado a camión C002
+11:18:30.179 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0008 actualizado a estado EN_RUTA y asignado a camión C002
+11:18:30.183 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0011 actualizado a estado EN_RUTA y asignado a camión C002
+11:18:30.249 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 2 creada exitosamente con id: 2, 4 pedidos asignados
+11:18:30.249 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 3 con 4 pedidos para camión C003
+11:18:30.259 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0003 actualizado a estado EN_RUTA y asignado a camión C003
+11:18:30.264 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0006 actualizado a estado EN_RUTA y asignado a camión C003
+11:18:30.269 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0009 actualizado a estado EN_RUTA y asignado a camión C003
+11:18:30.278 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0012 actualizado a estado EN_RUTA y asignado a camión C003
+11:18:30.330 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 3 creada exitosamente con id: 3, 4 pedidos asignados
+11:18:30.330 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Generación de rutas completada. Rutas creadas: 3, Pedidos asignados: 13/13
+11:26:53.164 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Iniciando generación de rutas con algoritmo genético. Parámetros: {maxIter=100, poblacion=50, algoritmo=genetico, numeroRutas=3}
+11:26:53.168 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos pendientes encontrados: 13
+11:26:53.168 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Generando 3 rutas para 13 pedidos
+11:26:53.177 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Camiones disponibles encontrados: 8
+11:26:53.181 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos divididos en 3 grupos
+11:26:53.181 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 1 con 5 pedidos para camión C001
+11:26:53.198 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0001 actualizado a estado EN_RUTA y asignado a camión C001
+11:26:53.204 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0004 actualizado a estado EN_RUTA y asignado a camión C001
+11:26:53.219 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0007 actualizado a estado EN_RUTA y asignado a camión C001
+11:26:53.228 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0010 actualizado a estado EN_RUTA y asignado a camión C001
+11:26:53.244 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0013 actualizado a estado EN_RUTA y asignado a camión C001
+11:26:53.485 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 1 creada exitosamente con id: 1, 5 pedidos asignados
+11:26:53.486 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 2 con 4 pedidos para camión C002
+11:26:53.501 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0002 actualizado a estado EN_RUTA y asignado a camión C002
+11:26:53.506 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0005 actualizado a estado EN_RUTA y asignado a camión C002
+11:26:53.513 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0008 actualizado a estado EN_RUTA y asignado a camión C002
+11:26:53.523 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0011 actualizado a estado EN_RUTA y asignado a camión C002
+11:26:53.621 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 2 creada exitosamente con id: 2, 4 pedidos asignados
+11:26:53.622 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 3 con 4 pedidos para camión C003
+11:26:53.634 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0003 actualizado a estado EN_RUTA y asignado a camión C003
+11:26:53.643 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0006 actualizado a estado EN_RUTA y asignado a camión C003
+11:26:53.650 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0009 actualizado a estado EN_RUTA y asignado a camión C003
+11:26:53.661 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0012 actualizado a estado EN_RUTA y asignado a camión C003
+11:26:53.708 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 3 creada exitosamente con id: 3, 4 pedidos asignados
+11:26:53.709 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Generación de rutas completada. Rutas creadas: 3, Pedidos asignados: 13/13
+11:32:22.583 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Iniciando generación de rutas con algoritmo genético. Parámetros: {maxIter=100, poblacion=50, algoritmo=genetico, numeroRutas=3}
+11:32:22.586 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos pendientes encontrados: 13
+11:32:22.586 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Generando 3 rutas para 13 pedidos
+11:32:22.595 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Camiones disponibles encontrados: 8
+11:32:22.599 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos divididos en 3 grupos
+11:32:22.599 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 1 con 5 pedidos para camión C001
+11:32:22.628 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0001 actualizado a estado EN_RUTA y asignado a camión C001
+11:32:22.642 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0004 actualizado a estado EN_RUTA y asignado a camión C001
+11:32:22.647 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0007 actualizado a estado EN_RUTA y asignado a camión C001
+11:32:22.654 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0010 actualizado a estado EN_RUTA y asignado a camión C001
+11:32:22.659 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0013 actualizado a estado EN_RUTA y asignado a camión C001
+11:32:22.847 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 1 creada exitosamente con id: 1, 5 pedidos asignados
+11:32:22.847 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 2 con 4 pedidos para camión C002
+11:32:22.859 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0002 actualizado a estado EN_RUTA y asignado a camión C002
+11:32:22.868 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0005 actualizado a estado EN_RUTA y asignado a camión C002
+11:32:22.874 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0008 actualizado a estado EN_RUTA y asignado a camión C002
+11:32:22.881 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0011 actualizado a estado EN_RUTA y asignado a camión C002
+11:32:22.945 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 2 creada exitosamente con id: 2, 4 pedidos asignados
+11:32:22.945 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 3 con 4 pedidos para camión C003
+11:32:22.954 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0003 actualizado a estado EN_RUTA y asignado a camión C003
+11:32:22.964 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0006 actualizado a estado EN_RUTA y asignado a camión C003
+11:32:22.974 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0009 actualizado a estado EN_RUTA y asignado a camión C003
+11:32:22.984 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0012 actualizado a estado EN_RUTA y asignado a camión C003
+11:32:23.042 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 3 creada exitosamente con id: 3, 4 pedidos asignados
+11:32:23.043 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Generación de rutas completada. Rutas creadas: 3, Pedidos asignados: 13/13
+11:33:37.960 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Iniciando generación de rutas con algoritmo genético. Parámetros: {maxIter=100, poblacion=50, algoritmo=genetico, numeroRutas=3}
+11:33:37.965 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos pendientes encontrados: 13
+11:33:37.965 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Generando 3 rutas para 13 pedidos
+11:33:37.974 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Camiones disponibles encontrados: 8
+11:33:37.979 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos divididos en 3 grupos
+11:33:37.980 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 1 con 5 pedidos para camión C001
+11:33:38.004 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0001 actualizado a estado EN_RUTA y asignado a camión C001
+11:33:38.011 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0004 actualizado a estado EN_RUTA y asignado a camión C001
+11:33:38.020 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0007 actualizado a estado EN_RUTA y asignado a camión C001
+11:33:38.029 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0010 actualizado a estado EN_RUTA y asignado a camión C001
+11:33:38.040 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0013 actualizado a estado EN_RUTA y asignado a camión C001
+11:33:38.547 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 1 creada exitosamente con id: 1, 5 pedidos asignados
+11:33:38.547 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 2 con 4 pedidos para camión C002
+11:33:38.563 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0002 actualizado a estado EN_RUTA y asignado a camión C002
+11:33:38.575 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0005 actualizado a estado EN_RUTA y asignado a camión C002
+11:33:38.583 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0008 actualizado a estado EN_RUTA y asignado a camión C002
+11:33:38.592 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0011 actualizado a estado EN_RUTA y asignado a camión C002
+11:33:38.813 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 2 creada exitosamente con id: 2, 4 pedidos asignados
+11:33:38.813 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Creando ruta 3 con 4 pedidos para camión C003
+11:33:38.825 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0003 actualizado a estado EN_RUTA y asignado a camión C003
+11:33:38.836 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0006 actualizado a estado EN_RUTA y asignado a camión C003
+11:33:38.847 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0009 actualizado a estado EN_RUTA y asignado a camión C003
+11:33:38.861 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Pedido P0012 actualizado a estado EN_RUTA y asignado a camión C003
+11:33:39.056 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Ruta 3 creada exitosamente con id: 3, 4 pedidos asignados
+11:33:39.056 [restartedMain] INFO  c.p.service.AlgoritmoGeneticoService - Generación de rutas completada. Rutas creadas: 3, Pedidos asignados: 13/13

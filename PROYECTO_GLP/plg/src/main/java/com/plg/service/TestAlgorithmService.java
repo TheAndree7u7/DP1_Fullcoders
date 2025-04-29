@@ -278,6 +278,38 @@ public class TestAlgorithmService implements ApplicationRunner {
             List<Camion> enRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA);
             logger.info("Camiones en estado de ruta: {}", enRuta.size());
             
+            // Registrar posiciones iniciales de los camiones antes de la simulación
+            if (!enRuta.isEmpty()) {
+                logger.info("Posiciones iniciales de camiones antes de la simulación:");
+                for (Camion camion : enRuta) {
+                    logger.info("  - Camión {}: Posición inicial ({},{}), Estado: {}, Combustible: {} litros", 
+                        camion.getCodigo(), camion.getPosX(), camion.getPosY(), 
+                        camion.getEstado(), camion.getCombustibleActual());
+                    
+                    // Verificar si el camión tiene ruta asignada
+                    List<Ruta> rutasDeCamion = rutaRepository.findByCamionIdAndEstado(camion.getId(), 1); // 1 = En curso
+                    if (rutasDeCamion.isEmpty()) {
+                        logger.warn("  - ¡ALERTA! El camión {} está en estado EN_RUTA pero no tiene rutas activas asignadas", 
+                            camion.getCodigo());
+                    } else {
+                        Ruta ruta = rutasDeCamion.get(0);
+                        logger.info("  - Camión {} tiene asignada la ruta {} con {} nodos", 
+                            camion.getCodigo(), ruta.getCodigo(), ruta.getNodos().size());
+                            
+                        // Verificar si hay nodos cliente en la ruta
+                        long clienteNodes = ruta.getNodos().stream()
+                            .filter(n -> "CLIENTE".equals(n.getTipo()))
+                            .count();
+                        if (clienteNodes == 0) {
+                            logger.warn("  - ¡ALERTA! La ruta {} del camión {} no tiene nodos CLIENTE", 
+                                ruta.getCodigo(), camion.getCodigo());
+                        } else {
+                            logger.info("  - La ruta incluye {} nodos de tipo CLIENTE para entregas", clienteNodes);
+                        }
+                    }
+                }
+            }
+            
             if (enRuta.isEmpty()) {
                 logger.warn("No hay camiones en estado de ruta. Configurando algunos camiones a EN_RUTA");
                 List<Camion> trucks = camionRepository.findAll();
@@ -297,14 +329,28 @@ public class TestAlgorithmService implements ApplicationRunner {
             logger.info("Esperando 5 segundos para observar actualizaciones de simulación...");
             Thread.sleep(5000);
             
+            // Verificar posiciones después de 5 segundos
+            logger.info("Verificando posiciones de camiones después de 5 segundos:");
+            for (Camion camion : camionRepository.findByEstado(EstadoCamion.EN_RUTA)) {
+                logger.info("  - Camión {} ahora en posición ({},{})", 
+                    camion.getCodigo(), camion.getPosX(), camion.getPosY());
+            }
+            
             // Ajustar velocidad
-            logger.info("Ajustando velocidad de simulación a 3x");
-            result = simulacionTiempoRealService.ajustarVelocidad(3);
+            logger.info("Ajustando velocidad de simulación a 5x (más rápido para mejor observación)");
+            result = simulacionTiempoRealService.ajustarVelocidad(5);
             logger.info("Resultado de ajuste de velocidad: {}", result);
             
             // Esperar algunas actualizaciones más
-            logger.info("Esperando 5 segundos más con velocidad aumentada...");
-            Thread.sleep(5000);
+            logger.info("Esperando 10 segundos más con velocidad aumentada...");
+            Thread.sleep(10000);
+            
+            // Verificar posiciones después de la velocidad aumentada
+            logger.info("Verificando posiciones de camiones después de velocidad aumentada:");
+            for (Camion camion : camionRepository.findByEstado(EstadoCamion.EN_RUTA)) {
+                logger.info("  - Camión {} ahora en posición ({},{})", 
+                    camion.getCodigo(), camion.getPosX(), camion.getPosY());
+            }
             
             // Detener simulación
             logger.info("Deteniendo simulación");

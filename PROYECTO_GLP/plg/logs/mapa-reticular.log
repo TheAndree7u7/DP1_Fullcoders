@@ -334,3 +334,339 @@
 11:12:56.464 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 301 iteraciones, 301 nodos expandidos, 1200 nodos evaluados, 0 bloqueos sorteados
 11:12:56.464 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 2 ms
 11:12:56.464 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 55 puntos, longitud: 54.0 km, tiempo estimado: 108.0 minutos
+11:18:29.998 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:18:29.999 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (12.0,8.0) hasta (25.0,40.0)
+11:18:29.999 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:18:30.010 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 46 puntos, distancia: 45.0 km
+11:18:30.010 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 364 iteraciones, 364 nodos expandidos, 1452 nodos evaluados, 0 bloqueos sorteados
+11:18:30.010 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 10 ms
+11:18:30.010 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 46 puntos, longitud: 45.0 km, tiempo estimado: 90.0 minutos
+11:18:30.014 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:18:30.014 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (25.0,40.0) hasta (42.0,38.0)
+11:18:30.014 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:18:30.015 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 20 puntos, distancia: 19.0 km
+11:18:30.015 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 53 iteraciones, 53 nodos expandidos, 208 nodos evaluados, 0 bloqueos sorteados
+11:18:30.015 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 1 ms
+11:18:30.015 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 20 puntos, longitud: 19.0 km, tiempo estimado: 38.0 minutos
+11:18:30.018 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:18:30.018 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (42.0,38.0) hasta (50.0,40.0)
+11:18:30.018 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:18:30.018 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 11 puntos, distancia: 10.0 km
+11:18:30.018 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 22 iteraciones, 22 nodos expandidos, 84 nodos evaluados, 0 bloqueos sorteados
+11:18:30.018 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 0 ms
+11:18:30.018 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 11 puntos, longitud: 10.0 km, tiempo estimado: 20.0 minutos
+11:18:30.021 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:18:30.021 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (50.0,40.0) hasta (38.0,15.0)
+11:18:30.021 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:18:30.022 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 38 puntos, distancia: 37.0 km
+11:18:30.022 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 142 iteraciones, 142 nodos expandidos, 564 nodos evaluados, 0 bloqueos sorteados
+11:18:30.022 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 1 ms
+11:18:30.022 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 38 puntos, longitud: 37.0 km, tiempo estimado: 74.0 minutos
+11:18:30.026 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:18:30.027 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (38.0,15.0) hasta (20.0,30.0)
+11:18:30.027 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:18:30.028 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 34 puntos, distancia: 33.0 km
+11:18:30.028 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 106 iteraciones, 106 nodos expandidos, 420 nodos evaluados, 0 bloqueos sorteados
+11:18:30.028 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 1 ms
+11:18:30.028 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 34 puntos, longitud: 33.0 km, tiempo estimado: 66.0 minutos
+11:18:30.033 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:18:30.034 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (20.0,30.0) hasta (12.0,8.0)
+11:18:30.034 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:18:30.035 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 31 puntos, distancia: 30.0 km
+11:18:30.035 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 138 iteraciones, 138 nodos expandidos, 548 nodos evaluados, 0 bloqueos sorteados
+11:18:30.035 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 1 ms
+11:18:30.036 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 31 puntos, longitud: 30.0 km, tiempo estimado: 60.0 minutos
+11:18:30.168 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:18:30.168 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (12.0,8.0) hasta (35.0,22.0)
+11:18:30.169 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:18:30.170 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 38 puntos, distancia: 37.0 km
+11:18:30.171 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 160 iteraciones, 160 nodos expandidos, 636 nodos evaluados, 0 bloqueos sorteados
+11:18:30.171 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 1 ms
+11:18:30.171 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 38 puntos, longitud: 37.0 km, tiempo estimado: 74.0 minutos
+11:18:30.174 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:18:30.174 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (35.0,22.0) hasta (30.0,25.0)
+11:18:30.174 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:18:30.175 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 9 puntos, distancia: 8.0 km
+11:18:30.175 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 18 iteraciones, 18 nodos expandidos, 68 nodos evaluados, 0 bloqueos sorteados
+11:18:30.175 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 1 ms
+11:18:30.175 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 9 puntos, longitud: 8.0 km, tiempo estimado: 16.0 minutos
+11:18:30.178 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:18:30.178 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (30.0,25.0) hasta (28.0,32.0)
+11:18:30.178 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:18:30.179 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 10 puntos, distancia: 9.0 km
+11:18:30.179 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 20 iteraciones, 20 nodos expandidos, 76 nodos evaluados, 0 bloqueos sorteados
+11:18:30.179 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 0 ms
+11:18:30.179 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 10 puntos, longitud: 9.0 km, tiempo estimado: 18.0 minutos
+11:18:30.182 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:18:30.182 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (28.0,32.0) hasta (45.0,28.0)
+11:18:30.182 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:18:30.182 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 22 puntos, distancia: 21.0 km
+11:18:30.182 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 70 iteraciones, 70 nodos expandidos, 276 nodos evaluados, 0 bloqueos sorteados
+11:18:30.183 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 0 ms
+11:18:30.183 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 22 puntos, longitud: 21.0 km, tiempo estimado: 42.0 minutos
+11:18:30.185 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:18:30.185 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (45.0,28.0) hasta (12.0,8.0)
+11:18:30.185 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:18:30.188 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 54 puntos, distancia: 53.0 km
+11:18:30.188 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 249 iteraciones, 249 nodos expandidos, 992 nodos evaluados, 0 bloqueos sorteados
+11:18:30.188 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 3 ms
+11:18:30.188 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 54 puntos, longitud: 53.0 km, tiempo estimado: 106.0 minutos
+11:18:30.254 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:18:30.254 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (12.0,8.0) hasta (18.0,45.0)
+11:18:30.254 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:18:30.257 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 44 puntos, distancia: 43.0 km
+11:18:30.257 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 239 iteraciones, 239 nodos expandidos, 952 nodos evaluados, 0 bloqueos sorteados
+11:18:30.258 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 3 ms
+11:18:30.258 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 44 puntos, longitud: 43.0 km, tiempo estimado: 86.0 minutos
+11:18:30.263 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:18:30.263 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (18.0,45.0) hasta (15.0,55.0)
+11:18:30.263 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:18:30.264 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 14 puntos, distancia: 13.0 km
+11:18:30.264 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 29 iteraciones, 29 nodos expandidos, 112 nodos evaluados, 0 bloqueos sorteados
+11:18:30.264 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 1 ms
+11:18:30.264 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 14 puntos, longitud: 13.0 km, tiempo estimado: 26.0 minutos
+11:18:30.268 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:18:30.268 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (15.0,55.0) hasta (22.0,48.0)
+11:18:30.268 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:18:30.269 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 15 puntos, distancia: 14.0 km
+11:18:30.269 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 54 iteraciones, 54 nodos expandidos, 212 nodos evaluados, 0 bloqueos sorteados
+11:18:30.269 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 1 ms
+11:18:30.269 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 15 puntos, longitud: 14.0 km, tiempo estimado: 28.0 minutos
+11:18:30.276 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:18:30.276 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (22.0,48.0) hasta (32.0,42.0)
+11:18:30.276 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:18:30.277 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 17 puntos, distancia: 16.0 km
+11:18:30.277 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 52 iteraciones, 52 nodos expandidos, 204 nodos evaluados, 0 bloqueos sorteados
+11:18:30.277 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 1 ms
+11:18:30.277 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 17 puntos, longitud: 16.0 km, tiempo estimado: 32.0 minutos
+11:18:30.283 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:18:30.283 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (32.0,42.0) hasta (12.0,8.0)
+11:18:30.283 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:18:30.285 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 55 puntos, distancia: 54.0 km
+11:18:30.285 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 301 iteraciones, 301 nodos expandidos, 1200 nodos evaluados, 0 bloqueos sorteados
+11:18:30.285 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 2 ms
+11:18:30.285 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 55 puntos, longitud: 54.0 km, tiempo estimado: 108.0 minutos
+11:26:53.186 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:26:53.186 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (12.0,8.0) hasta (25.0,40.0)
+11:26:53.187 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:26:53.197 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 46 puntos, distancia: 45.0 km
+11:26:53.197 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 364 iteraciones, 364 nodos expandidos, 1452 nodos evaluados, 0 bloqueos sorteados
+11:26:53.197 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 10 ms
+11:26:53.197 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 46 puntos, longitud: 45.0 km, tiempo estimado: 90.0 minutos
+11:26:53.202 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:26:53.202 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (25.0,40.0) hasta (42.0,38.0)
+11:26:53.202 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:26:53.203 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 20 puntos, distancia: 19.0 km
+11:26:53.203 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 53 iteraciones, 53 nodos expandidos, 208 nodos evaluados, 0 bloqueos sorteados
+11:26:53.204 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 0 ms
+11:26:53.204 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 20 puntos, longitud: 19.0 km, tiempo estimado: 38.0 minutos
+11:26:53.217 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:26:53.218 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (42.0,38.0) hasta (50.0,40.0)
+11:26:53.218 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:26:53.218 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 11 puntos, distancia: 10.0 km
+11:26:53.218 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 22 iteraciones, 22 nodos expandidos, 84 nodos evaluados, 0 bloqueos sorteados
+11:26:53.218 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 0 ms
+11:26:53.219 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 11 puntos, longitud: 10.0 km, tiempo estimado: 20.0 minutos
+11:26:53.224 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:26:53.225 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (50.0,40.0) hasta (38.0,15.0)
+11:26:53.225 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:26:53.227 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 38 puntos, distancia: 37.0 km
+11:26:53.227 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 142 iteraciones, 142 nodos expandidos, 564 nodos evaluados, 0 bloqueos sorteados
+11:26:53.227 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 2 ms
+11:26:53.227 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 38 puntos, longitud: 37.0 km, tiempo estimado: 74.0 minutos
+11:26:53.237 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:26:53.238 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (38.0,15.0) hasta (20.0,30.0)
+11:26:53.238 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:26:53.244 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 34 puntos, distancia: 33.0 km
+11:26:53.244 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 106 iteraciones, 106 nodos expandidos, 420 nodos evaluados, 0 bloqueos sorteados
+11:26:53.244 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 6 ms
+11:26:53.244 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 34 puntos, longitud: 33.0 km, tiempo estimado: 66.0 minutos
+11:26:53.251 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:26:53.251 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (20.0,30.0) hasta (12.0,8.0)
+11:26:53.251 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:26:53.253 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 31 puntos, distancia: 30.0 km
+11:26:53.253 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 138 iteraciones, 138 nodos expandidos, 548 nodos evaluados, 0 bloqueos sorteados
+11:26:53.253 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 2 ms
+11:26:53.253 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 31 puntos, longitud: 30.0 km, tiempo estimado: 60.0 minutos
+11:26:53.497 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:26:53.497 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (12.0,8.0) hasta (35.0,22.0)
+11:26:53.497 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:26:53.499 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 38 puntos, distancia: 37.0 km
+11:26:53.499 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 160 iteraciones, 160 nodos expandidos, 636 nodos evaluados, 0 bloqueos sorteados
+11:26:53.500 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 2 ms
+11:26:53.500 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 38 puntos, longitud: 37.0 km, tiempo estimado: 74.0 minutos
+11:26:53.504 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:26:53.505 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (35.0,22.0) hasta (30.0,25.0)
+11:26:53.505 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:26:53.505 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 9 puntos, distancia: 8.0 km
+11:26:53.505 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 18 iteraciones, 18 nodos expandidos, 68 nodos evaluados, 0 bloqueos sorteados
+11:26:53.505 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 0 ms
+11:26:53.505 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 9 puntos, longitud: 8.0 km, tiempo estimado: 16.0 minutos
+11:26:53.512 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:26:53.512 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (30.0,25.0) hasta (28.0,32.0)
+11:26:53.512 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:26:53.512 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 10 puntos, distancia: 9.0 km
+11:26:53.512 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 20 iteraciones, 20 nodos expandidos, 76 nodos evaluados, 0 bloqueos sorteados
+11:26:53.513 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 0 ms
+11:26:53.513 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 10 puntos, longitud: 9.0 km, tiempo estimado: 18.0 minutos
+11:26:53.519 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:26:53.519 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (28.0,32.0) hasta (45.0,28.0)
+11:26:53.519 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:26:53.522 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 22 puntos, distancia: 21.0 km
+11:26:53.522 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 70 iteraciones, 70 nodos expandidos, 276 nodos evaluados, 0 bloqueos sorteados
+11:26:53.522 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 3 ms
+11:26:53.522 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 22 puntos, longitud: 21.0 km, tiempo estimado: 42.0 minutos
+11:26:53.527 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:26:53.527 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (45.0,28.0) hasta (12.0,8.0)
+11:26:53.527 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:26:53.530 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 54 puntos, distancia: 53.0 km
+11:26:53.530 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 249 iteraciones, 249 nodos expandidos, 992 nodos evaluados, 0 bloqueos sorteados
+11:26:53.530 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 3 ms
+11:26:53.530 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 54 puntos, longitud: 53.0 km, tiempo estimado: 106.0 minutos
+11:26:53.631 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:26:53.631 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (12.0,8.0) hasta (18.0,45.0)
+11:26:53.631 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:26:53.634 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 44 puntos, distancia: 43.0 km
+11:26:53.634 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 239 iteraciones, 239 nodos expandidos, 952 nodos evaluados, 0 bloqueos sorteados
+11:26:53.634 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 3 ms
+11:26:53.634 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 44 puntos, longitud: 43.0 km, tiempo estimado: 86.0 minutos
+11:26:53.641 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:26:53.641 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (18.0,45.0) hasta (15.0,55.0)
+11:26:53.641 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:26:53.643 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 14 puntos, distancia: 13.0 km
+11:26:53.643 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 29 iteraciones, 29 nodos expandidos, 112 nodos evaluados, 0 bloqueos sorteados
+11:26:53.643 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 1 ms
+11:26:53.643 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 14 puntos, longitud: 13.0 km, tiempo estimado: 26.0 minutos
+11:26:53.649 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:26:53.649 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (15.0,55.0) hasta (22.0,48.0)
+11:26:53.649 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:26:53.649 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 15 puntos, distancia: 14.0 km
+11:26:53.649 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 54 iteraciones, 54 nodos expandidos, 212 nodos evaluados, 0 bloqueos sorteados
+11:26:53.649 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 0 ms
+11:26:53.649 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 15 puntos, longitud: 14.0 km, tiempo estimado: 28.0 minutos
+11:26:53.659 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:26:53.659 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (22.0,48.0) hasta (32.0,42.0)
+11:26:53.659 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:26:53.660 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 17 puntos, distancia: 16.0 km
+11:26:53.660 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 52 iteraciones, 52 nodos expandidos, 204 nodos evaluados, 0 bloqueos sorteados
+11:26:53.660 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 1 ms
+11:26:53.660 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 17 puntos, longitud: 16.0 km, tiempo estimado: 32.0 minutos
+11:26:53.665 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:26:53.666 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (32.0,42.0) hasta (12.0,8.0)
+11:26:53.666 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:26:53.669 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 55 puntos, distancia: 54.0 km
+11:26:53.669 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 301 iteraciones, 301 nodos expandidos, 1200 nodos evaluados, 0 bloqueos sorteados
+11:26:53.669 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 3 ms
+11:26:53.669 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 55 puntos, longitud: 54.0 km, tiempo estimado: 108.0 minutos
+11:32:22.608 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:32:22.608 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (12.0,8.0) hasta (25.0,40.0)
+11:32:22.608 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:32:22.625 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 46 puntos, distancia: 45.0 km
+11:32:22.626 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 364 iteraciones, 364 nodos expandidos, 1452 nodos evaluados, 0 bloqueos sorteados
+11:32:22.626 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 17 ms
+11:32:22.626 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 46 puntos, longitud: 45.0 km, tiempo estimado: 90.0 minutos
+11:32:22.640 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:32:22.641 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (25.0,40.0) hasta (42.0,38.0)
+11:32:22.641 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:32:22.641 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 20 puntos, distancia: 19.0 km
+11:32:22.642 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 53 iteraciones, 53 nodos expandidos, 208 nodos evaluados, 0 bloqueos sorteados
+11:32:22.642 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 0 ms
+11:32:22.642 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 20 puntos, longitud: 19.0 km, tiempo estimado: 38.0 minutos
+11:32:22.646 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:32:22.646 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (42.0,38.0) hasta (50.0,40.0)
+11:32:22.646 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:32:22.647 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 11 puntos, distancia: 10.0 km
+11:32:22.647 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 22 iteraciones, 22 nodos expandidos, 84 nodos evaluados, 0 bloqueos sorteados
+11:32:22.647 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 1 ms
+11:32:22.647 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 11 puntos, longitud: 10.0 km, tiempo estimado: 20.0 minutos
+11:32:22.651 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:32:22.651 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (50.0,40.0) hasta (38.0,15.0)
+11:32:22.651 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:32:22.653 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 38 puntos, distancia: 37.0 km
+11:32:22.653 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 142 iteraciones, 142 nodos expandidos, 564 nodos evaluados, 0 bloqueos sorteados
+11:32:22.653 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 2 ms
+11:32:22.653 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 38 puntos, longitud: 37.0 km, tiempo estimado: 74.0 minutos
+11:32:22.657 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:32:22.657 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (38.0,15.0) hasta (20.0,30.0)
+11:32:22.658 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:32:22.658 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 34 puntos, distancia: 33.0 km
+11:32:22.659 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 106 iteraciones, 106 nodos expandidos, 420 nodos evaluados, 0 bloqueos sorteados
+11:32:22.659 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 0 ms
+11:32:22.659 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 34 puntos, longitud: 33.0 km, tiempo estimado: 66.0 minutos
+11:32:22.666 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:32:22.666 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (20.0,30.0) hasta (12.0,8.0)
+11:32:22.666 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:32:22.668 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 31 puntos, distancia: 30.0 km
+11:32:22.668 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 138 iteraciones, 138 nodos expandidos, 548 nodos evaluados, 0 bloqueos sorteados
+11:32:22.668 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 2 ms
+11:32:22.668 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 31 puntos, longitud: 30.0 km, tiempo estimado: 60.0 minutos
+11:32:22.854 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:32:22.854 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (12.0,8.0) hasta (35.0,22.0)
+11:32:22.855 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:32:22.857 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 38 puntos, distancia: 37.0 km
+11:32:22.858 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 160 iteraciones, 160 nodos expandidos, 636 nodos evaluados, 0 bloqueos sorteados
+11:32:22.858 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 2 ms
+11:32:22.858 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 38 puntos, longitud: 37.0 km, tiempo estimado: 74.0 minutos
+11:32:22.867 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:32:22.867 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (35.0,22.0) hasta (30.0,25.0)
+11:32:22.867 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:32:22.867 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 9 puntos, distancia: 8.0 km
+11:32:22.867 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 18 iteraciones, 18 nodos expandidos, 68 nodos evaluados, 0 bloqueos sorteados
+11:32:22.867 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 0 ms
+11:32:22.868 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 9 puntos, longitud: 8.0 km, tiempo estimado: 16.0 minutos
+11:32:22.872 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:32:22.873 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (30.0,25.0) hasta (28.0,32.0)
+11:32:22.873 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:32:22.873 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 10 puntos, distancia: 9.0 km
+11:32:22.873 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 20 iteraciones, 20 nodos expandidos, 76 nodos evaluados, 0 bloqueos sorteados
+11:32:22.873 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 0 ms
+11:32:22.873 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 10 puntos, longitud: 9.0 km, tiempo estimado: 18.0 minutos
+11:32:22.879 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:32:22.879 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (28.0,32.0) hasta (45.0,28.0)
+11:32:22.879 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:32:22.880 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 22 puntos, distancia: 21.0 km
+11:32:22.880 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 70 iteraciones, 70 nodos expandidos, 276 nodos evaluados, 0 bloqueos sorteados
+11:32:22.880 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 1 ms
+11:32:22.880 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 22 puntos, longitud: 21.0 km, tiempo estimado: 42.0 minutos
+11:32:22.885 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:32:22.885 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (45.0,28.0) hasta (12.0,8.0)
+11:32:22.886 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:32:22.888 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 54 puntos, distancia: 53.0 km
+11:32:22.888 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 249 iteraciones, 249 nodos expandidos, 992 nodos evaluados, 0 bloqueos sorteados
+11:32:22.888 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 2 ms
+11:32:22.888 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 54 puntos, longitud: 53.0 km, tiempo estimado: 106.0 minutos
+11:32:22.951 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:32:22.951 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (12.0,8.0) hasta (18.0,45.0)
+11:32:22.951 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:32:22.954 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 44 puntos, distancia: 43.0 km
+11:32:22.954 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 239 iteraciones, 239 nodos expandidos, 952 nodos evaluados, 0 bloqueos sorteados
+11:32:22.954 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 3 ms
+11:32:22.954 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 44 puntos, longitud: 43.0 km, tiempo estimado: 86.0 minutos
+11:32:22.963 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:32:22.963 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (18.0,45.0) hasta (15.0,55.0)
+11:32:22.963 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:32:22.963 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 14 puntos, distancia: 13.0 km
+11:32:22.963 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 29 iteraciones, 29 nodos expandidos, 112 nodos evaluados, 0 bloqueos sorteados
+11:32:22.964 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 0 ms
+11:32:22.964 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 14 puntos, longitud: 13.0 km, tiempo estimado: 26.0 minutos
+11:32:22.972 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:32:22.973 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (15.0,55.0) hasta (22.0,48.0)
+11:32:22.973 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:32:22.973 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 15 puntos, distancia: 14.0 km
+11:32:22.973 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 54 iteraciones, 54 nodos expandidos, 212 nodos evaluados, 0 bloqueos sorteados
+11:32:22.973 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 0 ms
+11:32:22.973 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 15 puntos, longitud: 14.0 km, tiempo estimado: 28.0 minutos
+11:32:22.982 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:32:22.982 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (22.0,48.0) hasta (32.0,42.0)
+11:32:22.982 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:32:22.983 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 17 puntos, distancia: 16.0 km
+11:32:22.983 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 52 iteraciones, 52 nodos expandidos, 204 nodos evaluados, 0 bloqueos sorteados
+11:32:22.983 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 1 ms
+11:32:22.983 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 17 puntos, longitud: 16.0 km, tiempo estimado: 32.0 minutos
+11:32:22.990 [restartedMain] INFO  c.plg.service.MapaReticularService - Calculando ruta con 0 bloqueos activos en el momento actual
+11:32:22.990 [restartedMain] INFO  c.plg.service.MapaReticularService - Iniciando cálculo de ruta óptima con A*: desde (32.0,42.0) hasta (12.0,8.0)
+11:32:22.990 [restartedMain] INFO  c.plg.service.MapaReticularService - Bloqueos activos considerados: 0
+11:32:22.994 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta óptima encontrada: 55 puntos, distancia: 54.0 km
+11:32:22.994 [restartedMain] INFO  c.plg.service.MapaReticularService - Estadísticas A*: 301 iteraciones, 301 nodos expandidos, 1200 nodos evaluados, 0 bloqueos sorteados
+11:32:22.994 [restartedMain] INFO  c.plg.service.MapaReticularService - Tiempo de cálculo de ruta: 3 ms
+11:32:22.994 [restartedMain] INFO  c.plg.service.MapaReticularService - Ruta generada: 55 puntos, longitud: 54.0 km, tiempo estimado: 108.0 minutos
