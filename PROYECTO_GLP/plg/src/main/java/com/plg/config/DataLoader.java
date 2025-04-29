@@ -161,5 +161,9 @@ public class DataLoader {
         return mantenimientos;
     }
 
+
+    public void initializarBloqueos(Mapa mapa) {
+       
+    }
 }
 

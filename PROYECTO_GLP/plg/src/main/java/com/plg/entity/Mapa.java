@@ -19,7 +19,6 @@ import lombok.Setter;
 @Setter
 public class Mapa {
     private List<List<Integer>> adj; 
-
     public Mapa(int columnas, int filas) {
         int totalNodos = filas * columnas;
         this.adj = new ArrayList<>(totalNodos);
@@ -44,11 +43,9 @@ public class Mapa {
             }
         }
     }
-
     public List<Integer> getAdj(Integer i) {
         return adj.get(i);
     }
-    
     public void imprimirMapa() {
         for (int i = 0; i < adj.size(); i++) {
             System.out.println("Nodo " + i + " conectado a " + adj.get(i));
