@@ -12,6 +12,7 @@ import java.util.List;
 @Repository
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     List<Pedido> findByEstado(EstadoPedido estado);
+    List<Pedido> findByEstadoNot(EstadoPedido estado);
     List<Pedido> findByCamion_Codigo(String codigoCamion);
     List<Pedido> findByCamion_CodigoAndEstado(String codigoCamion, EstadoPedido estado);
     List<Pedido> findByEstadoAndFechaEntregaRequeridaNotNull(EstadoPedido estado);
@@ -24,4 +25,5 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     @Query("SELECT p FROM Pedido p JOIN p.asignaciones a WHERE a.ruta.codigo = :idRuta")
     List<Pedido> findByCodigoRuta(@Param("idRuta") String idRuta);
     List<Pedido> findByEstadoIn(List<EstadoPedido> estados);
+
 }

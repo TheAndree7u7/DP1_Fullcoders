@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+//Deprecated
 public class AsignacionCamion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

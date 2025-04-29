@@ -73,9 +73,12 @@ public class TestAlgorithmService implements ApplicationRunner {
         // Test Real-time simulation
         testRealTimeSimulation();
         
+        testAllOrdersDelivered();
+        
         logger.info("======================================================");
         logger.info("ALGORITHM TESTING SEQUENCE COMPLETED");
         logger.info("======================================================");
+        
     }
     
     private void verifyDataLoaded() {
@@ -302,6 +305,16 @@ public class TestAlgorithmService implements ApplicationRunner {
             
         } catch (Exception e) {
             logger.error("Error testing real-time simulation", e);
+        }
+    }
+    
+    private void testAllOrdersDelivered() {
+        logger.info("===== TESTING IF ALL ORDERS WERE DELIVERED =====");
+        List<Pedido> notDelivered = pedidoRepository.findByEstadoNot(EstadoPedido.ENTREGADO_TOTALMENTE);
+        if (notDelivered.isEmpty()) {
+            logger.info("All orders have been delivered");
+        } else {
+            logger.info("There are {} orders not delivered", notDelivered.size());
         }
     }
 }
