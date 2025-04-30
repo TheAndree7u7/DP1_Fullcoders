@@ -184,21 +184,28 @@ public class DataLoader {
                     nodo2.setBloqueado(true);
                 }
 
-                // horizontal
-                if(y_val - x_val <=  mapa.getColumnas()){
-                    for(int j = x_val; j <= y_val; j++){
+                
+                int mayor = Math.max(x_val, y_val);
+                int menor = Math.min(x_val, y_val);
+
+                if(mayor - menor < mapa.getColumnas()){
+                    // horizontal
+                    for(int j = menor; j <= mayor; j++){
+                        Nodo nodo = mapa.getNodo(j);
+                        if(nodo != null){
+                            nodo.setBloqueado(true);
+                        }
+                    }                    
+                }else{
+                    // vertical
+                    for(int j = menor; j <= mayor; j+=mapa.getColumnas()){
                         Nodo nodo = mapa.getNodo(j);
                         if(nodo != null){
                             nodo.setBloqueado(true);
                         }
                     }
-                }else{
-
-                }
-
-                
+                }                
             }
-
 
         }
     }

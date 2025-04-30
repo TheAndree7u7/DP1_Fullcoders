@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import com.plg.entity.Averia;
 import com.plg.entity.Bloqueo;
 import com.plg.entity.Camion;
+import com.plg.entity.Coordenada;
 import com.plg.entity.Mantenimiento;
 import com.plg.entity.Mapa;
 import com.plg.entity.Pedido;
@@ -28,13 +29,19 @@ public class PlgApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // Llamamos al método initializeCamiones() de DataLoader para obtener la lista de camiones
-        Mapa mapa = new Mapa(14, 11);
+        Mapa mapa = new Mapa(15, 12);
         List<Camion> camiones = dataLoader.initializeCamiones();
         List<Averia> averias = dataLoader.initializeAverias(camiones);
         List<Pedido> pedidos = dataLoader.initializePedidos();
         List<Mantenimiento> mantenimientos = dataLoader.initializeMantenimientos(camiones);
         dataLoader.initializeBloqueos(mapa);
-        
+        Coordenada coordenada = new Coordenada(0, 0);
+        Coordenada coordenada2 = new Coordenada(10, 6);
+        List<Coordenada> coordenadas = mapa.aStar(coordenada, coordenada2);
+
+        for (Coordenada coord : coordenadas) {
+            System.out.println("Coordenada: " + coord.getX() + ", " + coord.getY());
+        }
         // for (Pedido pedido: pedidos) {
         //     System.out.println("Pedido: " + pedido.getEstadoTexto() + ", Cliente: " + pedido.getCodigo() );
         // }
