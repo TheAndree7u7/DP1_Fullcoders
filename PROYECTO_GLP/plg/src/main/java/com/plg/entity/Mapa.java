@@ -47,32 +47,56 @@ public class Mapa {
     }
 
     public void imprimirMapa() {
-        imprimirMapa(null);
+        imprimirMapa(null, null);
     }
 
-    public void imprimirMapa(List<Coordenada> ruta) {
+    public void imprimirMapa(List<List<Coordenada>> rutas, List<Pedido> pedidos) {
+        // Imprime cabecera de columnas
+        System.out.print("     ");
+        for (int j = 0; j < this.columnas; j++) {
+            System.out.printf("%4d", j);
+        }
+        System.out.println();
         
         
-        // Imprime cada fila
+        // Imprime cada fila desde la más alta hasta la 0
         for (int i = this.filas - 1; i >= 0; i--) {
-            System.out.printf("%3d ", i); // Índice de fila
+            System.out.printf("%4d ", i); // Índice de fila
             for (int j = 0; j < this.columnas; j++) {
                 Nodo nodoActual = getNodo(i, j);
-                String cell;
+                String cell = " . "; // Valor por defecto
                 if (nodoActual.isBloqueado()) {
-                    cell = " X ";
-                } else if (ruta != null && ruta.contains(new Coordenada(i, j))) {
-                    cell = " R ";
-                } else {
-                    cell = " . ";
-                }
-                System.out.print(cell);
+                    cell = " X "; // Nodo bloqueado
+                }else  {
+                    // Si es un pedido, imprimimos la letra P
+                    if (rutas != null){
+                        for (int k = 0; k < rutas.size(); k++) {
+                            if (rutas.get(k).contains(nodoActual.getCoordenada())) {
+                                cell = String.format(" %d ", k + 1);
+                                break;
+                            }
+                        }
+                    }
+
+                    if (pedidos != null) {
+                        for (int k = 0; k < pedidos.size(); k++) {
+                            if (pedidos.get(k).getCoordenada().equals(nodoActual.getCoordenada())) {
+                                cell = " P ";
+                                break;
+                            }
+                        }
+                    }
+                    
+                }    
+                System.out.printf("%4s", cell);
             }
             System.out.println();
         }
-        System.out.print("    "); 
+        
+        // Imprime la línea de índices de columna al pie
+        System.out.print("     ");
         for (int j = 0; j < this.columnas; j++) {
-            System.out.printf("%3d", j);
+            System.out.printf("%4d", j);
         }
         System.out.println();
     }

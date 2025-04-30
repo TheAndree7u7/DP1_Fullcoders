@@ -1,5 +1,6 @@
 package com.plg;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import com.plg.entity.Mantenimiento;
 import com.plg.entity.Mapa;
 import com.plg.entity.Pedido;
 import com.plg.utils.AlgoritmoGenetico;
+import com.plg.utils.Individuo;
 import com.plg.config.DataLoader;
 
 @SpringBootApplication
@@ -38,7 +40,29 @@ public class PlgApplication implements CommandLineRunner {
         dataLoader.initializeBloqueos(mapa);
         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidos, camiones);
         algoritmoGenetico.ejecutarAlgoritmo();
-        //mapa.imprimirMapa();
+        Individuo mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
+        List<List<Coordenada>> rutas = new ArrayList<>();
+        for (List<Integer> pedidos_gen : mejorIndividuo.getCromosoma()) {
+            List<Coordenada> ruta = new ArrayList<>();
+            for (int i = 0; i < pedidos_gen.size(); i++) {
+                if (pedidos_gen.get(i) != -1) {
+                    if(i == 0){
+                        Camion camion = camiones.get(i);
+                        Coordenada ini = camion.getCoordenadaActual();
+                        Coordenada fin = pedidos.get(pedidos_gen.get(i)).getCoordenada();
+                        ruta.addAll(mapa.aStar(ini, fin));
+                    }else{
+                        Coordenada ini = pedidos.get(pedidos_gen.get(i - 1)).getCoordenada();
+                        Coordenada fin = pedidos.get(pedidos_gen.get(i)).getCoordenada();
+                        ruta.addAll(mapa.aStar(ini, fin));
+                    }
+                }else{
+                    break;
+                }
+            }
+            rutas.add(ruta);
+        }
+        mapa.imprimirMapa(rutas, pedidos);
 
     }
 }

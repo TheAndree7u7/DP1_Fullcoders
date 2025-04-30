@@ -44,7 +44,7 @@ public class DataLoader {
 
     public List<Camion> initializeCamiones() {
         List<Camion> camiones = new ArrayList<>();
-        String[] tipos = { "TA", "TB", "TC", "TD" };
+        String[] tipos = { "TA"};
         double[] capacidades = { 25.0, 20.0, 15.0, 10.0 };
         double[] taras = { 15.0, 12.0, 9.0, 7.0 };
 
