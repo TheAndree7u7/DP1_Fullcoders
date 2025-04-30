@@ -101,7 +101,7 @@ export function cambiarVelocidadSimulacion(factor) {
 }
 
 // Conectar al WebSocket para recibir actualizaciones en tiempo real
-function conectarWebSocket() {
+export function conectarWebSocket() {
     const socket = new SockJS('/websocket-app');
     stompClient = Stomp.over(socket);
     
@@ -138,7 +138,7 @@ function conectarWebSocket() {
 }
 
 // Desconectar del WebSocket
-function desconectarWebSocket() {
+export function desconectarWebSocket() {
     if (stompClient !== null) {
         stompClient.disconnect();
         stompClient = null;
@@ -285,3 +285,77 @@ export const debug = {
     getHistoricoNodos: () => historicoNodos,
     getIndiceNodoActual: () => indiceNodoActual
 };
+
+// Función para diagnosticar el avance de camiones
+export function diagnosticarAvanceCamiones() {
+    console.log('Ejecutando diagnóstico de avance de camiones...');
+    const resultados = {
+        timestamp: Date.now(),
+        camionesEstancados: [],
+        camionesEnMovimiento: [],
+        problemas: []
+    };
+    
+    // Verificar cada camión que esté en ruta
+    const ahora = Date.now();
+    const tiempoMaxSinActualizacion = 30000; // 30 segundos sin actualización es sospechoso
+    
+    ultimaActualizacion.forEach((tiempo, camionId) => {
+        const tiempoTranscurrido = ahora - tiempo;
+        const camion = window.app.camiones.find(c => c.id === camionId);
+        
+        if (!camion) {
+            resultados.problemas.push(`Camión ID ${camionId} no encontrado en datos`);
+            return;
+        }
+        
+        if (camion.estado === 'EN_RUTA') {
+            const historicoDelCamion = historicoNodos.get(camionId) || [];
+            const cantidadPosiciones = historicoDelCamion.length;
+            
+            // Verificar si el camión está estancado (sin actualizar posición)
+            if (tiempoTranscurrido > tiempoMaxSinActualizacion) {
+                resultados.camionesEstancados.push({
+                    id: camionId,
+                    codigo: camion.codigo,
+                    tiempoSinActualizar: tiempoTranscurrido,
+                    ultimaPosicion: ultimoNodo.get(camionId),
+                    cantidadPosicionesHistoricas: cantidadPosiciones
+                });
+            } else {
+                resultados.camionesEnMovimiento.push({
+                    id: camionId,
+                    codigo: camion.codigo,
+                    ultimaActualizacion: tiempoTranscurrido,
+                    posiciones: cantidadPosiciones
+                });
+            }
+        }
+    });
+    
+    // Verificar camiones en ruta sin histórico de movimiento
+    window.app.camiones
+        .filter(c => c.estado === 'EN_RUTA')
+        .forEach(camion => {
+            if (!ultimaActualizacion.has(camion.id)) {
+                resultados.problemas.push(`Camión ${camion.codigo} (ID: ${camion.id}) está en ruta pero no tiene registro de movimiento`);
+            }
+        });
+    
+    // Mostrar resultados
+    console.log('Diagnóstico completado:', resultados);
+    
+    // Mostrar notificación con resumen
+    let mensaje = `Diagnóstico de camiones: ${resultados.camionesEnMovimiento.length} en movimiento normal, `;
+    mensaje += `${resultados.camionesEstancados.length} estancados, ${resultados.problemas.length} problemas detectados.`;
+    
+    mostrarNotificacion(mensaje, resultados.problemas.length > 0 ? 'warning' : 'info');
+    
+    // Registrar en el historial de eventos
+    agregarEventoAlHistorial('Diagnóstico de avance de camiones ejecutado: ' + mensaje);
+    
+    // Registrar en el log de diagnóstico
+    window.app.diagnostico.log('DIAGNOSTICO', 'Diagnóstico de avance de camiones', resultados);
+    
+    return resultados;
+}

@@ -3,7 +3,7 @@
 import { inicializarUI, manejarZoom, cambiarZoom, iniciarArrastre, arrastrarMapa, finalizarArrastre } from './ui.js';
 import { cargarDatosIniciales } from './datos.js';
 import { dibujarMapa } from './mapa.js';
-import { iniciarSimulacion, detenerSimulacion, cambiarVelocidad, diagnosticarAvanceCamiones } from './simulacion.js';
+import { iniciarSimulacion, detenerSimulacion, cambiarVelocidadSimulacion, diagnosticarAvanceCamiones } from './simulacion.js';
 import { ejecutarAffinityPropagation, ejecutarAlgoritmoGenetico, ejecutarOptimizacionCompleta, generarRutas, toggleVisualizacionClusters } from './optimizacion.js';
 import { inicializarHerramientasDepuracion } from './depuracion.js';
 import { configurarGuardadoAutomaticoDiagnostico, recuperarDiagnosticosGuardados } from './utils.js';
@@ -101,7 +101,7 @@ function configurarEventos() {
     // Configurar eventos para botones
     document.getElementById('btn-iniciar-simulacion').addEventListener('click', iniciarSimulacion);
     document.getElementById('btn-detener-simulacion').addEventListener('click', detenerSimulacion);
-    document.getElementById('btn-ajustar-velocidad').addEventListener('click', cambiarVelocidad);
+    document.getElementById('btn-ajustar-velocidad').addEventListener('click', cambiarVelocidadSimulacion);
     
     // Botones de optimización
     document.getElementById('btn-ejecutar-ap').addEventListener('click', ejecutarAffinityPropagation);
