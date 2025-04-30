@@ -124,9 +124,16 @@ public class SimulacionTiempoRealService {
             // Obtener un EntityManager y forzar flush para asegurar visibilidad
             em = entityManagerFactory.createEntityManager();
             if (em != null) {
+                // Iniciar una transacción antes de intentar hacer flush
+                em.getTransaction().begin();
                 em.flush();
+                em.getTransaction().commit();
             }
         } catch (Exception e) {
+            // Hacer rollback si hay error y hay una transacción activa
+            if (em != null && em.getTransaction() != null && em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
             logger.warn("No se pudo hacer flush inicial: {}", e.getMessage());
         } finally {
             if (em != null && em.isOpen()) {
@@ -177,9 +184,16 @@ public class SimulacionTiempoRealService {
         try {
             em = entityManagerFactory.createEntityManager();
             if (em != null) {
+                // Iniciar una transacción antes de intentar hacer flush
+                em.getTransaction().begin();
                 em.flush();
+                em.getTransaction().commit();
             }
         } catch (Exception e) {
+            // Hacer rollback si hay error y hay una transacción activa
+            if (em != null && em.getTransaction() != null && em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
             logger.warn("No se pudo hacer flush final: {}", e.getMessage());
         } finally {
             if (em != null && em.isOpen()) {
@@ -246,9 +260,16 @@ public class SimulacionTiempoRealService {
             try {
                 em = entityManagerFactory.createEntityManager();
                 if (em != null) {
+                    // Iniciar una transacción antes de intentar hacer flush
+                    em.getTransaction().begin();
                     em.flush();
+                    em.getTransaction().commit();
                 }
             } catch (Exception e) {
+                // Hacer rollback si hay error y hay una transacción activa
+                if (em != null && em.getTransaction() != null && em.getTransaction().isActive()) {
+                    em.getTransaction().rollback();
+                }
                 logger.warn("No se pudo hacer flush de la sesión: {}", e.getMessage());
             } finally {
                 if (em != null && em.isOpen()) {
@@ -282,7 +303,7 @@ public class SimulacionTiempoRealService {
                             if (camion.getEstado() != EstadoCamion.EN_RUTA) {
                                 logger.info("Corrigiendo estado de camión {} a EN_RUTA", camion.getCodigo());
                                 camion.setEstado(EstadoCamion.EN_RUTA);
-                                camionRepository.save(camion);
+                                camionRepository.saveAndFlush(camion); // Usar saveAndFlush para persistencia inmediata
                                 camionesEnRuta.add(camion); // Agregar a la lista para procesar
                             }
                         } else {
