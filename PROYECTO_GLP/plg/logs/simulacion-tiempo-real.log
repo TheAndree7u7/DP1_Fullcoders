@@ -6976,3 +6976,135 @@
 00:29:59.721 [pool-1165-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 0ms
 00:29:59.722 [pool-1165-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 0ms
 00:29:59.722 [pool-1165-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 7ms
+00:30:00.710 [pool-1166-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:00.710759
+00:30:00.713 [pool-1166-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 3ms
+00:30:00.715 [pool-1166-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 1ms
+00:30:00.716 [pool-1166-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 1ms
+00:30:00.717 [pool-1166-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 1ms
+00:30:00.717 [pool-1166-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 7ms
+00:30:01.713 [pool-1167-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:01.713949700
+00:30:01.717 [pool-1167-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 4ms
+00:30:01.719 [pool-1167-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 2ms
+00:30:01.720 [pool-1167-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 1ms
+00:30:01.721 [pool-1167-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 1ms
+00:30:01.722 [pool-1167-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 9ms
+00:30:02.714 [pool-1168-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:02.714778
+00:30:02.718 [pool-1168-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 3ms
+00:30:02.720 [pool-1168-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 1ms
+00:30:02.721 [pool-1168-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 1ms
+00:30:02.722 [pool-1168-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 0ms
+00:30:02.722 [pool-1168-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 8ms
+00:30:03.759 [pool-1169-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:03.759775100
+00:30:03.764 [pool-1169-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 4ms
+00:30:03.765 [pool-1169-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 1ms
+00:30:03.766 [pool-1169-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 0ms
+00:30:03.768 [pool-1169-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 1ms
+00:30:03.768 [pool-1169-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 9ms
+00:30:04.712 [pool-1170-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:04.712027200
+00:30:04.716 [pool-1170-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 4ms
+00:30:04.717 [pool-1170-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 1ms
+00:30:04.718 [pool-1170-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 1ms
+00:30:04.719 [pool-1170-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 1ms
+00:30:04.720 [pool-1170-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 7ms
+00:30:05.706 [pool-1171-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:05.706667100
+00:30:05.711 [pool-1171-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 4ms
+00:30:05.713 [pool-1171-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 2ms
+00:30:05.714 [pool-1171-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 0ms
+00:30:05.715 [pool-1171-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 0ms
+00:30:05.716 [pool-1171-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 10ms
+00:30:06.709 [pool-1172-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:06.709050900
+00:30:06.714 [pool-1172-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 5ms
+00:30:06.716 [pool-1172-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 2ms
+00:30:06.717 [pool-1172-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 1ms
+00:30:06.719 [pool-1172-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 1ms
+00:30:06.719 [pool-1172-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 10ms
+00:30:07.713 [pool-1173-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:07.713995
+00:30:07.718 [pool-1173-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 5ms
+00:30:07.720 [pool-1173-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 2ms
+00:30:07.721 [pool-1173-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 1ms
+00:30:07.722 [pool-1173-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 1ms
+00:30:07.722 [pool-1173-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 9ms
+00:30:08.718 [pool-1174-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:08.718995600
+00:30:08.721 [pool-1174-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 3ms
+00:30:08.722 [pool-1174-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 1ms
+00:30:08.723 [pool-1174-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 1ms
+00:30:08.724 [pool-1174-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 1ms
+00:30:08.724 [pool-1174-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 6ms
+00:30:09.716 [pool-1175-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:09.716993800
+00:30:09.720 [pool-1175-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 4ms
+00:30:09.722 [pool-1175-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 1ms
+00:30:09.724 [pool-1175-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 1ms
+00:30:09.724 [pool-1175-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 0ms
+00:30:09.725 [pool-1175-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 9ms
+00:30:10.710 [pool-1176-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:10.710045700
+00:30:10.715 [pool-1176-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 5ms
+00:30:10.718 [pool-1176-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 2ms
+00:30:10.719 [pool-1176-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 1ms
+00:30:10.720 [pool-1176-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 0ms
+00:30:10.721 [pool-1176-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 11ms
+00:30:11.708 [pool-1177-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:11.708046
+00:30:11.713 [pool-1177-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 5ms
+00:30:11.715 [pool-1177-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 2ms
+00:30:11.716 [pool-1177-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 1ms
+00:30:11.717 [pool-1177-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 1ms
+00:30:11.717 [pool-1177-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 9ms
+00:30:12.707 [pool-1178-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:12.707699300
+00:30:12.711 [pool-1178-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 4ms
+00:30:12.713 [pool-1178-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 2ms
+00:30:12.714 [pool-1178-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 1ms
+00:30:12.715 [pool-1178-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 1ms
+00:30:12.715 [pool-1178-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 8ms
+00:30:13.711 [pool-1179-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:13.711700500
+00:30:13.715 [pool-1179-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 3ms
+00:30:13.717 [pool-1179-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 2ms
+00:30:13.718 [pool-1179-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 1ms
+00:30:13.719 [pool-1179-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 0ms
+00:30:13.720 [pool-1179-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 9ms
+00:30:14.710 [pool-1180-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:14.710748
+00:30:14.714 [pool-1180-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 3ms
+00:30:14.716 [pool-1180-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 1ms
+00:30:14.717 [pool-1180-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 0ms
+00:30:14.718 [pool-1180-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 0ms
+00:30:14.719 [pool-1180-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 9ms
+00:30:15.713 [pool-1181-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:15.713290300
+00:30:15.716 [pool-1181-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 3ms
+00:30:15.717 [pool-1181-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 1ms
+00:30:15.718 [pool-1181-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 0ms
+00:30:15.719 [pool-1181-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 1ms
+00:30:15.719 [pool-1181-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 6ms
+00:30:16.705 [pool-1182-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:16.705915800
+00:30:16.708 [pool-1182-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 3ms
+00:30:16.710 [pool-1182-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 2ms
+00:30:16.710 [pool-1182-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 0ms
+00:30:16.712 [pool-1182-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 1ms
+00:30:16.712 [pool-1182-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 7ms
+00:30:17.711 [pool-1183-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:17.711815600
+00:30:17.714 [pool-1183-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 3ms
+00:30:17.716 [pool-1183-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 2ms
+00:30:17.717 [pool-1183-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 1ms
+00:30:17.718 [pool-1183-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 1ms
+00:30:17.718 [pool-1183-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 7ms
+00:30:18.714 [pool-1184-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:18.714814100
+00:30:18.719 [pool-1184-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 4ms
+00:30:18.721 [pool-1184-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 2ms
+00:30:18.722 [pool-1184-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 1ms
+00:30:18.723 [pool-1184-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 1ms
+00:30:18.723 [pool-1184-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 9ms
+00:30:19.705 [pool-1185-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:19.705845500
+00:30:19.709 [pool-1185-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 3ms
+00:30:19.710 [pool-1185-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 1ms
+00:30:19.712 [pool-1185-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 1ms
+00:30:19.713 [pool-1185-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 1ms
+00:30:19.713 [pool-1185-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 8ms
+00:30:20.717 [pool-1186-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:20.717910700
+00:30:20.721 [pool-1186-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 4ms
+00:30:20.723 [pool-1186-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 2ms
+00:30:20.723 [pool-1186-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 0ms
+00:30:20.724 [pool-1186-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 0ms
+00:30:20.724 [pool-1186-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 7ms
+00:30:21.714 [pool-1187-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Iniciando obtenerPosicionesSimplificadas: 2025-04-30T00:30:21.714709500
+00:30:21.719 [pool-1187-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Camiones procesados: 0 en ruta, 16 disponibles, 0 sin combustible, 0 otros, 16 total en 4ms
+00:30:21.722 [pool-1187-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Almacenes procesados: 6 en 3ms
+00:30:21.723 [pool-1187-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Pedidos procesados: 0 en 1ms
+00:30:21.724 [pool-1187-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Rutas procesadas: 0 en 1ms
+00:30:21.724 [pool-1187-thread-1] DEBUG c.p.s.SimulacionTiempoRealService - Finalizado obtenerPosicionesSimplificadas en 10ms
