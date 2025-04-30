@@ -29,25 +29,18 @@ public class PlgApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // Llamamos al método initializeCamiones() de DataLoader para obtener la lista de camiones
-        Mapa mapa = new Mapa(15, 12);
+        Mapa mapa = new Mapa(15, 15);
         List<Camion> camiones = dataLoader.initializeCamiones();
         List<Averia> averias = dataLoader.initializeAverias(camiones);
         List<Pedido> pedidos = dataLoader.initializePedidos();
         List<Mantenimiento> mantenimientos = dataLoader.initializeMantenimientos(camiones);
         dataLoader.initializeBloqueos(mapa);
-        Coordenada coordenada = new Coordenada(0, 0);
-        Coordenada coordenada2 = new Coordenada(10, 6);
-        List<Coordenada> coordenadas = mapa.aStar(coordenada, coordenada2);
+        Coordenada x = new Coordenada(0, 0);
+        Coordenada y = new Coordenada(14, 10);
+        List<Coordenada> ruta = mapa.aStar(x, y);
 
-        for (Coordenada coord : coordenadas) {
-            System.out.println("Coordenada: " + coord.getX() + ", " + coord.getY());
-        }
-        // for (Pedido pedido: pedidos) {
-        //     System.out.println("Pedido: " + pedido.getEstadoTexto() + ", Cliente: " + pedido.getCodigo() );
-        // }
 
-        
-        mapa.imprimirMapa();
+        mapa.imprimirMapa(ruta);
 
     }
 }

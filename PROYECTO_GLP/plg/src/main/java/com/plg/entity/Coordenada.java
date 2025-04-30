@@ -10,6 +10,22 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class Coordenada {
-    private int y;
-    private int x;
+    private int fila;
+    private int columna;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof Coordenada))
+            return false;
+        Coordenada that = (Coordenada) o;
+        return this.fila == that.fila && this.columna == that.columna;
+    }
+
+    @Override
+    public int hashCode() {
+        return 31 * fila + columna;
+    }
+
 }

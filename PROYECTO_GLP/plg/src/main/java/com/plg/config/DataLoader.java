@@ -173,38 +173,22 @@ public class DataLoader {
 
 
             for(int i=0; i<coordenadas.size()-1; i++){
-                Coordenada x = coordenadas.get(i);
-                Coordenada y = coordenadas.get(i+1);
-                int x_val = mapa.getValorNumerico(x);
-                int y_val = mapa.getValorNumerico(y);
-                Nodo nodo1 = mapa.getNodo(x_val);
-                Nodo nodo2 = mapa.getNodo(y_val);
-                if(nodo1 != null && nodo2 != null){
-                    nodo1.setBloqueado(true);
-                    nodo2.setBloqueado(true);
-                }
-
-                
-                int mayor = Math.max(x_val, y_val);
-                int menor = Math.min(x_val, y_val);
-
-                if(mayor - menor < mapa.getColumnas()){
-                    // horizontal
-                    for(int j = menor; j <= mayor; j++){
-                        Nodo nodo = mapa.getNodo(j);
-                        if(nodo != null){
-                            nodo.setBloqueado(true);
-                        }
-                    }                    
-                }else{
-                    // vertical
-                    for(int j = menor; j <= mayor; j+=mapa.getColumnas()){
-                        Nodo nodo = mapa.getNodo(j);
-                        if(nodo != null){
-                            nodo.setBloqueado(true);
-                        }
+                Coordenada start = coordenadas.get(i);
+                Coordenada end = coordenadas.get(i+1);             
+                if(start.getColumna() == end.getColumna()){
+                    for(int j = start.getFila(); j <= end.getFila(); j++){
+                        Nodo nodo = mapa.getNodo(j, start.getColumna());
+                        nodo.setBloqueado(true);
                     }
-                }                
+                }else if(start.getFila() == end.getFila()){
+                    for(int j = start.getColumna(); j <= end.getColumna(); j++){
+                        Nodo nodo = mapa.getNodo(start.getFila(), j);
+                        nodo.setBloqueado(true);
+                    }
+                }else{
+                    System.out.println("Error: Las coordenadas no son válidas para un bloqueo lineal.");
+                    return;
+                }
             }
 
         }

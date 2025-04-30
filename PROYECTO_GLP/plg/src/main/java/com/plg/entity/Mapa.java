@@ -25,134 +25,145 @@ public class Mapa {
     private int columnas;
     private int filas;
 
-    private Map<Integer, List<Nodo>> adj;
+    private List<List<Nodo>> matriz = new ArrayList<>();
+    private List<Nodo> list_nodos = new ArrayList<>();
 
     // Construye el mapa como un grafo
     public Mapa(int columnas, int filas) {
         int totalNodos = filas * columnas;
         this.columnas = columnas;
         this.filas = filas;
-        this.adj = new HashMap<>(totalNodos);
-
-        // Initialize the list for every node
-        for (int n = 0; n < totalNodos; n++) {
-            this.adj.put(n, new ArrayList<>());
-        }
+        this.matriz = new ArrayList<>();
 
         for (int i = 0; i < filas; i++) {
+            List<Nodo> fila = new ArrayList<>(columnas);
             for (int j = 0; j < columnas; j++) {
-                int nodo = i * columnas + j;
-                // Inicializa la lista de adyacencia para cada nodo
-                Nodo nodoActual = Nodo.builder().indice(nodo).posX(i).posY(j).build();
-                if (j < columnas - 1) {
-                    int vecinoDerecha = i * columnas + (j + 1);
-                    Nodo nodoDerecha = Nodo.builder().indice(vecinoDerecha).posX(i).posY(j + 1).build();
-                    // El nodo actual será el primer nodo de la lista de adyacencia
-                    this.adj.get(nodo).add(nodoActual);
-                    this.adj.get(nodo).add(nodoDerecha);
-                    this.adj.get(vecinoDerecha).add(nodoActual);
-                }
-                if (i < filas - 1) {
-                    int vecinoAbajo = (i + 1) * columnas + j;
-                    Nodo nodoAbajo = Nodo.builder().indice(vecinoAbajo).posX(i + 1).posY(j).build();
-                    this.adj.get(nodo).add(nodoAbajo);
-                    this.adj.get(vecinoAbajo).add(nodoActual);
-                }
+                Nodo nodo = Nodo.builder().coordenada(new Coordenada(i, j)).build();
+                this.list_nodos.add(nodo);
+                fila.add(nodo);
             }
+            this.matriz.add(fila);
         }
-    }
-
-    public List<Nodo> getAdj(int i) {
-        return adj.get(i);
     }
 
     public void imprimirMapa() {
-        for (int i = 0; i < this.filas; i++) {
+        imprimirMapa(null);
+    }
+
+    public void imprimirMapa(List<Coordenada> ruta) {
+        
+        
+        // Imprime cada fila
+        for (int i = this.filas - 1; i >= 0; i--) {
+            System.out.printf("%3d ", i); // Índice de fila
             for (int j = 0; j < this.columnas; j++) {
-                int nodo = i * columnas + j;
-                Nodo nodoActual = getNodo(nodo);
+                Nodo nodoActual = getNodo(i, j);
+                String cell;
                 if (nodoActual.isBloqueado()) {
-                    System.out.print("X ");
+                    cell = " X ";
+                } else if (ruta != null && ruta.contains(new Coordenada(i, j))) {
+                    cell = " R ";
                 } else {
-                    System.out.print("O ");
+                    cell = " . ";
                 }
+                System.out.print(cell);
             }
             System.out.println();
         }
-
+        System.out.print("    "); 
+        for (int j = 0; j < this.columnas; j++) {
+            System.out.printf("%3d", j);
+        }
+        System.out.println();
     }
 
-    public int getValorNumerico(Coordenada coordenada) {
-        return coordenada.getX() * columnas + coordenada.getY();
+    public Nodo getNodo(int fila, int columna) {
+        return matriz.get(fila).get(columna);
     }
 
-    public Nodo getNodo(int i) {
-        return adj.get(i).get(0);
+    public Nodo getNodo(Coordenada coordenada) {
+        return getNodo(coordenada.getFila(), coordenada.getColumna());
+    }
+
+    public List<Nodo> getAdj(Coordenada x) {
+        List<Nodo> adyacentes = new ArrayList<>();
+        int fila = x.getFila();
+        int columna = x.getColumna();
+
+        // Movimientos posibles: arriba, abajo, izquierda, derecha
+        if (fila > 0)
+            adyacentes.add(getNodo(fila - 1, columna)); // Arriba
+        if (fila < filas - 1)
+            adyacentes.add(getNodo(fila + 1, columna)); // Abajo
+        if (columna > 0)
+            adyacentes.add(getNodo(fila, columna - 1)); // Izquierda
+        if (columna < columnas - 1)
+            adyacentes.add(getNodo(fila, columna + 1)); // Derecha
+
+        return adyacentes;
+    }
+
+    private double calcularHeuristica(Coordenada a, Coordenada b) {
+        return Math.abs(a.getColumna() - b.getColumna()) + Math.abs(a.getFila() - b.getFila());
+    }
+
+    private double calcularFScore(Coordenada inicio, Coordenada destino) {
+        Nodo nodo = getNodo(inicio);
+        double g = nodo.getGScore();
+        double h = calcularHeuristica(nodo.getCoordenada(), destino); // Heurística
+        return g + h; // f(n) = g(n) + h(n)
     }
 
     public List<Coordenada> aStar(Coordenada inicio, Coordenada destino) {
-        int startIndex = getValorNumerico(inicio);
-        int goalIndex = getValorNumerico(destino);
-        Nodo startNodo = getNodo(startIndex);
 
-        // Maps for the scores and the path reconstruction
-        Map<Integer, Double> gScore = new HashMap<>();
-        Map<Integer, Double> fScore = new HashMap<>();
-        Map<Integer, Integer> cameFrom = new HashMap<>();
+        PriorityQueue<Nodo> openSet = new PriorityQueue<>((a, b) -> Double.compare(a.getFScore(), b.getFScore()));
 
-        gScore.put(startIndex, 0.0);
-        fScore.put(startIndex, heuristic(startNodo, destino));
+        Map<Nodo, Nodo> cameFrom = new HashMap<>(); // Mapa para rastrear el camino
 
-        // Priority queue ordered by fScore of node indices
-        PriorityQueue<Integer> openSet = new PriorityQueue<>(
-                (a, b) -> Double.compare(fScore.getOrDefault(a, Double.POSITIVE_INFINITY),
-                        fScore.getOrDefault(b, Double.POSITIVE_INFINITY)));
-        openSet.add(startIndex);
+        // gscore de todos los nodos igual a infinito
+        for (Nodo nodo : list_nodos) {
+            nodo.setGScore(Double.POSITIVE_INFINITY);
+            nodo.setFScore(Double.POSITIVE_INFINITY);
+        }
+        Nodo nodoInicio = getNodo(inicio);
+        // iniciamos el nodo inicial con score 0
+        nodoInicio.setGScore(0);
+        nodoInicio.setFScore(calcularHeuristica(inicio, destino));
 
+        openSet.add(nodoInicio); // Añadimos el nodo inicial a la cola de prioridad
         while (!openSet.isEmpty()) {
-            int currentIndex = openSet.poll();
-            Nodo currentNodo = getNodo(currentIndex);
-
-            // Check if we reached the destination
-            if (currentNodo.getPosX() == destino.getX() && currentNodo.getPosY() == destino.getY()) {
-                return reconstructPath(cameFrom, currentIndex);
+            Nodo nodoActual = openSet.poll(); // Nodo con el menor fScore
+            if (nodoActual.getCoordenada().equals(destino)) {
+                return reconstruirRuta(cameFrom, nodoActual);
             }
+            for (Nodo vecino : getAdj(nodoActual.getCoordenada())) {
+                if (vecino.isBloqueado()) {
+                    continue; // Ignorar nodos bloqueados
+                }
+                double tentativeGScore = nodoActual.getGScore() + 1; // Asumimos un costo de 1 para cada movimiento
 
-            // Explore neighbors
-            List<Nodo> neighbors = adj.get(currentIndex);
-            if (neighbors == null)
-                continue;
-            for (Nodo neighbor : neighbors) {
-                int neighborIndex = neighbor.getIndice();
-                double tentativeG = gScore.get(currentIndex) + 1; // each move costs 1
-                if (tentativeG < gScore.getOrDefault(neighborIndex, Double.POSITIVE_INFINITY)) {
-                    cameFrom.put(neighborIndex, currentIndex);
-                    gScore.put(neighborIndex, tentativeG);
-                    double tentativeF = tentativeG + heuristic(neighbor, destino);
-                    fScore.put(neighborIndex, tentativeF);
-                    if (!openSet.contains(neighborIndex)) {
-                        openSet.add(neighborIndex);
+                if (tentativeGScore < vecino.getGScore()) {
+                    cameFrom.put(vecino, nodoActual); // Actualizamos el camino más corto
+                    vecino.setGScore(tentativeGScore);
+                    vecino.setFScore(calcularFScore(vecino.getCoordenada(), destino)); // Actualizamos el fScore
+
+                    if (!openSet.contains(vecino)) {
+                        openSet.add(vecino); // Añadimos a la cola si no está ya
                     }
                 }
             }
         }
-        // If no path was found, return an empty list.
-        return new ArrayList<>();
+        return Collections.emptyList(); // No se encontró ruta
     }
 
-    private double heuristic(Nodo nodo, Coordenada destino) {
-        return Math.abs(nodo.getPosX() - destino.getX()) + Math.abs(nodo.getPosY() - destino.getY());
-    }
-
-    private List<Coordenada> reconstructPath(Map<Integer, Integer> cameFrom, int currentIndex) {
-        List<Coordenada> totalPath = new ArrayList<>();
-        totalPath.add(new Coordenada(getNodo(currentIndex).getPosX(), getNodo(currentIndex).getPosY()));
-        while (cameFrom.containsKey(currentIndex)) {
-            currentIndex = cameFrom.get(currentIndex);
-            totalPath.add(new Coordenada(getNodo(currentIndex).getPosX(), getNodo(currentIndex).getPosY()));
+    private List<Coordenada> reconstruirRuta(Map<Nodo, Nodo> cameFrom, Nodo nodoActual) {
+        List<Coordenada> ruta = new ArrayList<>();
+        while (nodoActual != null) {
+            ruta.add(nodoActual.getCoordenada());
+            nodoActual = cameFrom.get(nodoActual);
         }
-        Collections.reverse(totalPath);
-        return totalPath;
+        Collections.reverse(ruta);
+        return ruta;
     }
 
 }
