@@ -5,12 +5,16 @@ import java.util.Random;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,7 +40,11 @@ public class Averia {
     private double posX;
     private double posY;
     private double kilometroOcurrencia; // Punto del trayecto donde ocurre la avería
-    private int estado; // 0: reportada, 1: atendida, 2: reparada
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", length = 20)
+    private EstadoAveria estado; // REPORTADA, ATENDIDA, REPARADA
+    
     private boolean conCarga; // Indica si el camión llevaba carga cuando ocurrió la avería
     
     // Campos adicionales según las nuevas especificaciones
@@ -114,12 +122,48 @@ public class Averia {
             }
         }
         // Tipo de incidente no reconocido, no se realiza ninguna acción
-            }
+    }
     
     /**
      * Sobrecarga del método para usar la duración de turno por defecto (8 horas)
      */
     public void calcularTiemposInoperatividad() {
         calcularTiemposInoperatividad(8);
+    }
+    
+    /**
+     * Método para mantener compatibilidad con código existente que use valores enteros
+     * @param estadoInt valor entero del estado
+     * @deprecated Use setEstado(EstadoAveria) instead
+     */
+    @Deprecated
+    public void setEstadoInt(int estadoInt) {
+        this.estado = EstadoAveria.fromValue(estadoInt);
+    }
+    
+    /**
+     * Método para mantener compatibilidad con código existente que use valores enteros
+     * @return valor entero correspondiente al estado actual
+     * @deprecated Use getEstado() instead to get the enum value
+     */
+    @Deprecated
+    public int getEstadoInt() {
+        return this.estado != null ? this.estado.ordinal() : 0;
+    }
+    
+    /**
+     * Método de utilidad para obtener la descripción del estado
+     */
+    @Transient
+    public String getEstadoTexto() {
+        return estado != null ? estado.getDescripcion() : "Desconocido";
+    }
+    
+    /**
+     * Método de utilidad para obtener el color asociado al estado
+     */
+    @Transient
+    public String getEstadoColorHex() {
+        return estado != null ? estado.getColorHex() : "#CCCCCC"; // Color por defecto
     }
 }

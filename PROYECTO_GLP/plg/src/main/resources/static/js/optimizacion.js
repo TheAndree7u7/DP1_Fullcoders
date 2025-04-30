@@ -21,6 +21,7 @@ export function ejecutarAffinityPropagation() {
     
     // Construir parámetros para la API con valores por defecto seguros
     const params = {
+        algoritmo: 'agrupamiento',
         alpha: 1.0,
         beta: 0.5,
         damping: 0.9,
@@ -29,8 +30,8 @@ export function ejecutarAffinityPropagation() {
 
     console.log('Enviando solicitud AP con parámetros:', params);
     
-    // Llamar a la API para ejecutar AP
-    return fetch('/api/optimizacion/ap', {
+    // Llamar a la API para ejecutar AP - Corregido para usar el endpoint correcto
+    return fetch('/api/rutas/generar', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

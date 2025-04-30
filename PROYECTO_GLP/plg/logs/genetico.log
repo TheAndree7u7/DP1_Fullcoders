@@ -1,4 +1,0 @@
-00:23:23.765 [http-nio-8085-exec-5] INFO  c.p.service.AlgoritmoGeneticoService - Iniciando generación de rutas con algoritmo genético. Parámetros: {algoritmo=genetico, numeroRutas=3}
-00:23:23.772 [http-nio-8085-exec-5] INFO  c.p.service.AlgoritmoGeneticoService - Pedidos pendientes encontrados: 13
-00:23:23.772 [http-nio-8085-exec-5] INFO  c.p.service.AlgoritmoGeneticoService - Generando 3 rutas para 13 pedidos
-00:23:23.778 [http-nio-8085-exec-5] INFO  c.p.service.AlgoritmoGeneticoService - Camiones disponibles encontrados: 16

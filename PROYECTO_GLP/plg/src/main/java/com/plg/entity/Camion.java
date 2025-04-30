@@ -48,9 +48,8 @@ public class Camion {
     private double pesoCarga; // Peso actual de la carga en toneladas
     private double pesoCombinado; // Peso total (tara + carga)
     
- 
     @Enumerated(EnumType.STRING)
-    @Column(name = "estado")
+    @Column(name = "estado", length = 30)
     private EstadoCamion estado; 
     
     //!combustible Atributos relacionados con 
@@ -148,7 +147,7 @@ public class Camion {
         entrega.setVolumenGLP(volumen);
         entrega.setPorcentajePedido(porcentaje);
         entrega.setFechaAsignacion(LocalDateTime.now());
-        entrega.setEstado(0); // Asignado
+        entrega.setEstado(EstadoEntregaParcial.ASIGNADO); // Asignado
         
         // Agregar a la lista de entregas parciales
         entregasParciales.add(entrega);
@@ -247,7 +246,7 @@ public class Camion {
     public List<EntregaParcial> getEntregasPendientes() {
         List<EntregaParcial> pendientes = new ArrayList<>();
         for (EntregaParcial entrega : entregasParciales) {
-            if (entrega.getEstado() != 2) { // No entregado
+            if (entrega.getEstado() != EstadoEntregaParcial.ENTREGADO) { // No entregado
                 pendientes.add(entrega);
             }
         }
@@ -261,7 +260,7 @@ public class Camion {
     public double getVolumenTotalAsignado() {
         double total = 0.0;
         for (EntregaParcial entrega : entregasParciales) {
-            if (entrega.getEstado() != 2) { // No entregado
+            if (entrega.getEstado() != EstadoEntregaParcial.ENTREGADO) { // No entregado
                 total += entrega.getVolumenGLP();
             }
         }
@@ -274,8 +273,8 @@ public class Camion {
      */
     public boolean completarEntregaParcial(Long pedidoId) {
         for (EntregaParcial entrega : entregasParciales) {
-            if (entrega.getPedido().getId().equals(pedidoId) && entrega.getEstado() != 2) {
-                entrega.setEstado(2); // Entregado
+            if (entrega.getPedido().getId().equals(pedidoId) && entrega.getEstado() != EstadoEntregaParcial.ENTREGADO) {
+                entrega.setEstado(EstadoEntregaParcial.ENTREGADO);
                 entrega.setFechaEntrega(LocalDateTime.now());
                 liberarCapacidad(entrega.getVolumenGLP());
                 return true;
@@ -336,7 +335,7 @@ public class Camion {
         averia.setCamion(this);
         averia.setDescripcion(descripcion);
         averia.setFechaHoraReporte(LocalDateTime.now());
-        averia.setEstado(0); // Pendiente
+        averia.setEstado(EstadoAveria.REPORTADA); // Usar el enum EstadoAveria
         
         this.setEstado(EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA); // Averiado
         
@@ -378,8 +377,8 @@ public class Camion {
      */
     public void actualizarEstadoEntregasARuta() {
         for (EntregaParcial entrega : entregasParciales) {
-            if (entrega.getEstado() == 0) { // Si está asignada
-                entrega.setEstado(1); // Cambiar a "En ruta"
+            if (entrega.getEstado() == EstadoEntregaParcial.ASIGNADO) {
+                entrega.setEstado(EstadoEntregaParcial.EN_RUTA);
             }
         }
     }
@@ -419,23 +418,7 @@ public class Camion {
             infoEntrega.put("volumenGLP", entrega.getVolumenGLP());
             infoEntrega.put("porcentaje", entrega.getPorcentajePedido());
             infoEntrega.put("estado", entrega.getEstado());
-            
-            switch (entrega.getEstado()) {
-                case 0:
-                    infoEntrega.put("estadoTexto", "Asignado");
-                    break;
-                case 1:
-                    infoEntrega.put("estadoTexto", "En ruta");
-                    break;
-                case 2:
-                    infoEntrega.put("estadoTexto", "Entregado");
-                    break;
-                case 3:
-                    infoEntrega.put("estadoTexto", "Cancelado");
-                    break;
-                default:
-                    infoEntrega.put("estadoTexto", "Desconocido");
-            }
+            infoEntrega.put("estadoTexto", entrega.getEstado().getDescripcion());
             
             if (entrega.getFechaAsignacion() != null) {
                 infoEntrega.put("fechaAsignacion", entrega.getFechaAsignacion().toString());
@@ -449,5 +432,25 @@ public class Camion {
         }
         
         return listaEntregas;
+    }
+    
+    /**
+     * Método para mantener compatibilidad con código existente que use valores enteros
+     * @param estadoInt valor entero del estado
+     * @deprecated Use setEstado(EstadoCamion) instead
+     */
+    @Deprecated
+    public void setEstadoInt(int estadoInt) {
+        this.estado = EstadoCamion.fromValue(estadoInt);
+    }
+    
+    /**
+     * Método para mantener compatibilidad con código existente que use valores enteros
+     * @return valor entero correspondiente al estado actual
+     * @deprecated Use getEstado() instead to get the enum value
+     */
+    @Deprecated
+    public int getEstadoInt() {
+        return this.estado != null ? this.estado.ordinal() : 0;
     }
 }

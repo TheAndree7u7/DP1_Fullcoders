@@ -1,17 +1,22 @@
 package com.plg.controller;
 
-import com.plg.entity.Camion;
-import com.plg.entity.Pedido;
-import com.plg.entity.EstadoCamion;
-import com.plg.service.CamionService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.plg.dto.CamionDTO;
+import com.plg.entity.Camion;
+import com.plg.entity.EstadoCamion;
+import com.plg.entity.Pedido;
+import com.plg.service.CamionService;
 
 @RestController
 @RequestMapping("/api/camiones")
@@ -24,8 +29,8 @@ public class CamionController {
      * Lista todos los camiones disponibles
      */
     @GetMapping
-    public ResponseEntity<List<Camion>> getAllCamiones() {
-        return ResponseEntity.ok(camionService.findAll());
+    public ResponseEntity<List<CamionDTO>> getAllCamiones() {
+        return ResponseEntity.ok(camionService.findAllDTO());
     }
     
     /**
@@ -33,9 +38,9 @@ public class CamionController {
      */
     @GetMapping("/{codigo}")
     public ResponseEntity<?> getCamionByCodigo(@PathVariable String codigo) {
-        Optional<Camion> camion = camionService.findById(codigo);
-        if (camion.isPresent()) {
-            return ResponseEntity.ok(camion.get());
+        CamionDTO camion = camionService.findDTOById(codigo);
+        if (camion != null) {
+            return ResponseEntity.ok(camion);
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -45,16 +50,16 @@ public class CamionController {
      * Lista los camiones filtrados por estado
      */
     @GetMapping("/estado/{estado}")
-    public ResponseEntity<List<Camion>> getCamionesByEstado(@PathVariable EstadoCamion estado) {
-        return ResponseEntity.ok(camionService.findByEstado(estado));
+    public ResponseEntity<List<CamionDTO>> getCamionesByEstado(@PathVariable EstadoCamion estado) {
+        return ResponseEntity.ok(camionService.findByEstadoDTO(estado));
     }
     
     /**
      * Lista los camiones filtrados por tipo
      */
     @GetMapping("/tipo/{tipo}")
-    public ResponseEntity<List<Camion>> getCamionesByTipo(@PathVariable String tipo) {
-        return ResponseEntity.ok(camionService.findByTipo(tipo));
+    public ResponseEntity<List<CamionDTO>> getCamionesByTipo(@PathVariable String tipo) {
+        return ResponseEntity.ok(camionService.findByTipoDTO(tipo));
     }
     
     /**

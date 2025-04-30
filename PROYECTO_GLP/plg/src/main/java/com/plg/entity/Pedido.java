@@ -47,12 +47,10 @@ public class Pedido {
     private double volumenGLPPendiente; // Volumen restante por asignar (m3) 
     private int prioridad; // 1: alta, 2: media, 3: baja
     
-    @Enumerated(EnumType.ORDINAL)
-    @Column(name = "estado")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", length = 30)
     private EstadoPedido estado;
     
- 
-
     private String fechaHora; //formato "ddmmyyyy hh:mm:ss"
     private String fechaAsignaciones; //formato "ddmmyyyy hh:mm:ss" 
      
@@ -72,8 +70,6 @@ public class Pedido {
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
     @JsonManagedReference(value="pedido-asignacion")
     private List<AsignacionCamion> asignaciones = new ArrayList<>();
-
- 
 
     /**
      * Asigna una parte del pedido a un camión
@@ -149,9 +145,6 @@ public class Pedido {
         } else if (volumenGLPEntregado == volumenGLPAsignado) {
             estado = EstadoPedido.ENTREGADO_TOTALMENTE;
         }
-        
-        // Actualizar el estadoInt para mantener compatibilidad
-         
     }
     
     /**
@@ -194,5 +187,25 @@ public class Pedido {
     @Transient
     public String getEstadoColorHex() {
         return estado != null ? estado.getColorHex() : "#CCCCCC"; // Color por defecto
+    }
+    
+    /**
+     * Método para mantener compatibilidad con código existente que use valores enteros
+     * @param estadoInt valor entero del estado
+     * @deprecated Use setEstado(EstadoPedido) instead
+     */
+    @Deprecated
+    public void setEstadoInt(int estadoInt) {
+        this.estado = EstadoPedido.values()[estadoInt];
+    }
+    
+    /**
+     * Método para mantener compatibilidad con código existente que use valores enteros
+     * @return valor entero correspondiente al estado actual
+     * @deprecated Use getEstado() instead to get the enum value
+     */
+    @Deprecated
+    public int getEstadoInt() {
+        return this.estado != null ? this.estado.ordinal() : 0;
     }
 }

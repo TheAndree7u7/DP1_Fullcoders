@@ -8,6 +8,7 @@ import com.plg.entity.Mantenimiento;
 import com.plg.entity.Pedido;
 import com.plg.entity.EstadoCamion;
 import com.plg.entity.EstadoPedido;
+import com.plg.entity.EstadoAveria;
 import com.plg.repository.AlmacenRepository;
 import com.plg.repository.AveriaRepository;
 import com.plg.repository.BloqueoRepository;
@@ -261,7 +262,7 @@ public class SimulacionService {
             
             averia.setPosX(ThreadLocalRandom.current().nextInt(0, 100));
             averia.setPosY(ThreadLocalRandom.current().nextInt(0, 100));
-            averia.setEstado(0); // Reportada
+            averia.setEstado(EstadoAveria.REPORTADA); // Reportada
             
             // Simulamos una referencia a un camión
             Camion camion = new Camion();
@@ -684,7 +685,7 @@ public class SimulacionService {
                 
                 averia.setPosX(camion.getPosX());
                 averia.setPosY(camion.getPosY());
-                averia.setEstado(0); // 0: Reportada
+                averia.setEstado(EstadoAveria.REPORTADA); // Estado inicial: reportada
                 
                 // Verificar si el camión tiene carga
                 averia.setConCarga(camion.getPesoCarga() > 0);
@@ -1102,7 +1103,7 @@ public class SimulacionService {
                 averia.setTipoIncidente(tipoIncidente);
                 averia.setPosX(camion.getPosX());
                 averia.setPosY(camion.getPosY());
-                averia.setEstado(0); // 0: reportada
+                averia.setEstado(EstadoAveria.REPORTADA); // Estado inicial: reportada
                 
                 // Verificar si tiene carga asignada
                 List<Pedido> pedidosCamion = pedidoRepository.findByCamion_CodigoAndEstado(camion.getCodigo(), EstadoPedido.PLANIFICADO_PARCIALMENTE);

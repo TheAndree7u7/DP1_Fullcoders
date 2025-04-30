@@ -47,4 +47,19 @@ public enum EstadoCamion {
     public String getColorHex() {
         return colorHex;
     }
+    
+    /**
+     * Converts an integer value to corresponding EstadoCamion enum
+     * @param value Integer value representing the enum ordinal
+     * @return The corresponding EstadoCamion enum value
+     * @throws IllegalArgumentException if no enum constant with the specified ordinal exists
+     */
+    public static EstadoCamion fromValue(int value) {
+        for (EstadoCamion estado : EstadoCamion.values()) {
+            if (estado.ordinal() == value) {
+                return estado;
+            }
+        }
+        throw new IllegalArgumentException("Invalid EstadoCamion value: " + value);
+    }
 }

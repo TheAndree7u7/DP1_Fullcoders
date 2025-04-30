@@ -46,8 +46,9 @@ public class EntregaParcial {
     @Column(name = "fecha_entrega")
     private LocalDateTime fechaEntrega;
     
-    @Column(name = "estado")
-    private int estado; // 0: Asignado, 1: En ruta, 2: Entregado, 3: Cancelado
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", length = 20)
+    private EstadoEntregaParcial estado; // ASIGNADO, EN_RUTA, ENTREGADO, CANCELADO
     
     @Column(name = "observaciones")
     private String observaciones;
@@ -57,7 +58,7 @@ public class EntregaParcial {
      */
     public EntregaParcial() {
         this.fechaAsignacion = LocalDateTime.now();
-        this.estado = 0; // Asignado por defecto
+        this.estado = EstadoEntregaParcial.ASIGNADO; // Asignado por defecto
     }
     
     /**
@@ -85,7 +86,7 @@ public class EntregaParcial {
         private Pedido pedido;
         private double volumenGLP;
         private double porcentajePedido;
-        private int estado;
+        private EstadoEntregaParcial estado;
         private String observaciones;
         
         public EntregaParcialBuilder pedido(Pedido pedido) {
@@ -103,7 +104,7 @@ public class EntregaParcial {
             return this;
         }
         
-        public EntregaParcialBuilder estado(int estado) {
+        public EntregaParcialBuilder estado(EstadoEntregaParcial estado) {
             this.estado = estado;
             return this;
         }
@@ -115,7 +116,7 @@ public class EntregaParcial {
         
         public EntregaParcial build() {
             EntregaParcial entrega = new EntregaParcial(pedido, volumenGLP, porcentajePedido);
-            if (estado != 0) {
+            if (estado != null) {
                 entrega.setEstado(estado);
             }
             if (observaciones != null) {
@@ -123,5 +124,25 @@ public class EntregaParcial {
             }
             return entrega;
         }
+    }
+    
+    /**
+     * Método para mantener compatibilidad con código existente que use valores enteros
+     * @param estadoInt valor entero del estado
+     * @deprecated Use setEstado(EstadoEntregaParcial) instead
+     */
+    @Deprecated
+    public void setEstadoInt(int estadoInt) {
+        this.estado = EstadoEntregaParcial.fromValue(estadoInt);
+    }
+    
+    /**
+     * Método para mantener compatibilidad con código existente que use valores enteros
+     * @return valor entero correspondiente al estado actual
+     * @deprecated Use getEstado() instead to get the enum value
+     */
+    @Deprecated
+    public int getEstadoInt() {
+        return this.estado.ordinal();
     }
 }
