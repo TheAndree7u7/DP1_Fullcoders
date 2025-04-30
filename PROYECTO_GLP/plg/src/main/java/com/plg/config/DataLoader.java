@@ -2,6 +2,8 @@ package com.plg.config;
 
 import com.plg.entity.*;
 import com.plg.utils.Parametros;
+
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -18,7 +20,7 @@ public class DataLoader {
     private String pathAverias = "data/averias/averias.v1.txt";
     private String pathPedidos = "data/pedidos/ventas202504.txt";
     private String pathMantenimientos = "data/mantenimientos/mantpreventivo.txt";
-    private String pathBloqueos = "data/bloqueos/bloqueos.v1.txt";
+    private String pathBloqueos = "data/bloqueos/202504.bloqueadas";
 
     // Método genérico para leer todas las líneas de un archivo de recursos
     private List<String> readAllLines(String resourcePath) {
@@ -150,7 +152,10 @@ public class DataLoader {
         List<String> lines = readAllLines(pathBloqueos);
         for(String line : lines){
             String[] partes = line.split(":");
-            LocalDateTime fecha_registro = readFecha(partes[0]);
+            String[] partesFecha = partes[0].split("-");
+            LocalDateTime fecha1 = readFecha(partesFecha[0]);
+            LocalDateTime fecha2 = readFecha(partesFecha[1]);
+
             List<Coordenada> coordenadas = new ArrayList<>();
             String[] coordenadasBloqueo = partes[1].split(",");
             if (coordenadasBloqueo.length > 0 && coordenadasBloqueo.length %2 == 0) {
@@ -164,13 +169,36 @@ public class DataLoader {
                 System.out.println("Error en el formato de coordenadas de bloqueo: " + partes[1]);
                 return ;
             }
-            
             // Realizamos el bloqueo de los nodos en el mapa
-            for (Coordenada coordenada : coordenadas) {
-                int valor_numerico = mapa.getValorNumerico(coordenada);
-                Nodo n = mapa.getNodo(valor_numerico);
-                n.setBloqueado(true);
+
+
+            for(int i=0; i<coordenadas.size()-1; i++){
+                Coordenada x = coordenadas.get(i);
+                Coordenada y = coordenadas.get(i+1);
+                int x_val = mapa.getValorNumerico(x);
+                int y_val = mapa.getValorNumerico(y);
+                Nodo nodo1 = mapa.getNodo(x_val);
+                Nodo nodo2 = mapa.getNodo(y_val);
+                if(nodo1 != null && nodo2 != null){
+                    nodo1.setBloqueado(true);
+                    nodo2.setBloqueado(true);
+                }
+
+                // horizontal
+                if(y_val - x_val <=  mapa.getColumnas()){
+                    for(int j = x_val; j <= y_val; j++){
+                        Nodo nodo = mapa.getNodo(j);
+                        if(nodo != null){
+                            nodo.setBloqueado(true);
+                        }
+                    }
+                }else{
+
+                }
+
+                
             }
+
 
         }
     }
