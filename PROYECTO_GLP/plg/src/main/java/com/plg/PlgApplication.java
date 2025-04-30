@@ -14,6 +14,7 @@ import com.plg.entity.Coordenada;
 import com.plg.entity.Mantenimiento;
 import com.plg.entity.Mapa;
 import com.plg.entity.Pedido;
+import com.plg.utils.AlgoritmoGenetico;
 import com.plg.config.DataLoader;
 
 @SpringBootApplication
@@ -29,18 +30,15 @@ public class PlgApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         // Llamamos al método initializeCamiones() de DataLoader para obtener la lista de camiones
-        Mapa mapa = new Mapa(15, 15);
+        Mapa mapa = new Mapa(20, 20);
         List<Camion> camiones = dataLoader.initializeCamiones();
         List<Averia> averias = dataLoader.initializeAverias(camiones);
         List<Pedido> pedidos = dataLoader.initializePedidos();
         List<Mantenimiento> mantenimientos = dataLoader.initializeMantenimientos(camiones);
         dataLoader.initializeBloqueos(mapa);
-        Coordenada x = new Coordenada(0, 0);
-        Coordenada y = new Coordenada(14, 10);
-        List<Coordenada> ruta = mapa.aStar(x, y);
-
-
-        mapa.imprimirMapa(ruta);
+        AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidos, camiones);
+        algoritmoGenetico.ejecutarAlgoritmo();
+        //mapa.imprimirMapa();
 
     }
 }

@@ -48,6 +48,8 @@ public class DataLoader {
         double[] capacidades = { 25.0, 20.0, 15.0, 10.0 };
         double[] taras = { 15.0, 12.0, 9.0, 7.0 };
 
+        Coordenada coordenada = new Coordenada(0, 0);
+
         for (int i = 0; i < tipos.length; i++) {
             for (int j = 1; j <= 3; j++) {
                 Camion camion = new Camion();
@@ -55,6 +57,7 @@ public class DataLoader {
                 camion.setTipo(tipos[i]);
                 camion.setCapacidad(capacidades[i]);
                 camion.setTara(taras[i]);
+                camion.setCoordenadaActual(coordenada);
                 camion.setPesoCarga(0);
                 camion.setPesoCombinado(taras[i]);
                 camion.setEstado(null); // Temporalmente null
@@ -93,6 +96,7 @@ public class DataLoader {
     public List<Pedido> initializePedidos() {
         List<Pedido> pedidos = new ArrayList<>();
         List<String> lines = readAllLines(pathPedidos);
+        int i=0;
         for (String line : lines) {
             String[] partes = line.split(":");
             double m3, h_limite;
@@ -106,6 +110,7 @@ public class DataLoader {
             h_limite = Double.parseDouble(datosPedido[4].substring(0, datosPedido[4].indexOf('h')));
 
             Pedido pedido = Pedido.builder()
+                    .id(i++)
                     .codigo(codigo_cliente)
                     .coordenada(coordenada)
                     .horasLimite(h_limite)
