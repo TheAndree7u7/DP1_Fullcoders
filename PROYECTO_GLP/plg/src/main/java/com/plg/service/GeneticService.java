@@ -249,7 +249,7 @@ public class GeneticService {
             double horas = ruta.getTiempoEstimado() / 60.0;
             if (horas <= 4.0) {
                 // todos los pedidos de esta ruta cuentan como cumplidos
-                cumplidos += ruta.getPedidos().size();
+                cumplidos += ruta.getNumeroPedidos(); // Reemplazamos ruta.getPedidos().size() por ruta.getNumeroPedidos()
             }
         }
         double porcentajeCumplimiento = (double) cumplidos / totalPedidos;

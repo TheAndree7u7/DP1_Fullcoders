@@ -1,5 +1,6 @@
 package com.plg.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,9 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.plg.dto.AlgoritmoGeneticoResultadoDTO;
 import com.plg.entity.Almacen;
+import com.plg.entity.Bloqueo;
 import com.plg.entity.Camion;
 import com.plg.entity.EstadoCamion;
 import com.plg.entity.EstadoPedido;
+import com.plg.entity.NodoRuta;
 import com.plg.entity.Pedido;
 import com.plg.entity.Ruta;
 import com.plg.repository.AlmacenRepository;
@@ -36,6 +39,9 @@ import com.plg.repository.RutaRepository;
 public class TestAlgorithmService implements ApplicationRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(TestAlgorithmService.class);
+    
+    // Tamaño del mapa para visualización
+    private static final int MAPA_TAMAÑO = 100;
 
     @Autowired
     private PedidoRepository pedidoRepository;
@@ -221,8 +227,9 @@ public class TestAlgorithmService implements ApplicationRunner {
                 
                 // Registrar pedidos individuales en esta ruta
                 logger.info("  Pedidos en ruta {}:", i+1);
-                for (int j = 0; j < ruta.getPedidos().size(); j++) {
-                    var pedido = ruta.getPedidos().get(j);
+                var pedidosList = ruta.getPedidos();
+                for (int j = 0; j < pedidosList.size(); j++) {
+                    var pedido = pedidosList.get(j);
                     logger.info("  - Pedido {}: id={}, código={}, pos=({},{}), volumen={}", 
                         j+1, pedido.getId(), pedido.getCodigo(), 
                         pedido.getPosX(), pedido.getPosY(), pedido.getVolumenGLPAsignado());
@@ -254,6 +261,9 @@ public class TestAlgorithmService implements ApplicationRunner {
             // Verificar que se han asignado camiones
             List<Camion> enRuta = camionRepository.findByEstado(EstadoCamion.EN_RUTA);
             logger.info("Camiones asignados a rutas: {}", enRuta.size());
+            
+            // NUEVO: Visualizar rutas en el mapa de consola
+            visualizarRutasEnConsola();
             
             logger.info("Prueba de Algoritmo Genético completada exitosamente");
             
@@ -425,6 +435,206 @@ public class TestAlgorithmService implements ApplicationRunner {
                 camionesEstadoCount.forEach((estado, cantidad) -> 
                     logger.info("  - {} camiones en estado: {}", cantidad, estado));
             }
+        }
+    }
+    
+    /**
+     * Visualiza las rutas generadas en la consola para verificar que se están generando correctamente
+     * Muestra los bloqueos, pedidos y las rutas de los camiones en un mapa ASCII simple
+     */
+    private void visualizarRutasEnConsola() {
+        logger.info("===== VISUALIZACIÓN DE RUTAS EN EL MAPA =====");
+        
+        try {
+            // Obtener todas las rutas activas
+            List<Ruta> rutas = rutaRepository.findByEstado(1); // 1 = En curso
+            if (rutas.isEmpty()) {
+                logger.info("No hay rutas activas para visualizar");
+                return;
+            }
+            
+            // Obtener bloqueos activos
+            var bloqueos = bloqueoRepository.findByActivoTrue();
+            logger.info("Se encontraron {} bloqueos activos", bloqueos.size());
+            
+            // Obtener pedidos asignados a rutas
+            List<Pedido> pedidosEnRutas = new ArrayList<>();
+            for (Ruta ruta : rutas) {
+                // Usar el repositorio de pedidos para encontrar los pedidos asociados a la ruta
+                List<Pedido> pedidosRuta = ruta.getPedidosAsociados();
+                pedidosEnRutas.addAll(pedidosRuta);
+            }
+            logger.info("Se encontraron {} pedidos asignados a rutas", pedidosEnRutas.size());
+            
+            // Obtener almacén central
+            Almacen almacenCentral = almacenRepository.findByEsCentralAndActivoTrue(true);
+            if (almacenCentral == null) {
+                logger.warn("No se encontró el almacén central");
+            }
+            
+            // Crear una matriz para representar el mapa (100x100)
+            char[][] mapa = new char[MAPA_TAMAÑO][MAPA_TAMAÑO];
+            
+            // Inicializar mapa con espacios en blanco
+            for (int i = 0; i < MAPA_TAMAÑO; i++) {
+                for (int j = 0; j < MAPA_TAMAÑO; j++) {
+                    mapa[i][j] = ' ';
+                }
+            }
+            
+            // Marcar bloqueos en el mapa
+            for (var bloqueo : bloqueos) {
+                // Marcar área de bloqueo (desde posición inicial a final)
+                int x1 = (int)Math.min(bloqueo.getPosXInicio(), bloqueo.getPosXFin());
+                int y1 = (int)Math.min(bloqueo.getPosYInicio(), bloqueo.getPosYFin());
+                int x2 = (int)Math.max(bloqueo.getPosXInicio(), bloqueo.getPosXFin());
+                int y2 = (int)Math.max(bloqueo.getPosYInicio(), bloqueo.getPosYFin());
+                
+                for (int x = x1; x <= x2 && x < MAPA_TAMAÑO; x++) {
+                    for (int y = y1; y <= y2 && y < MAPA_TAMAÑO; y++) {
+                        if (x >= 0 && y >= 0) {
+                            mapa[y][x] = 'X'; // X representa bloqueo
+                        }
+                    }
+                }
+                
+                logger.info("Bloqueo: ({},{}) a ({},{}) - {}", 
+                    (int)bloqueo.getPosXInicio(), (int)bloqueo.getPosYInicio(), 
+                    (int)bloqueo.getPosXFin(), (int)bloqueo.getPosYFin(),
+                    bloqueo.getDescripcion());
+            }
+            
+            // Marcar pedidos en el mapa
+            for (Pedido pedido : pedidosEnRutas) {
+                int x = pedido.getPosX();
+                int y = pedido.getPosY();
+                if (x >= 0 && x < MAPA_TAMAÑO && y >= 0 && y < MAPA_TAMAÑO) {
+                    mapa[y][x] = 'P'; // P representa pedido
+                }
+            }
+            
+            // Marcar almacén central
+            if (almacenCentral != null) {
+                int x = almacenCentral.getPosX();
+                int y = almacenCentral.getPosY();
+                if (x >= 0 && x < MAPA_TAMAÑO && y >= 0 && y < MAPA_TAMAÑO) {
+                    mapa[y][x] = 'A'; // A representa almacén
+                }
+                logger.info("Almacén central en: ({},{})", x, y);
+            }
+            
+            // Para cada ruta, marcar el trayecto en el mapa
+            char rutaMarca = '1'; // Usar números para identificar rutas diferentes
+            for (Ruta ruta : rutas) {
+                // Obtener los pedidos asociados a esta ruta específica
+                List<Pedido> pedidosRuta = ruta.getPedidosAsociados();
+                
+                logger.info("Ruta {}: Camión {} - {} pedidos, {} nodos", 
+                    ruta.getCodigo(), 
+                    ruta.getCamion() != null ? ruta.getCamion().getCodigo() : "N/A", 
+                    pedidosRuta.size(), 
+                    ruta.getNodos().size());
+                
+                // Recorrer nodos y marcar el trayecto
+                for (var nodo : ruta.getNodos()) {
+                    int x = nodo.getPosX();
+                    int y = nodo.getPosY();
+                    if (x >= 0 && x < MAPA_TAMAÑO && y >= 0 && y < MAPA_TAMAÑO) {
+                        // No sobrescribir pedidos o almacén
+                        if (mapa[y][x] != 'P' && mapa[y][x] != 'A') {
+                            mapa[y][x] = rutaMarca;
+                        }
+                    }
+                }
+                
+                // Incrementar el identificador de ruta para la siguiente
+                rutaMarca++;
+                if (rutaMarca > '9') rutaMarca = '1'; // Reciclar dígitos
+            }
+            
+            // Imprimir mapa en el log (reducido para legibilidad)
+            logger.info("Mapa de Rutas (Leyenda: A=Almacén, P=Pedido, X=Bloqueo, 1-9=Ruta):");
+            
+            // Determinar límites efectivos del mapa (para no imprimir todo el espacio vacío)
+            int minX = MAPA_TAMAÑO, maxX = 0, minY = MAPA_TAMAÑO, maxY = 0;
+            for (int y = 0; y < MAPA_TAMAÑO; y++) {
+                for (int x = 0; x < MAPA_TAMAÑO; x++) {
+                    if (mapa[y][x] != ' ') {
+                        minX = Math.min(minX, x);
+                        maxX = Math.max(maxX, x);
+                        minY = Math.min(minY, y);
+                        maxY = Math.max(maxY, y);
+                    }
+                }
+            }
+            
+            // Ampliar un poco los límites para contexto
+            minX = Math.max(0, minX - 5);
+            minY = Math.max(0, minY - 5);
+            maxX = Math.min(MAPA_TAMAÑO - 1, maxX + 5);
+            maxY = Math.min(MAPA_TAMAÑO - 1, maxY + 5);
+            
+            // Mostrar números de coordenadas en el eje X
+            StringBuilder xCoords = new StringBuilder("   ");
+            for (int x = minX; x <= maxX; x += 10) {
+                xCoords.append(String.format("%10d", x));
+            }
+            logger.info(xCoords.toString());
+            
+            // Imprimir mapa reducido
+            for (int y = minY; y <= maxY; y++) {
+                StringBuilder linea = new StringBuilder();
+                linea.append(String.format("%2d |", y));
+                for (int x = minX; x <= maxX; x++) {
+                    linea.append(mapa[y][x]);
+                }
+                logger.info(linea.toString());
+            }
+            
+            // Resumen de verificación
+            int totalBloqueos = 0, totalPedidos = 0, totalRutaPuntos = 0;
+            for (int y = 0; y < MAPA_TAMAÑO; y++) {
+                for (int x = 0; x < MAPA_TAMAÑO; x++) {
+                    if (mapa[y][x] == 'X') totalBloqueos++;
+                    else if (mapa[y][x] == 'P') totalPedidos++;
+                    else if (mapa[y][x] >= '1' && mapa[y][x] <= '9') totalRutaPuntos++;
+                }
+            }
+            
+            logger.info("Resumen de visualización: {} celdas con bloqueos, {} pedidos, {} puntos de ruta", 
+                totalBloqueos, totalPedidos, totalRutaPuntos);
+            
+            // Verificar si alguna ruta cruza por bloqueos (posible error)
+            boolean rutasCruzanBloqueos = false;
+            for (Ruta ruta : rutas) {
+                for (var nodo : ruta.getNodos()) {
+                    for (var bloqueo : bloqueos) {
+                        int x = nodo.getPosX();
+                        int y = nodo.getPosY();
+                        
+                        // Verificar si el nodo está en el área del bloqueo
+                        boolean enAreaBloqueo = 
+                            x >= (int)Math.min(bloqueo.getPosXInicio(), bloqueo.getPosXFin()) &&
+                            x <= (int)Math.max(bloqueo.getPosXInicio(), bloqueo.getPosXFin()) &&
+                            y >= (int)Math.min(bloqueo.getPosYInicio(), bloqueo.getPosYFin()) && 
+                            y <= (int)Math.max(bloqueo.getPosYInicio(), bloqueo.getPosYFin());
+                            
+                        if (enAreaBloqueo) {
+                            logger.warn("ALERTA: La ruta {} del camión {} cruza por un bloqueo en ({},{})!",
+                                ruta.getCodigo(), 
+                                ruta.getCamion() != null ? ruta.getCamion().getCodigo() : "N/A", 
+                                x, y);
+                            rutasCruzanBloqueos = true;
+                        }
+                    }
+                }
+            }
+            
+            if (!rutasCruzanBloqueos) {
+                logger.info("Verificación exitosa: Ninguna ruta cruza por áreas bloqueadas");
+            }
+        } catch (Exception e) {
+            logger.error("Error al visualizar rutas en consola", e);
         }
     }
 }

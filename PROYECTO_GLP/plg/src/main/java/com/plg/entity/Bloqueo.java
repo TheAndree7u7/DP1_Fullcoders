@@ -6,9 +6,15 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Clase que representa un bloqueo en la ruta
+ * Contiene coordenadas, fechas de inicio y fin, descripción y estado activo
+ */
 @Entity
 @Data
 @NoArgsConstructor
+@Getter
+@Setter
 @AllArgsConstructor
 public class Bloqueo {
     @Id
@@ -27,7 +33,7 @@ public class Bloqueo {
     private boolean activo;
     
     /**
-     * Método para determinar si un punto está en un tramo bloqueado
+     * Método para determinar si un punto está en un tramo bloqunoeado
      * @param x Coordenada X a verificar
      * @param y Coordenada Y a verificar
      * @return true si el punto está en un tramo bloqueado
@@ -181,4 +187,47 @@ public class Bloqueo {
         private double y;
     }
     
+    /**
+     * Obtiene la posición X inicial del bloqueo
+     * @return Coordenada X inicial
+     */
+    public double getPosXInicio() {
+        if (coordenadas == null || coordenadas.isEmpty()) {
+            return 0;
+        }
+        return coordenadas.stream().mapToDouble(Coordenada::getX).min().orElse(0);
+    }
+    
+    /**
+     * Obtiene la posición Y inicial del bloqueo
+     * @return Coordenada Y inicial
+     */
+    public double getPosYInicio() {
+        if (coordenadas == null || coordenadas.isEmpty()) {
+            return 0;
+        }
+        return coordenadas.stream().mapToDouble(Coordenada::getY).min().orElse(0);
+    }
+    
+    /**
+     * Obtiene la posición X final del bloqueo
+     * @return Coordenada X final
+     */
+    public double getPosXFin() {
+        if (coordenadas == null || coordenadas.isEmpty()) {
+            return 0;
+        }
+        return coordenadas.stream().mapToDouble(Coordenada::getX).max().orElse(0);
+    }
+    
+    /**
+     * Obtiene la posición Y final del bloqueo
+     * @return Coordenada Y final
+     */
+    public double getPosYFin() {
+        if (coordenadas == null || coordenadas.isEmpty()) {
+            return 0;
+        }
+        return coordenadas.stream().mapToDouble(Coordenada::getY).max().orElse(0);
+    }
 }
