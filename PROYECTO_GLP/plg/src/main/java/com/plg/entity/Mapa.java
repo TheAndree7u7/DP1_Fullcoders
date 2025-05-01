@@ -71,8 +71,7 @@ public class Mapa {
                 String cell = " . "; // Valor por defecto
                 if (nodoActual.isBloqueado()) {
                     cell = " X "; // Nodo bloqueado
-                }else  {
-                    // Si es un pedido, imprimimos la letra P
+                }else {
                     if (rutas != null){
                         for (int k = 0; k < rutas.size(); k++) {
                             if (rutas.get(k).contains(nodoActual.getCoordenada())) {
@@ -81,7 +80,7 @@ public class Mapa {
                             }
                         }
                     }
-
+                    // Si es un pedido, imprimimos la letra P
                     if (pedidos != null) {
                         for (int k = 0; k < pedidos.size(); k++) {
                             if (pedidos.get(k).getCoordenada().equals(nodoActual.getCoordenada())) {
@@ -90,7 +89,6 @@ public class Mapa {
                             }
                         }
                     }
-                    
                 }    
                 System.out.printf("%4s", cell);
             }
@@ -143,11 +141,8 @@ public class Mapa {
     }
 
     public List<Coordenada> aStar(Coordenada inicio, Coordenada destino) {
-
         PriorityQueue<Nodo> openSet = new PriorityQueue<>((a, b) -> Double.compare(a.getFScore(), b.getFScore()));
-
         Map<Nodo, Nodo> cameFrom = new HashMap<>(); // Mapa para rastrear el camino
-
         // gscore de todos los nodos igual a infinito
         for (Nodo nodo : list_nodos) {
             nodo.setGScore(Double.POSITIVE_INFINITY);

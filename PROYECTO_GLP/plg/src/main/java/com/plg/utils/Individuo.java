@@ -62,6 +62,8 @@ public class Individuo {
     }
 
     public void limpiarCromosoma() {
+        System.out.println("Limpiando cromosoma...");
+        System.out.println(this);
         for(List<Integer> gen : this.cromosoma) {
             for(int i = 0; i < gen.size(); i++) {
                 if(gen.get(i) == -1) {

@@ -34,13 +34,15 @@ public class PlgApplication implements CommandLineRunner {
         // Llamamos al método initializeCamiones() de DataLoader para obtener la lista de camiones
         Mapa mapa = new Mapa(25, 25);
         List<Camion> camiones = dataLoader.initializeCamiones();
-        List<Averia> averias = dataLoader.initializeAverias(camiones);
+        //List<Averia> averias = dataLoader.initializeAverias(camiones);
         List<Pedido> pedidos = dataLoader.initializePedidos();
-        List<Mantenimiento> mantenimientos = dataLoader.initializeMantenimientos(camiones);
+        //List<Mantenimiento> mantenimientos = dataLoader.initializeMantenimientos(camiones);
         dataLoader.initializeBloqueos(mapa);
         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidos, camiones);
         algoritmoGenetico.ejecutarAlgoritmo();
         Individuo mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
+
+        // NO EXISTE NO LO MIREN 
         List<List<Coordenada>> rutas = new ArrayList<>();
         for (List<Integer> pedidos_gen : mejorIndividuo.getCromosoma()) {
             List<Coordenada> ruta = new ArrayList<>();

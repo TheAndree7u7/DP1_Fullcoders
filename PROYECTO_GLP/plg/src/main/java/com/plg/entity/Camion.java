@@ -50,11 +50,5 @@ public class Camion {
     // Porcentaje de uso actual
     private double porcentajeUso;
 
-    // Historiales
-    private List<Mantenimiento> mantenimientos     = new ArrayList<>();
-    private List<Averia>      averias             = new ArrayList<>();
-    private List<Pedido>      pedidos             = new ArrayList<>();
-    private List<EntregaParcial> entregasParciales = new ArrayList<>();
-
    
 }

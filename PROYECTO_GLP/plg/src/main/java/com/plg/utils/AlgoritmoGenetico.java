@@ -127,19 +127,16 @@ public class AlgoritmoGenetico {
     }
 
     private List<Integer> eliminarDuplicados(List<Integer> hijo1) {
-        // Inicializamos una lista para llevar el registro de los números usados
         List<Integer> numeros = new ArrayList<>(Collections.nCopies(pedidos.size(), 0));
 
-        // Primera pasada: recorremos y marcamos duplicados
         for (int i = 0; i < hijo1.size(); i++) {
             if (hijo1.get(i) == -1)
-                continue; // Si es -1, lo ignoramos
+                continue; 
             int gene = hijo1.get(i);
-            // Si el gene es válido y no está usado, lo marcamos
+    
             if (gene >= 0 && gene < numeros.size() && numeros.get(gene) == 0) {
                 numeros.set(gene, 1);
             } else {
-                // Si ya se ha usado o es inválido, buscamos el primer número libre
                 boolean encontrado = false;
                 for (int j = 0; j < numeros.size(); j++) {
                     if (numeros.get(j) == 0) {
@@ -163,18 +160,28 @@ public class AlgoritmoGenetico {
                 freeIndices.add(j);
             }
         }
-        // Mezclamos aleatoriamente los índices libres
-        Collections.shuffle(freeIndices);
-
-        // Usamos los índices mezclados para reemplazar los -1 restantes
-        int freeIndex = 0;
+        // Recopilamos todos los indices de -1
+        List<Integer> indicesNegativos = new ArrayList<>();
         for (int i = 0; i < hijo1.size(); i++) {
-            if (hijo1.get(i) == -1 && freeIndex < freeIndices.size()) {
-                hijo1.set(i, freeIndices.get(freeIndex));
-                freeIndex++;
+            if (hijo1.get(i) == -1) {
+                indicesNegativos.add(i);
             }
         }
 
+        // Mezclamos aleatoriamente los índices libres
+        Collections.shuffle(freeIndices);
+        Collections.shuffle(indicesNegativos);
+
+        // Usamos los índices mezclados para reemplazar los -1 restantes
+        int freeIndex = 0;
+        for (int i = 0; i < indicesNegativos.size(); i++) {
+            if (freeIndex < freeIndices.size()) {
+                hijo1.set(indicesNegativos.get(i), freeIndices.get(freeIndex));
+                freeIndex++;
+            } else {
+                break; // No hay más índices libres para reemplazar
+            }
+        }
         return hijo1;
     }
 }
