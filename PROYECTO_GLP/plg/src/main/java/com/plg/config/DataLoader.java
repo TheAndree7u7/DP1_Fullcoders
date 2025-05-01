@@ -44,11 +44,11 @@ public class DataLoader {
 
     public List<Camion> initializeCamiones() {
         List<Camion> camiones = new ArrayList<>();
-        String[] tipos = { "TA"};
+        String[] tipos = { "TA", "TB"};
         double[] capacidades = { 25.0, 20.0, 15.0, 10.0 };
         double[] taras = { 15.0, 12.0, 9.0, 7.0 };
 
-        Coordenada coordenada = new Coordenada(0, 0);
+        Coordenada coordenada = new Coordenada(12, 12);
 
         for (int i = 0; i < tipos.length; i++) {
             for (int j = 1; j <= 3; j++) {

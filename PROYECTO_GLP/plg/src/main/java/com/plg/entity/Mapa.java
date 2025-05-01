@@ -63,6 +63,10 @@ public class Mapa {
         for (int i = this.filas - 1; i >= 0; i--) {
             System.out.printf("%4d ", i); // Índice de fila
             for (int j = 0; j < this.columnas; j++) {
+                if (i == 12 && j == 12) {
+                    System.out.print("  A "); // Nodo especial
+                    continue;
+                }
                 Nodo nodoActual = getNodo(i, j);
                 String cell = " . "; // Valor por defecto
                 if (nodoActual.isBloqueado()) {
@@ -72,7 +76,7 @@ public class Mapa {
                     if (rutas != null){
                         for (int k = 0; k < rutas.size(); k++) {
                             if (rutas.get(k).contains(nodoActual.getCoordenada())) {
-                                cell = String.format(" %d ", k + 1);
+                                cell = String.format(" %d ", k);
                                 break;
                             }
                         }

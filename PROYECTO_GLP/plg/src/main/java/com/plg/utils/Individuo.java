@@ -1,6 +1,7 @@
 package com.plg.utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.plg.entity.Camion;
@@ -28,7 +29,7 @@ public class Individuo {
         this.pedidos = pedidos;
         this.camiones = camiones;
         this.mapa = mapa;
-        inicializarCromosoma();
+        this.cromosoma = inicializarCromosoma(); // Inicializa el cromosoma aleatoriamente
         this.fitness = calcularFitness();
     }
 
@@ -60,23 +61,37 @@ public class Individuo {
         return aux1; // Retorna el cromosoma inicializado
     }
 
-    private List<List<Integer>> inicializarCromosoma() {
-        cromosoma = new ArrayList<>(camiones.size());
-        for (int i = 0; i < camiones.size(); i++) {
-            cromosoma.add(new ArrayList<>());
-        }
-        // asignamos de forma aleatoria a cada camion un pedido
-        for (int i = 0; i < pedidos.size(); i++) {
-            int camionIndex = (int) (Math.random() * camiones.size()); // Selecciona un camión aleatoriodo
-            cromosoma.get(camionIndex).add(pedidos.get(i).getId());
-        }
-        for (List<Integer> gen : cromosoma) {
-            // completamos con menos 0
-            while (gen.size() < pedidos.size()) {
-                gen.add(-1); // -1 indica que no hay pedido asignado
+    public void limpiarCromosoma() {
+        for(List<Integer> gen : this.cromosoma) {
+            for(int i = 0; i < gen.size(); i++) {
+                if(gen.get(i) == -1) {
+                    gen.remove(i);
+                    gen.add(-1); // -1 indica que no hay pedido asignado
+                }
             }
         }
-        return cromosoma; // Retorna el cromosoma inicializado
+    }
+
+    private List<List<Integer>> inicializarCromosoma() {
+        List<List<Integer>> cromosomaInicial = new ArrayList<>();
+        for (int i = 0; i < camiones.size(); i++) {
+            List<Integer> gen = new ArrayList<>(Collections.nCopies(pedidos.size(), -1));
+            cromosomaInicial.add(gen);
+        }
+
+        List<Integer> pedidosIds = new ArrayList<>();
+        for (Pedido pedido : pedidos) {
+            pedidosIds.add(pedido.getId());
+        }
+        Collections.shuffle(pedidosIds);
+
+        for (int i = 0; i < pedidosIds.size(); i++) {
+            int camionIndex = i % camiones.size();
+            int posicion = i / camiones.size();
+            cromosomaInicial.get(camionIndex).set(posicion, pedidosIds.get(i));
+        }
+
+        return cromosomaInicial;
     }
 
     public List<Integer> getCromosomaNumerico() {
@@ -89,29 +104,47 @@ public class Individuo {
 
     private double calcularFitness() {
         double fitness = 0.0;
+        // Itera por cada camión
         for (int i = 0; i < camiones.size(); i++) {
             List<Integer> gen = cromosoma.get(i);
             List<Integer> asignados = new ArrayList<>();
-            // Filtramos solo los pedidos asignados (índices válidos)
+            // Filtrar solo los pedidos asignados (IDs válidos)
             for (Integer pedidoId : gen) {
                 if (pedidoId >= 0) {
                     asignados.add(pedidoId);
                 }
             }
             if (!asignados.isEmpty()) {
-                // Distancia desde el camión hasta el primer pedido asignado
-                Coordenada coordCamion = camiones.get(i).getCoordenadaActual();
-                Coordenada coordPrimerPedido = pedidos.get(asignados.get(0)).getCoordenada();
-                fitness += mapa.aStar(coordCamion, coordPrimerPedido).size();
-                // Suma las distancias entre pedidos consecutivos
+                // Buscar el pedido correspondiente al primer pedido asignado
+                Pedido primerPedido = buscarPedido(asignados.get(0));
+                if (primerPedido != null) {
+                    Coordenada coordCamion = camiones.get(i).getCoordenadaActual();
+                    Coordenada coordPrimerPedido = primerPedido.getCoordenada();
+                    fitness += mapa.aStar(coordCamion, coordPrimerPedido).size();
+                }
+                // Sumar distancias entre pedidos consecutivos
                 for (int j = 0; j < asignados.size() - 1; j++) {
-                    Coordenada coord1 = pedidos.get(asignados.get(j)).getCoordenada();
-                    Coordenada coord2 = pedidos.get(asignados.get(j + 1)).getCoordenada();
-                    fitness += mapa.aStar(coord1, coord2).size();
+                    Pedido pedidoActual = buscarPedido(asignados.get(j));
+                    Pedido pedidoSiguiente = buscarPedido(asignados.get(j + 1));
+                    if (pedidoActual != null && pedidoSiguiente != null) {
+                        Coordenada coord1 = pedidoActual.getCoordenada();
+                        Coordenada coord2 = pedidoSiguiente.getCoordenada();
+                        fitness += mapa.aStar(coord1, coord2).size();
+                    }
                 }
             }
         }
         return fitness;
+    }
+    
+    // Función auxiliar para buscar un Pedido a partir de su ID
+    private Pedido buscarPedido(int id) {
+        for (Pedido pedido : pedidos) {
+            if (pedido.getId() == id) {
+                return pedido;
+            }
+        }
+        return null;
     }
 
     public void mutar() {
