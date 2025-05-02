@@ -50,25 +50,7 @@ public class DataLoader implements CommandLineRunner {
     private AlmacenRepository almacenRepository;
     
     @Autowired
-    private ClienteRepository clienteRepository;
-
-    // @Value("${app.data.pedidos-path}")
-    // private String pedidosPath;
-    
-    // @Value("${app.data.mantenimientos-path}")
-    // private String mantenimientosPath;
-    
-    // @Value("${app.data.bloqueos-path}")
-    // private String bloqueosPath;
-    
-    // @Value("${app.data.averias-path}")
-    // private String averiasPath;
-    
-    // @Value("${app.data.almacenes-path}")
-    // private String almacenesPath;
-    
-    // @Value("${app.data.camiones-path}")
-    // private String camionesPath;
+    private ClienteRepository clienteRepository; 
 
     @Override
     public void run(String... args) throws Exception {
@@ -315,50 +297,80 @@ public class DataLoader implements CommandLineRunner {
     
     
     private void loadMantenimientosFromFile(String fileName) {
-        logger.info("Loading mantenimientos from file: {}", fileName);
-
+        logger.info("Loading preventive maintenances from file: {}", fileName);
+    
         try {
             ClassPathResource resource = new ClassPathResource("data/mantenimientos/" + fileName);
+    
+            // Formato del nombre de fecha que viene en el archivo (20250401 → 1 abril 2025)
+            DateTimeFormatter formatter = DateTimeFormatter.BASIC_ISO_DATE;   // yyyyMMdd
+    
             try (BufferedReader reader = new BufferedReader(new FileReader(resource.getFile()))) {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                
                 String line;
+    
                 while ((line = reader.readLine()) != null) {
-                    String[] datos = line.split(",");
-                    if (datos.length >= 3) {
-                        String codigoCamion = datos[0].trim();
-                        LocalDate fechaInicio = LocalDate.parse(datos[1].trim(), formatter);
-                        LocalDate fechaFin = LocalDate.parse(datos[2].trim(), formatter);
-                        
-                        Optional<Camion> camionOpt = camionRepository.findByCodigo(codigoCamion);
-                        if (camionOpt.isPresent()) {
-                            Camion camion = camionOpt.get();
-                            Mantenimiento mantenimiento = Mantenimiento.builder()
-                                    .camion(camion)
-                                    .fechaInicio(fechaInicio)
-                                    .fechaFin(fechaFin)
-                                    .tipo("preventivo")
-                                    .descripcion("Mantenimiento preventivo programado")
-                                    .estado(0) // Programado
-                                    .build();
-                            
-                            if (camion.getMantenimientos() == null) {
-                                camion.setMantenimientos(new ArrayList<>());
-                            }
-                            camion.getMantenimientos().add(mantenimiento);
-                            
-                            mantenimientoRepository.save(mantenimiento);
-                            logger.info("Mantenimiento saved for camion: {}", codigoCamion);
-                        } else {
-                            logger.warn("Camión not found: {}", codigoCamion);
-                        }
+                    line = line.trim();
+                    if (line.isEmpty()) {                    // Línea vacía ⇒ saltar
+                        continue;
                     }
+    
+                    // Esperamos exactamente “FECHA:CODIGO”
+                    String[] parts = line.split(":");
+                    if (parts.length != 2) {
+                        logger.warn("Línea con formato inválido (se esperaba FECHA:CODIGO): {}", line);
+                        continue;
+                    }
+    
+                    // ─── parseo de campos ──────────────────────────────────────────────
+                    String fechaRaw      = parts[0].trim();  // 20250401
+                    String codigoCamion  = parts[1].trim();  // TA01, TD01, …
+    
+                    LocalDate fechaInicio;
+                    try {
+                        fechaInicio = LocalDate.parse(fechaRaw, formatter);
+                    } catch (Exception ex) {
+                        logger.warn("Fecha inválida en línea '{}': {}", line, ex.getMessage());
+                        continue;
+                    }
+    
+                    // Para mantenimiento de 1 solo día usamos la misma fecha como fin
+                    LocalDate fechaFin = fechaInicio;
+    
+                    // ─── persistencia ──────────────────────────────────────────────────
+                    Optional<Camion> camionOpt = camionRepository.findByCodigo(codigoCamion);
+                    if (camionOpt.isEmpty()) {
+                        logger.warn("Camión no encontrado: {}", codigoCamion);
+                        continue;
+                    }
+    
+                    Camion camion = camionOpt.get();
+    
+                    Mantenimiento mantenimiento = Mantenimiento.builder()
+                            .camion(camion)
+                            .fechaInicio(fechaInicio)
+                            .fechaFin(fechaFin)
+                            .tipo("preventivo")
+                            .descripcion("Mantenimiento preventivo programado")
+                            .estado(0) // 0 = Programado
+                            .build();
+    
+                    // Nos aseguramos de que la lista no sea nula
+                    if (camion.getMantenimientos() == null) {
+                        camion.setMantenimientos(new ArrayList<>());
+                    }
+                    camion.getMantenimientos().add(mantenimiento);
+    
+                    mantenimientoRepository.save(mantenimiento);
+                    logger.info("Mantenimiento creado: {} – {}", codigoCamion, fechaInicio);
                 }
             }
-            logger.info("Mantenimientos loaded successfully");
-
+    
+            logger.info("Todos los mantenimientos preventivos cargados correctamente");
         } catch (IOException e) {
-            logger.error("Error loading mantenimientos: " + e.getMessage(), e);
+            logger.error("Error cargando mantenimientos: {}", e.getMessage(), e);
         }
     }
+    
+
+
 }

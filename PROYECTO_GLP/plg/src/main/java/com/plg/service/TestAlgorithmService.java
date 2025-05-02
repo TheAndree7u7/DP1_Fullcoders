@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,7 @@ import com.plg.repository.RutaRepository;
  */
 @Service
 @Profile("test-algorithm")
+@DependsOn("dataLoader") // Asegurarse de que los datos estén cargados antes de ejecutar
 public class TestAlgorithmService implements ApplicationRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(TestAlgorithmService.class);

@@ -1,10 +1,19 @@
 package com.plg.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
 import java.time.LocalTime;
-//importar column default
+
 import org.hibernate.annotations.ColumnDefault;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 @Entity
 @Data
 @NoArgsConstructor
@@ -77,6 +86,7 @@ public class Almacen {
     // Método para calcular la distancia desde este almacén hasta una posición
     public double calcularDistancia(double posX2, double posY2) {
         // Distancia Manhattan: suma de las diferencias absolutas en cada dimensión
+        //Aca se deberia llamar al A*
         return Math.abs(posX - posX2) + Math.abs(posY - posY2);
     }
     

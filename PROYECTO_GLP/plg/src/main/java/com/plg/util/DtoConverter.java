@@ -20,10 +20,7 @@ public class DtoConverter {
         
         return ClienteDTO.builder()
                 .id(cliente.getId())
-                .nombre(cliente.getNombre())
-                .telefono(cliente.getTelefono())
-                .email(cliente.getEmail())
-                .direccion(cliente.getDireccion())
+                .nombre(cliente.getNombre()) 
                 .posX(cliente.getPosX())
                 .posY(cliente.getPosY())
                 .build();
@@ -39,10 +36,7 @@ public class DtoConverter {
         
         Cliente cliente = new Cliente();
         cliente.setId(dto.getId());
-        cliente.setNombre(dto.getNombre());
-        cliente.setTelefono(dto.getTelefono());
-        cliente.setEmail(dto.getEmail());
-        cliente.setDireccion(dto.getDireccion());
+        cliente.setNombre(dto.getNombre()); 
         
         // Convertir Integer a int para posX y posY
         if (dto.getPosX() != 0.0) {
