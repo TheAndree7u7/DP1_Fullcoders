@@ -25,36 +25,5 @@ public class NodoRuta {
     private LocalDateTime tiempoLlegadaReal;
     private String observaciones;
 
-    // public NodoRuta() {
-    //     this.entregado = false;
-    // }
-
-    // public NodoRuta(double posX, double posY, String tipo) {
-    //     this();
-    //     this.posX = posX;
-    //     this.posY = posY;
-    //     this.tipo = tipo;
-    // }
-
-    // public NodoRuta(double posX, double posY, String tipo, Pedido pedido, double volumenGLP, double porcentajePedido) {
-    //     this(posX, posY, tipo);
-    //     this.pedido = pedido;
-    //     this.volumenGLP = volumenGLP;
-    //     this.porcentajePedido = porcentajePedido;
-    // }
-
-    // public double distanciaA(NodoRuta otro) {
-    //     return Math.abs(this.posX - otro.posX) + Math.abs(this.posY - otro.posY);
-    // }
-
-    // @Override
-    // public String toString() {
-    //     return "NodoRuta{" +
-    //            "id=" + id +
-    //            ", orden=" + orden +
-    //            ", pos=(" + posX + "," + posY + ")" +
-    //            ", tipo='" + tipo + '\'' +
-    //            (pedido != null ? ", pedidoId=" + pedido.getId() : "") +
-    //            '}';
-    // }
+ 
 }

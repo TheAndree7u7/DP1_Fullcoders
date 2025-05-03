@@ -18,6 +18,9 @@ public class Nodo {
     private boolean bloqueado;
     private double gScore;
     private double fScore;
+    private TipoNodo tipoNodo; // Tipo de nodo (almacen, cliente, intermedio, normal)
+    private Pedido pedido; // Solo para nodos de tipo "CLIENTE"
+    private Camion camion;
 
     @Override
     public boolean equals(Object o) {

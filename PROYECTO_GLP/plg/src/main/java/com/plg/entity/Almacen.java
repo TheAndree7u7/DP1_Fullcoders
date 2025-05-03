@@ -14,8 +14,7 @@ import java.time.LocalTime;
 public class Almacen {
 
     private String nombre;
-    private double posX;
-    private double posY;
+    private Coordenada coordenada;
 
     // GLP
     private double capacidadGLP;

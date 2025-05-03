@@ -4,10 +4,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
+import com.plg.entity.EstadoCamion;
 import com.plg.entity.Mapa;
+import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
+import com.plg.entity.TipoNodo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,17 +23,26 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class Individuo {
-    private double fitness; // Valor de aptitud del individuo
-    private List<List<Integer>> cromosoma; // Representación del individuo como una lista de enteros (cromosoma)
+    private double fitness;
+    private List<List<Nodo>> cromosoma;
     private List<Pedido> pedidos; // Lista de pedidos
-    private List<Camion> camiones; // Lista de camiones
+    private List<Camion> camiones; // List camiones disponibles
+    private List<Camion> camionesAveriados; // Lista de camiones averiados
+    private List<Almacen> almacenes; // Lista de almacenes disponibles
     private Mapa mapa; // Mapa que representa el entorno de entrega
 
-    public Individuo(List<Pedido> pedidos, List<Camion> camiones, Mapa mapa) {
+    public Individuo(List<Pedido> pedidos, List<Camion> camiones, Mapa mapa, List<Almacen> almacenes) {
         this.pedidos = pedidos;
-        this.camiones = camiones;
+        for (Camion camion : camiones) {
+            if (camion.getEstado() == EstadoCamion.INMOVILIZADO_POR_AVERIA) {
+                this.camionesAveriados.add(camion);
+            } else {
+                this.camiones.add(camion);
+            }
+        }
+        this.almacenes = almacenes;
         this.mapa = mapa;
-        this.cromosoma = inicializarCromosoma(); // Inicializa el cromosoma aleatoriamente
+        this.cromosoma = inicializarCromosoma(); 
         this.fitness = calcularFitness();
     }
 
@@ -37,88 +50,69 @@ public class Individuo {
         this.pedidos = pedidos;
         this.camiones = camiones;
         this.mapa = mapa;
-        this.cromosoma = cromosoma_a_partir_cromosoma_num(cromosoma_num); // Inicializa el cromosoma a partir de la
-                                                                          // lista de enteros
         this.fitness = calcularFitness();
     }
 
-    public List<List<Integer>> cromosoma_a_partir_cromosoma_num(List<Integer> cromosoma_num) {
-        List<List<Integer>> aux1 = new ArrayList<>();
+    private List<List<Nodo>> inicializarCromosoma() {
+        List<List<Nodo>> cromosomaInicial = new ArrayList<>();
         for (int i = 0; i < camiones.size(); i++) {
-            List<Integer> gen = new ArrayList<>();
-            for (int j = 0; j < pedidos.size(); j++) {
-                gen.add(cromosoma_num.get(i * pedidos.size() + j));
-            }
-            // Pasamos todos los -1 al final de la lista
-            for (int j = 0; j < gen.size(); j++) {
-                if (gen.get(j) == -1) {
-                    gen.remove(j);
-                    gen.add(-1); // -1 indica que no hay pedido asignado
-                }
-            }
-            aux1.add(gen);
-        }
-        return aux1; // Retorna el cromosoma inicializado
-    }
-
-    public void limpiarCromosoma() {
-        System.out.println("Limpiando cromosoma...");
-        System.out.println(this);
-        for(List<Integer> gen : this.cromosoma) {
-            for(int i = 0; i < gen.size(); i++) {
-                if(gen.get(i) == -1) {
-                    gen.remove(i);
-                    gen.add(-1); // -1 indica que no hay pedido asignado
-                }
-            }
-        }
-    }
-
-    private List<List<Integer>> inicializarCromosoma() {
-        List<List<Integer>> cromosomaInicial = new ArrayList<>();
-        for (int i = 0; i < camiones.size(); i++) {
-            List<Integer> gen = new ArrayList<>(Collections.nCopies(pedidos.size(), -1));
+            List<Nodo> gen = new ArrayList<>();
             cromosomaInicial.add(gen);
         }
-
-        List<Integer> pedidosIds = new ArrayList<>();
-        for (Pedido pedido : pedidos) {
-            pedidosIds.add(pedido.getId());
+        // Asignamos pedidos
+        List<Pedido> pedidos = this.pedidos;
+        Collections.shuffle(pedidos);
+        for (int i = 0; i < pedidos.size(); i++) {
+            int camionIndex = (int) (Math.random() * camiones.size());
+            Nodo nodo = Nodo.builder()
+                    .coordenada(pedidos.get(i).getCoordenada())
+                    .bloqueado(false)
+                    .gScore(0)
+                    .fScore(0)
+                    .tipoNodo(TipoNodo.CLIENTE)
+                    .pedido(pedidos.get(i))
+                    .build();
+            cromosomaInicial.get(camionIndex).add(nodo);
         }
-        Collections.shuffle(pedidosIds);
+        // Asignamos camiones averiados
+        for (Camion camion : camionesAveriados) {
+            int camionIndex = (int) (Math.random() * camiones.size());
+            Nodo nodo = Nodo.builder()
+                    .coordenada(camion.getCoordenadaActual())
+                    .bloqueado(false)
+                    .gScore(0)
+                    .fScore(0)
+                    .tipoNodo(TipoNodo.CAMION_AVERIADO)
+                    .camion(camion)
+                    .build();
+            cromosomaInicial.get(camionIndex).add(nodo);
+        }
 
-        for (int i = 0; i < pedidosIds.size(); i++) {
-            int camionIndex = i % camiones.size();
-            int posicion = i / camiones.size();
-            cromosomaInicial.get(camionIndex).set(posicion, pedidosIds.get(i));
+        // Asignamos almacenes
+        for (Almacen almacen : almacenes) {
+            int camionIndex = (int) (Math.random() * camiones.size());
+            Nodo nodo = Nodo.builder()
+                    .coordenada(almacen.getCoordenada())
+                    .bloqueado(false)
+                    .gScore(0)
+                    .fScore(0)
+                    .tipoNodo(TipoNodo.ALMACEN)
+                    .build();
+            cromosomaInicial.get(camionIndex).add(nodo);
         }
 
         return cromosomaInicial;
-    }
-
-    public List<Integer> getCromosomaNumerico() {
-        List<Integer> cromosomaNumerico = new ArrayList<>();
-        for (List<Integer> gen : cromosoma) {
-            cromosomaNumerico.addAll(gen);
-        }
-        return cromosomaNumerico;
     }
 
     private double calcularFitness() {
         double fitness = 0.0;
         // Itera por cada camión
         for (int i = 0; i < camiones.size(); i++) {
-            List<Integer> gen = cromosoma.get(i);
-            List<Integer> asignados = new ArrayList<>();
-            // Filtrar solo los pedidos asignados (IDs válidos)
-            for (Integer pedidoId : gen) {
-                if (pedidoId >= 0) {
-                    asignados.add(pedidoId);
-                }
-            }
-            if (!asignados.isEmpty()) {
+            List<Nodo> gen = cromosoma.get(i);
+
+            if (!gen.isEmpty()) {
                 // Buscar el pedido correspondiente al primer pedido asignado
-                Pedido primerPedido = buscarPedido(asignados.get(0));
+                Pedido primerPedido = buscarPedido(gen.get(0));
                 if (primerPedido != null) {
                     Coordenada coordCamion = camiones.get(i).getCoordenadaActual();
                     Coordenada coordPrimerPedido = primerPedido.getCoordenada();
@@ -138,16 +132,7 @@ public class Individuo {
         }
         return fitness;
     }
-    
-    // Función auxiliar para buscar un Pedido a partir de su ID
-    private Pedido buscarPedido(int id) {
-        for (Pedido pedido : pedidos) {
-            if (pedido.getId() == id) {
-                return pedido;
-            }
-        }
-        return null;
-    }
+
 
     public void mutar() {
 
