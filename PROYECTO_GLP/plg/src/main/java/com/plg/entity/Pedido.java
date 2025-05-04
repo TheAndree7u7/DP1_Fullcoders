@@ -5,17 +5,15 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
+
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Getter
 @Setter
-public class Pedido {
+public class Pedido extends Nodo {
 
     private int id;
     private String codigo;
-    private Coordenada coordenada;
     private double horasLimite; 
     private LocalDateTime fechaRegistro;
     private LocalDateTime fechaEntregaRequerida;
@@ -33,6 +31,12 @@ public class Pedido {
     private Camion camion;
     private List<AsignacionCamion> asignaciones = new ArrayList<>();
 
-  
+    public Pedido(Coordenada coordenada, boolean bloqueado, double gScore, TipoNodo tipoNodo) {
+        super(coordenada, bloqueado, gScore, tipoNodo);
+    }
 
+    @Override
+    public String toString() {
+        return "Pedido[id=" + id + ", codigo=" + codigo + ", volumenGLPAsignado=" + volumenGLPAsignado + "]";
+    }
 }

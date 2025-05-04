@@ -18,8 +18,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Camion {
+public class Camion extends Nodo {
 
     private String codigo;
     private String tipo; // TA, TB, TC, TD, etc.
@@ -38,9 +37,6 @@ public class Camion {
     private double combustibleActual;        // Combustible actual en galones
     private double velocidadPromedio = 50.0; // Velocidad promedio en km/h
 
-    // Posición actual del camión (para calcular distancia)
-    private Coordenada coordenadaActual;
-
     // Último almacén visitado
     private Almacen ultimoAlmacen;
 
@@ -50,5 +46,12 @@ public class Camion {
     // Porcentaje de uso actual
     private double porcentajeUso;
 
-   
+    public Camion(Coordenada coordenada, boolean bloqueado, double gScore, TipoNodo tipoNodo) {
+        super(coordenada, bloqueado, gScore, tipoNodo);
+    }
+
+    @Override
+    public String toString() {
+        return "Camion[codigo=" + codigo + ", tipo=" + tipo + ", capacidad=" + capacidad + "]";
+    }
 }

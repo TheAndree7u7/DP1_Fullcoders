@@ -7,14 +7,11 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalTime;
 
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Almacen {
+public class Almacen extends Nodo {
 
     private String nombre;
-    private Coordenada coordenada;
 
     // GLP
     private double capacidadGLP;
@@ -35,6 +32,10 @@ public class Almacen {
     private boolean ultimoReabastecimientoRealizado = false;
     private boolean activo;
 
+    public Almacen(Coordenada coordenada, boolean bloqueado, double gScore, TipoNodo tipoNodo) {
+        super(coordenada, bloqueado, gScore, tipoNodo);
+    }
+
     public boolean puedeRecargarCombustible(double cantidadRequerida) {
         return activo && capacidadActualCombustible >= cantidadRequerida;
     }
@@ -53,15 +54,16 @@ public class Almacen {
         return true;
     }
 
-    public double calcularDistancia(double posX2, double posY2) {
-        return Math.abs(posX - posX2) + Math.abs(posY - posY2);
-    }
-
     public void reabastecer() {
         if (!esCentral) {
             capacidadActualGLP = capacidadMaximaGLP;
             capacidadActualCombustible = capacidadMaximaCombustible;
             ultimoReabastecimientoRealizado = true;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Almacen[nombre=" + nombre + ", capacidadActualGLP=" + capacidadActualGLP + "]";
     }
 }

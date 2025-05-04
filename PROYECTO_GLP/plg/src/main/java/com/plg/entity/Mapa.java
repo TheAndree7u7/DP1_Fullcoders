@@ -57,22 +57,17 @@ public class Mapa {
             System.out.printf("%4d", j);
         }
         System.out.println();
-        
-        
+
         // Imprime cada fila desde la más alta hasta la 0
         for (int i = this.filas - 1; i >= 0; i--) {
             System.out.printf("%4d ", i); // Índice de fila
             for (int j = 0; j < this.columnas; j++) {
-                if (i == 12 && j == 12) {
-                    System.out.print("  A "); // Nodo especial
-                    continue;
-                }
                 Nodo nodoActual = getNodo(i, j);
                 String cell = " . "; // Valor por defecto
                 if (nodoActual.isBloqueado()) {
                     cell = " X "; // Nodo bloqueado
-                }else {
-                    if (rutas != null){
+                } else {
+                    if (rutas != null) {
                         for (int k = 0; k < rutas.size(); k++) {
                             if (rutas.get(k).contains(nodoActual.getCoordenada())) {
                                 cell = String.format(" %d ", k);
@@ -80,21 +75,20 @@ public class Mapa {
                             }
                         }
                     }
-                    // Si es un pedido, imprimimos la letra P
                     if (pedidos != null) {
-                        for (int k = 0; k < pedidos.size(); k++) {
-                            if (pedidos.get(k).getCoordenada().equals(nodoActual.getCoordenada())) {
+                        for (Pedido pedido : pedidos) {
+                            if (pedido.getCoordenada().equals(nodoActual.getCoordenada())) {
                                 cell = " P ";
                                 break;
                             }
                         }
                     }
-                }    
+                }
                 System.out.printf("%4s", cell);
             }
             System.out.println();
         }
-        
+
         // Imprime la línea de índices de columna al pie
         System.out.print("     ");
         for (int j = 0; j < this.columnas; j++) {
@@ -129,60 +123,51 @@ public class Mapa {
         return adyacentes;
     }
 
-    private double calcularHeuristica(Coordenada a, Coordenada b) {
-        return Math.abs(a.getColumna() - b.getColumna()) + Math.abs(a.getFila() - b.getFila());
+    private double calcularHeuristica(Nodo a, Nodo b) {
+        return Math.abs(a.getCoordenada().getColumna() - b.getCoordenada().getColumna()) +
+               Math.abs(a.getCoordenada().getFila() - b.getCoordenada().getFila());
     }
 
-    private double calcularFScore(Coordenada inicio, Coordenada destino) {
-        Nodo nodo = getNodo(inicio);
-        double g = nodo.getGScore();
-        double h = calcularHeuristica(nodo.getCoordenada(), destino); // Heurística
-        return g + h; // f(n) = g(n) + h(n)
-    }
-
-    public List<Coordenada> aStar(Coordenada inicio, Coordenada destino) {
+    public List<Nodo> aStar(Nodo inicio, Nodo destino) {
         PriorityQueue<Nodo> openSet = new PriorityQueue<>((a, b) -> Double.compare(a.getFScore(), b.getFScore()));
-        Map<Nodo, Nodo> cameFrom = new HashMap<>(); // Mapa para rastrear el camino
-        // gscore de todos los nodos igual a infinito
+        Map<Nodo, Nodo> cameFrom = new HashMap<>();
+
         for (Nodo nodo : list_nodos) {
             nodo.setGScore(Double.POSITIVE_INFINITY);
             nodo.setFScore(Double.POSITIVE_INFINITY);
         }
-        Nodo nodoInicio = getNodo(inicio);
-        // iniciamos el nodo inicial con score 0
-        nodoInicio.setGScore(0);
-        nodoInicio.setFScore(calcularHeuristica(inicio, destino));
 
-        openSet.add(nodoInicio); // Añadimos el nodo inicial a la cola de prioridad
+        inicio.setGScore(0);
+        inicio.setFScore(calcularHeuristica(inicio, destino));
+        openSet.add(inicio);
         while (!openSet.isEmpty()) {
-            Nodo nodoActual = openSet.poll(); // Nodo con el menor fScore
-            if (nodoActual.getCoordenada().equals(destino)) {
+            Nodo nodoActual = openSet.poll();
+            if (nodoActual.equals(destino)) {
                 return reconstruirRuta(cameFrom, nodoActual);
             }
             for (Nodo vecino : getAdj(nodoActual.getCoordenada())) {
                 if (vecino.isBloqueado()) {
-                    continue; // Ignorar nodos bloqueados
+                    continue;
                 }
-                double tentativeGScore = nodoActual.getGScore() + 1; // Asumimos un costo de 1 para cada movimiento
-
+                double tentativeGScore = nodoActual.getGScore() + 1;
                 if (tentativeGScore < vecino.getGScore()) {
-                    cameFrom.put(vecino, nodoActual); // Actualizamos el camino más corto
+                    cameFrom.put(vecino, nodoActual);
                     vecino.setGScore(tentativeGScore);
-                    vecino.setFScore(calcularFScore(vecino.getCoordenada(), destino)); // Actualizamos el fScore
+                    vecino.setFScore(tentativeGScore + calcularHeuristica(vecino, destino));
 
                     if (!openSet.contains(vecino)) {
-                        openSet.add(vecino); // Añadimos a la cola si no está ya
+                        openSet.add(vecino);
                     }
                 }
             }
         }
-        return Collections.emptyList(); // No se encontró ruta
+        return Collections.emptyList();
     }
 
-    private List<Coordenada> reconstruirRuta(Map<Nodo, Nodo> cameFrom, Nodo nodoActual) {
-        List<Coordenada> ruta = new ArrayList<>();
+    private List<Nodo> reconstruirRuta(Map<Nodo, Nodo> cameFrom, Nodo nodoActual) {
+        List<Nodo> ruta = new ArrayList<>();
         while (nodoActual != null) {
-            ruta.add(nodoActual.getCoordenada());
+            ruta.add(nodoActual);
             nodoActual = cameFrom.get(nodoActual);
         }
         Collections.reverse(ruta);
