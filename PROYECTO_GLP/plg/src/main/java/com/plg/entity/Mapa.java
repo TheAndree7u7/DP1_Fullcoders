@@ -28,6 +28,22 @@ public class Mapa {
     private List<List<Nodo>> matriz = new ArrayList<>();
     private List<Nodo> list_nodos = new ArrayList<>();
 
+    private static Mapa instance;
+
+    public static Mapa getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("Mapa instance has not been initialized.");
+        }
+        return instance;
+    }
+
+    public static void initializeInstance(int columnas, int filas) {
+        if (instance != null) {
+            throw new IllegalStateException("Mapa instance has already been initialized.");
+        }
+        instance = new Mapa(columnas, filas);
+    }
+
     // Construye el mapa como un grafo
     public Mapa(int columnas, int filas) {
         int totalNodos = filas * columnas;

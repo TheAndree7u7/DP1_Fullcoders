@@ -37,17 +37,12 @@ public class Camion extends Nodo {
     private double combustibleActual;        // Combustible actual en galones
     private double velocidadPromedio = 50.0; // Velocidad promedio en km/h
 
-    // Último almacén visitado
-    private Almacen ultimoAlmacen;
+    // Ditancia máxima
+    private double distanciaMaxima; 
 
-    // Fecha de la última carga de GLP
-    private LocalDateTime fechaUltimaCarga;
 
-    // Porcentaje de uso actual
-    private double porcentajeUso;
-
-    public Camion(Coordenada coordenada, boolean bloqueado, double gScore, TipoNodo tipoNodo) {
-        super(coordenada, bloqueado, gScore, tipoNodo);
+    public Camion(Coordenada coordenada, boolean bloqueado, double gScore, TipoNodo tipoNodo, double fScore) {
+        super(coordenada, bloqueado, gScore, fScore, tipoNodo);
     }
 
     @Override

@@ -32,8 +32,8 @@ public class Almacen extends Nodo {
     private boolean ultimoReabastecimientoRealizado = false;
     private boolean activo;
 
-    public Almacen(Coordenada coordenada, boolean bloqueado, double gScore, TipoNodo tipoNodo) {
-        super(coordenada, bloqueado, gScore, tipoNodo);
+    public Almacen(Coordenada coordenada, boolean bloqueado, double gScore, double fScore, TipoNodo tipoNodo) {
+        super(coordenada, bloqueado, gScore, fScore, tipoNodo);
     }
 
     public boolean puedeRecargarCombustible(double cantidadRequerida) {

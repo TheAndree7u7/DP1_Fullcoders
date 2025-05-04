@@ -46,21 +46,27 @@ public class DataLoader {
         List<Camion> camiones = new ArrayList<>();
         String[] tipos = { "TA", "TB"};
         double[] capacidades = { 25.0, 20.0, 15.0, 10.0 };
+    
         double[] taras = { 15.0, 12.0, 9.0, 7.0 };
 
         Coordenada coordenada = new Coordenada(12, 12);
 
+
         for (int i = 0; i < tipos.length; i++) {
             for (int j = 1; j <= 3; j++) {
+
+                double distanciaMaxima = 25 * 180 / (taras[i] + capacidades[i]);
+
                 Camion camion = new Camion();
                 camion.setCodigo(tipos[i] + "0" + j);
                 camion.setTipo(tipos[i]);
                 camion.setCapacidad(capacidades[i]);
                 camion.setTara(taras[i]);
-                camion.setCoordenadaActual(coordenada);
+                camion.setCoordenada(coordenada);
                 camion.setPesoCarga(0);
                 camion.setPesoCombinado(taras[i]);
-                camion.setEstado(null); // Temporalmente null
+                camion.setEstado(null); 
+                camion.setDistanciaMaxima(distanciaMaxima);
                 camiones.add(camion);
             }
         }

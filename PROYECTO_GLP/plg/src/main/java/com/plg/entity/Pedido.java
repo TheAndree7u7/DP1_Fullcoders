@@ -31,8 +31,8 @@ public class Pedido extends Nodo {
     private Camion camion;
     private List<AsignacionCamion> asignaciones = new ArrayList<>();
 
-    public Pedido(Coordenada coordenada, boolean bloqueado, double gScore, TipoNodo tipoNodo) {
-        super(coordenada, bloqueado, gScore, tipoNodo);
+    public Pedido(Coordenada coordenada, boolean bloqueado, double gScore, double fScore, TipoNodo tipoNodo) {
+        super(coordenada, bloqueado, gScore, fScore, tipoNodo);
     }
 
     @Override
