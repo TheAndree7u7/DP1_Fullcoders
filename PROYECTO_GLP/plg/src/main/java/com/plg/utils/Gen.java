@@ -1,5 +1,6 @@
 package com.plg.utils;
 
+import com.fasterxml.jackson.databind.ser.std.MapProperty;
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
 import com.plg.entity.Mapa;
@@ -10,43 +11,74 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@NoArgsConstructor
 public class Gen {
     private Camion camion;
     private List<Nodo> nodos;
     private List<Nodo> ruta_final;
 
-    private double calcularFitness() {
+
+    public Gen(Camion camion, List<Nodo> nodos) {
+        this.camion = camion;
+        this.nodos = nodos;
+        this.ruta_final = new ArrayList<>();
+    }
+
+    public double calcularFitness() {
         double fitness = 0.0;
-        for(int i=0; i<nodos.size()-1; i++){
+
+        Camion camion = this.camion.clone(); 
+        ruta_final = new ArrayList<>();
+
+        for (int i = 0; i < nodos.size() - 1; i++) {
             Nodo nodo1 = nodos.get(i);
-            Nodo nodo2 = nodos.get(i+1);
-            List<Nodo> ruta = new ArrayList<>();
+            Nodo nodo2 = nodos.get(i + 1);
+            List<Nodo> ruta = Mapa.getInstance().aStar(nodo1, nodo2);
+            double distanciaCalculada = ruta.size();
+            double distanciaMaxima = camion.calcularDistanciaMaxima();
+
+            if (!validarRuta(distanciaMaxima, distanciaCalculada)) {
+                fitness = Double.MIN_VALUE;
+                break;
+            }
+
             if (nodo2 instanceof Pedido) {
                 Pedido pedido = (Pedido) nodo2;
-                ruta = Mapa.getInstance().aStar(nodo2, pedido);
-                double tiempoEntrega = ruta.size() / camion.getVelocidadPromedio();
-                double combustibleUsado = camion.getConsumoCombustible() * tiempoEntrega;
-                if(tiempoEntrega <= pedido.getHorasLimite()){
-                    fitness += pedido.getHorasLimite() - tiempoEntrega; 
+                double tiempoEntregaLimite = pedido.getHorasLimite();
+                double tiempoLlegada = distanciaCalculada / camion.getVelocidadPromedio();
+
+                if (tiempoLlegada <= tiempoEntregaLimite) {
+                    fitness += tiempoEntregaLimite - tiempoLlegada;
+                    camion.actualizarCombustible(distanciaCalculada);
+                    camion.actualizarCargaPedido(pedido.getVolumenGLPAsignado());
+                    ruta_final.addAll(ruta);
                 } else {
-                    fitness -= Double.MAX_VALUE;
+                    fitness = Double.MIN_VALUE;
+                    break;
                 }
-            } else if (nodo2 instanceof Almacen) {
-                // Si es un almacén, no se suma nada al fitness
-            } else {
-                // Si es un camión averiado, se penaliza el fitness
-                fitness -= 10.0; // Penalización por camión averiado
+            } else if (nodo2 instanceof Almacen || nodo2 instanceof Camion) {
+                recargarCamion(camion, nodo2);
+                ruta_final.addAll(ruta);
             }
         }
         return fitness;
+    }
+
+    private boolean validarRuta(double distanciaMaxima, double distanciaCalculada) {
+        return distanciaMaxima >= distanciaCalculada;
+    }
+
+    private void recargarCamion(Camion camion, Nodo nodo) {
+        if (nodo instanceof Almacen || nodo instanceof Camion) {
+            camion.setCombustibleActual(camion.getCapacidadTanque());
+        }
     }
 
     @Override

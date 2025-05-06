@@ -27,6 +27,7 @@ public class Mapa {
 
     private List<List<Nodo>> matriz = new ArrayList<>();
     private List<Nodo> list_nodos = new ArrayList<>();
+    private List<Almacen> almacenes = new ArrayList<>();
 
     private static Mapa instance;
 
@@ -50,6 +51,24 @@ public class Mapa {
         this.columnas = columnas;
         this.filas = filas;
         this.matriz = new ArrayList<>();
+
+        // Creamos loa almacenes
+        Almacen almacenCentral = Almacen.builder()
+                .coordenada(new Coordenada(5, 5))
+                .bloqueado(false)
+                .tipoNodo(TipoNodo.ALMACEN)
+                .capacidadActualGLP(1000.0)
+                .capacidadMaximaGLP(1000.0)
+                .capacidadCombustible(1000.0)
+                .capacidadActualCombustible(1000.0)
+                .capacidadMaximaCombustible(1000.0)
+                .esCentral(true)
+                .permiteCamionesEstacionados(true)
+                .tipo("Central")
+                .build();
+
+        
+
 
         for (int i = 0; i < filas; i++) {
             List<Nodo> fila = new ArrayList<>(columnas);

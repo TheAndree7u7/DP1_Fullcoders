@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalTime;
-
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Almacen extends Nodo {
@@ -14,7 +14,6 @@ public class Almacen extends Nodo {
     private String nombre;
 
     // GLP
-    private double capacidadGLP;
     private double capacidadActualGLP;
     private double capacidadMaximaGLP;
 

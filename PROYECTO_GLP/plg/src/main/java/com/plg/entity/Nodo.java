@@ -3,10 +3,11 @@ package com.plg.entity;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 public class Nodo {
     private Coordenada coordenada;
     private boolean bloqueado;
