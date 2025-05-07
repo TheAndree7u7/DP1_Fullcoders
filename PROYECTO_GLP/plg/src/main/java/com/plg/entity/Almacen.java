@@ -63,6 +63,30 @@ public class Almacen extends Nodo {
         }
     }
 
+    /**
+     * Retorna un clon de este almacén conservando todos sus atributos.
+     */
+    public Almacen getClone() {
+        return Almacen.builder()
+            .coordenada(getCoordenada())
+            .bloqueado(isBloqueado())
+            .gScore(getGScore())
+            .fScore(getFScore())
+            .tipoNodo(getTipoNodo())
+            .nombre(nombre)
+            .capacidadActualGLP(capacidadActualGLP)
+            .capacidadMaximaGLP(capacidadMaximaGLP)
+            .capacidadActualCombustible(capacidadActualCombustible)
+            .capacidadMaximaCombustible(capacidadMaximaCombustible)
+            .esCentral(esCentral)
+            .permiteCamionesEstacionados(permiteCamionesEstacionados)
+            .tipo(tipo)
+            .horaReabastecimiento(horaReabastecimiento)
+            .ultimoReabastecimientoRealizado(ultimoReabastecimientoRealizado)
+            .activo(activo)
+            .build();
+    }
+
     @Override
     public String toString() {
         return "Almacen[nombre=" + nombre + ", capacidadActualGLP=" + capacidadActualGLP + "]";

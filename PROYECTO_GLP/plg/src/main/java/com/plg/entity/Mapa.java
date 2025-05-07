@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 
+import com.plg.utils.Individuo;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -47,27 +49,9 @@ public class Mapa {
 
     // Construye el mapa como un grafo
     public Mapa(int columnas, int filas) {
-        int totalNodos = filas * columnas;
         this.columnas = columnas;
         this.filas = filas;
         this.matriz = new ArrayList<>();
-
-        // Creamos loa almacenes
-        Almacen almacenCentral = Almacen.builder()
-                .coordenada(new Coordenada(5, 5))
-                .bloqueado(false)
-                .tipoNodo(TipoNodo.ALMACEN)
-                .capacidadActualGLP(1000.0)
-                .capacidadMaximaGLP(1000.0)
-                .capacidadCombustible(1000.0)
-                .capacidadActualCombustible(1000.0)
-                .capacidadMaximaCombustible(1000.0)
-                .esCentral(true)
-                .permiteCamionesEstacionados(true)
-                .tipo("Central")
-                .build();
-
-
 
         for (int i = 0; i < filas; i++) {
             List<Nodo> fila = new ArrayList<>(columnas);
@@ -84,7 +68,12 @@ public class Mapa {
         imprimirMapa(null, null);
     }
 
-    public void imprimirMapa(List<List<Coordenada>> rutas, List<Pedido> pedidos) {
+    public void imprimirMapa(Individuo individuo, List<Pedido> pedidos) {
+
+        // Rutas
+        List<List<Nodo>> rutas = new ArrayList<>();
+        // ME FALTA COMPLETAR ESTA PARTE 
+
         // Imprime cabecera de columnas
         System.out.print("     ");
         for (int j = 0; j < this.columnas; j++) {

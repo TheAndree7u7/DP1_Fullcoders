@@ -34,37 +34,14 @@ public class PlgApplication implements CommandLineRunner {
     public void run(String... args) throws Exception {
         // Llamamos al método initializeCamiones() de DataLoader para obtener la lista de camiones
         Mapa mapa = new Mapa(25, 25);
-        List<Almacen> almacenes = dataLoader.initializeAlmacenes(mapa);
+        List<Almacen> almacenes = dataLoader.initializeAlmacenes();
         List<Camion> camiones = dataLoader.initializeCamiones();
         List<Pedido> pedidos = dataLoader.initializePedidos();
         dataLoader.initializeBloqueos(mapa);
-        AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidos, camiones);
+        AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidos, camiones, almacenes);
         algoritmoGenetico.ejecutarAlgoritmo();
         Individuo mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
-
-        // NO EXISTE NO LO MIREN 
-        List<List<Coordenada>> rutas = new ArrayList<>();
-        for (List<Integer> pedidos_gen : mejorIndividuo.getCromosoma()) {
-            List<Coordenada> ruta = new ArrayList<>();
-            for (int i = 0; i < pedidos_gen.size(); i++) {
-                if (pedidos_gen.get(i) != -1) {
-                    if(i == 0){
-                        Camion camion = camiones.get(i);
-                        Coordenada ini = camion.getCoordenadaActual();
-                        Coordenada fin = pedidos.get(pedidos_gen.get(i)).getCoordenada();
-                        ruta.addAll(mapa.aStar(ini, fin));
-                    }else{
-                        Coordenada ini = pedidos.get(pedidos_gen.get(i - 1)).getCoordenada();
-                        Coordenada fin = pedidos.get(pedidos_gen.get(i)).getCoordenada();
-                        ruta.addAll(mapa.aStar(ini, fin));
-                    }
-                }else{
-                    break;
-                }
-            }
-            rutas.add(ruta);
-        }
-        mapa.imprimirMapa(rutas, pedidos);
+        mapa.imprimirMapa(mejorIndividuo, pedidos);
 
     }
 }

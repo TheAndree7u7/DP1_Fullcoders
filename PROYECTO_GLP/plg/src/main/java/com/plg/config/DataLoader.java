@@ -34,10 +34,14 @@ public class DataLoader {
     }
 
 
-    private List<Almacen> initializeAlmacenes(Mapa mapa) {
+    public List<Almacen> initializeAlmacenes() {
         List<Almacen> almacenes = new ArrayList<>();
         // Almacen central
-        
+        Almacen almacenCentral = AlmacenFactory.crearAlmacen(TipoAlmacen.CENTRAL,   new Coordenada(0,0),  1_000_000_000,
+        1_000_000_000);
+        Almacen almacen1 = AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(24, 0), 1000.0, 1000.0);
+        Almacen almacen2 = almacen1.getClone();
+        almacen2.setCoordenada(new Coordenada(0, 24));
         return almacenes;
     }
 
