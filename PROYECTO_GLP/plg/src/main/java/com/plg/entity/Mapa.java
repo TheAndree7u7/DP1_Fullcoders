@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 
+import com.plg.utils.Gen;
 import com.plg.utils.Individuo;
 
 import lombok.AllArgsConstructor;
@@ -72,7 +73,16 @@ public class Mapa {
 
         // Rutas
         List<List<Nodo>> rutas = new ArrayList<>();
-        // ME FALTA COMPLETAR ESTA PARTE 
+        // 
+        // Creamos un mapa de nodos
+        Map<Nodo, Integer> nodoMap = new HashMap<>();
+        int indice=1;
+        for (Gen gen : individuo.getCromosoma()) {
+            for (Nodo nodo : gen.getRutaFinal()){
+                nodoMap.put(nodo, i);
+            }
+            indice++;
+        }
 
         // Imprime cabecera de columnas
         System.out.print("     ");
@@ -90,21 +100,10 @@ public class Mapa {
                 if (nodoActual.isBloqueado()) {
                     cell = " X "; // Nodo bloqueado
                 } else {
-                    if (rutas != null) {
-                        for (int k = 0; k < rutas.size(); k++) {
-                            if (rutas.get(k).contains(nodoActual.getCoordenada())) {
-                                cell = String.format(" %d ", k);
-                                break;
-                            }
-                        }
-                    }
-                    if (pedidos != null) {
-                        for (Pedido pedido : pedidos) {
-                            if (pedido.getCoordenada().equals(nodoActual.getCoordenada())) {
-                                cell = " P ";
-                                break;
-                            }
-                        }
+                    if(nodoMap.containsKey(nodoActual)){
+                        cell = String.format("%2d", nodoMap.get(nodoActual)); // Nodo ocupado por un camión
+                    } else{
+                        cell = " . "; // Nodo vacío
                     }
                 }
                 System.out.printf("%4s", cell);

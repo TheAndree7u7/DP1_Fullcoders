@@ -22,20 +22,20 @@ import java.util.List;
 public class Gen {
     private Camion camion;
     private List<Nodo> nodos;
-    private List<Nodo> ruta_final;
+    private List<Nodo> rutaFinal;
     private double fitness;
 
     public Gen(Camion camion, List<Nodo> nodos) {
         this.camion = camion;
         this.nodos = nodos;
-        this.ruta_final = new ArrayList<>();
+        this.rutaFinal = new ArrayList<>();
     }
 
     public double calcularFitness() {
         double fitness = 0.0;
 
         Camion camion = this.camion.clone(); 
-        ruta_final = new ArrayList<>();
+        rutaFinal = new ArrayList<>();
 
         for (int i = 0; i < nodos.size() - 1; i++) {
             Nodo nodo1 = nodos.get(i);
@@ -58,14 +58,14 @@ public class Gen {
                     fitness += tiempoEntregaLimite - tiempoLlegada;
                     camion.actualizarCombustible(distanciaCalculada);
                     camion.actualizarCargaPedido(pedido.getVolumenGLPAsignado());
-                    ruta_final.addAll(ruta);
+                    rutaFinal.addAll(ruta);
                 } else {
                     fitness = Double.MIN_VALUE;
                     break;
                 }
             } else if (nodo2 instanceof Almacen || nodo2 instanceof Camion) {
                 recargarCamion(camion, nodo2);
-                ruta_final.addAll(ruta);
+                rutaFinal.addAll(ruta);
             }
         }
         this.fitness = fitness;
