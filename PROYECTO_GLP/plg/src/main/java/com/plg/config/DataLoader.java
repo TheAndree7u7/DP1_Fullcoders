@@ -33,6 +33,15 @@ public class DataLoader {
         return new ArrayList<>();
     }
 
+
+    private List<Almacen> initializeAlmacenes(Mapa mapa) {
+        List<Almacen> almacenes = new ArrayList<>();
+        // Almacen central
+        
+        return almacenes;
+    }
+
+
     // Método génerico para leer fechas del siguiente formato ##d##h##m
     private LocalDateTime readFecha(String fecha) {
         String[] partes = fecha.split("[dhm]");
@@ -116,7 +125,6 @@ public class DataLoader {
             h_limite = Double.parseDouble(datosPedido[4].substring(0, datosPedido[4].indexOf('h')));
 
             Pedido pedido = Pedido.builder()
-                    .id(i++)
                     .codigo(codigo_cliente)
                     .coordenada(coordenada)
                     .horasLimite(h_limite)

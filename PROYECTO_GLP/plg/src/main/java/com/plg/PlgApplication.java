@@ -8,6 +8,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import com.plg.entity.Almacen;
 import com.plg.entity.Averia;
 import com.plg.entity.Bloqueo;
 import com.plg.entity.Camion;
@@ -33,10 +34,9 @@ public class PlgApplication implements CommandLineRunner {
     public void run(String... args) throws Exception {
         // Llamamos al método initializeCamiones() de DataLoader para obtener la lista de camiones
         Mapa mapa = new Mapa(25, 25);
+        List<Almacen> almacenes = dataLoader.initializeAlmacenes(mapa);
         List<Camion> camiones = dataLoader.initializeCamiones();
-        //List<Averia> averias = dataLoader.initializeAverias(camiones);
         List<Pedido> pedidos = dataLoader.initializePedidos();
-        //List<Mantenimiento> mantenimientos = dataLoader.initializeMantenimientos(camiones);
         dataLoader.initializeBloqueos(mapa);
         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidos, camiones);
         algoritmoGenetico.ejecutarAlgoritmo();

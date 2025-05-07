@@ -76,14 +76,11 @@ public class Individuo {
     private double calcularFitness() {
         double fitness = 0.0;
         for (Gen gen : cromosoma) {
-            List<Nodo> nodos = gen.getNodos();
-            if (!nodos.isEmpty()) {
-                for (int j = 0; j < nodos.size() - 1; j++) {
-                    Nodo nodo1 = nodos.get(j);
-                    Nodo nodo2 = nodos.get(j + 1);
-                    fitness += mapa.aStar(nodo1, nodo2);
-                }
+            double fitnessGen = gen.calcularFitness();
+            if (fitnessGen == Double.MIN_VALUE) {
+                return Double.MIN_VALUE; // Si algún gen tiene fitness mínimo, el individuo es inválido
             }
+            fitness += fitnessGen; // Sumar el fitness de cada gen
         }
         return fitness;
     }
@@ -94,8 +91,12 @@ public class Individuo {
         int genIndex2 = (int) (Math.random() * cromosoma.size());
 
         // Obtener los nodos de los genes seleccionados
-        List<Nodo> nodosGen1 = cromosoma.get(genIndex1).getNodos();
-        List<Nodo> nodosGen2 = cromosoma.get(genIndex2).getNodos();
+        Gen gen1 = cromosoma.get(genIndex1);
+        Gen gen2 = cromosoma.get(genIndex2);
+
+
+        List<Nodo> nodosGen1 = gen1.getNodos();
+        List<Nodo> nodosGen2 = gen2.getNodos();
 
         // Verificar que ambos genes tengan nodos para intercambiar
         if (!nodosGen1.isEmpty() && !nodosGen2.isEmpty()) {
@@ -107,10 +108,9 @@ public class Individuo {
             Nodo temp = nodosGen1.get(nodoIndex1);
             nodosGen1.set(nodoIndex1, nodosGen2.get(nodoIndex2));
             nodosGen2.set(nodoIndex2, temp);
-        }
 
-        // Recalcular el fitness
-        this.fitness = calcularFitness();
+            this.fitness = calcularFitness(); // Recalcular el fitness después de la mutación
+        }
     }
 
     @Override

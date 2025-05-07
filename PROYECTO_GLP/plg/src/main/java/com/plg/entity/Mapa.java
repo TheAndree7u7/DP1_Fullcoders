@@ -67,7 +67,6 @@ public class Mapa {
                 .tipo("Central")
                 .build();
 
-        
 
 
         for (int i = 0; i < filas; i++) {

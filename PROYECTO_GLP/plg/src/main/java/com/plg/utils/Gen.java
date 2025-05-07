@@ -23,7 +23,7 @@ public class Gen {
     private Camion camion;
     private List<Nodo> nodos;
     private List<Nodo> ruta_final;
-
+    private double fitness;
 
     public Gen(Camion camion, List<Nodo> nodos) {
         this.camion = camion;
@@ -68,6 +68,7 @@ public class Gen {
                 ruta_final.addAll(ruta);
             }
         }
+        this.fitness = fitness;
         return fitness;
     }
 

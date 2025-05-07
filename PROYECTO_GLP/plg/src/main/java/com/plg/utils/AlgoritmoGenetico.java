@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
 import com.plg.entity.Mapa;
 import com.plg.entity.Pedido;
@@ -23,9 +24,10 @@ public class AlgoritmoGenetico {
     private Mapa mapa;
     private List<Pedido> pedidos;
     private List<Camion> camiones;
+    private List<Almacen> almacenes;
     private Individuo mejorIndividuo;
 
-    public AlgoritmoGenetico(Mapa mapa, List<Pedido> pedidos, List<Camion> camiones) {
+    public AlgoritmoGenetico(Mapa mapa, List<Pedido> pedidos, List<Camion> camiones, List<Almacen> almacenes) {
         this.mapa = mapa;
         this.pedidos = pedidos;
         this.camiones = camiones;
@@ -37,8 +39,7 @@ public class AlgoritmoGenetico {
         List<Individuo> poblacion = inicializarPoblacion();
         for (int i = 0; i < generaciones; i++) {
             List<Individuo> padres = seleccionar_padres(poblacion);
-
-            List<Individuo> hijos = padres;
+            List<Individuo> hijos = cruzar(padres);
             for (Individuo hijo : hijos) {
                 hijo.mutar();
             }
@@ -46,7 +47,6 @@ public class AlgoritmoGenetico {
         }
         poblacion.sort((ind1, ind2) -> Double.compare(ind1.getFitness(), ind2.getFitness()));
         mejorIndividuo = poblacion.get(0);
-        mejorIndividuo.limpiarCromosoma();
         System.out.println("Mejor individuo: ");
         System.out.println(mejorIndividuo);
         System.out.println("Fitness: " + mejorIndividuo.getFitness());
@@ -64,7 +64,7 @@ public class AlgoritmoGenetico {
     private List<Individuo> inicializarPoblacion() {
         List<Individuo> poblacion = new ArrayList<>();
         for (int i = 0; i < poblacionTamano; i++) {
-            Individuo individuo = new Individuo(pedidos, camiones, mapa);
+            Individuo individuo = new Individuo(pedidos, camiones, mapa, almacenes);
             poblacion.add(individuo);
         }
         return poblacion;
@@ -96,92 +96,7 @@ public class AlgoritmoGenetico {
     }
 
     private List<Individuo> cruzar(Individuo padre1, Individuo padre2) {
-        // Lógica de cruce entre dos padres para crear un nuevo individuo
-        List<Integer> hijo1 = new ArrayList<>();
-        List<Integer> hijo2 = new ArrayList<>();
-
-        List<Integer> cromosoma1 = padre1.getCromosomaNumerico();
-        List<Integer> cromosoma2 = padre2.getCromosomaNumerico();
-
-        // Realizamos el cruce de un punto
-        int puntoCruce = (int) (Math.random() * camiones.size());
-        for (int i = 0; i < cromosoma1.size(); i++) {
-            if (i < puntoCruce * pedidos.size()) {
-                hijo1.add(cromosoma1.get(i));
-                hijo2.add(cromosoma2.get(i));
-            } else {
-                hijo1.add(cromosoma2.get(i));
-                hijo2.add(cromosoma1.get(i));
-            }
-        }
-
-        hijo1 = eliminarDuplicados(hijo1);
-
-        hijo2 = eliminarDuplicados(hijo2);
-
-        List<Individuo> hijos = new ArrayList<>();
-        hijos.add(new Individuo(pedidos, camiones, hijo1, mapa));
-        hijos.add(new Individuo(pedidos, camiones, hijo2, mapa));
-
-        return hijos;
-    }
-
-    private List<Integer> eliminarDuplicados(List<Integer> hijo1) {
-        List<Integer> numeros = new ArrayList<>(Collections.nCopies(pedidos.size(), 0));
-
-        for (int i = 0; i < hijo1.size(); i++) {
-            if (hijo1.get(i) == -1)
-                continue; 
-            int gene = hijo1.get(i);
-    
-            if (gene >= 0 && gene < numeros.size() && numeros.get(gene) == 0) {
-                numeros.set(gene, 1);
-            } else {
-                boolean encontrado = false;
-                for (int j = 0; j < numeros.size(); j++) {
-                    if (numeros.get(j) == 0) {
-                        hijo1.set(i, j);
-                        numeros.set(j, 1);
-                        encontrado = true;
-                        break;
-                    }
-                }
-                if (!encontrado) {
-                    hijo1.set(i, -1);
-                }
-            }
-        }
-
-        // Segunda pasada: Reemplazar los -1 de forma balanceada
-        // Primero, recopilamos todos los índices que aún no se usaron en "numeros"
-        List<Integer> freeIndices = new ArrayList<>();
-        for (int j = 0; j < numeros.size(); j++) {
-            if (numeros.get(j) == 0) {
-                freeIndices.add(j);
-            }
-        }
-        // Recopilamos todos los indices de -1
-        List<Integer> indicesNegativos = new ArrayList<>();
-        for (int i = 0; i < hijo1.size(); i++) {
-            if (hijo1.get(i) == -1) {
-                indicesNegativos.add(i);
-            }
-        }
-
-        // Mezclamos aleatoriamente los índices libres
-        Collections.shuffle(freeIndices);
-        Collections.shuffle(indicesNegativos);
-
-        // Usamos los índices mezclados para reemplazar los -1 restantes
-        int freeIndex = 0;
-        for (int i = 0; i < indicesNegativos.size(); i++) {
-            if (freeIndex < freeIndices.size()) {
-                hijo1.set(indicesNegativos.get(i), freeIndices.get(freeIndex));
-                freeIndex++;
-            } else {
-                break; // No hay más índices libres para reemplazar
-            }
-        }
-        return hijo1;
+        // Aún no implementado
+        return null;
     }
 }

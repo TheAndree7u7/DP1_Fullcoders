@@ -1,6 +1,8 @@
 package com.plg.entity;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
+@SuperBuilder
 public class Pedido extends Nodo {
 
     private int id;
