@@ -25,8 +25,8 @@ public class Camion extends Nodo {
     private TipoCamion tipo; // TA, TB, TC, TD
 
     // GLP
-    private double capacidad;              // Capacidad en m3 de GLP
-    private double capacidadDisponible;    // Capacidad disponible actual (m3)
+    private double capacidadMaxima;              // Capacidad en m3 de GLP
+    private double capacidadActual;    // Capacidad disponible actual (m3)
 
     private double tara;                   // Peso del camión vacío en toneladas
     private double pesoCarga;              // Peso actual de la carga en toneladas
@@ -35,9 +35,9 @@ public class Camion extends Nodo {
     private EstadoCamion estado;
 
     // Combustible
-    private double capacidadTanque = 25.0;   // Capacidad del tanque en galones
+    private double capacidadTanque;   // Capacidad del tanque en galones
     private double combustibleActual;        // Combustible actual en galones
-    private double velocidadPromedio = 50.0; // Velocidad promedio en km/h
+    private double velocidadPromedio; // Velocidad promedio en km/h
 
     // Comsumo de combustible
     private double distanciaMaxima;   
@@ -49,7 +49,26 @@ public class Camion extends Nodo {
 
     @Override
     public String toString() {
-        return "Camion[codigo=" + codigo + ", tipo=" + (tipo != null ? tipo.name() : null) + ", capacidad=" + capacidad + "]";
+        return String.format(
+            "Camión %s [%s]%n" +
+            "  - GLP (m3):       %.2f / %.2f%n" +
+            "  - Carga (t):      %.2f (tara) + %.2f (carga)%n" +
+            "  - Combustible:    %.2f / %.2f galones%n" +
+            "  - Velocidad:      %.2f km/h%n" +
+            "  - Distancia máx.: %.2f km%n" +
+            "  - Estado:         %s \n",
+            codigo,
+            tipo,
+            capacidadActual,
+            capacidadMaxima,
+            tara,
+            pesoCarga,
+            combustibleActual,
+            capacidadTanque,
+            velocidadPromedio,
+            distanciaMaxima,
+            estado
+        );
     }
 
 
@@ -84,8 +103,8 @@ public class Camion extends Nodo {
         return Camion.builder()
                 .codigo(this.codigo)
                 .tipo(this.tipo)
-                .capacidad(this.capacidad)
-                .capacidadDisponible(this.capacidadDisponible)
+                .capacidadMaxima(this.capacidadMaxima)
+                .capacidadActual(this.capacidadActual)
                 .tara(this.tara)
                 .pesoCarga(this.pesoCarga)
                 .pesoCombinado(this.pesoCombinado)

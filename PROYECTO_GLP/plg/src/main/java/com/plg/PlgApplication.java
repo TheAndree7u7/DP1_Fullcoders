@@ -38,11 +38,11 @@ public class PlgApplication implements CommandLineRunner {
         List<Camion> camiones = dataLoader.initializeCamiones();
         List<Pedido> pedidos = dataLoader.initializePedidos();
         //dataLoader.initializeBloqueos(mapa);
-        //AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidos, camiones, almacenes);
-        //algoritmoGenetico.ejecutarAlgoritmo();
-        //Individuo mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
+        AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidos, camiones, almacenes);
+        algoritmoGenetico.ejecutarAlgoritmo();
+        Individuo mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
         // mapa.imprimirMapa(mejorIndividuo, pedidos);
-        mapa.imprimirMapa();
+        mapa.imprimirMapa(mejorIndividuo);
 
     }
 }

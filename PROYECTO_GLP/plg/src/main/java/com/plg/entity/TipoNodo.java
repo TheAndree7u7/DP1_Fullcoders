@@ -2,7 +2,6 @@ package com.plg.entity;
 
 public enum TipoNodo {
     ALMACEN("ALMACEN"),
-    CLIENTE("CLIENTE"),
     INTERMEDIO("INTERMEDIO"),
     NORMAL("NORMAL"),
     CAMION_AVERIADO("CAMION_AVERIADO"),

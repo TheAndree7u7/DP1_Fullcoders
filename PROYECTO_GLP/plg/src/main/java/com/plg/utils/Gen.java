@@ -34,13 +34,20 @@ public class Gen {
     public double calcularFitness() {
         double fitness = 0.0;
 
+    
         Camion camion = this.camion.clone(); 
-        rutaFinal = new ArrayList<>();
 
-        for (int i = 0; i < nodos.size() - 1; i++) {
-            Nodo nodo1 = nodos.get(i);
-            Nodo nodo2 = nodos.get(i + 1);
+        for (int i = 0; i < nodos.size(); i++) {
+            Nodo nodo1, nodo2;
+            if(i == 0){
+                nodo1 = camion;
+                nodo2 = nodos.get(i);
+            }else{
+                nodo1 = nodos.get(i - 1);
+                nodo2 = nodos.get(i);
+            }
             List<Nodo> ruta = Mapa.getInstance().aStar(nodo1, nodo2);
+
             double distanciaCalculada = ruta.size();
             double distanciaMaxima = camion.calcularDistanciaMaxima();
 
@@ -87,8 +94,15 @@ public class Gen {
         StringBuilder sb = new StringBuilder();
         sb.append(camion.toString()).append(" ");
         for (Nodo nodo : nodos) {
+            sb.append(nodo.toString()).append("\n");
+        }
+        // Imprimimos la ruta final
+        sb.append("-----------------------------------------------\n");
+        sb.append("Ruta Final: \n");
+        for (Nodo nodo : rutaFinal) {
             sb.append(nodo.toString()).append(" ");
         }
+        sb.append("\n-----------------------------------------------\n");
         return sb.toString();
     }
 }

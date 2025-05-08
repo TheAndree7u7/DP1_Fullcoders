@@ -89,6 +89,26 @@ public class Almacen extends Nodo {
 
     @Override
     public String toString() {
-        return "Almacen[nombre=" + nombre + ", capacidadActualGLP=" + capacidadActualGLP + "]";
+        return String.format(
+            "Almacén %s (%s)%n" +
+            "  - Coordenada:            %s%n" +
+            "  - GLP (m3):              %.2f / %.2f%n" +
+            "  - Combustible (gal):     %.2f / %.2f%n" +
+            "  - Central:               %s%n" +
+            "  - Permite estacionarse:  %s%n" +
+            "  - Hora reabastecimiento: %s%n" +
+            "  - Activo:                %s",
+            nombre,
+            tipo != null ? tipo : "N/A",
+            getCoordenada() != null ? getCoordenada() : "N/A",
+            capacidadActualGLP,
+            capacidadMaximaGLP,
+            capacidadActualCombustible,
+            capacidadMaximaCombustible,
+            esCentral ? "Sí" : "No",
+            permiteCamionesEstacionados ? "Sí" : "No",
+            horaReabastecimiento != null ? horaReabastecimiento : "N/A",
+            activo ? "Sí" : "No"
+        );
     }
 }

@@ -19,22 +19,17 @@ public class PedidoFactory {
             Coordenada coordenada,
             double volumenGLP,
             double horasLimite) {
-        LocalDateTime ahora = LocalDateTime.now();
         return Pedido.builder()
                 // campos heredados de Nodo
                 .coordenada(coordenada)
                 .bloqueado(false)
                 .gScore(0)
                 .fScore(0)
-                .tipoNodo(TipoNodo.CLIENTE)
+                .tipoNodo(TipoNodo.PEDIDO)
                 // campos de Pedido
                 .codigo("PEDIDO-" + coordenada.getFila() + "-" + coordenada.getColumna())
                 .horasLimite(horasLimite)
-                .fechaRegistro(ahora)
                 .volumenGLPAsignado(volumenGLP)
-                .volumenGLPEntregado(0.0)
-                .volumenGLPPendiente(volumenGLP)
-                .prioridad(1)
                 .estado(EstadoPedido.REGISTRADO)
                 .build();
     }

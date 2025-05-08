@@ -39,11 +39,11 @@ public class DataLoader {
     public List<Almacen> initializeAlmacenes() {
         List<Almacen> almacenes = new ArrayList<>();
         // Almacen central
-        Almacen almacenCentral = AlmacenFactory.crearAlmacen(TipoAlmacen.CENTRAL, new Coordenada(0, 0), 1_000_000_000,
+        Almacen almacenCentral = AlmacenFactory.crearAlmacen(TipoAlmacen.CENTRAL, new Coordenada(12, 12), 1_000_000_000,
                 1_000_000_000);
-        Almacen almacen1 = AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(24, 0), 1000.0, 1000.0);
+        Almacen almacen1 = AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(19, 3), 1000.0, 1000.0);
         Almacen almacen2 = almacen1.getClone();
-        almacen2.setCoordenada(new Coordenada(0, 24));
+        almacen2.setCoordenada(new Coordenada(3, 19));
 
         // Agregamos los almacenes a la lista
         almacenes.add(almacenCentral);
@@ -58,7 +58,6 @@ public class DataLoader {
         // Imprimo para verificar
         Nodo nodoPrueba = mapa.getNodo(almacenCentral.getCoordenada());
         System.out.println(nodoPrueba.getTipoNodo());
-
 
         return almacenes;
     }
@@ -76,16 +75,28 @@ public class DataLoader {
 
         // Camiones operativos
         List<Camion> camiones = new ArrayList<>();
-        Coordenada coordenada = new Coordenada(0, 0);
-        camiones.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TA, true, coordenada));
-        camiones.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenada));
-        camiones.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TC, true, coordenada));
+        Coordenada coordenada = new Coordenada(12, 12);   
+        camiones.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TA,
+                true,
+                coordenada));
+        camiones.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TB,
+                true,
+                coordenada));
+        camiones.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TC,
+                true,
+                coordenada));
 
 
         List<Camion> camionesAveriados = new ArrayList<>();
-        camionesAveriados.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TA, false, new Coordenada(5, 6)));
-        camionesAveriados.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TB, false, new Coordenada(5, 7)));
-        camionesAveriados.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TC, false, new Coordenada(5, 8)));
+        camionesAveriados.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TA,
+                false,
+                new Coordenada(10, 7)));
+        camionesAveriados.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TB,
+                false,
+                new Coordenada(5, 7)));
+        camionesAveriados.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TC,
+                false,
+                new Coordenada(5, 18)));
 
         // Actualizamos el mapa con los camiones averiados
         for (Camion camion : camionesAveriados) {
@@ -123,21 +134,18 @@ public class DataLoader {
     public List<Pedido> initializePedidos() {
         List<Pedido> pedidos = new ArrayList<>();
         Pedido pedido1 = PedidoFactory.crearPedido(
-                new Coordenada(12, 16),
-                1000.0,
-                10.0
-        );
+                new Coordenada(23, 23),
+                5,
+                10.0);
         Pedido pedido2 = PedidoFactory.crearPedido(
-                new Coordenada(12, 17),
-                1000.0,
-                10.0
-        );
+                new Coordenada(1, 1),
+                5,
+                10.0);
         Pedido pedido3 = PedidoFactory.crearPedido(
-                new Coordenada(12, 18),
-                1000.0,
-                10.0
-        );
-   
+                new Coordenada(23, 1),
+                5,
+                10.0);
+
         // Agregamos a la lista de pedidos
         pedidos.add(pedido1);
         pedidos.add(pedido2);
@@ -147,7 +155,7 @@ public class DataLoader {
         mapa.setNodo(pedido1.getCoordenada(), pedido1);
         mapa.setNodo(pedido2.getCoordenada(), pedido2);
         mapa.setNodo(pedido3.getCoordenada(), pedido3);
-        
+
         return pedidos;
     }
 

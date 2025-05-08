@@ -31,8 +31,9 @@ public class AlgoritmoGenetico {
         this.mapa = mapa;
         this.pedidos = pedidos;
         this.camiones = camiones;
+        this.almacenes = almacenes;
         generaciones = 100;
-        poblacionTamano = 48;
+        poblacionTamano = 20;
     }
 
     public void ejecutarAlgoritmo() {
@@ -97,6 +98,10 @@ public class AlgoritmoGenetico {
 
     private List<Individuo> cruzar(Individuo padre1, Individuo padre2) {
         // Aún no implementado
-        return null;
+        List<Individuo> hijos = new ArrayList<>();
+        // Implementar la lógica de cruce entre padre1 y padre2
+        hijos.add(padre1);
+        hijos.add(padre2);
+        return hijos;
     }
 }

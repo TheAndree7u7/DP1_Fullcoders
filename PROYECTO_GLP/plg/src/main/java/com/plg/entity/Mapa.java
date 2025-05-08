@@ -65,7 +65,10 @@ public class Mapa {
     }
 
 
-    public void imprimirMapa() {
+    public void imprimirMapa(Individuo individuo) {
+
+
+
         // Imprime cabecera de columnas
         System.out.print("     ");
         for (int j = 0; j < this.columnas; j++) {
@@ -86,7 +89,17 @@ public class Mapa {
                     cell = " P "; // Pedido
                 } else if (nodoActual.getTipoNodo() == TipoNodo.CAMION_AVERIADO) {
                     cell = " C "; // Camión
-                } 
+                }else{
+                    for (int k = 0; k < individuo.getCromosoma().size(); k++){
+                        Gen gen = individuo.getCromosoma().get(k);
+                        List<Nodo> nodosGen = gen.getNodos();
+                        if(nodosGen.contains(nodoActual)){
+                            cell = " " + (k+1) + " "; 
+                            break;
+                        }
+                    }
+                    
+                }
                 System.out.printf("%4s", cell);
             }
             System.out.println();
@@ -146,8 +159,6 @@ public class Mapa {
                 nodo.setFScore(Double.POSITIVE_INFINITY);
             }
         }
-
-
         inicio.setGScore(0);
         inicio.setFScore(calcularHeuristica(inicio, destino));
         openSet.add(inicio);

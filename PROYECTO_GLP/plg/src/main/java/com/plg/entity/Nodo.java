@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import java.util.Objects;
 
 @Data
 @NoArgsConstructor
@@ -25,7 +26,26 @@ public class Nodo {
 
     @Override
     public String toString() {
-        return "Nodo[coordenada=" + coordenada + ", bloqueado=" + bloqueado + ", gScore=" + gScore + ", fScore="
-                + fScore + ", tipoNodo=" + tipoNodo.getTipo() + "]";
+        return String.format(
+            "Nodo [%s]%n" +
+            "  - Coordenada:       %s%n" +
+            "  - Tipo de nodo:     %s%n" +
+            tipoNodo != null ? tipoNodo.getTipo() : "N/A",
+            coordenada != null ? coordenada : "N/A",
+            tipoNodo != null ? tipoNodo.getTipo() : "N/A"
+        );
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Nodo)) return false;
+        Nodo other = (Nodo) o;
+        return Objects.equals(this.coordenada, other.coordenada);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(coordenada);
     }
 }

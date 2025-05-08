@@ -32,6 +32,8 @@ public class Individuo {
     private Mapa mapa; // Mapa que representa el entorno de entrega
 
     public Individuo(List<Pedido> pedidos, List<Camion> camionesOperativos, Mapa mapa, List<Almacen> almacenes) {
+        this.camionesOperativos = new ArrayList<>();
+        this.camionesAveriados = new ArrayList<>();
         this.pedidos = pedidos;
         for (Camion camion : camionesOperativos) {
             if (camion.getEstado() == EstadoCamion.INMOVILIZADO_POR_AVERIA) {
@@ -57,8 +59,15 @@ public class Individuo {
         // Crear una lista de nodos que incluye pedidos, camiones averiados y almacenes
         List<Nodo> nodos = new ArrayList<>();
         nodos.addAll(pedidos);
-        nodos.addAll(camionesAveriados);
-        nodos.addAll(almacenes);
+
+        // Con probabilidad de un 20% agrego camionesAveriados
+        if (Math.random() < 0.2) {
+            nodos.addAll(camionesAveriados);
+        }
+        // Con probabilidad de un 20% agrego almacenes
+        if (Math.random() < 0.2) {
+            nodos.addAll(almacenes);
+        }
 
         // Mezclar los nodos para garantizar aleatoriedad
         Collections.shuffle(nodos);
