@@ -22,4 +22,10 @@ public class Nodo {
         this.tipoNodo = tipoNodo;
         this.fScore = fScore;
     }
+
+    @Override
+    public String toString() {
+        return "Nodo[coordenada=" + coordenada + ", bloqueado=" + bloqueado + ", gScore=" + gScore + ", fScore="
+                + fScore + ", tipoNodo=" + tipoNodo.getTipo() + "]";
+    }
 }

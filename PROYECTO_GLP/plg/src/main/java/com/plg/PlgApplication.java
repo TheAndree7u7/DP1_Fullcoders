@@ -15,6 +15,7 @@ import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
 import com.plg.entity.Mantenimiento;
 import com.plg.entity.Mapa;
+import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
 import com.plg.utils.AlgoritmoGenetico;
 import com.plg.utils.Individuo;
@@ -36,11 +37,12 @@ public class PlgApplication implements CommandLineRunner {
         List<Almacen> almacenes = dataLoader.initializeAlmacenes();
         List<Camion> camiones = dataLoader.initializeCamiones();
         List<Pedido> pedidos = dataLoader.initializePedidos();
-        dataLoader.initializeBloqueos(mapa);
-        AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidos, camiones, almacenes);
-        algoritmoGenetico.ejecutarAlgoritmo();
-        Individuo mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
-        mapa.imprimirMapa(mejorIndividuo, pedidos);
+        //dataLoader.initializeBloqueos(mapa);
+        //AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidos, camiones, almacenes);
+        //algoritmoGenetico.ejecutarAlgoritmo();
+        //Individuo mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
+        // mapa.imprimirMapa(mejorIndividuo, pedidos);
+        mapa.imprimirMapa();
 
     }
 }

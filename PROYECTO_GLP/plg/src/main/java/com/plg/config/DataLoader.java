@@ -2,6 +2,7 @@ package com.plg.config;
 
 import com.plg.entity.*;
 import com.plg.utils.Parametros;
+import com.plg.entity.PedidoFactory;
 
 import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Component;
@@ -48,6 +49,16 @@ public class DataLoader {
         almacenes.add(almacenCentral);
         almacenes.add(almacen1);
         almacenes.add(almacen2);
+
+        // Actualizamos el mapa con los almacenes
+        mapa.setNodo(almacenCentral.getCoordenada(), almacenCentral);
+        mapa.setNodo(almacen1.getCoordenada(), almacen1);
+        mapa.setNodo(almacen2.getCoordenada(), almacen2);
+
+        // Imprimo para verificar
+        Nodo nodoPrueba = mapa.getNodo(almacenCentral.getCoordenada());
+        System.out.println(nodoPrueba.getTipoNodo());
+
 
         return almacenes;
     }
@@ -111,35 +122,32 @@ public class DataLoader {
 
     public List<Pedido> initializePedidos() {
         List<Pedido> pedidos = new ArrayList<>();
-        List<String> lines = readAllLines(pathPedidos);
-        int i = 0;
-        for (String line : lines) {
-            String[] partes = line.split(":");
-            double m3, h_limite;
-            LocalDateTime fecha_registro = readFecha(partes[0]);
-            String[] datosPedido = partes[1].split(",");
-            Coordenada coordenada = new Coordenada(
-                    Integer.parseInt(datosPedido[0]),
-                    Integer.parseInt(datosPedido[1]));
-            String codigo_cliente = datosPedido[2];
-            m3 = Double.parseDouble(datosPedido[3].substring(0, datosPedido[3].indexOf('m')));
-            h_limite = Double.parseDouble(datosPedido[4].substring(0, datosPedido[4].indexOf('h')));
+        Pedido pedido1 = PedidoFactory.crearPedido(
+                new Coordenada(12, 16),
+                1000.0,
+                10.0
+        );
+        Pedido pedido2 = PedidoFactory.crearPedido(
+                new Coordenada(12, 17),
+                1000.0,
+                10.0
+        );
+        Pedido pedido3 = PedidoFactory.crearPedido(
+                new Coordenada(12, 18),
+                1000.0,
+                10.0
+        );
+   
+        // Agregamos a la lista de pedidos
+        pedidos.add(pedido1);
+        pedidos.add(pedido2);
+        pedidos.add(pedido3);
 
-            Pedido pedido = Pedido.builder()
-                    .codigo(codigo_cliente)
-                    .coordenada(coordenada)
-                    .horasLimite(h_limite)
-                    .fechaRegistro(fecha_registro)
-                    .volumenGLPAsignado(m3)
-                    .volumenGLPEntregado(0.0)
-                    .volumenGLPPendiente(m3)
-                    .prioridad(1) // Prioridad por defecto
-                    .estado(EstadoPedido.REGISTRADO) // Estado inicial
-                    .build();
-
-            mapa.setNodo(coordenada, pedido);
-            pedidos.add(pedido);
-        }
+        // Actualizamos el mapa con los pedidos
+        mapa.setNodo(pedido1.getCoordenada(), pedido1);
+        mapa.setNodo(pedido2.getCoordenada(), pedido2);
+        mapa.setNodo(pedido3.getCoordenada(), pedido3);
+        
         return pedidos;
     }
 

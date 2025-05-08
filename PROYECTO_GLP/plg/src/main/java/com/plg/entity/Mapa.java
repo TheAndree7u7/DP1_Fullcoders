@@ -28,8 +28,7 @@ public class Mapa {
     private int columnas;
     private int filas;
 
-    private List<List<Nodo>> matriz = new ArrayList<>();
-    private List<Almacen> almacenes = new ArrayList<>();
+    private List<List<Nodo>> matriz;
 
     private static Mapa instance;
 
@@ -65,20 +64,14 @@ public class Mapa {
         }
     }
 
+
     public void imprimirMapa() {
-        imprimirMapa(null, null);
-    }
-
-    public void imprimirMapa(Individuo individuo, List<Pedido> pedidos) {
-
-
         // Imprime cabecera de columnas
         System.out.print("     ");
         for (int j = 0; j < this.columnas; j++) {
             System.out.printf("%4d", j);
         }
         System.out.println();
-
         // Imprime cada fila desde la más alta hasta la 0
         for (int i = this.filas - 1; i >= 0; i--) {
             System.out.printf("%4d ", i); // Índice de fila

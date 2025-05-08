@@ -76,7 +76,7 @@ public class CamionFactory {
                 .combustibleActual(0)
                 .estado(EstadoCamion.INMOVILIZADO_POR_AVERIA)
                 .coordenada(coordenada)
-                .bloqueado(true)
+                .bloqueado(false)
                 .gScore(0)
                 .fScore(0)
                 .tipoNodo(TipoNodo.CAMION_AVERIADO)
