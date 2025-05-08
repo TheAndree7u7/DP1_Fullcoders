@@ -29,22 +29,24 @@ public class Mapa {
     private int filas;
 
     private List<List<Nodo>> matriz = new ArrayList<>();
-    private List<Nodo> list_nodos = new ArrayList<>();
     private List<Almacen> almacenes = new ArrayList<>();
 
     private static Mapa instance;
 
     public static Mapa getInstance() {
         if (instance == null) {
-            throw new IllegalStateException("Mapa instance has not been initialized.");
+            initializeInstance();
         }
         return instance;
     }
 
-    public static void initializeInstance(int columnas, int filas) {
+    public static void initializeInstance() {
         if (instance != null) {
             throw new IllegalStateException("Mapa instance has already been initialized.");
         }
+        // DEFINICIÓN DE DIMENSIONES DEL MAPA
+        int columnas = 25;
+        int filas = 25;
         instance = new Mapa(columnas, filas);
     }
 
@@ -53,12 +55,10 @@ public class Mapa {
         this.columnas = columnas;
         this.filas = filas;
         this.matriz = new ArrayList<>();
-
         for (int i = 0; i < filas; i++) {
             List<Nodo> fila = new ArrayList<>(columnas);
             for (int j = 0; j < columnas; j++) {
-                Nodo nodo = Nodo.builder().coordenada(new Coordenada(i, j)).build();
-                this.list_nodos.add(nodo);
+                Nodo nodo = Nodo.builder().coordenada(new Coordenada(i, j)).tipoNodo(TipoNodo.NORMAL).build();
                 fila.add(nodo);
             }
             this.matriz.add(fila);
@@ -71,18 +71,6 @@ public class Mapa {
 
     public void imprimirMapa(Individuo individuo, List<Pedido> pedidos) {
 
-        // Rutas
-        List<List<Nodo>> rutas = new ArrayList<>();
-        // 
-        // Creamos un mapa de nodos
-        Map<Nodo, Integer> nodoMap = new HashMap<>();
-        int indice=1;
-        for (Gen gen : individuo.getCromosoma()) {
-            for (Nodo nodo : gen.getRutaFinal()){
-                nodoMap.put(nodo, i);
-            }
-            indice++;
-        }
 
         // Imprime cabecera de columnas
         System.out.print("     ");
@@ -99,13 +87,13 @@ public class Mapa {
                 String cell = " . "; // Valor por defecto
                 if (nodoActual.isBloqueado()) {
                     cell = " X "; // Nodo bloqueado
-                } else {
-                    if(nodoMap.containsKey(nodoActual)){
-                        cell = String.format("%2d", nodoMap.get(nodoActual)); // Nodo ocupado por un camión
-                    } else{
-                        cell = " . "; // Nodo vacío
-                    }
-                }
+                } else if (nodoActual.getTipoNodo() == TipoNodo.ALMACEN) {
+                    cell = " A "; // Almacén
+                } else if (nodoActual.getTipoNodo() == TipoNodo.PEDIDO) {
+                    cell = " P "; // Pedido
+                } else if (nodoActual.getTipoNodo() == TipoNodo.CAMION_AVERIADO) {
+                    cell = " C "; // Camión
+                } 
                 System.out.printf("%4s", cell);
             }
             System.out.println();
@@ -121,6 +109,10 @@ public class Mapa {
 
     public Nodo getNodo(int fila, int columna) {
         return matriz.get(fila).get(columna);
+    }
+
+    public void setNodo(Coordenada coordenada, Nodo nodo) {
+        matriz.get(coordenada.getFila()).set(coordenada.getColumna(), nodo);
     }
 
     public Nodo getNodo(Coordenada coordenada) {
@@ -154,10 +146,14 @@ public class Mapa {
         PriorityQueue<Nodo> openSet = new PriorityQueue<>((a, b) -> Double.compare(a.getFScore(), b.getFScore()));
         Map<Nodo, Nodo> cameFrom = new HashMap<>();
 
-        for (Nodo nodo : list_nodos) {
-            nodo.setGScore(Double.POSITIVE_INFINITY);
-            nodo.setFScore(Double.POSITIVE_INFINITY);
+        for(int i = 0; i < filas; i++) {
+            for(int j = 0; j < columnas; j++) {
+                Nodo nodo = getNodo(i, j);
+                nodo.setGScore(Double.POSITIVE_INFINITY);
+                nodo.setFScore(Double.POSITIVE_INFINITY);
+            }
         }
+
 
         inicio.setGScore(0);
         inicio.setFScore(calcularHeuristica(inicio, destino));

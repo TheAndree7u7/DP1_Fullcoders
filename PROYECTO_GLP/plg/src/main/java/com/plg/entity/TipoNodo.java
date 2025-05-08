@@ -5,7 +5,8 @@ public enum TipoNodo {
     CLIENTE("CLIENTE"),
     INTERMEDIO("INTERMEDIO"),
     NORMAL("NORMAL"),
-    CAMION_AVERIADO("CAMION_AVERIADO");
+    CAMION_AVERIADO("CAMION_AVERIADO"),
+    PEDIDO("PEDIDO");
 
     private String tipo;
 

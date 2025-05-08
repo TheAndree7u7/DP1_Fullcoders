@@ -8,13 +8,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
+import com.plg.entity.TipoCamion;
 
 @Data
 @AllArgsConstructor
@@ -23,7 +22,7 @@ import lombok.experimental.SuperBuilder;
 public class Camion extends Nodo {
 
     private String codigo;
-    private String tipo; // TA, TB, TC, TD, etc.
+    private TipoCamion tipo; // TA, TB, TC, TD
 
     // GLP
     private double capacidad;              // Capacidad en m3 de GLP
@@ -50,7 +49,7 @@ public class Camion extends Nodo {
 
     @Override
     public String toString() {
-        return "Camion[codigo=" + codigo + ", tipo=" + tipo + ", capacidad=" + capacidad + "]";
+        return "Camion[codigo=" + codigo + ", tipo=" + (tipo != null ? tipo.name() : null) + ", capacidad=" + capacidad + "]";
     }
 
 

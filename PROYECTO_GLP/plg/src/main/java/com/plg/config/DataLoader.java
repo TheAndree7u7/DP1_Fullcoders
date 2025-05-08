@@ -22,6 +22,8 @@ public class DataLoader {
     private String pathMantenimientos = "data/mantenimientos/mantpreventivo.txt";
     private String pathBloqueos = "data/bloqueos/202504.bloqueadas";
 
+    private Mapa mapa = Mapa.getInstance();
+
     // Método genérico para leer todas las líneas de un archivo de recursos
     private List<String> readAllLines(String resourcePath) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
@@ -33,18 +35,22 @@ public class DataLoader {
         return new ArrayList<>();
     }
 
-
     public List<Almacen> initializeAlmacenes() {
         List<Almacen> almacenes = new ArrayList<>();
         // Almacen central
-        Almacen almacenCentral = AlmacenFactory.crearAlmacen(TipoAlmacen.CENTRAL,   new Coordenada(0,0),  1_000_000_000,
-        1_000_000_000);
+        Almacen almacenCentral = AlmacenFactory.crearAlmacen(TipoAlmacen.CENTRAL, new Coordenada(0, 0), 1_000_000_000,
+                1_000_000_000);
         Almacen almacen1 = AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(24, 0), 1000.0, 1000.0);
         Almacen almacen2 = almacen1.getClone();
         almacen2.setCoordenada(new Coordenada(0, 24));
+
+        // Agregamos los almacenes a la lista
+        almacenes.add(almacenCentral);
+        almacenes.add(almacen1);
+        almacenes.add(almacen2);
+
         return almacenes;
     }
-
 
     // Método génerico para leer fechas del siguiente formato ##d##h##m
     private LocalDateTime readFecha(String fecha) {
@@ -56,32 +62,23 @@ public class DataLoader {
     }
 
     public List<Camion> initializeCamiones() {
+
+        // Camiones operativos
         List<Camion> camiones = new ArrayList<>();
-        String[] tipos = { "TA", "TB"};
-        double[] capacidades = { 25.0, 20.0, 15.0, 10.0 };
-    
-        double[] taras = { 15.0, 12.0, 9.0, 7.0 };
-
-        Coordenada coordenada = new Coordenada(12, 12);
+        Coordenada coordenada = new Coordenada(0, 0);
+        camiones.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TA, true, coordenada));
+        camiones.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenada));
+        camiones.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TC, true, coordenada));
 
 
-        for (int i = 0; i < tipos.length; i++) {
-            for (int j = 1; j <= 3; j++) {
+        List<Camion> camionesAveriados = new ArrayList<>();
+        camionesAveriados.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TA, false, new Coordenada(5, 6)));
+        camionesAveriados.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TB, false, new Coordenada(5, 7)));
+        camionesAveriados.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TC, false, new Coordenada(5, 8)));
 
-                double distanciaMaxima = 25 * 180 / (taras[i] + capacidades[i]);
-
-                Camion camion = new Camion();
-                camion.setCodigo(tipos[i] + "0" + j);
-                camion.setTipo(tipos[i]);
-                camion.setCapacidad(capacidades[i]);
-                camion.setTara(taras[i]);
-                camion.setCoordenada(coordenada);
-                camion.setPesoCarga(0);
-                camion.setPesoCombinado(taras[i]);
-                camion.setEstado(null); 
-                camion.setDistanciaMaxima(distanciaMaxima);
-                camiones.add(camion);
-            }
+        // Actualizamos el mapa con los camiones averiados
+        for (Camion camion : camionesAveriados) {
+            mapa.setNodo(camion.getCoordenada(), camion);
         }
         return camiones;
     }
@@ -115,7 +112,7 @@ public class DataLoader {
     public List<Pedido> initializePedidos() {
         List<Pedido> pedidos = new ArrayList<>();
         List<String> lines = readAllLines(pathPedidos);
-        int i=0;
+        int i = 0;
         for (String line : lines) {
             String[] partes = line.split(":");
             double m3, h_limite;
@@ -139,6 +136,8 @@ public class DataLoader {
                     .prioridad(1) // Prioridad por defecto
                     .estado(EstadoPedido.REGISTRADO) // Estado inicial
                     .build();
+
+            mapa.setNodo(coordenada, pedido);
             pedidos.add(pedido);
         }
         return pedidos;
@@ -173,7 +172,7 @@ public class DataLoader {
 
     public void initializeBloqueos(Mapa mapa) {
         List<String> lines = readAllLines(pathBloqueos);
-        for(String line : lines){
+        for (String line : lines) {
             String[] partes = line.split(":");
             String[] partesFecha = partes[0].split("-");
             LocalDateTime fecha1 = readFecha(partesFecha[0]);
@@ -181,34 +180,33 @@ public class DataLoader {
 
             List<Coordenada> coordenadas = new ArrayList<>();
             String[] coordenadasBloqueo = partes[1].split(",");
-            if (coordenadasBloqueo.length > 0 && coordenadasBloqueo.length %2 == 0) {
-                for(int i = 0; i < coordenadasBloqueo.length; i += 2) {
+            if (coordenadasBloqueo.length > 0 && coordenadasBloqueo.length % 2 == 0) {
+                for (int i = 0; i < coordenadasBloqueo.length; i += 2) {
                     int x = Integer.parseInt(coordenadasBloqueo[i]);
                     int y = Integer.parseInt(coordenadasBloqueo[i + 1]);
                     Coordenada coordenada = new Coordenada(x, y);
                     coordenadas.add(coordenada);
                 }
-            }else{
+            } else {
                 System.out.println("Error en el formato de coordenadas de bloqueo: " + partes[1]);
-                return ;
+                return;
             }
             // Realizamos el bloqueo de los nodos en el mapa
 
-
-            for(int i=0; i<coordenadas.size()-1; i++){
+            for (int i = 0; i < coordenadas.size() - 1; i++) {
                 Coordenada start = coordenadas.get(i);
-                Coordenada end = coordenadas.get(i+1);             
-                if(start.getColumna() == end.getColumna()){
-                    for(int j = start.getFila(); j <= end.getFila(); j++){
+                Coordenada end = coordenadas.get(i + 1);
+                if (start.getColumna() == end.getColumna()) {
+                    for (int j = start.getFila(); j <= end.getFila(); j++) {
                         Nodo nodo = mapa.getNodo(j, start.getColumna());
                         nodo.setBloqueado(true);
                     }
-                }else if(start.getFila() == end.getFila()){
-                    for(int j = start.getColumna(); j <= end.getColumna(); j++){
+                } else if (start.getFila() == end.getFila()) {
+                    for (int j = start.getColumna(); j <= end.getColumna(); j++) {
                         Nodo nodo = mapa.getNodo(start.getFila(), j);
                         nodo.setBloqueado(true);
                     }
-                }else{
+                } else {
                     System.out.println("Error: Las coordenadas no son válidas para un bloqueo lineal.");
                     return;
                 }
@@ -217,4 +215,3 @@ public class DataLoader {
         }
     }
 }
-

@@ -32,8 +32,7 @@ public class PlgApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // Llamamos al método initializeCamiones() de DataLoader para obtener la lista de camiones
-        Mapa mapa = new Mapa(25, 25);
+        Mapa mapa = Mapa.getInstance();
         List<Almacen> almacenes = dataLoader.initializeAlmacenes();
         List<Camion> camiones = dataLoader.initializeCamiones();
         List<Pedido> pedidos = dataLoader.initializePedidos();
