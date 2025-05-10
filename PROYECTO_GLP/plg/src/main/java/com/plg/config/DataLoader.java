@@ -25,6 +25,9 @@ public class DataLoader {
 
     private Mapa mapa = Mapa.getInstance();
 
+    private Coordenada coordenadaCentral = new Coordenada(23, 26); 
+    
+
     // Método genérico para leer todas las líneas de un archivo de recursos
     private List<String> readAllLines(String resourcePath) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
@@ -39,7 +42,7 @@ public class DataLoader {
     public List<Almacen> initializeAlmacenes() {
         List<Almacen> almacenes = new ArrayList<>();
         // Almacen central
-        Almacen almacenCentral = AlmacenFactory.crearAlmacen(TipoAlmacen.CENTRAL, new Coordenada(12, 12), 1_000_000_000,
+        Almacen almacenCentral = AlmacenFactory.crearAlmacen(TipoAlmacen.CENTRAL, coordenadaCentral, 1_000_000_000,
                 1_000_000_000);
         Almacen almacen1 = AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(19, 3), 1000.0, 1000.0);
         Almacen almacen2 = AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(3, 19), 1000.0, 1000.0);
@@ -70,16 +73,19 @@ public class DataLoader {
 
         // Camiones operativos
         List<Camion> camiones = new ArrayList<>();
-        Coordenada coordenada = new Coordenada(12, 12);
         camiones.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TA,
                 true,
-                coordenada));
+                coordenadaCentral));
         camiones.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TB,
                 true,
-                coordenada));
+                coordenadaCentral));
         camiones.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TC,
                 true,
-                coordenada));
+                coordenadaCentral));
+        camiones.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TD,
+                true,
+                coordenadaCentral));
+
 
         List<Camion> camionesAveriados = new ArrayList<>();
         camionesAveriados.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TA,
@@ -128,7 +134,7 @@ public class DataLoader {
     public List<Pedido> initializePedidos() {
         List<Pedido> pedidos = new ArrayList<>();
         Pedido pedido1 = PedidoFactory.crearPedido(
-                new Coordenada(23, 23),
+                new Coordenada(38, 1),
                 5,
                 10.0);
         Pedido pedido2 = PedidoFactory.crearPedido(
@@ -136,15 +142,15 @@ public class DataLoader {
                 5,
                 10.0);
         Pedido pedido3 = PedidoFactory.crearPedido(
-                new Coordenada(23, 1),
+                new Coordenada(1, 48),
                 5,
                 10.0);
         Pedido pedido4 = PedidoFactory.crearPedido(
-                new Coordenada(1, 23),
+                new Coordenada(38, 48),
                 5,
                 10.0);
         Pedido pedido5 = PedidoFactory.crearPedido(
-                new Coordenada(11, 1),
+                new Coordenada(20, 43),
                 5,
                 10.0);
 

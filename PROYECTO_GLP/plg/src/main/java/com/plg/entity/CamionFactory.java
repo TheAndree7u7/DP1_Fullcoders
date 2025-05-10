@@ -28,7 +28,7 @@ public class CamionFactory {
     public static Camion crearCamionOperativo(
             String codigo,
             TipoCamion tipo,
-            double capacidadMaxima,
+            double capacidadMaximaGLP,
             double tara,
             Coordenada coordenada,
             double combustibleInicial,
@@ -36,13 +36,13 @@ public class CamionFactory {
         return Camion.builder()
                 .codigo(codigo)
                 .tipo(tipo)
-                .capacidadMaxima(capacidadMaxima)
-                .capacidadActual(capacidadMaxima)
+                .capacidadMaximaGLP(capacidadMaximaGLP)
+                .capacidadActualGLP(capacidadMaximaGLP)
                 .tara(tara)
                 .pesoCarga(pesoCarga)
                 .pesoCombinado(tara + pesoCarga)
                 .combustibleActual(combustibleInicial)
-                .capacidadTanque(25)
+                .combustibleMaximo(25)
                 .velocidadPromedio(50.0)
                 .estado(EstadoCamion.DISPONIBLE)
                 .coordenada(coordenada)
@@ -58,7 +58,7 @@ public class CamionFactory {
      *
      * @param codigo     Código único del camión
      * @param tipo       Tipo de camión (ej. TipoCamion.TA, TipoCamion.TB)
-     * @param capacidadMaxima  capacidadMaxima de GLP en m³
+     * @param capacidadMaximaGLP  capacidadMaximaGLP de GLP en m³
      * @param tara       Tara en toneladas
      * @param coordenada Posición del camión averiado en el mapa
      * @param pesoCarga Peso de la carga en toneladas
@@ -67,15 +67,15 @@ public class CamionFactory {
     public static Camion crearCamionAveriado(
             String codigo,
             TipoCamion tipo,
-            double capacidadMaxima,
+            double capacidadMaximaGLP,
             double tara,
             Coordenada coordenada,
             double pesoCarga) {
         return Camion.builder()
                 .codigo(codigo)
                 .tipo(tipo)
-                .capacidadMaxima(capacidadMaxima)
-                .capacidadActual(0)
+                .capacidadMaximaGLP(capacidadMaximaGLP)
+                .capacidadActualGLP(0)
                 .tara(tara)
                 .pesoCarga(pesoCarga)
                 .pesoCombinado(tara + pesoCarga)

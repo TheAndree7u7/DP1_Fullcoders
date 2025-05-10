@@ -34,7 +34,7 @@ public class AlgoritmoGenetico {
         this.camiones = camiones;
         this.almacenes = almacenes;
         generaciones = 100;
-        poblacionTamano = 20;
+        poblacionTamano = 40;
     }
 
     public void ejecutarAlgoritmo() {

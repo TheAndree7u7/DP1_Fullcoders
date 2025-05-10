@@ -49,16 +49,6 @@ public class Almacen extends Nodo {
         return activo && capacidadActualGLP >= cantidadRequerida;
     }
 
-    public boolean recargarCombustible(Camion camion, double cantidad) {
-        if (!puedeRecargarCombustible(cantidad)) return false;
-        double espacio = camion.getCapacidadTanque() - camion.getCombustibleActual();
-        double efectivo = Math.min(cantidad, Math.min(espacio, capacidadActualCombustible));
-        if (efectivo <= 0) return false;
-        capacidadActualCombustible -= efectivo;
-        camion.setCombustibleActual(camion.getCombustibleActual() + efectivo);
-        return true;
-    }
-
     public void reabastecer() {
         if (!esCentral) {
             capacidadActualGLP = capacidadMaximaGLP;

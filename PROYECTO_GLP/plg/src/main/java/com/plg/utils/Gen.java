@@ -50,7 +50,7 @@ public class Gen {
             double distanciaCalculada = ruta.size();
             double distanciaMaxima = camion.calcularDistanciaMaxima();
 
-            if (!validarRuta(distanciaMaxima, distanciaCalculada)) {
+            if (distanciaMaxima < distanciaCalculada) {
                 fitness = Double.MIN_VALUE;
                 break;
             }
@@ -60,7 +60,10 @@ public class Gen {
                 double tiempoEntregaLimite = pedido.getHorasLimite();
                 double tiempoLlegada = distanciaCalculada / camion.getVelocidadPromedio();
 
-                if (tiempoLlegada <= tiempoEntregaLimite) {
+                boolean tiempoMenorQueLimite = tiempoLlegada <= tiempoEntregaLimite;
+                boolean volumenGLPAsignado = camion.getCapacidadActualGLP() >= pedido.getVolumenGLPAsignado();
+
+                if (tiempoMenorQueLimite && volumenGLPAsignado) {
                     fitness += tiempoEntregaLimite - tiempoLlegada;
                     camion.actualizarCombustible(distanciaCalculada);
                     camion.actualizarCargaPedido(pedido.getVolumenGLPAsignado());
@@ -87,13 +90,9 @@ public class Gen {
         return fitness;
     }
 
-    private boolean validarRuta(double distanciaMaxima, double distanciaCalculada) {
-        return distanciaMaxima >= distanciaCalculada;
-    }
-
     private void recargarCamion(Camion camion, Nodo nodo) {
         if (nodo instanceof Almacen || nodo instanceof Camion) {
-            camion.setCombustibleActual(camion.getCapacidadTanque());
+            camion.setCombustibleActual(camion.getCombustibleMaximo());
         }
     }
 

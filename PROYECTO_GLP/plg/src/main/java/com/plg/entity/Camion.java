@@ -29,8 +29,8 @@ public class Camion extends Nodo {
     private TipoCamion tipo; // TA, TB, TC, TD
 
     // GLP
-    private double capacidadMaxima;              // Capacidad en m3 de GLP
-    private double capacidadActual;    // Capacidad disponible actual (m3)
+    private double capacidadMaximaGLP;              // Capacidad en m3 de GLP
+    private double capacidadActualGLP;    // Capacidad disponible actual (m3)
 
     private double tara;                   // Peso del camión vacío en toneladas
     private double pesoCarga;              // Peso actual de la carga en toneladas
@@ -39,7 +39,7 @@ public class Camion extends Nodo {
     private EstadoCamion estado;
 
     // Combustible
-    private double capacidadTanque;   // Capacidad del tanque en galones
+    private double combustibleMaximo;   // Capacidad del tanque en galones
     private double combustibleActual;        // Combustible actual en galones
     private double velocidadPromedio; // Velocidad promedio en km/h
 
@@ -65,12 +65,12 @@ public class Camion extends Nodo {
             codigo,
             tipo,
             getCoordenada() != null ? getCoordenada() : "N/A",
-            capacidadActual,
-            capacidadMaxima,
+            capacidadActualGLP,
+            capacidadMaximaGLP,
             tara,
             pesoCarga,
             combustibleActual,
-            capacidadTanque,
+            combustibleMaximo,
             velocidadPromedio,
             distanciaMaxima,
             estado
@@ -96,12 +96,18 @@ public class Camion extends Nodo {
 
 
     public void actualizarCargaPedido(double volumenGLP) {
-        // Convertimos de volumen a peso (1 m3 de GLP = 0.5 toneladas)
+        // Actualizamos el peso de la carga
         double pesoGLPPedido = volumenGLP * 0.5; 
         if (pesoGLPPedido > this.pesoCarga) {
             throw new IllegalArgumentException("No se puede descargar más GLP del que tiene el camión.");
         }
         pesoCarga -= pesoGLPPedido;
+
+        // Actualizamos la capacidad de GLP
+        if (capacidadActualGLP < volumenGLP) {
+            throw new IllegalArgumentException("No se puede descargar más GLP del que tiene el camión.");
+        }
+        capacidadActualGLP -= volumenGLP;
     }
 
 
@@ -109,13 +115,13 @@ public class Camion extends Nodo {
         return Camion.builder()
                 .codigo(this.codigo)
                 .tipo(this.tipo)
-                .capacidadMaxima(this.capacidadMaxima)
-                .capacidadActual(this.capacidadActual)
+                .capacidadMaximaGLP(this.capacidadMaximaGLP)
+                .capacidadActualGLP(this.capacidadActualGLP)
                 .tara(this.tara)
                 .pesoCarga(this.pesoCarga)
                 .pesoCombinado(this.pesoCombinado)
                 .estado(this.estado)
-                .capacidadTanque(this.capacidadTanque)
+                .combustibleMaximo(this.combustibleMaximo)
                 .combustibleActual(this.combustibleActual)
                 .velocidadPromedio(this.velocidadPromedio)
                 .distanciaMaxima(this.distanciaMaxima)

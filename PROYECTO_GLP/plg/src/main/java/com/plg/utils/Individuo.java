@@ -56,6 +56,8 @@ public class Individuo {
             cromosomaInicial.add(new Gen(camion, new ArrayList<>()));
         }
 
+        Almacen almacenCentral = almacenes.get(0); // Almacén central
+
         // Crear una lista de nodos que incluye pedidos, camiones averiados y almacenes
         List<Nodo> nodos = new ArrayList<>();
         nodos.addAll(pedidos);
@@ -64,8 +66,11 @@ public class Individuo {
         if (Math.random() < 0.2) {
             nodos.addAll(camionesAveriados);
         }
-        // Con probabilidad de un 20% agrego almacenes
+
+    
+        // Con probabilidad de un 20% agrego almacenes 2 veces
         if (Math.random() < 0.2) {
+            nodos.addAll(almacenes);
             nodos.addAll(almacenes);
         }
 
@@ -77,6 +82,11 @@ public class Individuo {
         for (int i = 0; i < nodos.size(); i++) {
             int indiceCamion = i % numCamiones; // Distribuir nodos de forma cíclica
             cromosomaInicial.get(indiceCamion).getNodos().add(nodos.get(i));
+        }
+
+        // Asignar el almacén central a cada gen para que cada camion retorne al almacén central
+        for (Gen gen: cromosomaInicial) {
+            gen.getNodos().add(almacenCentral);
         }
 
         return cromosomaInicial;
@@ -109,9 +119,9 @@ public class Individuo {
 
         // Verificar que ambos genes tengan nodos para intercambiar
         if (!nodosGen1.isEmpty() && !nodosGen2.isEmpty()) {
-            // Seleccionar un nodo al azar de cada gen
-            int nodoIndex1 = (int) (Math.random() * nodosGen1.size());
-            int nodoIndex2 = (int) (Math.random() * nodosGen2.size());
+            // Seleccionar un nodo al azar de cada gen pero asegurando que no sea el almacén central
+            int nodoIndex1 = (int) (Math.random() * nodosGen1.size()-1);
+            int nodoIndex2 = (int) (Math.random() * nodosGen2.size()-1);
 
             // Intercambiar los nodos seleccionados
             Nodo temp = nodosGen1.get(nodoIndex1);
