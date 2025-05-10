@@ -48,8 +48,6 @@ public class AlgoritmoGenetico {
         }
         poblacion.sort((ind1, ind2) -> Double.compare(ind1.getFitness(), ind2.getFitness()));
         mejorIndividuo = poblacion.get(0);
-        System.out.println("Mejor individuo: ");
-        System.out.println(mejorIndividuo);
         System.out.println("Fitness: " + mejorIndividuo.getFitness());
 
     }

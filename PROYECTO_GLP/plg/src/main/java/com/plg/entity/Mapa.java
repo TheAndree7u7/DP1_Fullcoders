@@ -133,6 +133,12 @@ public class Mapa {
 
     public void imprimirMapa(Individuo individuo) {
 
+        Gen gen1 = individuo.getCromosoma().get(0);
+        System.err.println(gen1.getRutaFinal().size());
+
+        Gen gen1 = individuo.getCromosoma().get(0);
+        System.err.println(gen1.getRutaFinal().size());
+
         // Imprime cabecera de columnas
         System.out.print("     ");
         for (int j = 0; j < this.columnas; j++) {
@@ -218,28 +224,10 @@ public class Mapa {
     }
 
     public List<Nodo> aStar(Nodo nodo1, Nodo nodo2) {
-
-        System.out.println(nodo1);
-
         Nodo inicio = getNodo(nodo1.getCoordenada());
         Nodo destino = getNodo(nodo2.getCoordenada());
-
-        System.out.println(inicio);
-
         PriorityQueue<Nodo> openSet = new PriorityQueue<>((a, b) -> Double.compare(a.getFScore(), b.getFScore()));
         Map<Nodo, Nodo> cameFrom = new LinkedHashMap<>();
-        // Imprimimos el tamaño cameFrom
-        System.out.println("Tamaño cameFrom: " + cameFrom.size());
-
-        if (cameFrom.containsKey(inicio)) {
-            System.out.println("Error come from contiene nodo inicial" + inicio.getCoordenada());
-
-            // Imprimimos el tamaño cameFrom
-            System.out.println("Tamaño cameFrom: " + cameFrom.size());
-
-            System.out.println(cameFrom.get(inicio));
-        }
-
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
                 Nodo nodo = getNodo(i, j);
@@ -250,34 +238,12 @@ public class Mapa {
         inicio.setGScore(0);
         inicio.setFScore(calcularHeuristica(inicio, destino));
         openSet.add(inicio);
-
-        if (cameFrom.containsKey(inicio)) {
-            System.out.println("Error come from contiene nodo inicial" + inicio.getCoordenada());
-
-            // Imprimimos el tamaño cameFrom
-            System.out.println("Tamaño cameFrom: " + cameFrom.size());
-
-            System.out.println(cameFrom.get(inicio));
-        }
-
         while (!openSet.isEmpty()) {
             Nodo nodoActual = openSet.poll();
-
-             if (cameFrom.containsKey(inicio)) {
-            System.out.println("Error come from contiene nodo inicial" + inicio.getCoordenada());
-
-            // Imprimimos el tamaño cameFrom
-            System.out.println("Tamaño cameFrom: " + cameFrom.size());
-
-            System.out.println(cameFrom.get(inicio));
-            break;
-        }
-
             if (nodoActual.equals(destino)) {
                 return reconstruirRuta(cameFrom, nodoActual);
             }
             for (Nodo vecino : getAdj(nodoActual.getCoordenada())) {
-
                 if (vecino.isBloqueado()) {
                     continue;
                 }
@@ -286,7 +252,6 @@ public class Mapa {
                     cameFrom.put(vecino, nodoActual);
                     vecino.setGScore(tentativeGScore);
                     vecino.setFScore(tentativeGScore + calcularHeuristica(vecino, destino));
-
                     if (!openSet.contains(vecino)) {
                         openSet.add(vecino);
                     }
@@ -297,14 +262,11 @@ public class Mapa {
     }
 
     private List<Nodo> reconstruirRuta(Map<Nodo, Nodo> cameFrom, Nodo nodoActual) {
-        System.out.println("Reconstruyendo ruta...");
-        System.out.println(nodoActual.getCoordenada());
         List<Nodo> ruta = new ArrayList<>();
         while (nodoActual != null) {
             ruta.add(nodoActual);
             nodoActual = cameFrom.get(nodoActual);
         }
-        System.out.println("Ruta reconstruida: ");
         Collections.reverse(ruta);
         return ruta;
     }

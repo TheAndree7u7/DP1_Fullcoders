@@ -44,8 +44,6 @@ public class PlgApplication implements CommandLineRunner {
         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidos, camiones, almacenes);
         algoritmoGenetico.ejecutarAlgoritmo();
         Individuo mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
-        // List<Nodo> ruta = mapa.aStar(camion, pedido);
-
         mapa.imprimirMapa(mejorIndividuo);
 
     }

@@ -48,8 +48,7 @@ public class DataLoader {
         almacenes.add(almacenCentral);
         almacenes.add(almacen1);
         almacenes.add(almacen2);
-        System.out.println("Prueba de igualdad de almacenes:");
-        System.err.println(almacen1.equals(almacen2));
+
 
         // Actualizamos el mapa con los almacenes
         mapa.setNodo(almacenCentral.getCoordenada(), almacenCentral);
