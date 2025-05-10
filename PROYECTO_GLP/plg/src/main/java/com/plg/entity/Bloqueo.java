@@ -20,6 +20,6 @@ public class Bloqueo {
     private String descripcion;
     private boolean activo;
 
-   
+
 
 }

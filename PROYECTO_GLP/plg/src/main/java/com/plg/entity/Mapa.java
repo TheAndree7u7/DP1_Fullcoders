@@ -264,4 +264,23 @@ public class Mapa {
         return ruta;
     }
 
+    public void crearBloqueo(Coordenada start, Coordenada end) {
+        if (start.getColumna() == end.getColumna()) {
+            int startRow = Math.min(start.getFila(), end.getFila());
+            int endRow = Math.max(start.getFila(), end.getFila());
+            for (int j = startRow; j <= endRow; j++) {
+                Nodo nodo = getNodo(j, start.getColumna());
+                nodo.setBloqueado(true);
+            }
+        } else if (start.getFila() == end.getFila()) {
+            int startCol = Math.min(start.getColumna(), end.getColumna());
+            int endCol = Math.max(start.getColumna(), end.getColumna());
+            for (int j = startCol; j <= endCol; j++) {
+                Nodo nodo = getNodo(start.getFila(), j);
+                nodo.setBloqueado(true);
+            }
+        } else {
+            System.out.println("Error: Las coordenadas no son válidas para un bloqueo lineal.");
+        }
+    }
 }

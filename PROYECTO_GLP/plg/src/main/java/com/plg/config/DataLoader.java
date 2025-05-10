@@ -49,7 +49,6 @@ public class DataLoader {
         almacenes.add(almacen1);
         almacenes.add(almacen2);
 
-
         // Actualizamos el mapa con los almacenes
         mapa.setNodo(almacenCentral.getCoordenada(), almacenCentral);
         mapa.setNodo(almacen1.getCoordenada(), almacen1);
@@ -71,7 +70,7 @@ public class DataLoader {
 
         // Camiones operativos
         List<Camion> camiones = new ArrayList<>();
-        Coordenada coordenada = new Coordenada(12, 12);   
+        Coordenada coordenada = new Coordenada(12, 12);
         camiones.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TA,
                 true,
                 coordenada));
@@ -81,7 +80,6 @@ public class DataLoader {
         camiones.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TC,
                 true,
                 coordenada));
-
 
         List<Camion> camionesAveriados = new ArrayList<>();
         camionesAveriados.add(CamionFactory.crearCamionesPorTipo(TipoCamion.TA,
@@ -194,7 +192,7 @@ public class DataLoader {
         return mantenimientos;
     }
 
-    public void initializeBloqueos(Mapa mapa) {
+    public void initializeBloqueos() {
         List<String> lines = readAllLines(pathBloqueos);
         for (String line : lines) {
             String[] partes = line.split(":");
@@ -220,20 +218,7 @@ public class DataLoader {
             for (int i = 0; i < coordenadas.size() - 1; i++) {
                 Coordenada start = coordenadas.get(i);
                 Coordenada end = coordenadas.get(i + 1);
-                if (start.getColumna() == end.getColumna()) {
-                    for (int j = start.getFila(); j <= end.getFila(); j++) {
-                        Nodo nodo = mapa.getNodo(j, start.getColumna());
-                        nodo.setBloqueado(true);
-                    }
-                } else if (start.getFila() == end.getFila()) {
-                    for (int j = start.getColumna(); j <= end.getColumna(); j++) {
-                        Nodo nodo = mapa.getNodo(start.getFila(), j);
-                        nodo.setBloqueado(true);
-                    }
-                } else {
-                    System.out.println("Error: Las coordenadas no son válidas para un bloqueo lineal.");
-                    return;
-                }
+                mapa.crearBloqueo(start, end);
             }
 
         }
