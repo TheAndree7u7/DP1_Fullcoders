@@ -28,9 +28,11 @@ public class Pedido extends Nodo {
     public String toString() {
         return String.format(
             "Pedido [%s]%n" +
+            "  - Coordenada:       %s%n" +
             "  - Volumen asignado:   %.2f m3%n" +
             "  - Estado:             %s%n",
-            codigo, 
+            codigo,
+            getCoordenada() != null ? getCoordenada() : "N/A", 
             volumenGLPAsignado,
             estado
         );

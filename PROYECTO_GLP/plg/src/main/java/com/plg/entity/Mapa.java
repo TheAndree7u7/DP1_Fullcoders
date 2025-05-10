@@ -132,13 +132,6 @@ public class Mapa {
     }
 
     public void imprimirMapa(Individuo individuo) {
-
-        Gen gen1 = individuo.getCromosoma().get(0);
-        System.err.println(gen1.getRutaFinal().size());
-
-        Gen gen1 = individuo.getCromosoma().get(0);
-        System.err.println(gen1.getRutaFinal().size());
-
         // Imprime cabecera de columnas
         System.out.print("     ");
         for (int j = 0; j < this.columnas; j++) {

@@ -32,9 +32,8 @@ public class Gen {
     }
 
     public double calcularFitness() {
+        this.rutaFinal.clear();
         double fitness = 0.0;
-
-    
         Camion camion = this.camion.clone(); 
 
         for (int i = 0; i < nodos.size(); i++) {

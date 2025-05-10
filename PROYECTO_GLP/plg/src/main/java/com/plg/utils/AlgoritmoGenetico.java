@@ -7,6 +7,7 @@ import java.util.List;
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
 import com.plg.entity.Mapa;
+import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
 
 import lombok.AllArgsConstructor;
