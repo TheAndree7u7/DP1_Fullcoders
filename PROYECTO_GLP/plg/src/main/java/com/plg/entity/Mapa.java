@@ -156,7 +156,7 @@ public class Mapa {
                     if (individuo != null) {
                         for (int k = 0; k < individuo.getCromosoma().size(); k++) {
                             Gen gen = individuo.getCromosoma().get(k);
-                            List<Nodo> nodosGen = gen.getNodos();
+                            List<Nodo> nodosGen = gen.getRutaFinal();
                             if (nodosGen.contains(nodoActual)) {
                                 cell = " " + (k + 1) + " ";
                                 break;

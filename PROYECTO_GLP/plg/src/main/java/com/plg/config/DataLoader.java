@@ -141,16 +141,28 @@ public class DataLoader {
                 new Coordenada(23, 1),
                 5,
                 10.0);
+        Pedido pedido4 = PedidoFactory.crearPedido(
+                new Coordenada(1, 23),
+                5,
+                10.0);
+        Pedido pedido5 = PedidoFactory.crearPedido(
+                new Coordenada(11, 1),
+                5,
+                10.0);
 
         // Agregamos a la lista de pedidos
         pedidos.add(pedido1);
         pedidos.add(pedido2);
         pedidos.add(pedido3);
+        pedidos.add(pedido4);
+        pedidos.add(pedido5);
 
         // Actualizamos el mapa con los pedidos
         mapa.setNodo(pedido1.getCoordenada(), pedido1);
         mapa.setNodo(pedido2.getCoordenada(), pedido2);
         mapa.setNodo(pedido3.getCoordenada(), pedido3);
+        mapa.setNodo(pedido4.getCoordenada(), pedido4);
+        mapa.setNodo(pedido5.getCoordenada(), pedido5);
 
         return pedidos;
     }

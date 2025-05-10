@@ -101,7 +101,7 @@ public class Almacen extends Nodo {
             "  - Central:               %s%n" +
             "  - Permite estacionarse:  %s%n" +
             "  - Hora reabastecimiento: %s%n" +
-            "  - Activo:                %s",
+            "  - Activo:                %s \n",
             nombre,
             tipo != null ? tipo : "N/A",
             getCoordenada() != null ? getCoordenada() : "N/A",

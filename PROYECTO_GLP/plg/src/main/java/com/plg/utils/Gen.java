@@ -64,6 +64,10 @@ public class Gen {
                     fitness += tiempoEntregaLimite - tiempoLlegada;
                     camion.actualizarCombustible(distanciaCalculada);
                     camion.actualizarCargaPedido(pedido.getVolumenGLPAsignado());
+
+                    if (i > 0){
+                        ruta.remove(0);
+                    }
                     rutaFinal.addAll(ruta);
                 } else {
                     fitness = Double.MIN_VALUE;
@@ -71,6 +75,11 @@ public class Gen {
                 }
             } else if (nodo2 instanceof Almacen || nodo2 instanceof Camion) {
                 recargarCamion(camion, nodo2);
+
+                if (i > 0){
+                    ruta.remove(0);
+                }
+
                 rutaFinal.addAll(ruta);
             }
         }

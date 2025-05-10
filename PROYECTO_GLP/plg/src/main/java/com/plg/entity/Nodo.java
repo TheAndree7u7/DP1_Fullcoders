@@ -29,7 +29,7 @@ public class Nodo {
         return String.format(
                 "Nodo [%s]%n" +
                         "  - Coordenada:       %s%n" +
-                        "  - Tipo de nodo:     %s",
+                        "  - Tipo de nodo:     %s \n",
                 coordenada != null ? coordenada : "N/A",
                 coordenada != null ? coordenada : "N/A",
                 tipoNodo != null ? tipoNodo.getTipo() : "N/A");
