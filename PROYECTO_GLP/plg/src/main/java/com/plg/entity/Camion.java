@@ -1,21 +1,25 @@
 package com.plg.entity;
 
 import lombok.Data;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import com.plg.entity.TipoCamion;
 
-@Data
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
@@ -120,4 +124,5 @@ public class Camion extends Nodo {
                 .tipoNodo(getTipoNodo())
                 .build();
     }
+
 }

@@ -42,13 +42,14 @@ public class DataLoader {
         Almacen almacenCentral = AlmacenFactory.crearAlmacen(TipoAlmacen.CENTRAL, new Coordenada(12, 12), 1_000_000_000,
                 1_000_000_000);
         Almacen almacen1 = AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(19, 3), 1000.0, 1000.0);
-        Almacen almacen2 = almacen1.getClone();
-        almacen2.setCoordenada(new Coordenada(3, 19));
+        Almacen almacen2 = AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(3, 19), 1000.0, 1000.0);
 
         // Agregamos los almacenes a la lista
         almacenes.add(almacenCentral);
         almacenes.add(almacen1);
         almacenes.add(almacen2);
+        System.out.println("Prueba de igualdad de almacenes:");
+        System.err.println(almacen1.equals(almacen2));
 
         // Actualizamos el mapa con los almacenes
         mapa.setNodo(almacenCentral.getCoordenada(), almacenCentral);

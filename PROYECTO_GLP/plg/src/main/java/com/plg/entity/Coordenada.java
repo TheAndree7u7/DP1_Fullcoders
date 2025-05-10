@@ -1,5 +1,7 @@
 package com.plg.entity;
 
+import java.util.Objects;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,20 +14,16 @@ import lombok.NoArgsConstructor;
 public class Coordenada {
     private int fila;
     private int columna;
-
+    
     @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof Coordenada))
-            return false;
-        Coordenada that = (Coordenada) o;
-        return this.fila == that.fila && this.columna == that.columna;
+    public boolean equals(Object obj) {
+        Coordenada that = (Coordenada) obj;
+        return fila == that.fila && columna == that.columna;
     }
 
     @Override
     public int hashCode() {
-        return 31 * fila + columna;
+        return 1000 * fila + columna;
     }
 
 }

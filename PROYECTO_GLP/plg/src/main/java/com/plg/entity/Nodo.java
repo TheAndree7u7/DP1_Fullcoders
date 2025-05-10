@@ -27,21 +27,18 @@ public class Nodo {
     @Override
     public String toString() {
         return String.format(
-            "Nodo [%s]%n" +
-            "  - Coordenada:       %s%n" +
-            "  - Tipo de nodo:     %s%n" +
-            tipoNodo != null ? tipoNodo.getTipo() : "N/A",
-            coordenada != null ? coordenada : "N/A",
-            tipoNodo != null ? tipoNodo.getTipo() : "N/A"
-        );
+                "Nodo [%s]%n" +
+                        "  - Coordenada:       %s%n" +
+                        "  - Tipo de nodo:     %s",
+                coordenada != null ? coordenada : "N/A",
+                coordenada != null ? coordenada : "N/A",
+                tipoNodo != null ? tipoNodo.getTipo() : "N/A");
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Nodo)) return false;
-        Nodo other = (Nodo) o;
-        return Objects.equals(this.coordenada, other.coordenada);
+    public boolean equals(Object obj) {
+        Nodo nodo = (Nodo) obj;
+        return Objects.equals(coordenada, nodo.coordenada);
     }
 
     @Override

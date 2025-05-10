@@ -3,6 +3,7 @@ package com.plg.entity;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -64,6 +65,72 @@ public class Mapa {
         }
     }
 
+    public void imprimirMapa() {
+        // Imprime cabecera de columnas
+        System.out.print("     ");
+        for (int j = 0; j < this.columnas; j++) {
+            System.out.printf("%4d", j);
+        }
+        System.out.println();
+        // Imprime cada fila desde la más alta hasta la 0
+        for (int i = this.filas - 1; i >= 0; i--) {
+            System.out.printf("%4d ", i); // Índice de fila
+            for (int j = 0; j < this.columnas; j++) {
+                Nodo nodoActual = getNodo(i, j);
+                String cell = " . "; // Valor por defecto
+                if (nodoActual.isBloqueado()) {
+                    cell = " X "; // Nodo bloqueado
+                } else if (nodoActual.getTipoNodo() == TipoNodo.ALMACEN) {
+                    cell = " A "; // Almacén
+                } else if (nodoActual.getTipoNodo() == TipoNodo.PEDIDO) {
+                    cell = " P "; // Pedido
+                } else if (nodoActual.getTipoNodo() == TipoNodo.CAMION_AVERIADO) {
+                    cell = " C "; // Camión
+                }
+                System.out.printf("%4s", cell);
+            }
+            System.out.println();
+        }
+
+        // Imprime la línea de índices de columna al pie
+        System.out.print("     ");
+        for (int j = 0; j < this.columnas; j++) {
+            System.out.printf("%4d", j);
+        }
+        System.out.println();
+    }
+
+    public void imprimirMapa(List<Nodo> nodos) {
+        // Imprime cabecera de columnas
+        System.out.print("     ");
+        for (int j = 0; j < this.columnas; j++) {
+            System.out.printf("%4d", j);
+        }
+        System.out.println();
+        // Imprime cada fila desde la más alta hasta la 0
+        for (int i = this.filas - 1; i >= 0; i--) {
+            System.out.printf("%4d ", i); // Índice de fila
+            for (int j = 0; j < this.columnas; j++) {
+                Nodo nodoActual = getNodo(i, j);
+                String cell = " . "; // Valor por defecto
+                if (nodoActual.isBloqueado()) {
+                    cell = " X "; // Nodo bloqueado
+                } else if (nodos != null && nodos.contains(nodoActual)) {
+                    cell = " * "; // Nodo especial
+                }
+                System.out.printf("%4s", cell);
+            }
+            System.out.println();
+        }
+
+        // Imprime la línea de índices de columna al pie
+        System.out.print("     ");
+        for (int j = 0; j < this.columnas; j++) {
+            System.out.printf("%4d", j);
+        }
+        System.out.println();
+    }
+
     public void imprimirMapa(Individuo individuo) {
 
         // Imprime cabecera de columnas
@@ -87,15 +154,16 @@ public class Mapa {
                 } else if (nodoActual.getTipoNodo() == TipoNodo.CAMION_AVERIADO) {
                     cell = " C "; // Camión
                 } else {
-                    for (int k = 0; k < individuo.getCromosoma().size(); k++) {
-                        Gen gen = individuo.getCromosoma().get(k);
-                        List<Nodo> nodosGen = gen.getNodos();
-                        if (nodosGen.contains(nodoActual)) {
-                            cell = " " + (k + 1) + " ";
-                            break;
+                    if (individuo != null) {
+                        for (int k = 0; k < individuo.getCromosoma().size(); k++) {
+                            Gen gen = individuo.getCromosoma().get(k);
+                            List<Nodo> nodosGen = gen.getNodos();
+                            if (nodosGen.contains(nodoActual)) {
+                                cell = " " + (k + 1) + " ";
+                                break;
+                            }
                         }
                     }
-
                 }
                 System.out.printf("%4s", cell);
             }
@@ -151,13 +219,26 @@ public class Mapa {
 
     public List<Nodo> aStar(Nodo nodo1, Nodo nodo2) {
 
+        System.out.println(nodo1);
+
         Nodo inicio = getNodo(nodo1.getCoordenada());
         Nodo destino = getNodo(nodo2.getCoordenada());
 
-        PriorityQueue<Nodo> openSet = new PriorityQueue<>((a, b) -> Double.compare(a.getFScore(), b.getFScore()));
-        Map<Nodo, Nodo> cameFrom = new HashMap<>();
+        System.out.println(inicio);
 
-        System.out.println("Ejecutando A* desde " + inicio.getCoordenada() + " hasta " + destino.getCoordenada());
+        PriorityQueue<Nodo> openSet = new PriorityQueue<>((a, b) -> Double.compare(a.getFScore(), b.getFScore()));
+        Map<Nodo, Nodo> cameFrom = new LinkedHashMap<>();
+        // Imprimimos el tamaño cameFrom
+        System.out.println("Tamaño cameFrom: " + cameFrom.size());
+
+        if (cameFrom.containsKey(inicio)) {
+            System.out.println("Error come from contiene nodo inicial" + inicio.getCoordenada());
+
+            // Imprimimos el tamaño cameFrom
+            System.out.println("Tamaño cameFrom: " + cameFrom.size());
+
+            System.out.println(cameFrom.get(inicio));
+        }
 
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
@@ -169,18 +250,34 @@ public class Mapa {
         inicio.setGScore(0);
         inicio.setFScore(calcularHeuristica(inicio, destino));
         openSet.add(inicio);
+
+        if (cameFrom.containsKey(inicio)) {
+            System.out.println("Error come from contiene nodo inicial" + inicio.getCoordenada());
+
+            // Imprimimos el tamaño cameFrom
+            System.out.println("Tamaño cameFrom: " + cameFrom.size());
+
+            System.out.println(cameFrom.get(inicio));
+        }
+
         while (!openSet.isEmpty()) {
             Nodo nodoActual = openSet.poll();
+
+             if (cameFrom.containsKey(inicio)) {
+            System.out.println("Error come from contiene nodo inicial" + inicio.getCoordenada());
+
+            // Imprimimos el tamaño cameFrom
+            System.out.println("Tamaño cameFrom: " + cameFrom.size());
+
+            System.out.println(cameFrom.get(inicio));
+            break;
+        }
+
             if (nodoActual.equals(destino)) {
-                Nodo nodoPrueba = cameFrom.get(inicio);
-                if (nodoPrueba != null) {
-                    System.out.println("Nodo prueba: " + nodoPrueba.getCoordenada());
-                } else {
-                    System.out.println("No se encontró un nodo prueba.");
-                }
                 return reconstruirRuta(cameFrom, nodoActual);
             }
             for (Nodo vecino : getAdj(nodoActual.getCoordenada())) {
+
                 if (vecino.isBloqueado()) {
                     continue;
                 }
