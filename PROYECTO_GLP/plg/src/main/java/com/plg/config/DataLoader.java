@@ -55,10 +55,6 @@ public class DataLoader {
         mapa.setNodo(almacen1.getCoordenada(), almacen1);
         mapa.setNodo(almacen2.getCoordenada(), almacen2);
 
-        // Imprimo para verificar
-        Nodo nodoPrueba = mapa.getNodo(almacenCentral.getCoordenada());
-        System.out.println(nodoPrueba.getTipoNodo());
-
         return almacenes;
     }
 

@@ -64,10 +64,7 @@ public class Mapa {
         }
     }
 
-
     public void imprimirMapa(Individuo individuo) {
-
-
 
         // Imprime cabecera de columnas
         System.out.print("     ");
@@ -89,16 +86,16 @@ public class Mapa {
                     cell = " P "; // Pedido
                 } else if (nodoActual.getTipoNodo() == TipoNodo.CAMION_AVERIADO) {
                     cell = " C "; // Camión
-                }else{
-                    for (int k = 0; k < individuo.getCromosoma().size(); k++){
+                } else {
+                    for (int k = 0; k < individuo.getCromosoma().size(); k++) {
                         Gen gen = individuo.getCromosoma().get(k);
                         List<Nodo> nodosGen = gen.getNodos();
-                        if(nodosGen.contains(nodoActual)){
-                            cell = " " + (k+1) + " "; 
+                        if (nodosGen.contains(nodoActual)) {
+                            cell = " " + (k + 1) + " ";
                             break;
                         }
                     }
-                    
+
                 }
                 System.out.printf("%4s", cell);
             }
@@ -131,29 +128,39 @@ public class Mapa {
         int columna = x.getColumna();
 
         // Movimientos posibles: arriba, abajo, izquierda, derecha
-        if (fila > 0)
+        if (fila > 0) {
             adyacentes.add(getNodo(fila - 1, columna)); // Arriba
-        if (fila < filas - 1)
+        }
+        if (fila < filas - 1) {
             adyacentes.add(getNodo(fila + 1, columna)); // Abajo
-        if (columna > 0)
+        }
+        if (columna > 0) {
             adyacentes.add(getNodo(fila, columna - 1)); // Izquierda
-        if (columna < columnas - 1)
+        }
+        if (columna < columnas - 1) {
             adyacentes.add(getNodo(fila, columna + 1)); // Derecha
+        }
 
         return adyacentes;
     }
 
     private double calcularHeuristica(Nodo a, Nodo b) {
         return Math.abs(a.getCoordenada().getColumna() - b.getCoordenada().getColumna()) +
-               Math.abs(a.getCoordenada().getFila() - b.getCoordenada().getFila());
+                Math.abs(a.getCoordenada().getFila() - b.getCoordenada().getFila());
     }
 
-    public List<Nodo> aStar(Nodo inicio, Nodo destino) {
+    public List<Nodo> aStar(Nodo nodo1, Nodo nodo2) {
+
+        Nodo inicio = getNodo(nodo1.getCoordenada());
+        Nodo destino = getNodo(nodo2.getCoordenada());
+
         PriorityQueue<Nodo> openSet = new PriorityQueue<>((a, b) -> Double.compare(a.getFScore(), b.getFScore()));
         Map<Nodo, Nodo> cameFrom = new HashMap<>();
 
-        for(int i = 0; i < filas; i++) {
-            for(int j = 0; j < columnas; j++) {
+        System.out.println("Ejecutando A* desde " + inicio.getCoordenada() + " hasta " + destino.getCoordenada());
+
+        for (int i = 0; i < filas; i++) {
+            for (int j = 0; j < columnas; j++) {
                 Nodo nodo = getNodo(i, j);
                 nodo.setGScore(Double.POSITIVE_INFINITY);
                 nodo.setFScore(Double.POSITIVE_INFINITY);
@@ -165,6 +172,12 @@ public class Mapa {
         while (!openSet.isEmpty()) {
             Nodo nodoActual = openSet.poll();
             if (nodoActual.equals(destino)) {
+                Nodo nodoPrueba = cameFrom.get(inicio);
+                if (nodoPrueba != null) {
+                    System.out.println("Nodo prueba: " + nodoPrueba.getCoordenada());
+                } else {
+                    System.out.println("No se encontró un nodo prueba.");
+                }
                 return reconstruirRuta(cameFrom, nodoActual);
             }
             for (Nodo vecino : getAdj(nodoActual.getCoordenada())) {
@@ -187,11 +200,14 @@ public class Mapa {
     }
 
     private List<Nodo> reconstruirRuta(Map<Nodo, Nodo> cameFrom, Nodo nodoActual) {
+        System.out.println("Reconstruyendo ruta...");
+        System.out.println(nodoActual.getCoordenada());
         List<Nodo> ruta = new ArrayList<>();
         while (nodoActual != null) {
             ruta.add(nodoActual);
             nodoActual = cameFrom.get(nodoActual);
         }
+        System.out.println("Ruta reconstruida: ");
         Collections.reverse(ruta);
         return ruta;
     }

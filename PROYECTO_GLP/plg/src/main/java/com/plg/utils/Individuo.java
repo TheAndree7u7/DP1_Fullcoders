@@ -95,7 +95,7 @@ public class Individuo {
     }
 
     public void mutar() {
-        // Seleccionar dos genes al azar
+        // Seleccionar dos genes al azarw
         int genIndex1 = (int) (Math.random() * cromosoma.size());
         int genIndex2 = (int) (Math.random() * cromosoma.size());
 
