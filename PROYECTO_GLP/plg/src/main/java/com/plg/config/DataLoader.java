@@ -133,40 +133,39 @@ public class DataLoader {
 
     public List<Pedido> initializePedidos() {
         List<Pedido> pedidos = new ArrayList<>();
-        Pedido pedido1 = PedidoFactory.crearPedido(
-                new Coordenada(38, 1),
-                5,
-                10.0);
-        Pedido pedido2 = PedidoFactory.crearPedido(
-                new Coordenada(1, 1),
-                5,
-                10.0);
-        Pedido pedido3 = PedidoFactory.crearPedido(
-                new Coordenada(1, 48),
-                5,
-                10.0);
-        Pedido pedido4 = PedidoFactory.crearPedido(
-                new Coordenada(38, 48),
-                5,
-                10.0);
-        Pedido pedido5 = PedidoFactory.crearPedido(
-                new Coordenada(20, 43),
-                5,
-                10.0);
+        List<String> lines = readAllLines(pathPedidos); // Leer líneas del archivo de pedidos
 
-        // Agregamos a la lista de pedidos
-        pedidos.add(pedido1);
-        pedidos.add(pedido2);
-        pedidos.add(pedido3);
-        pedidos.add(pedido4);
-        pedidos.add(pedido5);
+        for (String line : lines) {
+            try {
+                // Dividir la línea en partes
+                String[] partes = line.split(":");
+                String fechaStr = partes[0]; // Fecha relativa en formato ##d##h##m
+                String[] datos = partes[1].split(",");
 
-        // Actualizamos el mapa con los pedidos
-        mapa.setNodo(pedido1.getCoordenada(), pedido1);
-        mapa.setNodo(pedido2.getCoordenada(), pedido2);
-        mapa.setNodo(pedido3.getCoordenada(), pedido3);
-        mapa.setNodo(pedido4.getCoordenada(), pedido4);
-        mapa.setNodo(pedido5.getCoordenada(), pedido5);
+                // Extraer datos del pedido
+                int x = Integer.parseInt(datos[0]);
+                int y = Integer.parseInt(datos[1]);
+                String codigoCliente = datos[2];
+                double volumen = Double.parseDouble(datos[3].replace("m3", ""));
+                double horasLimite = Double.parseDouble(datos[4].replace("h", ""));
+
+                // Convertir la fecha relativa a LocalDateTime
+                LocalDateTime fechaPedido = readFecha(fechaStr);
+
+                // Crear coordenada y pedido
+                Coordenada coordenada = new Coordenada(x, y);
+                Pedido pedido = PedidoFactory.crearPedido(coordenada, horasLimite, volumen);
+                pedido.setCodigo(codigoCliente);
+                pedido.setFecha(fechaPedido);
+
+                // Agregar al mapa y a la lista de pedidos
+                mapa.setNodo(coordenada, pedido);
+                pedidos.add(pedido);
+            } catch (Exception e) {
+                System.err.println("Error al procesar la línea: " + line);
+                e.printStackTrace();
+            }
+        }
 
         return pedidos;
     }

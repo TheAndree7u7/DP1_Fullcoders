@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -19,6 +18,7 @@ public class Pedido extends Nodo {
     private double horasLimite; 
     private double volumenGLPAsignado;
     private EstadoPedido estado;
+    private LocalDateTime fecha; // Nuevo atributo para la fecha del pedido
 
     public Pedido(Coordenada coordenada, boolean bloqueado, double gScore, double fScore, TipoNodo tipoNodo) {
         super(coordenada, bloqueado, gScore, fScore, tipoNodo);
@@ -30,11 +30,13 @@ public class Pedido extends Nodo {
             "Pedido [%s]%n" +
             "  - Coordenada:       %s%n" +
             "  - Volumen asignado:   %.2f m3%n" +
-            "  - Estado:             %s%n",
+            "  - Estado:             %s%n" +
+            "  - Fecha:              %s%n", // Incluye la fecha en el toString
             codigo,
             getCoordenada() != null ? getCoordenada() : "N/A", 
             volumenGLPAsignado,
-            estado
+            estado,
+            fecha != null ? fecha : "N/A"
         );
     }
 }

@@ -1,5 +1,6 @@
 package com.plg;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +23,7 @@ import com.plg.entity.PedidoFactory;
 import com.plg.entity.TipoCamion;
 import com.plg.utils.AlgoritmoGenetico;
 import com.plg.utils.Individuo;
+import com.plg.utils.Parametros;
 import com.plg.config.DataLoader;
 
 @SpringBootApplication
@@ -40,11 +42,43 @@ public class PlgApplication implements CommandLineRunner {
         List<Almacen> almacenes = dataLoader.initializeAlmacenes();
         List<Camion> camiones = dataLoader.initializeCamiones();
         List<Pedido> pedidos = dataLoader.initializePedidos();
-        dataLoader.initializeBloqueos();
-        AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidos, camiones, almacenes);
-        algoritmoGenetico.ejecutarAlgoritmo();
-        Individuo mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
-        mapa.imprimirMapa(mejorIndividuo);
+        //dataLoader.initializeBloqueos();
+        //AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidos, camiones, almacenes);
+        //algoritmoGenetico.ejecutarAlgoritmo();
+        //Individuo mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
+        //mapa.imprimirMapa(mejorIndividuo);
 
+   // Verificar si hay pedidos
+    if (pedidos.isEmpty()) {
+        System.out.println("No hay pedidos para procesar.");
+        return;
     }
+
+    // Obtener la fecha del primer pedido como punto de partida
+    final LocalDateTime[] tiempoActualWrapper = { pedidos.get(0).getFecha() }; // Suponiendo que Pedido tiene un atributo 'fecha'
+    int bloqueMinutos = 30; // Cambiar a 30 minutos
+    final LocalDateTime[] tiempoFinalWrapper = { tiempoActualWrapper[0].plusMinutes(bloqueMinutos) };
+
+    int bloque = 1;
+
+    while (!pedidos.isEmpty()) {
+        System.out.println("Bloque " + bloque + ": intervalo de tiempo: " + tiempoActualWrapper[0] + " - " + tiempoFinalWrapper[0]);
+
+        // Filtrar pedidos dentro del bloque de tiempo actual
+        List<Pedido> pedidosBloque = pedidos.stream()
+            .filter(p -> !p.getFecha().isBefore(tiempoActualWrapper[0]) && p.getFecha().isBefore(tiempoFinalWrapper[0]))
+            .toList();
+
+        // Imprimir pedidos del bloque
+        pedidosBloque.forEach(System.out::println);
+
+        // Eliminar pedidos procesados
+        pedidos.removeAll(pedidosBloque);
+
+        // Avanzar al siguiente bloque de tiempo
+        tiempoActualWrapper[0] = tiempoFinalWrapper[0];
+        tiempoFinalWrapper[0] = tiempoActualWrapper[0].plusMinutes(bloqueMinutos); // Avanzar 30 minutos
+        bloque++;
+    }
+}
 }
