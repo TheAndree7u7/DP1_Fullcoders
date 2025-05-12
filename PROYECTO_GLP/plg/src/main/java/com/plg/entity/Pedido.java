@@ -17,6 +17,7 @@ public class Pedido extends Nodo {
 
     private String codigo;
     private double horasLimite; 
+    private LocalDateTime fechaRegistro;
     private double volumenGLPAsignado;
     private EstadoPedido estado;
 

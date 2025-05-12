@@ -5,76 +5,87 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import com.plg.config.DataLoader;
+import com.plg.entity.Almacen;
+import com.plg.entity.Bloqueo;
 import com.plg.entity.Mapa;
 import com.plg.entity.Pedido;
+import com.plg.entity.TipoAlmacen;
 
 public class Simulacion {
 
-    private List<Pedido> pedidosSemanal;
-    private Mapa mapa = Mapa.getInstance();
-    private LocalDateTime fechaActual;
+    private static List<Pedido> pedidosSemanal;
+    private static Mapa mapa = Mapa.getInstance();
+    private static LocalDateTime fechaActual;
+    public static ArrayList<Pedido> pedidosPorAtender = new ArrayList<>();
+    public static LinkedList<Pedido> pedidosPlanificados = new LinkedList<>();
+    public static ArrayList<Pedido> pedidosEntregados = new ArrayList<>();
 
-    public static void configurarSimulacion(LocalDateTime startDate){
-        // Cargar datos
+    public static void configurarSimulacion(LocalDateTime startDate) {
+
         fechaActual = startDate;
-
-        // Tarea 1
-        // En el dataLoader las variables de camiones, almacenes, mantenimientos y averias
-        // tienen que ser stati
-
         DataLoader.initializeAlmacenes();
         DataLoader.initializeCamiones();
         DataLoader.initializeMantenimientos();
         DataLoader.initializeAverias();
-        
         LocalDateTime fechaFin = fechaActual.plusDays(7);
-
-        // Filtrar 
         pedidosSemanal = DataLoader.pedidos.stream()
-                .filter(pedido -> pedido.getFecha().isAfter(fechaActual) && pedido.getFecha().isBefore(fechaFin))
+                .filter(pedido -> pedido.getFechaRegistro().isAfter(fechaActual)
+                        && pedido.getFechaRegistro().isBefore(fechaFin))
                 .collect(Collectors.toList());
 
     }
 
-    // Pedido no tiene fecha
+    public static void ejecutarSimulacion() {
+        actualizarBloqueos(fechaActual);
 
-    public static void ejecutarSimulacion(){
-        // Ejecutar simulacion
-        // 1. Inicializar el mapa
-        // 2. Inicializar los camiones
-        // 3. Inicializar los almacenes
-        // 4. Inicializar los pedidos
-        // 5. Ejecutar el algoritmo genetico
-        // 6. Imprimir el mapa con la mejor ruta encontrada
-        fechaFin = pedidosSemanal.get(pedidosSemanal.size() - 1).getFecha();
-        mapa.actualizarBloqueos(fechaActual);
-
-        ArrayList<Pedido> pedidosPorAtender = new ArrayList<>(); // Grupo pequeño para atender
-        LinkedList<Pedido> pedidosPlanificados = new LinkedList<>(); // Se pueden replanificar
-        ArrayList<Pedido> pedidosEntregados = new ArrayList<>();
-
-        while(!pedidosSemanal.isEmpty()){
+        while (!pedidosSemanal.isEmpty()) {
             Pedido pedido = pedidosSemanal.get(0);
-            if(!pedido.getFecha().isAfter(fechaActual)){
+            if (!pedido.getFechaRegistro().isAfter(fechaActual)) {
                 pedidosSemanal.remove(0);
                 pedidosPorAtender.add(pedido);
-            }else{
-                actualizarEstadoDelSistema(pedidosPorAtender, pedidosPlanificados, pedidosEntregados, fechaActual);
-                fechaActual = fechaActual.plusHours(3);
+            } else {
+                actualizarEstadoGlobal(fechaActual);
+                if (!pedidosPorAtender.isEmpty()) {
+                    AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosPorAtender,
+                            DataLoader.camiones, DataLoader.almacenes);
+                    algoritmoGenetico.ejecutarAlgoritmo();
+                }
+                fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
             }
         }
     }
 
-    public static void actualizarEstadoDelSistema(ArrayList<Pedido> pedidosPorAtender, LinkedList<Pedido> pedidosPlanificados, ArrayList<Pedido> pedidosEntregados, LocalDateTime fechaActual){
-        // Actualizar el estado del sistema
-        // 1. Actualizar el mapa
-        // 2. Actualizar los camiones
-        // 3. Actualizar los almacenes
-        // 4. Actualizar los pedidos
-        // 5. Ejecutar el algoritmo genetico
-        // 6. Imprimir el mapa con la mejor ruta encontrada
+    public static void actualizarEstadoGlobal(LocalDateTime fechaActual){
+        actualizarRepositorios(fechaActual);
+        actualizarBloqueos(fechaActual);
+        actualizarCamiones(fechaActual);
+    }
+
+    private static void actualizarBloqueos(LocalDateTime fechaActual) {
+        List<Bloqueo> bloqueos = DataLoader.bloqueos;
+        for (Bloqueo bloqueo : bloqueos) {
+            if (bloqueo.getFechaInicio().isBefore(fechaActual) && bloqueo.getFechaFin().isAfter(fechaActual)) {
+                bloqueo.activarBloqueo();
+            } else {
+                bloqueo.desactivarBloqueo();
+            }
+        }
+    }
+
+    private static void actualizarRepositorios(LocalDateTime fechaActual) {
+        List<Almacen> almacenes = DataLoader.almacenes;
+        if (fechaActual.getHour() == 0 && fechaActual.getMinute() == 0) {
+            for (Almacen almacen : almacenes) {
+                if (almacen.getTipo() == TipoAlmacen.SECUNDARIO) {
+                    almacen.setCapacidadActualGLP(almacen.getCapacidadMaximaGLP());
+                }
+            }
+        }
+    }
+
+    private static void actualizarCamiones(LocalDateTime fechaActual) {
+        
     }
 
 }

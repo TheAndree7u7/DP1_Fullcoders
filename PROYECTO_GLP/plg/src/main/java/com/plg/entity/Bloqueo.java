@@ -8,18 +8,80 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.plg.utils.Herramientas;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Bloqueo {
 
-    private Long id;
-    private List<Coordenada> coordenadas = new ArrayList<>();
     private LocalDateTime fechaInicio;
     private LocalDateTime fechaFin;
-    private String descripcion;
-    private boolean activo;
+    private List<Nodo> nodosBloqueados;
+    private Boolean activo;
+
+    public Bloqueo(String line) {
+        nodosBloqueados = new ArrayList<>();
+        String[] partes = line.split(":");
+        String[] partesFecha = partes[0].split("-");
+        LocalDateTime fecha1 = Herramientas.readFecha(partesFecha[0]);
+        LocalDateTime fecha2 = Herramientas.readFecha(partesFecha[1]);
+
+        List<Coordenada> coordenadas = new ArrayList<>();
+        String[] coordenadasBloqueo = partes[1].split(",");
+        if (coordenadasBloqueo.length > 0 && coordenadasBloqueo.length % 2 == 0) {
+            for (int i = 0; i < coordenadasBloqueo.length; i += 2) {
+                int x = Integer.parseInt(coordenadasBloqueo[i]);
+                int y = Integer.parseInt(coordenadasBloqueo[i + 1]);
+                Coordenada coordenada = new Coordenada(x, y);
+                coordenadas.add(coordenada);
+            }
+        } else {
+            System.out.println("Error en el formato de coordenadas de bloqueo: " + partes[1]);
+            return;
+        }
+
+        for (int i = 0; i < coordenadas.size() - 1; i++) {
+            Coordenada start = coordenadas.get(i);
+            Coordenada end = coordenadas.get(i + 1);
+            if (start.getColumna() == end.getColumna()) {
+                int startRow = Math.min(start.getFila(), end.getFila());
+                int endRow = Math.max(start.getFila(), end.getFila());
+                for (int j = startRow; j <= endRow; j++) {
+                    Nodo nodo = Mapa.getInstance().getNodo(j, start.getColumna());
+                    nodosBloqueados.add(nodo);
+                }
+            } else if (start.getFila() == end.getFila()) {
+                int startCol = Math.min(start.getColumna(), end.getColumna());
+                int endCol = Math.max(start.getColumna(), end.getColumna());
+                for (int j = startCol; j <= endCol; j++) {
+                    Nodo nodo = Mapa.getInstance().getNodo(start.getFila(), j);
+                    nodosBloqueados.add(nodo);
+                }
+            } else {
+                System.out.println("Error en el formato de coordenadas de bloqueo: " + partes[1]);
+                return;
+            }
+        }
+
+        this.fechaInicio = fecha1;
+        this.fechaFin = fecha2;
+        this.activo = false;
+    }
 
 
+    public void activarBloqueo() {
+        this.activo = true;
+        for (Nodo nodo : nodosBloqueados) {
+            nodo.setBloqueado(true);
+        }
+    }
+
+    public void desactivarBloqueo() {
+        this.activo = false;
+        for (Nodo nodo : nodosBloqueados) {
+            nodo.setBloqueado(false);
+        }
+    }
 
 }

@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 public class Mantenimiento {
 
-    private LocalDateTime fecha;
+    private int dia;
+    private int mes;
     private Camion camion;
 }

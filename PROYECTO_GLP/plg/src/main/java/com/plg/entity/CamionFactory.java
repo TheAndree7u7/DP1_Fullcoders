@@ -1,17 +1,25 @@
 package com.plg.entity;
 
-import com.plg.entity.Coordenada;
-import com.plg.entity.EstadoCamion;
-import com.plg.entity.TipoNodo;
-import com.plg.entity.Camion;
-import com.plg.entity.TipoCamion;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Patrón fábrica para crear camiones operativos y averiados.
  */
 public class CamionFactory {
+
+    public static final List<Camion> camiones = new ArrayList<>();
+    private static final Map<TipoCamion, Integer> contadorCamiones = new HashMap<>();
+
+    static {
+        // Inicializamos el contador para cada tipo de camión
+        for (TipoCamion tipo : TipoCamion.values()) {
+            contadorCamiones.put(tipo, 0);
+        }
+    }
 
     /**
      * Crea un camión operativo listo para operar.
@@ -22,7 +30,7 @@ public class CamionFactory {
      * @param tara               Tara en toneladas
      * @param coordenada         Posición inicial del camión en el mapa
      * @param combustibleInicial Combustible inicial en galones
-     * @param pesoCarga         Peso de la carga en toneladas
+     * @param pesoCarga          Peso de la carga en toneladas
      * @return instancia de Camion con estado DISPONIBLE
      */
     public static Camion crearCamionOperativo(
@@ -33,6 +41,7 @@ public class CamionFactory {
             Coordenada coordenada,
             double combustibleInicial,
             double pesoCarga) {
+
         return Camion.builder()
                 .codigo(codigo)
                 .tipo(tipo)
@@ -61,7 +70,7 @@ public class CamionFactory {
      * @param capacidadMaximaGLP  capacidadMaximaGLP de GLP en m³
      * @param tara       Tara en toneladas
      * @param coordenada Posición del camión averiado en el mapa
-     * @param pesoCarga Peso de la carga en toneladas
+     * @param pesoCarga  Peso de la carga en toneladas
      * @return instancia de Camion con estado INMOVILIZADO_POR_AVERIA
      */
     public static Camion crearCamionAveriado(
@@ -107,10 +116,28 @@ public class CamionFactory {
             case TD: tara = 1.0; capacidadGLP = 5.0; pesoCarga = 2.5; break;
             default: throw new IllegalArgumentException("Tipo de camión no válido: " + tipo);
         }
+
+        // Actualizamos el contador y generamos el código único
+        int numeroCamion = contadorCamiones.get(tipo) + 1;
+        contadorCamiones.put(tipo, numeroCamion);
+        String codigo = tipo.name() + String.format("%02d", numeroCamion);
+
         if (operativo) {
-            return crearCamionOperativo(tipo.name() + "01", tipo, capacidadGLP, tara, coordenada, 25.0, pesoCarga);
+            Camion camion = crearCamionOperativo(codigo, tipo, capacidadGLP, tara, coordenada, 25.0, pesoCarga);
+            camiones.add(camion); // Agregamos el camión operativo a la lista
+            return camion;
         } else {
-            return crearCamionAveriado(tipo.name() + "01", tipo, capacidadGLP, tara, coordenada, pesoCarga);
+            return crearCamionAveriado(codigo, tipo, capacidadGLP, tara, coordenada, pesoCarga);
         }
+    }
+
+    /**
+     * Obtiene el número de camiones creados por tipo.
+     *
+     * @param tipo Tipo de camión
+     * @return número de camiones creados de ese tipo
+     */
+    public static int getCantidadCamionesPorTipo(TipoCamion tipo) {
+        return contadorCamiones.getOrDefault(tipo, 0);
     }
 }

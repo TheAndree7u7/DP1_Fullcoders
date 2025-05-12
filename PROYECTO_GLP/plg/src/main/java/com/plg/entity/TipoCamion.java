@@ -7,5 +7,7 @@ public enum TipoCamion {
     TA,
     TB,
     TC,
-    TD
+    TD;
+
+    
 }

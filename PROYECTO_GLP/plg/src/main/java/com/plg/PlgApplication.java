@@ -12,9 +12,6 @@ import com.plg.entity.Almacen;
 import com.plg.entity.Averia;
 import com.plg.entity.Bloqueo;
 import com.plg.entity.Camion;
-import com.plg.entity.CamionFactory;
-import com.plg.entity.Coordenada;
-import com.plg.entity.Mantenimiento;
 import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
@@ -22,6 +19,7 @@ import com.plg.entity.PedidoFactory;
 import com.plg.entity.TipoCamion;
 import com.plg.utils.AlgoritmoGenetico;
 import com.plg.utils.Individuo;
+import com.plg.config.ConfiguracionSistema;
 import com.plg.config.DataLoader;
 
 @SpringBootApplication

@@ -31,10 +31,8 @@ public class Almacen extends Nodo {
     // Tipo de almacén
     private boolean esCentral;
     private boolean permiteCamionesEstacionados;
-    private String tipo;
+    private TipoAlmacen tipo;
 
-    private LocalTime horaReabastecimiento = LocalTime.MIDNIGHT;
-    private boolean ultimoReabastecimientoRealizado = false;
     private boolean activo;
 
     public Almacen(Coordenada coordenada, boolean bloqueado, double gScore, double fScore, TipoNodo tipoNodo) {
@@ -47,14 +45,6 @@ public class Almacen extends Nodo {
 
     public boolean puedeProveerGLP(double cantidadRequerida) {
         return activo && capacidadActualGLP >= cantidadRequerida;
-    }
-
-    public void reabastecer() {
-        if (!esCentral) {
-            capacidadActualGLP = capacidadMaximaGLP;
-            capacidadActualCombustible = capacidadMaximaCombustible;
-            ultimoReabastecimientoRealizado = true;
-        }
     }
 
     /**
@@ -75,8 +65,6 @@ public class Almacen extends Nodo {
             .esCentral(esCentral)
             .permiteCamionesEstacionados(permiteCamionesEstacionados)
             .tipo(tipo)
-            .horaReabastecimiento(horaReabastecimiento)
-            .ultimoReabastecimientoRealizado(ultimoReabastecimientoRealizado)
             .activo(activo)
             .build();
     }
@@ -90,7 +78,6 @@ public class Almacen extends Nodo {
             "  - Combustible (gal):     %.2f / %.2f%n" +
             "  - Central:               %s%n" +
             "  - Permite estacionarse:  %s%n" +
-            "  - Hora reabastecimiento: %s%n" +
             "  - Activo:                %s \n",
             nombre,
             tipo != null ? tipo : "N/A",
@@ -101,7 +88,6 @@ public class Almacen extends Nodo {
             capacidadMaximaCombustible,
             esCentral ? "Sí" : "No",
             permiteCamionesEstacionados ? "Sí" : "No",
-            horaReabastecimiento != null ? horaReabastecimiento : "N/A",
             activo ? "Sí" : "No"
         );
     }
