@@ -1,22 +1,16 @@
 package com.plg.entity;
 
-import lombok.Data;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+
+import java.util.Set;
+
+import com.plg.utils.Gen;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import com.plg.entity.TipoCamion;
 
 @Setter
 @Getter
@@ -45,6 +39,9 @@ public class Camion extends Nodo {
 
     // Comsumo de combustible
     private double distanciaMaxima;   
+
+    // Gen
+    private Gen gen;
 
     public Camion(Coordenada coordenada, boolean bloqueado, double gScore, TipoNodo tipoNodo, double fScore) {
         super(coordenada, bloqueado, gScore, fScore, tipoNodo);
@@ -110,6 +107,27 @@ public class Camion extends Nodo {
         capacidadActualGLP -= volumenGLP;
     }
 
+    public void actualizarEstado(int intervaloTiempo, Set<Pedido> pedidosPorAtender, Set<Pedido> pedidosPlanificados, Set<Pedido> pedidosEntregados) {
+        int cantNodos = (int)(intervaloTiempo * velocidadPromedio / 60);
+        int antiguo = gen.getPosNodo();
+        gen.setPosNodo(antiguo + cantNodos);
+        int distanciaRecorrida = gen.getPosNodo() - antiguo;
+        actualizarCombustible(distanciaRecorrida);
+        for(int i=0; i<=gen.getPosNodo(); i++){
+            Nodo nodo = gen.getNodos().get(i);
+            if(nodo.getTipoNodo() == TipoNodo.PEDIDO){
+                pedidosEntregados.add((Pedido) nodo);
+                pedidosPorAtender.remove(nodo);
+            }
+        }
+        for (int i=gen.getPosNodo(); i<gen.getNodos().size(); i++){
+            Nodo nodo = gen.getNodos().get(i);
+            if(nodo.getTipoNodo() == TipoNodo.PEDIDO){
+                pedidosPlanificados.add((Pedido) nodo);
+                pedidosPorAtender.remove(nodo);
+            }
+        }
+    }   
 
     public Camion clone() {
         return Camion.builder()

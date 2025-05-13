@@ -24,7 +24,7 @@ public class AlgoritmoGenetico {
     private int generaciones;
     private Mapa mapa;
     private List<Pedido> pedidos;
-    private List<Camion> camiones;
+    private List<Camion> camiones; // Camiones operativos
     private List<Almacen> almacenes;
     private Individuo mejorIndividuo;
 
@@ -50,6 +50,8 @@ public class AlgoritmoGenetico {
         poblacion.sort((ind1, ind2) -> Double.compare(ind1.getFitness(), ind2.getFitness()));
         mejorIndividuo = poblacion.get(0);
         System.out.println("Fitness: " + mejorIndividuo.getFitness());
+
+
 
     }
 

@@ -20,6 +20,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Gen {
+    private int posNodo;
     private Camion camion;
     private List<Nodo> nodos;
     private List<Nodo> rutaFinal;
