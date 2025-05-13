@@ -26,20 +26,28 @@ public class Simulacion {
     public static Set<Pedido> pedidosEntregados = new LinkedHashSet<>();
 
     public static void configurarSimulacion(LocalDateTime startDate) {
-
         fechaActual = startDate;
         DataLoader.initializeAlmacenes();
         DataLoader.initializeCamiones();
         DataLoader.initializeMantenimientos();
         DataLoader.initializeAverias();
+        DataLoader.initializePedidos();
         LocalDateTime fechaFin = fechaActual.plusDays(7);
         pedidosSemanal = DataLoader.pedidos.stream()
                 .filter(pedido -> pedido.getFechaRegistro().isAfter(fechaActual)
                         && pedido.getFechaRegistro().isBefore(fechaFin))
                 .collect(Collectors.toList());
+        System.out.println("Pedidos totales: " + DataLoader.pedidos.size());
+        System.out.println("Pedidos cargados en la semana: " + pedidosSemanal.size());
     }
 
     public static void ejecutarSimulacion() {
+
+        System.out.println("Ejecutando simulacion...");
+        System.out.println("Fecha inicial: " + fechaActual);
+        System.out.println("Fecha final: " + fechaActual.plusDays(7));
+
+        
         actualizarBloqueos(fechaActual);
         while (!pedidosSemanal.isEmpty()) {
             Pedido pedido = pedidosSemanal.get(0);
@@ -50,8 +58,7 @@ public class Simulacion {
                 actualizarEstadoGlobal(fechaActual);
                 if (!pedidosPorAtender.isEmpty()) {
                     List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosEntregados);
-                    AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar,
-                            DataLoader.camiones, DataLoader.almacenes);
+                    AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar, DataLoader.camiones, DataLoader.almacenes);
                     algoritmoGenetico.ejecutarAlgoritmo();
                 }
                 fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);

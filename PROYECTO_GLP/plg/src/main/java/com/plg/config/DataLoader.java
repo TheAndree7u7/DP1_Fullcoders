@@ -4,24 +4,19 @@ import com.plg.entity.*;
 import com.plg.utils.Herramientas;
 import com.plg.utils.Parametros;
 
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Component;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @Component
 public class DataLoader {
 
     private static String pathAverias = "data/averias/averias.v1.txt";
-    private static String pathPedidos = "data/pedidos/ventas202504.txt";
+    private static String pathPedidos = "data/pedidos/ventas" + Parametros.anho +  Parametros.mes + ".txt";
     private static String pathMantenimientos = "data/mantenimientos/mantpreventivo.txt";
-    private static String pathBloqueos = "data/bloqueos/202504.bloqueadas";
+    private static String pathBloqueos = "data/bloqueos/" + Parametros.anho + Parametros.mes + ".bloqueos.txt";
 
     private static Mapa mapa = Mapa.getInstance();
     private static Coordenada coordenadaCentral = new Coordenada(8, 12); 
@@ -69,10 +64,9 @@ public class DataLoader {
     }
 
     public static List<Pedido> initializePedidos() {
-        List<String> lines = Herramientas.readAllLines(pathAverias);
-        LocalDateTime fechaInicial = Herramientas.fechaNameArchivo(pathPedidos);
+        List<String> lines = Herramientas.readAllLines(pathPedidos);
         for(String line: lines){
-            PedidoFactory.crearPedido(line, fechaInicial);
+            PedidoFactory.crearPedido(line);
         }
         pedidos = PedidoFactory.pedidos;
         return pedidos;

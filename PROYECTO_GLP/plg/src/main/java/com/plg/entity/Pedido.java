@@ -2,11 +2,7 @@ package com.plg.entity;
 
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,11 +16,9 @@ public class Pedido extends Nodo {
     private LocalDateTime fechaRegistro;
     private double volumenGLPAsignado;
     private EstadoPedido estado;
-
     public Pedido(Coordenada coordenada, boolean bloqueado, double gScore, double fScore, TipoNodo tipoNodo) {
         super(coordenada, bloqueado, gScore, fScore, tipoNodo);
     }
-
     @Override
     public String toString() {
         return String.format(

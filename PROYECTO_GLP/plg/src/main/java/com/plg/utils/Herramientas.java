@@ -24,10 +24,17 @@ public class Herramientas {
     // Método genérico para leer fechas del siguiente formato ##d##h##m
     public static LocalDateTime readFecha(String fecha) {
         String[] partes = fecha.split("[dhm]");
-        Long minutosAcumulados = (Integer.parseInt(partes[0]) - 1) * 24 * 60L +
-                Integer.parseInt(partes[1]) * 60L +
-                Integer.parseInt(partes[2]);
-        return Parametros.getInstance().fecha_inicial.plusMinutes(minutosAcumulados);
+        DateTimeFormatter formatoFechaHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        String anho = Parametros.anho;
+        String mes = Parametros.mes;
+        String dia = partes[0];
+        String hora = partes[1];
+        String minutos = partes[2];
+
+        LocalDateTime fechaInicial = LocalDateTime.parse(dia + "/" + mes + "/" + anho + " " + hora + ":" + minutos,
+                formatoFechaHora);
+
+        return fechaInicial;
     }
 
     public static LocalDateTime fechaNameArchivo(String file_name){

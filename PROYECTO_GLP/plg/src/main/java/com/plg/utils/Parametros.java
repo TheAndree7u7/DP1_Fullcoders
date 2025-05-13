@@ -4,12 +4,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Parametros {
-    public String mes = "04";
-    public DateTimeFormatter formatoFechaHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    public LocalDateTime fecha_inicial = LocalDateTime.parse("29/"+mes+"/2025 00:00", formatoFechaHora);
 
+    public static String dia = "01";
+    public static String mes = "01";
+    public static String anho = "2025";
+    public static DateTimeFormatter formatoFechaHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    public static LocalDateTime fecha_inicial = LocalDateTime.parse(dia + "/" + mes + "/" + anho + " 00:00", formatoFechaHora);
     public static int intervaloTiempo = 30; // minutos
-
     private static Parametros instance;
 
     public static Parametros getInstance( ) {

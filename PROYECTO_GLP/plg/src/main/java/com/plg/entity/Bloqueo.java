@@ -33,7 +33,7 @@ public class Bloqueo {
             for (int i = 0; i < coordenadasBloqueo.length; i += 2) {
                 int x = Integer.parseInt(coordenadasBloqueo[i]);
                 int y = Integer.parseInt(coordenadasBloqueo[i + 1]);
-                Coordenada coordenada = new Coordenada(x, y);
+                Coordenada coordenada = new Coordenada(y, x);
                 coordenadas.add(coordenada);
             }
         } else {

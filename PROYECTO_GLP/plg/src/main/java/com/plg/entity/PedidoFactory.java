@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.plg.utils.Herramientas;
+
 /**
  * Patrón fábrica para crear objetos Pedido con configuración predeterminada.
  */
@@ -11,10 +13,6 @@ public class PedidoFactory {
 
     // Lista estática para almacenar todos los pedidos creados
     public static final List<Pedido> pedidos = new ArrayList<>();
-
-    // Referencia al mapa (singleton)
-    private static final Mapa mapa = Mapa.getInstance();
-
     /**
      * Crea un pedido básico.
      *
@@ -45,10 +43,6 @@ public class PedidoFactory {
 
         // Agregar el pedido a la lista
         pedidos.add(pedido);
-
-        // Actualizar el mapa con el nuevo pedido
-        mapa.setNodo(coordenada, pedido);
-
         return pedido;
     }
 
@@ -59,26 +53,21 @@ public class PedidoFactory {
      * @param fechaInicial  Fecha inicial para calcular la fecha de registro
      * @return instancia de Pedido creada
      */
-    public static Pedido crearPedido(String line, LocalDateTime fechaInicial) {
+    public static Pedido crearPedido(String line) {
         String[] partes = line.split(":");
         if (partes.length != 2) {
             throw new IllegalArgumentException("Formato de línea inválido: " + line);
         }
 
-        // Calcular la fecha de registro
-        String[] horaRegistro = partes[0].split("[dhm]");
-        long minutosDesdeInicio = (Integer.parseInt(horaRegistro[0]) - 1) * 24 * 60L +
-                                  Integer.parseInt(horaRegistro[1]) * 60L +
-                                  Integer.parseInt(horaRegistro[2]);
-        LocalDateTime fechaRegistro = fechaInicial.plusMinutes(minutosDesdeInicio);
+      
+        LocalDateTime fechaRegistro = Herramientas.readFecha(partes[0]);
 
         // Extraer datos del pedido
         String[] datosPedido = partes[1].split(",");
         Coordenada coordenada = new Coordenada(
-                Integer.parseInt(datosPedido[0]),
-                Integer.parseInt(datosPedido[1])
+                Integer.parseInt(datosPedido[1]),
+                Integer.parseInt(datosPedido[0])
         );
-        String idCliente = datosPedido[2];
         int m3 = Integer.parseInt(datosPedido[3].substring(0, datosPedido[3].indexOf('m')));
         int horaLimite = Integer.parseInt(datosPedido[4].substring(0, datosPedido[4].indexOf('h')));
 
@@ -95,10 +84,7 @@ public class PedidoFactory {
                 .estado(EstadoPedido.REGISTRADO)
                 .fechaRegistro(fechaRegistro)
                 .build();
-        // Agregar el pedido a la lista
         pedidos.add(pedido);
-        // Actualizar el mapa con el nuevo pedido
-        mapa.setNodo(coordenada, pedido);
         return pedido;
     }
 
