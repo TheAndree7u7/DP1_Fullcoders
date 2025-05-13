@@ -112,12 +112,12 @@ public class Camion extends Nodo {
             // Primera vez que se llama no existen pedidos por atender
             return;
         }
-
         int cantNodos = (int)(intervaloTiempo * velocidadPromedio / 60);
         int antiguo = gen.getPosNodo();
         gen.setPosNodo(antiguo + cantNodos);
         int distanciaRecorrida = gen.getPosNodo() - antiguo;
         actualizarCombustible(distanciaRecorrida);
+        
         for(int i=0; i<=gen.getPosNodo(); i++){
             Nodo nodo = gen.getNodos().get(i);
             if(nodo.getTipoNodo() == TipoNodo.PEDIDO){
@@ -132,6 +132,7 @@ public class Camion extends Nodo {
                 pedidosPorAtender.remove(nodo);
             }
         }
+        calcularDistanciaMaxima();
     }   
 
     public Camion clone() {

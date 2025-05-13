@@ -47,7 +47,7 @@ public class Simulacion {
         System.out.println("Fecha inicial: " + fechaActual);
         System.out.println("Fecha final: " + fechaActual.plusDays(7));
 
-        
+        List<Camion> camiones = DataLoader.camiones;
         actualizarBloqueos(fechaActual);
         while (!pedidosSemanal.isEmpty()) {
             Pedido pedido = pedidosSemanal.get(0);

@@ -124,6 +124,7 @@ public class CamionFactory {
 
         if (operativo) {
             Camion camion = crearCamionOperativo(codigo, tipo, capacidadGLP, tara, coordenada, 25.0, pesoCarga);
+            camion.calcularDistanciaMaxima(); // Calculamos la distancia máxima
             camiones.add(camion); // Agregamos el camión operativo a la lista
             return camion;
         } else {
