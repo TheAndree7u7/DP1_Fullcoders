@@ -32,16 +32,9 @@ public class Individuo {
     private Mapa mapa; // Mapa que representa el entorno de entrega
 
     public Individuo(List<Pedido> pedidos, List<Camion> camionesOperativos, Mapa mapa, List<Almacen> almacenes) {
-        this.camionesOperativos = new ArrayList<>();
+        this.camionesOperativos = camionesOperativos;
         this.camionesAveriados = new ArrayList<>();
         this.pedidos = pedidos;
-        for (Camion camion : camionesOperativos) {
-            if (camion.getEstado() == EstadoCamion.INMOVILIZADO_POR_AVERIA) {
-                this.camionesAveriados.add(camion);
-            } else {
-                this.camionesOperativos.add(camion);
-            }
-        }
         this.almacenes = almacenes;
         this.mapa = mapa;
         this.cromosoma = inicializarCromosoma(); 
@@ -62,14 +55,14 @@ public class Individuo {
         List<Nodo> nodos = new ArrayList<>();
         nodos.addAll(pedidos);
 
-        // Con probabilidad de un 20% agrego camionesAveriados
-        if (Math.random() < 0.2) {
-            nodos.addAll(camionesAveriados);
-        }
+        // // Con probabilidad de un 20% agrego camionesAveriados
+        // if (Math.random() < 0.2) {
+        //     nodos.addAll(camionesAveriados);
+        // }
 
     
         // Con probabilidad de un 20% agrego almacenes 2 veces
-        if (Math.random() < 0.2) {
+        if (Math.random() < 0.1) {
             nodos.addAll(almacenes);
             nodos.addAll(almacenes);
         }
@@ -117,11 +110,15 @@ public class Individuo {
         List<Nodo> nodosGen1 = gen1.getNodos();
         List<Nodo> nodosGen2 = gen2.getNodos();
 
+        boolean valido1 = !nodosGen1.isEmpty() && !nodosGen2.isEmpty();
+        boolean valido2 = nodosGen1.size() > 1 && nodosGen2.size() > 1;
+
+
         // Verificar que ambos genes tengan nodos para intercambiar
-        if (!nodosGen1.isEmpty() && !nodosGen2.isEmpty()) {
+        if (valido1 && valido2) {
             // Seleccionar un nodo al azar de cada gen pero asegurando que no sea el almacén central
-            int nodoIndex1 = (int) (Math.random() * nodosGen1.size()-1);
-            int nodoIndex2 = (int) (Math.random() * nodosGen2.size()-1);
+            int nodoIndex1 = (int) (Math.random() * (nodosGen1.size()-1));
+            int nodoIndex2 = (int) (Math.random() * (nodosGen2.size()-1));
 
             // Intercambiar los nodos seleccionados
             Nodo temp = nodosGen1.get(nodoIndex1);

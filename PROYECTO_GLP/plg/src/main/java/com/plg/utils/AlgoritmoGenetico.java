@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.plg.config.DataLoader;
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
 import com.plg.entity.Mapa;
@@ -28,11 +29,16 @@ public class AlgoritmoGenetico {
     private List<Almacen> almacenes;
     private Individuo mejorIndividuo;
 
-    public AlgoritmoGenetico(Mapa mapa, List<Pedido> pedidos, List<Camion> camiones, List<Almacen> almacenes) {
+    public AlgoritmoGenetico(Mapa mapa, List<Pedido> pedidos) {
         this.mapa = mapa;
         this.pedidos = pedidos;
-        this.camiones = camiones;
-        this.almacenes = almacenes;
+
+        for (Pedido pedido : pedidos) {
+            mapa.setNodo(pedido.getCoordenada(), pedido);
+        }
+
+        this.camiones = DataLoader.camiones;
+        this.almacenes = DataLoader.almacenes;
         generaciones = 100;
         poblacionTamano = 40;
     }
@@ -50,8 +56,13 @@ public class AlgoritmoGenetico {
         poblacion.sort((ind1, ind2) -> Double.compare(ind1.getFitness(), ind2.getFitness()));
         mejorIndividuo = poblacion.get(0);
         System.out.println("Fitness: " + mejorIndividuo.getFitness());
+        System.out.println(mejorIndividuo);
 
-
+        // Recorremos los genes y actualizamos el atributo gen en la clase camion
+        for (Gen gen : mejorIndividuo.getCromosoma()) {
+            Camion camion = gen.getCamion();
+            camion.setGen(gen);
+        }
 
     }
 

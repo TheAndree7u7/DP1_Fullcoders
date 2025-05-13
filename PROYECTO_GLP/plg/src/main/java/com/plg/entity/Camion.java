@@ -108,6 +108,11 @@ public class Camion extends Nodo {
     }
 
     public void actualizarEstado(int intervaloTiempo, Set<Pedido> pedidosPorAtender, Set<Pedido> pedidosPlanificados, Set<Pedido> pedidosEntregados) {
+        if (this.gen == null) {
+            // Primera vez que se llama no existen pedidos por atender
+            return;
+        }
+
         int cantNodos = (int)(intervaloTiempo * velocidadPromedio / 60);
         int antiguo = gen.getPosNodo();
         gen.setPosNodo(antiguo + cantNodos);

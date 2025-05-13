@@ -57,8 +57,8 @@ public class Simulacion {
             } else {
                 actualizarEstadoGlobal(fechaActual);
                 if (!pedidosPorAtender.isEmpty()) {
-                    List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosEntregados);
-                    AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar, DataLoader.camiones, DataLoader.almacenes);
+                    List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
+                    AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
                     algoritmoGenetico.ejecutarAlgoritmo();
                 }
                 fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
