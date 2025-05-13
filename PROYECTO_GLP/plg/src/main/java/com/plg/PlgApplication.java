@@ -15,6 +15,7 @@ import com.plg.entity.Bloqueo;
 import com.plg.entity.Camion;
 import com.plg.entity.CamionFactory;
 import com.plg.entity.Coordenada;
+import com.plg.entity.EstadoPedido;
 import com.plg.entity.Mantenimiento;
 import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
@@ -73,6 +74,9 @@ public class PlgApplication implements CommandLineRunner {
                 algoritmoGenetico.ejecutarAlgoritmo();
                 Individuo mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
                 mapa.imprimirMapa(mejorIndividuo);
+
+                // Simular el movimiento de los camiones
+                simularMovimientoCamiones(camiones, mejorIndividuo, tiempoActualWrapper[0], tiempoFinalWrapper[0], pedidosBloque);
             }
 
             // Eliminar pedidos procesados
@@ -80,8 +84,55 @@ public class PlgApplication implements CommandLineRunner {
 
             // Avanzar al siguiente bloque de tiempo
             tiempoActualWrapper[0] = tiempoFinalWrapper[0];
-            tiempoFinalWrapper[0] = tiempoActualWrapper[0].plusMinutes(bloqueMinutos); // Avanzar 30 minutos
+            tiempoFinalWrapper[0] = tiempoActualWrapper[0].plusMinutes(bloqueMinutos); // Avanzar 120 minutos
             bloque++;
         }
+    }
+
+    /**
+     * Simula el movimiento de los camiones hacia los pedidos asignados.
+     */
+    private void simularMovimientoCamiones(List<Camion> camiones, Individuo mejorIndividuo, LocalDateTime tiempoInicio, LocalDateTime tiempoFin, List<Pedido> pedidosBloque) {
+        for (Camion camion : camiones) {
+            // Obtener la ruta asignada al camión en la solución
+            List<Nodo> ruta = mejorIndividuo.getRuta(camion);
+
+            if (ruta == null || ruta.isEmpty()) {
+                continue; // Si no hay ruta asignada, pasar al siguiente camión
+            }
+
+            // Simular el movimiento del camión
+            for (Nodo nodo : ruta) {
+                // Calcular el tiempo necesario para llegar al nodo
+                long tiempoNecesario = calcularTiempoMovimiento(camion.getCoordenada(), nodo.getCoordenada());
+
+                // Si el camión puede llegar al nodo dentro del tiempo del bloque
+                if (tiempoInicio.plusMinutes(tiempoNecesario).isBefore(tiempoFin)) {
+                    camion.setCoordenada(nodo.getCoordenada()); // Actualizar la posición del camión
+                    tiempoInicio = tiempoInicio.plusMinutes(tiempoNecesario);
+
+                    // Si el nodo es un pedido, marcarlo como entregado
+                    if (nodo instanceof Pedido pedido) {
+                        pedido.setEstado(EstadoPedido.ENTREGADO_TOTALMENTE);
+                        System.out.println("Pedido entregado: " + pedido.getCodigo());
+                    }
+                } else {
+                    // Si no puede llegar, reprogramar el pedido
+                    if (nodo instanceof Pedido pedido) {
+                        pedido.setEstado(EstadoPedido.EN_RUTA);
+                        System.out.println("Pedido reprogramado: " + pedido.getCodigo());
+                    }
+                    break; // Salir del bucle si no puede continuar
+                }
+            }
+        }
+    }
+
+    /**
+     * Calcula el tiempo necesario para que un camión se mueva de una coordenada a otra.
+     */
+    private long calcularTiempoMovimiento(Coordenada origen, Coordenada destino) {
+        int distancia = Math.abs(origen.getFila() - destino.getFila()) + Math.abs(origen.getColumna() - destino.getColumna());
+        return distancia * 60; // 1 nodo por hora = 60 minutos por nodo
     }
 }

@@ -132,6 +132,16 @@ public class Individuo {
         }
     }
 
+    public List<Nodo> getRuta(Camion camion) {
+        // Buscar el gen correspondiente al camión
+        for (Gen gen : cromosoma) {
+            if (gen.getCamion().equals(camion)) {
+                return gen.getNodos(); // Devolver la lista de nodos asignados al camión
+            }
+        }
+        return Collections.emptyList(); // Si no se encuentra, devolver una lista vacía
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
