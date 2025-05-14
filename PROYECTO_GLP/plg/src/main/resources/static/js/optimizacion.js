@@ -52,12 +52,12 @@ export function ejecutarAffinityPropagation() {
         console.log('Respuesta AP recibida:', data);
         
         // Verificar que la respuesta contiene la estructura esperada
-        if (!data || !data.grupos) {
+        if (!data || !data.clusters) {
             throw new Error('La respuesta no contiene información de clusters válida');
         }
         
         // Almacenar los clusters recibidos
-        window.app.clusters = data.grupos || [];
+        window.app.clusters = data.clusters || [];
         
         // Actualizar estado
         window.app.progresoPorcentaje = 100;
@@ -115,7 +115,7 @@ export function ejecutarAffinityPropagation() {
 // Ejecutar el algoritmo Genético
 export function ejecutarAlgoritmoGenetico() {
     // Verificar que existan clusters previos
-    if (window.app.clusters.length === 0) {
+    if (!window.app.clusters || window.app.clusters.length === 0) {
         mostrarNotificacion('Primero debe ejecutar Affinity Propagation', 'warning');
         return Promise.reject(new Error('No hay clusters disponibles'));
     }
@@ -133,27 +133,38 @@ export function ejecutarAlgoritmoGenetico() {
         progresoOptimizacion: window.app.progresoPorcentaje
     });
     
+    // Preparar datos para la API
+    const requestData = {
+        poblacionInicial: 50,
+        maxGeneraciones: 100,
+        tasaMutacion: 0.1,
+        tasaCruce: 0.8,
+        clusters: window.app.clusters.map(c => c.idGrupo)
+    };
+    
+    console.log('Enviando datos al algoritmo genético:', requestData);
+    
     // Llamar a la API para ejecutar GA
     return fetch('/api/optimizacion/genetico', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-            poblacionInicial: 50,
-            maxGeneraciones: 100,
-            tasaMutacion: 0.1,
-            tasaCruce: 0.8,
-            clusters: window.app.clusters.map(c => c.idGrupo)
-        })
+        body: JSON.stringify(requestData)
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status}`);
+            // Intentar obtener más información del error
+            return response.text().then(text => {
+                console.error('Error response:', text);
+                throw new Error(`Error HTTP: ${response.status} - ${text || 'No details available'}`);
+            });
         }
         return response.json();
     })
     .then(data => {
+        console.log('Respuesta del algoritmo genético:', data);
+        
         // Actualizamos progreso
         window.app.progresoPorcentaje = 100;
         actualizarPanelInformacion({
