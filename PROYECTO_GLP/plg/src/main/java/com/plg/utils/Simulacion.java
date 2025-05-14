@@ -107,7 +107,7 @@ public class Simulacion {
     private static void actualizarCamiones(LocalDateTime fechaActual) {
         List<Camion> camiones = DataLoader.camiones;
         for (Camion camion : camiones) {
-            camion.actualizarEstado(Parametros.intervaloTiempo, pedidosPorAtender, pedidosPlanificados, pedidosEntregados);
+            camion.actualizarEstado(Parametros.intervaloTiempo, pedidosPorAtender, pedidosPlanificados, pedidosEntregados, fechaActual);
         }
     }
 

@@ -2,7 +2,8 @@ package com.plg.entity;
 
 import lombok.Getter;
 
-
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import com.plg.utils.Gen;
@@ -94,15 +95,17 @@ public class Camion extends Nodo {
         capacidadActualGLP -= volumenGLP;
     }
 
-    public void actualizarEstado(int intervaloTiempo, Set<Pedido> pedidosPorAtender, Set<Pedido> pedidosPlanificados, Set<Pedido> pedidosEntregados) {
+    public void actualizarEstado(int intervaloTiempo, Set<Pedido> pedidosPorAtender, Set<Pedido> pedidosPlanificados,
+     Set<Pedido> pedidosEntregados, LocalDateTime fechaActual) {
         if (this.gen == null) {
             // Primera vez que se llama no existen pedidos por atender
             return;
         }
 
+
+
         // Actualizar el nodo en el que se encuentra el camión
         int cantNodos = (int) (intervaloTiempo * velocidadPromedio / 60);
-        System.out.println("cantDono" + cantNodos);
         int antiguo = gen.getPosNodo();
         gen.setPosNodo(antiguo + cantNodos);
         int distanciaRecorrida = gen.getPosNodo() - antiguo;
@@ -110,24 +113,33 @@ public class Camion extends Nodo {
         
     
         // En el tiempo transcurrido donde se puede encontrar el camión
-        int intermedio = Math.min(gen.getPosNodo(), gen.getNodos().size()-1);
+
+        // System.out.println("gen.nodos.size() = " + gen.getRutaFinal().size());
+
+        int intermedio = Math.min(gen.getPosNodo(), gen.getRutaFinal().size()-1);
 
         // Axtualiza la posición del camión en el mapa
-        Coordenada nuevaCoordenada = gen.getNodos().get(intermedio).getCoordenada();
+        Coordenada nuevaCoordenada = gen.getRutaFinal().get(intermedio).getCoordenada();
         setCoordenada(nuevaCoordenada);
 
         // Actualizamos el estado de los pedidos
         for(int i=0; i<=intermedio; i++){
-            Nodo nodo = gen.getNodos().get(i);
+            Nodo nodo = gen.getRutaFinal().get(i);
             if(nodo.getTipoNodo() == TipoNodo.PEDIDO){
-                pedidosEntregados.add((Pedido) nodo);
+                Pedido pedido = (Pedido) nodo;
+                if (pedido.getEstado() == EstadoPedido.ENTREGADO){
+                    continue;
+                }
+                pedidosEntregados.add(pedido);
                 // Voy al GLP del camión y reduzco la carga porque lo entrego
-                actualizarCargaPedido(((Pedido) nodo).getVolumenGLPAsignado());
+                actualizarCargaPedido(pedido.getVolumenGLPAsignado());
+                // Marcamos el pedido como entregado para no considerarlo en la siguiente iteración
+                pedido.setEstado(EstadoPedido.ENTREGADO);
                 pedidosPorAtender.remove(nodo);
             }
         }
-        for (int i=intermedio+1; i<gen.getNodos().size(); i++){
-            Nodo nodo = gen.getNodos().get(i);
+        for (int i=intermedio+1; i<gen.getRutaFinal().size(); i++){
+            Nodo nodo = gen.getRutaFinal().get(i);
             if(nodo.getTipoNodo() == TipoNodo.PEDIDO){
                 pedidosPlanificados.add((Pedido) nodo);
                 pedidosPorAtender.remove(nodo);
