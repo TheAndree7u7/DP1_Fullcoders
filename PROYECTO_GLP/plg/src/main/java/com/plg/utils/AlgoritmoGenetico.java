@@ -74,6 +74,9 @@ public class AlgoritmoGenetico {
 
             System.exit(0);
         }
+        Parametros.fitnessGlobal += mejorIndividuo.getFitness();
+        Parametros.kilometrosRecorridos += mejorIndividuo.getCromosoma().stream()
+                .mapToDouble(gen -> gen.getRutaFinal().size()).sum();
         Parametros.contadorPrueba++;
     }
 

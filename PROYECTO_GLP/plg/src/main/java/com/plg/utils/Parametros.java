@@ -14,6 +14,7 @@ public class Parametros {
     private static Parametros instance;
     public static int contadorPrueba = 0;
     public static double kilometrosRecorridos = 0;
+    public static double fitnessGlobal = 0;
     public static Parametros getInstance( ) {
         if (instance == null) {
             instance = new Parametros();

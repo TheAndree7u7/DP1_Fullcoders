@@ -87,6 +87,7 @@ public class Simulacion {
         System.out.println("Tiempo total de ejecución en segundos : "
                 + tiempoEjecucion.getHour() * 3600 + tiempoEjecucion.getMinute() * 60
                 + tiempoEjecucion.getSecond());
+        System.out.println("Fitness global: " + Parametros.fitnessGlobal);
     }
 
     public static List<Pedido> unirPedidosSinRepetidos(Set<Pedido> set1, Set<Pedido> set2) {

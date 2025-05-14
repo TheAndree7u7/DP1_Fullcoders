@@ -95,6 +95,7 @@ public class SimulatedAnnealing {
         Parametros.kilometrosRecorridos += bestSolution.getCromosoma().stream()
                 .mapToDouble(gen -> gen.getRutaFinal().size())
                 .sum();
+        Parametros.fitnessGlobal += bestSolution.getFitness();
         // System.out.println("[SA] Finished SA after " + cycle + " cycles and " + maxIterations + " iter each.");
         System.out.println("Best SA fitness: " + bestSolution.getFitness());
     }
