@@ -139,7 +139,17 @@ export function ejecutarAlgoritmoGenetico() {
         maxGeneraciones: 100,
         tasaMutacion: 0.1,
         tasaCruce: 0.8,
-        clusters: window.app.clusters.map(c => c.idGrupo)
+        clusters: window.app.clusters.map((cluster, index) => ({
+            idGrupo: index + 1,
+            pedidos: [cluster].map(pedido => ({
+                id: pedido.id,
+                codigo: pedido.codigo,
+                posX: pedido.posX,
+                posY: pedido.posY,
+                volumenGLPAsignado: pedido.volumenGLPAsignado,
+                horasLimite: pedido.horasLimite
+            }))
+        }))
     };
     
     console.log('Enviando datos al algoritmo genético:', requestData);

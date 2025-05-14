@@ -1,6 +1,8 @@
 package com.plg.controller;
 
 import java.util.Map;
+import java.util.List;
+import java.util.HashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,15 +96,54 @@ public class OptimizacionController {
      * @return Resultado con rutas optimizadas
      */
     @PostMapping("/genetico")
-    public ResponseEntity<AlgoritmoGeneticoResultadoDTO> ejecutarGenetico(@RequestBody Map<String, Object> params) {
+    public ResponseEntity<?> ejecutarGenetico(@RequestBody Map<String, Object> params) {
         logger.info("Recibida solicitud para ejecutar Algoritmo Genético con parámetros: {}", params);
         
         try {
-            AlgoritmoGeneticoResultadoDTO resultado = geneticoService.generarRutas(params);
+            // Validar parámetros requeridos
+            if (!params.containsKey("clusters") || !(params.get("clusters") instanceof List)) {
+                logger.error("Parámetro 'clusters' no encontrado o inválido");
+                return ResponseEntity.badRequest().body(
+                    Map.of("error", "Se requiere el parámetro 'clusters' como una lista")
+                );
+            }
+            
+            // Validar y convertir parámetros opcionales
+            Map<String, Object> validatedParams = new HashMap<>();
+            validatedParams.put("clusters", params.get("clusters"));
+            
+            // Parámetros opcionales con valores por defecto
+            validatedParams.put("poblacionInicial", 
+                params.containsKey("poblacionInicial") ? 
+                Integer.valueOf(params.get("poblacionInicial").toString()) : 50);
+            validatedParams.put("maxGeneraciones", 
+                params.containsKey("maxGeneraciones") ? 
+                Integer.valueOf(params.get("maxGeneraciones").toString()) : 100);
+            validatedParams.put("tasaMutacion", 
+                params.containsKey("tasaMutacion") ? 
+                Double.valueOf(params.get("tasaMutacion").toString()) : 0.1);
+            validatedParams.put("tasaCruce", 
+                params.containsKey("tasaCruce") ? 
+                Double.valueOf(params.get("tasaCruce").toString()) : 0.8);
+            
+            // Obtener número de rutas basado en los clusters
+            List<?> clusters = (List<?>) params.get("clusters");
+            validatedParams.put("numeroRutas", clusters.size());
+            
+            logger.info("Parámetros validados para algoritmo genético: {}", validatedParams);
+            
+            AlgoritmoGeneticoResultadoDTO resultado = geneticoService.generarRutas(validatedParams);
             return ResponseEntity.ok(resultado);
+        } catch (NumberFormatException e) {
+            logger.error("Error de formato en parámetros para algoritmo genético", e);
+            return ResponseEntity.badRequest().body(
+                Map.of("error", "Error en formato de parámetros: " + e.getMessage())
+            );
         } catch (Exception e) {
             logger.error("Error al ejecutar algoritmo genético", e);
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body(
+                Map.of("error", "Error en el servidor: " + e.getMessage())
+            );
         }
     }
     

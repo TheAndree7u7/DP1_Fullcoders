@@ -57,35 +57,27 @@ public class AlgoritmoGeneticoService {
     public AlgoritmoGeneticoResultadoDTO generarRutas(Map<String, Object> params) {
         logger.info("Iniciando generación de rutas con algoritmo genético. Parámetros: {}", params);
 
-        // Obtener pedidos pendientes
-        List<Pedido> pedidos = pedidoRepository.findByEstado(EstadoPedido.PENDIENTE_PLANIFICACION);
-        logger.info("Pedidos pendientes encontrados: {}", pedidos.size());
-
-        // Verificar si hay suficientes pedidos para optimizar
-        if (pedidos.isEmpty()) {
-            logger.warn("No hay pedidos pendientes para generar rutas");
-            return AlgoritmoGeneticoResultadoDTO.builder()
-                    .metodo("algoritmoGenetico")
-                    .totalPedidos(0)
-                    .pedidosAsignados(0)
-                    .rutas(Collections.emptyList())
-                    .build();
+        // Validar y extraer parámetros
+        List<?> clusters = (List<?>) params.get("clusters");
+        if (clusters == null || clusters.isEmpty()) {
+            logger.error("No se proporcionaron clusters válidos");
+            throw new IllegalArgumentException("Se requieren clusters válidos para generar rutas");
         }
 
-        // Parámetros opcionales
-        int numeroRutas = params.containsKey("numeroRutas")
-                ? Integer.parseInt(params.get("numeroRutas").toString()) : 3;
-        logger.info("Generando {} rutas para {} pedidos", numeroRutas, pedidos.size());
+        int numeroRutas = params.containsKey("numeroRutas") ? 
+            Integer.parseInt(params.get("numeroRutas").toString()) : clusters.size();
+        
+        logger.info("Generando {} rutas para {} clusters", numeroRutas, clusters.size());
 
         // Obtener camiones disponibles
-        List<Camion> camionesDisponibles = camionRepository.findByEstado(EstadoCamion.DISPONIBLE); // Usar el enum
+        List<Camion> camionesDisponibles = camionRepository.findByEstado(EstadoCamion.DISPONIBLE);
         logger.info("Camiones disponibles encontrados: {}", camionesDisponibles.size());
 
         if (camionesDisponibles.isEmpty()) {
             logger.warn("No hay camiones disponibles para asignar a las rutas");
             return AlgoritmoGeneticoResultadoDTO.builder()
                     .metodo("algoritmoGenetico")
-                    .totalPedidos(pedidos.size())
+                    .totalPedidos(0)
                     .pedidosAsignados(0)
                     .mensaje("No hay camiones disponibles para asignar")
                     .rutas(Collections.emptyList())
@@ -96,20 +88,42 @@ public class AlgoritmoGeneticoService {
         numeroRutas = Math.min(numeroRutas, camionesDisponibles.size());
 
         // Obtener almacén central
-        Almacen almacenCentral = almacenRepository.findByEsCentralAndActivoTrue(true);
-        if (almacenCentral == null) {
-            logger.error("No se encontró el almacén central activo");
+        List<Almacen> almacenesCentrales = almacenRepository.findByEsCentralAndActivo(true, true);
+        if (almacenesCentrales.isEmpty()) {
+            logger.error("No se encontró ningún almacén central activo");
             return AlgoritmoGeneticoResultadoDTO.builder()
                     .metodo("algoritmoGenetico")
-                    .totalPedidos(pedidos.size())
+                    .totalPedidos(0)
                     .pedidosAsignados(0)
-                    .mensaje("Error: No se encontró el almacén central")
+                    .mensaje("Error: No se encontró ningún almacén central activo")
                     .rutas(Collections.emptyList())
                     .build();
         }
+        
+        // Usar el primer almacén central encontrado
+        Almacen almacenCentral = almacenesCentrales.get(0);
+        logger.info("Usando almacén central: {}", almacenCentral.getId());
 
-        // Generamos grupos de pedidos para las rutas
-        List<List<Pedido>> gruposPedidos = dividirEnGrupos(pedidos, numeroRutas);
+        // Convertir clusters a grupos de pedidos
+        List<List<Pedido>> gruposPedidos = new ArrayList<>();
+        for (Object cluster : clusters) {
+            if (cluster instanceof List) {
+                List<?> pedidosCluster = (List<?>) cluster;
+                List<Pedido> pedidos = pedidosCluster.stream()
+                    .map(p -> {
+                        if (p instanceof Map) {
+                            Map<?, ?> pedidoMap = (Map<?, ?>) p;
+                            Long id = Long.valueOf(pedidoMap.get("id").toString());
+                            return pedidoRepository.findById(id).orElse(null);
+                        }
+                        return null;
+                    })
+                    .filter(p -> p != null)
+                    .collect(Collectors.toList());
+                gruposPedidos.add(pedidos);
+            }
+        }
+
         logger.info("Pedidos divididos en {} grupos", gruposPedidos.size());
 
         // Crear rutas y asignar camiones
@@ -139,83 +153,28 @@ public class AlgoritmoGeneticoService {
             
             // Agrega el nodo de origen (almacén central) primero
             ruta.agregarNodo(almacenCentral.getPosX(), almacenCentral.getPosY(), "ALMACEN");
-
+            
+            // Agregar nodos para cada pedido en el grupo
             for (Pedido pedido : pedidosGrupo) {
-                logger.debug("  → Trazando tramo de ({},{}) a pedido {} en ({},{})",
-                        xPrev, yPrev,
-                        pedido.getCodigo(), pedido.getPosX(), pedido.getPosY());
-                long t0 = System.currentTimeMillis();
-
-                List<double[]> tramo = mapaReticularService
-                        .calcularRutaOptimaConsiderandoBloqueos(xPrev, yPrev,
-                                pedido.getPosX(), pedido.getPosY());
-
-                long dt = System.currentTimeMillis() - t0;
-                logger.debug("    ← tramo calculado en {} ms ({} nodos)", dt, tramo.size());
-                
-                // Agregar puntos intermedios del tramo excepto el último (que será el punto del cliente)
-                for (int j = 0; j < tramo.size() - 1; j++) {
-                    double[] nodo = tramo.get(j);
-                    ruta.agregarNodo(nodo[0], nodo[1], "INTERMEDIO");
-                }
-                
-                // Agregar el nodo del cliente con el pedido asociado
                 ruta.agregarNodoCliente(pedido.getPosX(), pedido.getPosY(), pedido, pedido.getVolumenGLPAsignado(), 100.0);
-                
-                // IMPORTANTE: Actualizar el estado del pedido a EN_RUTA y asignarle el camión
-                pedido.setEstado(EstadoPedido.EN_RUTA);
-                pedido.setCamion(camion);
-                // Las siguientes líneas dan error porque estos métodos no existen en la clase Pedido
-                // pedido.setFechaAsignacion(LocalDateTime.now());
-                // pedido.setRutaAsignada(ruta);
-                
-                // En lugar de usar los métodos anteriores, actualizamos la fechaRegistro que sí existe
-                pedido.setFechaRegistro(LocalDateTime.now());
-                pedidoRepository.save(pedido);
-                
-                logger.info("Pedido {} actualizado a estado EN_RUTA y asignado a camión {}", 
-                    pedido.getCodigo(), camion.getCodigo());
-                
-                xPrev = pedido.getPosX();
-                yPrev = pedido.getPosY();
             }
             
-            // Trazar el tramo de regreso al almacén
-            logger.debug("  → Trazando tramo de regreso a almacén en ({},{})",
-                    xPrev, yPrev);
-            long t1 = System.currentTimeMillis();
-            List<double[]> regreso = mapaReticularService
-                    .calcularRutaOptimaConsiderandoBloqueos(
-                            xPrev, yPrev,
-                            almacenCentral.getPosX(), almacenCentral.getPosY()
-                    );
-            long dt2 = System.currentTimeMillis() - t1;
-            logger.debug("    ← regreso calculado en {} ms ({} nodos)", dt2, regreso.size());
+            // Volver al almacén central
+            ruta.agregarNodo(almacenCentral.getPosX(), almacenCentral.getPosY(), "ALMACEN");
             
-            // Agregar puntos del tramo de regreso
-            for (int j = 0; j < regreso.size(); j++) {
-                double[] nodo = regreso.get(j);
-                String tipo = (j == regreso.size() - 1) ? "ALMACEN" : "INTERMEDIO";
-                ruta.agregarNodo(nodo[0], nodo[1], tipo);
-            }
-
-            // Calcular distancia total y optimizar ruta si es necesario
-            ruta.calcularDistanciaTotal();
-            
-            // Estimar tiempos de llegada con velocidad promedio de 30 km/h
-            ruta.estimarTiemposLlegada(30.0, LocalDateTime.now());
-
-            // Cambiar estado del camión a "En ruta"
-            camion.setEstado(EstadoCamion.EN_RUTA);
-            camion.setPosX(almacenCentral.getPosX());
-            camion.setPosY(almacenCentral.getPosY());
-            camion.setUltimoAlmacen(almacenCentral);
-            camion.setFechaUltimaCarga(LocalDateTime.now());
-            camionRepository.save(camion);
-
             // Guardar la ruta
-            rutaRepository.save(ruta);
+            ruta = rutaRepository.save(ruta);
             rutasCreadas.add(ruta);
+            
+            // Actualizar estado del camión
+            camion.setEstado(EstadoCamion.EN_RUTA);
+            camionRepository.save(camion);
+            
+            // Actualizar estado de los pedidos
+            for (Pedido pedido : pedidosGrupo) {
+                pedido.setEstado(EstadoPedido.EN_RUTA);
+                pedidoRepository.save(pedido);
+            }
 
             // Crear DTO para la respuesta
             List<PedidoDTO> pedidosDTO = pedidosGrupo.stream()
@@ -236,7 +195,7 @@ public class AlgoritmoGeneticoService {
             RutaDTO rutaDTO = RutaDTO.builder()
                     .idRuta(ruta.getCodigo())
                     .distanciaTotal(ruta.getDistanciaTotal())
-                    .tiempoEstimado((int)ruta.getTiempoEstimadoMinutos()) // Convertir a int para resolver el error de tipo
+                    .tiempoEstimado((int)ruta.getTiempoEstimadoMinutos())
                     .pedidos(pedidosDTO)
                     .numeroPedidos(pedidosGrupo.size())
                     .puntos(puntosRuta)
@@ -252,14 +211,14 @@ public class AlgoritmoGeneticoService {
                 .mapToInt(List::size)
                 .sum();
 
-        logger.info("Generación de rutas completada. Rutas creadas: {}, Pedidos asignados: {}/{}",
-                rutasCreadas.size(), pedidosAsignados, pedidos.size());
+        logger.info("Generación de rutas completada. Rutas creadas: {}, Pedidos asignados: {}",
+                rutasCreadas.size(), pedidosAsignados, pedidosAsignados);
 
         // Preparamos el resultado usando DTO
         AlgoritmoGeneticoResultadoDTO resultado = AlgoritmoGeneticoResultadoDTO.builder()
                 .rutas(rutasDTO)
                 .metodo("algoritmoGenetico")
-                .totalPedidos(pedidos.size())
+                .totalPedidos(pedidosAsignados)
                 .pedidosAsignados(pedidosAsignados)
                 .rutasGeneradas(rutasCreadas.size())
                 .build();
