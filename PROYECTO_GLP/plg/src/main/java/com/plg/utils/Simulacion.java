@@ -8,6 +8,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.springframework.cglib.core.Local;
+
 import com.plg.config.DataLoader;
 import com.plg.entity.Almacen;
 import com.plg.entity.Bloqueo;
@@ -46,7 +49,11 @@ public class Simulacion {
 
         System.out.println("Ejecutando simulacion...");
         System.out.println("Fecha inicial: " + fechaActual);
-        System.out.println("Fecha final: " + fechaActual.plusDays(7));
+        System.out.println("Fecha final: " + fechaActual.plusDays(2));
+
+        // Tiempo inicial de ejcución 
+        LocalDateTime tiempoInicial = LocalDateTime.now();
+
 
         while (!pedidosSemanal.isEmpty()) {
             Pedido pedido = pedidosSemanal.get(0);
@@ -70,6 +77,16 @@ public class Simulacion {
                 fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
             }
         }
+
+        LocalDateTime tiempoFinal = LocalDateTime.now();
+        // Tiempo de ejecución en segundos
+        LocalDateTime tiempoEjecucion = tiempoFinal.minusHours(tiempoInicial.getHour())
+                .minusMinutes(tiempoInicial.getMinute()).minusSeconds(tiempoInicial.getSecond());
+        // Imprimimos los kilometros totales recorridos 
+        System.out.println("Kilometros recorridos: " + Parametros.kilometrosRecorridos);
+        System.out.println("Tiempo total de ejecución en segundos : "
+                + tiempoEjecucion.getHour() * 3600 + tiempoEjecucion.getMinute() * 60
+                + tiempoEjecucion.getSecond());
     }
 
     public static List<Pedido> unirPedidosSinRepetidos(Set<Pedido> set1, Set<Pedido> set2) {

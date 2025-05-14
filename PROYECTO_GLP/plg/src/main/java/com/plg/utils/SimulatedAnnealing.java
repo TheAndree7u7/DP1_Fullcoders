@@ -92,6 +92,9 @@ public class SimulatedAnnealing {
             // Enfriar
             temp *= 1 - coolingRate;
         }
+        Parametros.kilometrosRecorridos += bestSolution.getCromosoma().stream()
+                .mapToDouble(gen -> gen.getRutaFinal().size())
+                .sum();
         // System.out.println("[SA] Finished SA after " + cycle + " cycles and " + maxIterations + " iter each.");
         System.out.println("Best SA fitness: " + bestSolution.getFitness());
     }
