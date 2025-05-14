@@ -98,7 +98,7 @@ public class Individuo {
         }
     }
 
-    private double calcularFitness() {
+    public double calcularFitness() {
         double fitness = 0.0;
         for (Gen gen : cromosoma) {
             double fitnessGen = gen.calcularFitness();

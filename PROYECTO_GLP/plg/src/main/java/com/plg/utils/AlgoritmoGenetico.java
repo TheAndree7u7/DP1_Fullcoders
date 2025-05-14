@@ -2,12 +2,16 @@ package com.plg.utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.HashSet;
 
 import com.plg.config.DataLoader;
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
 import com.plg.entity.Mapa;
 import com.plg.entity.Pedido;
+import com.plg.entity.Nodo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,6 +30,7 @@ public class AlgoritmoGenetico {
     private List<Camion> camiones; // Camiones operativos
     private List<Almacen> almacenes;
     private Individuo mejorIndividuo;
+    private final Random random = new Random();
 
     public AlgoritmoGenetico(Mapa mapa, List<Pedido> pedidos) {
         this.mapa = mapa;
@@ -38,8 +43,8 @@ public class AlgoritmoGenetico {
 
         this.camiones = DataLoader.camiones;
         this.almacenes = DataLoader.almacenes;
-        generaciones = 30;
-        poblacionTamano = 30;
+        generaciones = 20;
+        poblacionTamano = 50;
     }
 
     public void ejecutarAlgoritmo() {
@@ -55,7 +60,7 @@ public class AlgoritmoGenetico {
         }
         poblacion.sort((ind1, ind2) -> Double.compare(ind1.getFitness(), ind2.getFitness()));
         mejorIndividuo = poblacion.get(0);
-        System.out.println("Fitness: " + mejorIndividuo.getFitness());
+        System.out.println("Fitness algoritmo genético: " + Parametros.contadorPrueba + " " + mejorIndividuo.getFitness());
         // Recorremos los genes y actualizamos el atributo gen en la clase camion
         for (Gen gen : mejorIndividuo.getCromosoma()) {
             Camion camion = gen.getCamion();
@@ -67,12 +72,6 @@ public class AlgoritmoGenetico {
             System.out.println("No se ha encontrado una solución");
             System.out.println("Mejor individuo: " + mejorIndividuo);
 
-            
-
-            // System.out.println("Mejor individuo: " + Parametros.contadorPrueba + " " + mejorIndividuo);
-            // if (Parametros.contadorPrueba == 5){
-            //     System.exit(0);
-            // }
             System.exit(0);
         }
         Parametros.contadorPrueba++;
@@ -122,12 +121,86 @@ public class AlgoritmoGenetico {
         return nuevaPoblacion;
     }
 
-    private List<Individuo> cruzar(Individuo padre1, Individuo padre2) {
-        // Aún no implementado
-        List<Individuo> hijos = new ArrayList<>();
-        // Implementar la lógica de cruce entre padre1 y padre2
-        hijos.add(padre1);
-        hijos.add(padre2);
-        return hijos;
+    private List<Individuo> cruzar(Individuo p1, Individuo p2) {
+        int size = p1.getCromosoma().size();
+        int cut = 1 + random.nextInt(size - 1);
+        Individuo c1 = new Individuo();
+        Individuo c2 = new Individuo();
+        c1.setPedidos(p1.getPedidos());
+        c2.setPedidos(p2.getPedidos());
+        List<Gen> genes1 = new ArrayList<>();
+        List<Gen> genes2 = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            if (i < cut) {
+                genes1.add(cloneGen(p1.getCromosoma().get(i)));
+                genes2.add(cloneGen(p2.getCromosoma().get(i)));
+            } else {
+                genes1.add(cloneGen(p2.getCromosoma().get(i)));
+                genes2.add(cloneGen(p1.getCromosoma().get(i)));
+            }
+        }
+        // Reparar duplicados y pedidos faltantes
+        repair(genes1, p1.getPedidos());
+        repair(genes2, p1.getPedidos());
+        c1.setCromosoma(genes1);
+        c2.setCromosoma(genes2);
+        c1.setFitness(c1.calcularFitness());
+        c2.setFitness(c2.calcularFitness());
+        return List.of(c1, c2);
+    }
+
+    // Clona un Gen (camion, nodos y ruta)
+    private Gen cloneGen(Gen gen) {
+        Gen copy = new Gen();
+        copy.setPosNodo(gen.getPosNodo());
+        copy.setDescripcion(gen.getDescripcion());
+        copy.setCamion(gen.getCamion().getClone());
+        List<Nodo> nodesCopy = new ArrayList<>();
+        for (Nodo nodo : gen.getNodos()) {
+            if (nodo instanceof Pedido) {
+                nodesCopy.add(((Pedido) nodo).getClone());
+            } else {
+                nodesCopy.add(nodo);
+            }
+        }
+        copy.setNodos(nodesCopy);
+        copy.setRutaFinal(new ArrayList<>());
+        copy.setFitness(gen.getFitness());
+        return copy;
+    }
+
+    // Repara duplicados y agrega pedidos faltantes (round-robin)
+    private void repair(List<Gen> genes, List<Pedido> originalPedidos) {
+        Set<String> seen = new HashSet<>();
+        List<Pedido> missing = new ArrayList<>(originalPedidos);
+        for (Gen gen : genes) {
+            List<Nodo> newNodes = new ArrayList<>();
+            for (Nodo nodo : gen.getNodos()) {
+                if (nodo instanceof Pedido) {
+                    String code = ((Pedido) nodo).getCodigo();
+                    if (!seen.contains(code)) {
+                        seen.add(code);
+                        newNodes.add(nodo);
+                        missing.removeIf(p -> p.getCodigo().equals(code));
+                    }
+                } else {
+                    newNodes.add(nodo);
+                }
+            }
+            gen.setNodos(newNodes);
+        }
+        int idx = 0;
+        for (Pedido ped : missing) {
+            Gen g = genes.get(idx++ % genes.size());
+            g.getNodos().add(ped);
+        }
+        // Asegurar que cada ruta termina en el almacén central
+        Almacen central = DataLoader.almacenes.get(0);
+        for (Gen gen : genes) {
+            List<Nodo> nodeList = gen.getNodos();
+            if (nodeList.isEmpty() || !central.equals(nodeList.get(nodeList.size() - 1))) {
+                nodeList.add(central);
+            }
+        }
     }
 }

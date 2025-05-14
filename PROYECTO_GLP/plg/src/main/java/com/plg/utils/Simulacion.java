@@ -57,26 +57,15 @@ public class Simulacion {
                 actualizarEstadoGlobal(fechaActual);
                 if (!pedidosPorAtender.isEmpty()) {
                     // // Tiempo de ejecucion
-                    // System.out.println("TIEMPO DE EJECUCIÓN: " + fechaActual);
-
-                    // // Lista de pedidos a atender imprimir
-                    // System.out.println("-----------------------");
-                    // System.out.println("Pedidos a atender: ");
-                    // for (Pedido pedido1 : pedidosPorAtender) {
-                    //     System.out.println(pedido1);
-                    // }
-                    // System.out.println("----------------------");
-
-                    // // Lista de pedidos planificados imprimir
-                    // System.out.println("Pedidos planificados: ");
-                    // for (Pedido pedido2 : pedidosPlanificados) {
-                    //     System.out.println(pedido2);
-                    // }
-                    // System.out.println("----------------------");
+                    System.out.println("------------------------");
+                    System.out.println("Tiempo actual: " + fechaActual);
 
                     List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
-                    AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
-                    algoritmoGenetico.ejecutarAlgoritmo();
+                    // AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
+                    // algoritmoGenetico.ejecutarAlgoritmo();
+                    SimulatedAnnealing simulatedAnnealing = new SimulatedAnnealing(mapa,
+                            pedidosEnviar);
+                    simulatedAnnealing.ejecutarAlgoritmo();
                 }
                 fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
             }
@@ -95,7 +84,7 @@ public class Simulacion {
 
     public static void actualizarEstadoGlobal(LocalDateTime fechaActual) {
         actualizarRepositorios(fechaActual);
-        actualizarBloqueos(fechaActual);
+        //actualizarBloqueos(fechaActual);
         actualizarCamiones(fechaActual);
     }
 
