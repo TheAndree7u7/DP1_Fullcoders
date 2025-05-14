@@ -1,14 +1,12 @@
 package com.plg.utils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import com.plg.config.DataLoader;
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
 import com.plg.entity.Mapa;
-import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
 
 import lombok.AllArgsConstructor;
@@ -40,12 +38,11 @@ public class AlgoritmoGenetico {
 
         this.camiones = DataLoader.camiones;
         this.almacenes = DataLoader.almacenes;
-        generaciones = 100;
-        poblacionTamano = 100;
+        generaciones = 30;
+        poblacionTamano = 30;
     }
 
     public void ejecutarAlgoritmo() {
-
 
         List<Individuo> poblacion = inicializarPoblacion();
         for (int i = 0; i < generaciones; i++) {
@@ -64,11 +61,19 @@ public class AlgoritmoGenetico {
             Camion camion = gen.getCamion();
             camion.setGen(gen);
         }
-        if (Parametros.contadorPrueba == 5){
-            System.out.println("Mejor individuo: " + Parametros.contadorPrueba + " " + mejorIndividuo);
-            if (Parametros.contadorPrueba == 5){
-                System.exit(0);
-            }
+        if (mejorIndividuo.getFitness() == Double.MIN_VALUE || mejorIndividuo.getFitness() == 0.0) {
+            // Imprimir la descripción del error
+            System.out.println("Descripción: " + mejorIndividuo.getDescripcion());
+            System.out.println("No se ha encontrado una solución");
+            System.out.println("Mejor individuo: " + mejorIndividuo);
+
+            
+
+            // System.out.println("Mejor individuo: " + Parametros.contadorPrueba + " " + mejorIndividuo);
+            // if (Parametros.contadorPrueba == 5){
+            //     System.exit(0);
+            // }
+            System.exit(0);
         }
         Parametros.contadorPrueba++;
     }
@@ -84,7 +89,7 @@ public class AlgoritmoGenetico {
     private List<Individuo> inicializarPoblacion() {
         List<Individuo> poblacion = new ArrayList<>();
         for (int i = 0; i < poblacionTamano; i++) {
-            Individuo individuo = new Individuo(pedidos, camiones, mapa, almacenes);
+            Individuo individuo = new Individuo(pedidos);
             poblacion.add(individuo);
         }
         return poblacion;
@@ -92,7 +97,9 @@ public class AlgoritmoGenetico {
 
     private List<Individuo> seleccionar_padres(List<Individuo> poblacion) {
         List<Individuo> seleccionados = new ArrayList<>();
-        for (int i = 0; i < poblacion.size() / 2; i++) {
+        // Puede que haya población impar por tanto redondeamos hacia arriba
+        int seleccionadosTamano = (int) Math.ceil(poblacion.size() / 2.0);
+        for (int i = 0; i < seleccionadosTamano; i++) {
             int index1 = (int) (Math.random() * poblacion.size());
             int index2 = (int) (Math.random() * poblacion.size());
             Individuo padre1 = poblacion.get(index1);

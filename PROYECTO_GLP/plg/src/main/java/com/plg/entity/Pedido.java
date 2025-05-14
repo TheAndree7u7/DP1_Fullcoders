@@ -32,4 +32,20 @@ public class Pedido extends Nodo {
             estado
         );
     }
+
+    public Pedido getClone() {
+        return Pedido.builder()
+            .coordenada(getCoordenada())
+            .bloqueado(isBloqueado())
+            .gScore(getGScore())
+            .fScore(getFScore())
+            .tipoNodo(getTipoNodo())
+            .codigo(codigo)
+            .horasLimite(horasLimite)
+            .fechaRegistro(fechaRegistro)
+            .volumenGLPAsignado(volumenGLPAsignado)
+            .estado(estado)
+            .build();
+    }
+
 }

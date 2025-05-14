@@ -31,25 +31,25 @@ public class DataLoader {
     public static List<Almacen> initializeAlmacenes() {
         AlmacenFactory.crearAlmacen(TipoAlmacen.CENTRAL, coordenadaCentral, 1_000_000_000,
                 1_000_000_000);
-        AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(42, 42), 160.0, 0.0);
-        AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(3, 63), 160.0, 0.0);
+        AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(42, 42), 160.0, 50);
+        AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(3, 63), 160.0, 50);
         almacenes = AlmacenFactory.almacenes;
         return almacenes;
     }
 
     public static List<Camion> initializeCamiones() {
-        // for (int i=0; i<2; i++){
-        //     CamionFactory.crearCamionesPorTipo(TipoCamion.TA, true, coordenadaCentral);
-        // }
+        for (int i=0; i<2; i++){
+            CamionFactory.crearCamionesPorTipo(TipoCamion.TA, true, coordenadaCentral);
+        }
         for (int i=0; i<4; i++){
             CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);
         }
         for (int i=0; i<4; i++){
             CamionFactory.crearCamionesPorTipo(TipoCamion.TC, true, coordenadaCentral);
         }
-        // for (int i=0; i<10; i++){
-        //     CamionFactory.crearCamionesPorTipo(TipoCamion.TD, true, coordenadaCentral);
-        // }
+        for (int i=0; i<10; i++){
+            CamionFactory.crearCamionesPorTipo(TipoCamion.TD, true, coordenadaCentral);
+        }
         camiones = CamionFactory.camiones;
         return camiones;
     }

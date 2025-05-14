@@ -45,4 +45,15 @@ public class Nodo {
     public int hashCode() {
         return Objects.hash(coordenada);
     }
+
+    // El siguiente método clone se puede sobreescribir en las subclases
+    public Nodo getClone() {
+        return Nodo.builder()
+                .coordenada(getCoordenada())
+                .bloqueado(isBloqueado())
+                .gScore(getGScore())
+                .fScore(getFScore())
+                .tipoNodo(getTipoNodo())
+                .build();
+    }
 }

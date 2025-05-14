@@ -57,9 +57,7 @@ public class Camion extends Nodo {
             "  - GLP (m3):       %.2f / %.2f%n" +
             "  - Carga (t):      %.2f (tara) + %.2f (carga)%n" +
             "  - Combustible:    %.2f / %.2f galones%n" +
-            "  - Velocidad:      %.2f km/h%n" +
-            "  - Distancia máx.: %.2f km%n" +
-            "  - Estado:         %s \n",
+            "  - Distancia máx.: %.2f km%n",
             codigo,
             tipo,
             getCoordenada() != null ? getCoordenada() : "N/A",
@@ -69,9 +67,7 @@ public class Camion extends Nodo {
             pesoCarga,
             combustibleActual,
             combustibleMaximo,
-            velocidadPromedio,
-            distanciaMaxima,
-            estado
+            distanciaMaxima
         );
     }
 
@@ -89,8 +85,8 @@ public class Camion extends Nodo {
 
 
     public void actualizarCargaPedido(double volumenGLP) {
-        double pesoGLPPedido = volumenGLP * 0.5;  
-        pesoCarga -= pesoGLPPedido;
+        // double pesoGLPPedido = volumenGLP * 0.5;  
+        // pesoCarga -= pesoGLPPedido;
         capacidadActualGLP -= volumenGLP;
     }
 
@@ -100,8 +96,6 @@ public class Camion extends Nodo {
             // Primera vez que se llama no existen pedidos por atender
             return;
         }
-
-
 
         // Actualizar el nodo en el que se encuentra el camión
         int cantNodos = (int) (intervaloTiempo * velocidadPromedio / 60);
@@ -153,11 +147,27 @@ public class Camion extends Nodo {
             }
         }
 
+        // Si ya regresé al almacén central, actualizo el combustible del camión
+        // y la carga de GLP
+        if (gen.getRutaFinal().get(intermedio).getTipoNodo() == TipoNodo.ALMACEN){
+            Almacen almacen = (Almacen) gen.getRutaFinal().get(intermedio);
+            if (almacen.getTipo() == TipoAlmacen.CENTRAL){
+                this.combustibleActual = this.combustibleMaximo;
+                this.capacidadActualGLP = this.capacidadMaximaGLP;
+            }
+        }
+
+        // Quitamos todos los pedidos entregados del mapa y reemplazamos por un nodo normal
+        for (Pedido pedido : pedidosEntregados) {
+            Mapa.getInstance().setNodo(pedido.getCoordenada(), new Nodo(pedido.getCoordenada(), false, 0, 0, TipoNodo.NORMAL));
+        }
+
+
         // Calcular la distancia máxima que puede recorrer el camión
         calcularDistanciaMaxima();
     }   
 
-    public Camion clone() {
+    public Camion getClone() {
         return Camion.builder()
                 .codigo(this.codigo)
                 .tipo(this.tipo)

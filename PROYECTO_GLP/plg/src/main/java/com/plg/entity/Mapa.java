@@ -45,8 +45,8 @@ public class Mapa {
             throw new IllegalStateException("Mapa instance has already been initialized.");
         }
         // DEFINICIÓN DE DIMENSIONES DEL MAPA
-        int columnas = 70;
-        int filas = 50;
+        int columnas = 71;
+        int filas = 51;
         instance = new Mapa(columnas, filas);
     }
 
