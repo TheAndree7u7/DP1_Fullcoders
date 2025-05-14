@@ -36,7 +36,6 @@ public class Gen {
         this.rutaFinal.clear();
         double fitness = 0.0;
         Camion camion = this.camion.clone(); 
-
         for (int i = 0; i < nodos.size(); i++) {
             Nodo nodo1, nodo2;
             if(i == 0){
@@ -51,6 +50,7 @@ public class Gen {
             double distanciaCalculada = ruta.size();
             double distanciaMaxima = camion.calcularDistanciaMaxima();
 
+            // La distancia maxima que puede recorrer el camion es menor a la distancia calculada
             if (distanciaMaxima < distanciaCalculada) {
                 fitness = Double.MIN_VALUE;
                 break;
@@ -58,15 +58,21 @@ public class Gen {
 
             if (nodo2 instanceof Pedido) {
                 Pedido pedido = (Pedido) nodo2;
+
+                // Si se trata de un pedido verificamos que lleguemos a tiempo 
                 double tiempoEntregaLimite = pedido.getHorasLimite();
                 double tiempoLlegada = distanciaCalculada / camion.getVelocidadPromedio();
-
                 boolean tiempoMenorQueLimite = tiempoLlegada <= tiempoEntregaLimite;
+
+                // Verificamos que el camion tenga sufiente combustible
                 boolean volumenGLPAsignado = camion.getCapacidadActualGLP() >= pedido.getVolumenGLPAsignado();
 
                 if (tiempoMenorQueLimite && volumenGLPAsignado) {
                     fitness += tiempoEntregaLimite - tiempoLlegada;
+                    // Combustible gastado
                     camion.actualizarCombustible(distanciaCalculada);
+
+                    // Actualizamos el volumen de GLP del camion
                     camion.actualizarCargaPedido(pedido.getVolumenGLPAsignado());
 
                     if (i > 0){
@@ -78,6 +84,7 @@ public class Gen {
                     break;
                 }
             } else if (nodo2 instanceof Almacen || nodo2 instanceof Camion) {
+                // Se regarga si es almacen central, intermediario o camion
                 recargarCamion(camion, nodo2);
 
                 if (i > 0){
@@ -94,6 +101,15 @@ public class Gen {
     private void recargarCamion(Camion camion, Nodo nodo) {
         if (nodo instanceof Almacen || nodo instanceof Camion) {
             camion.setCombustibleActual(camion.getCombustibleMaximo());
+            camion.setCapacidadActualGLP(camion.getCapacidadMaximaGLP());
+            if (nodo instanceof Almacen) {
+                Almacen almacen = (Almacen) nodo;
+                // Restamos el volumen de GLP del camion al almacen
+                almacen.setCapacidadActualGLP(almacen.getCapacidadActualGLP()- camion.getCapacidadMaximaGLP());
+                // Restamos el combustible del camion al almacen
+                almacen.setCapacidadCombustible(almacen.getCapacidadCombustible()- camion.getCombustibleMaximo());
+
+            }
         }
     }
 
@@ -101,10 +117,6 @@ public class Gen {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(camion.toString()).append(" ");
-        // // No se imprime el ultimo nodo porque es el almacén central
-        // for (int i = 0; i < nodos.size(); i++) {
-        //     sb.append(nodos.get(i).toString()).append(" ");
-        // }
         for (int i = 0; i < nodos.size() - 1; i++) {
             sb.append(nodos.get(i).toString()).append(" ");
         }

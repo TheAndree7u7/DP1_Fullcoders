@@ -64,13 +64,12 @@ public class AlgoritmoGenetico {
             Camion camion = gen.getCamion();
             camion.setGen(gen);
         }
-        if (Parametros.contadorPrueba <= 4){
+        if (Parametros.contadorPrueba == 5){
             System.out.println("Mejor individuo: " + Parametros.contadorPrueba + " " + mejorIndividuo);
-            if (Parametros.contadorPrueba == 4){
+            if (Parametros.contadorPrueba == 5){
                 System.exit(0);
             }
         }
-
         Parametros.contadorPrueba++;
     }
 

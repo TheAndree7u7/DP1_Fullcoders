@@ -50,8 +50,6 @@ public class Individuo {
         }
 
         Almacen almacenCentral = almacenes.get(0); // Almacén central
-
-        // Crear una lista de nodos que incluye pedidos, camiones averiados y almacenes
         List<Nodo> nodos = new ArrayList<>();
         nodos.addAll(pedidos);
 
