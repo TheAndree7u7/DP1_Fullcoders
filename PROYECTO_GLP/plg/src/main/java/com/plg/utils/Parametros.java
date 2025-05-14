@@ -12,6 +12,7 @@ public class Parametros {
     public static LocalDateTime fecha_inicial = LocalDateTime.parse(dia + "/" + mes + "/" + anho + " 00:00", formatoFechaHora);
     public static int intervaloTiempo = 10; // minutos
     private static Parametros instance;
+    public static int contadorPrueba = 0;
 
     public static Parametros getInstance( ) {
         if (instance == null) {

@@ -25,8 +25,8 @@ public class DataLoader {
     public static List<Pedido> pedidos = new ArrayList<>();
     public static List<Almacen> almacenes = new ArrayList<>();
     public static List<Camion> camiones = new ArrayList<>();
-    public static final List<Averia> averias = new ArrayList<>();
-    public static final List<Bloqueo> bloqueos = new ArrayList<>();
+    public static List<Averia> averias = new ArrayList<>();
+    public static List<Bloqueo> bloqueos = new ArrayList<>();
 
     public static List<Almacen> initializeAlmacenes() {
         AlmacenFactory.crearAlmacen(TipoAlmacen.CENTRAL, coordenadaCentral, 1_000_000_000,
@@ -38,18 +38,18 @@ public class DataLoader {
     }
 
     public static List<Camion> initializeCamiones() {
-        for (int i=0; i<2; i++){
-            CamionFactory.crearCamionesPorTipo(TipoCamion.TA, true, coordenadaCentral);
-        }
+        // for (int i=0; i<2; i++){
+        //     CamionFactory.crearCamionesPorTipo(TipoCamion.TA, true, coordenadaCentral);
+        // }
         for (int i=0; i<4; i++){
             CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);
         }
-        for (int i=0; i<4; i++){
-            CamionFactory.crearCamionesPorTipo(TipoCamion.TC, true, coordenadaCentral);
-        }
-        for (int i=0; i<10; i++){
-            CamionFactory.crearCamionesPorTipo(TipoCamion.TD, true, coordenadaCentral);
-        }
+        // for (int i=0; i<4; i++){
+        //     CamionFactory.crearCamionesPorTipo(TipoCamion.TC, true, coordenadaCentral);
+        // }
+        // for (int i=0; i<10; i++){
+        //     CamionFactory.crearCamionesPorTipo(TipoCamion.TD, true, coordenadaCentral);
+        // }
         camiones = CamionFactory.camiones;
         return camiones;
     }

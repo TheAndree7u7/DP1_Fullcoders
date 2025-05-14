@@ -76,34 +76,21 @@ public class Camion extends Nodo {
 
 
     public double calcularDistanciaMaxima() {
-        if (tara + pesoCarga <= 0) {
-            throw new IllegalArgumentException("No se puede calcular la distancia máxima con un peso total no válido.");
-        }
+  
         this.distanciaMaxima = (combustibleActual * 180) / (tara + pesoCarga);
         return this.distanciaMaxima;
     }
 
     public void actualizarCombustible(double distancia) {
-        if (distancia > this.distanciaMaxima) {
-            throw new IllegalArgumentException("No se puede recorrer una distancia mayor a la distancia máxima calculada.");
-        }
+
         double combustibleUsado = this.combustibleActual * distancia  / this.distanciaMaxima;
         this.combustibleActual -= combustibleUsado;
     } 
 
 
     public void actualizarCargaPedido(double volumenGLP) {
-        // Actualizamos el peso de la carga
-        double pesoGLPPedido = volumenGLP * 0.5; 
-        if (pesoGLPPedido > this.pesoCarga) {
-            throw new IllegalArgumentException("No se puede descargar más GLP del que tiene el camión.");
-        }
+        double pesoGLPPedido = volumenGLP * 0.5;  
         pesoCarga -= pesoGLPPedido;
-
-        // Actualizamos la capacidad de GLP
-        if (capacidadActualGLP < volumenGLP) {
-            throw new IllegalArgumentException("No se puede descargar más GLP del que tiene el camión.");
-        }
         capacidadActualGLP -= volumenGLP;
     }
 
@@ -112,26 +99,42 @@ public class Camion extends Nodo {
             // Primera vez que se llama no existen pedidos por atender
             return;
         }
-        int cantNodos = (int)(intervaloTiempo * velocidadPromedio / 60);
+
+        // Actualizar el nodo en el que se encuentra el camión
+        int cantNodos = (int) (intervaloTiempo * velocidadPromedio / 60);
+        System.out.println("cantDono" + cantNodos);
         int antiguo = gen.getPosNodo();
         gen.setPosNodo(antiguo + cantNodos);
         int distanciaRecorrida = gen.getPosNodo() - antiguo;
         actualizarCombustible(distanciaRecorrida);
         
-        for(int i=0; i<=gen.getPosNodo(); i++){
+    
+        // En el tiempo transcurrido donde se puede encontrar el camión
+        int intermedio = Math.min(gen.getPosNodo(), gen.getNodos().size()-1);
+
+        // Axtualiza la posición del camión en el mapa
+        Coordenada nuevaCoordenada = gen.getNodos().get(intermedio).getCoordenada();
+        setCoordenada(nuevaCoordenada);
+
+        // Actualizamos el estado de los pedidos
+        for(int i=0; i<=intermedio; i++){
             Nodo nodo = gen.getNodos().get(i);
             if(nodo.getTipoNodo() == TipoNodo.PEDIDO){
                 pedidosEntregados.add((Pedido) nodo);
+                // Voy al GLP del camión y reduzco la carga porque lo entrego
+                actualizarCargaPedido(((Pedido) nodo).getVolumenGLPAsignado());
                 pedidosPorAtender.remove(nodo);
             }
         }
-        for (int i=gen.getPosNodo(); i<gen.getNodos().size(); i++){
+        for (int i=intermedio+1; i<gen.getNodos().size(); i++){
             Nodo nodo = gen.getNodos().get(i);
             if(nodo.getTipoNodo() == TipoNodo.PEDIDO){
                 pedidosPlanificados.add((Pedido) nodo);
                 pedidosPorAtender.remove(nodo);
             }
         }
+
+        // Calcular la distancia máxima que puede recorrer el camión
         calcularDistanciaMaxima();
     }   
 

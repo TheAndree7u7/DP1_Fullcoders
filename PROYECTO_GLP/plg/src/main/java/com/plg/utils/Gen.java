@@ -101,17 +101,13 @@ public class Gen {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(camion.toString()).append(" ");
-        // No se imprime el ultimo nodo porque es el almacén central
-        for (int i = 0; i < nodos.size(); i++) {
+        // // No se imprime el ultimo nodo porque es el almacén central
+        // for (int i = 0; i < nodos.size(); i++) {
+        //     sb.append(nodos.get(i).toString()).append(" ");
+        // }
+        for (int i = 0; i < nodos.size() - 1; i++) {
             sb.append(nodos.get(i).toString()).append(" ");
         }
-        // // Imprimimos la ruta final
-        // sb.append("-----------------------------------------------\n");
-        // sb.append("Ruta Final: \n");
-        // for (Nodo nodo : rutaFinal) {
-        //     sb.append(nodo.toString()).append(" ");
-        // }
-        // sb.append("\n-----------------------------------------------\n");
         return sb.toString();
     }
 }

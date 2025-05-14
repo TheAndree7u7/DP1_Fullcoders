@@ -45,6 +45,7 @@ public class AlgoritmoGenetico {
 
     public void ejecutarAlgoritmo() {
         List<Individuo> poblacion = inicializarPoblacion();
+       
         for (int i = 0; i < generaciones; i++) {
             List<Individuo> padres = seleccionar_padres(poblacion);
             List<Individuo> hijos = cruzar(padres);
@@ -56,14 +57,19 @@ public class AlgoritmoGenetico {
         poblacion.sort((ind1, ind2) -> Double.compare(ind1.getFitness(), ind2.getFitness()));
         mejorIndividuo = poblacion.get(0);
         System.out.println("Fitness: " + mejorIndividuo.getFitness());
-        System.out.println(mejorIndividuo);
-
         // Recorremos los genes y actualizamos el atributo gen en la clase camion
         for (Gen gen : mejorIndividuo.getCromosoma()) {
             Camion camion = gen.getCamion();
             camion.setGen(gen);
         }
+        if (Parametros.contadorPrueba <= 2){
+            System.out.println("Mejor individuo: " + Parametros.contadorPrueba + " " + mejorIndividuo);
+            if (Parametros.contadorPrueba == 2){
+                System.exit(0);
+            }
+        }
 
+        Parametros.contadorPrueba++;
     }
 
     private List<Individuo> seleccionar_mejores(List<Individuo> padres, List<Individuo> hijos) {

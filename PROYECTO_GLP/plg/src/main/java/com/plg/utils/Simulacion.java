@@ -32,6 +32,7 @@ public class Simulacion {
         DataLoader.initializeMantenimientos();
         DataLoader.initializeAverias();
         DataLoader.initializePedidos();
+        DataLoader.initializeBloqueos();
         LocalDateTime fechaFin = fechaActual.plusDays(7);
         pedidosSemanal = DataLoader.pedidos.stream()
                 .filter(pedido -> pedido.getFechaRegistro().isAfter(fechaActual)
@@ -47,8 +48,6 @@ public class Simulacion {
         System.out.println("Fecha inicial: " + fechaActual);
         System.out.println("Fecha final: " + fechaActual.plusDays(7));
 
-        List<Camion> camiones = DataLoader.camiones;
-        actualizarBloqueos(fechaActual);
         while (!pedidosSemanal.isEmpty()) {
             Pedido pedido = pedidosSemanal.get(0);
             if (!pedido.getFechaRegistro().isAfter(fechaActual)) {
