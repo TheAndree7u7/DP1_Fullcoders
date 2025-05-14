@@ -56,6 +56,24 @@ public class Simulacion {
             } else {
                 actualizarEstadoGlobal(fechaActual);
                 if (!pedidosPorAtender.isEmpty()) {
+                    // // Tiempo de ejecucion
+                    // System.out.println("TIEMPO DE EJECUCIÓN: " + fechaActual);
+
+                    // // Lista de pedidos a atender imprimir
+                    // System.out.println("-----------------------");
+                    // System.out.println("Pedidos a atender: ");
+                    // for (Pedido pedido1 : pedidosPorAtender) {
+                    //     System.out.println(pedido1);
+                    // }
+                    // System.out.println("----------------------");
+
+                    // // Lista de pedidos planificados imprimir
+                    // System.out.println("Pedidos planificados: ");
+                    // for (Pedido pedido2 : pedidosPlanificados) {
+                    //     System.out.println(pedido2);
+                    // }
+                    // System.out.println("----------------------");
+
                     List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
                     AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
                     algoritmoGenetico.ejecutarAlgoritmo();
@@ -74,7 +92,6 @@ public class Simulacion {
         }
         return listaUnida;
     }
-
 
     public static void actualizarEstadoGlobal(LocalDateTime fechaActual) {
         actualizarRepositorios(fechaActual);
@@ -107,7 +124,8 @@ public class Simulacion {
     private static void actualizarCamiones(LocalDateTime fechaActual) {
         List<Camion> camiones = DataLoader.camiones;
         for (Camion camion : camiones) {
-            camion.actualizarEstado(Parametros.intervaloTiempo, pedidosPorAtender, pedidosPlanificados, pedidosEntregados, fechaActual);
+            camion.actualizarEstado(Parametros.intervaloTiempo, pedidosPorAtender, pedidosPlanificados,
+                    pedidosEntregados, fechaActual);
         }
     }
 

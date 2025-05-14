@@ -77,7 +77,6 @@ public class Camion extends Nodo {
 
 
     public double calcularDistanciaMaxima() {
-  
         this.distanciaMaxima = (combustibleActual * 180) / (tara + pesoCarga);
         return this.distanciaMaxima;
     }
@@ -118,6 +117,8 @@ public class Camion extends Nodo {
 
         int intermedio = Math.min(gen.getPosNodo(), gen.getRutaFinal().size()-1);
 
+        // System.out.println("intermedio = " + intermedio);
+
         // Axtualiza la posición del camión en el mapa
         Coordenada nuevaCoordenada = gen.getRutaFinal().get(intermedio).getCoordenada();
         setCoordenada(nuevaCoordenada);
@@ -136,12 +137,18 @@ public class Camion extends Nodo {
                 // Marcamos el pedido como entregado para no considerarlo en la siguiente iteración
                 pedido.setEstado(EstadoPedido.ENTREGADO);
                 pedidosPorAtender.remove(nodo);
+                pedidosPlanificados.remove(nodo);
             }
         }
         for (int i=intermedio+1; i<gen.getRutaFinal().size(); i++){
             Nodo nodo = gen.getRutaFinal().get(i);
             if(nodo.getTipoNodo() == TipoNodo.PEDIDO){
+                Pedido pedido = (Pedido) nodo;
+                if (pedido.getEstado() == EstadoPedido.ENTREGADO){
+                    continue;
+                }
                 pedidosPlanificados.add((Pedido) nodo);
+                pedido.setEstado(EstadoPedido.PLANIFICADO);
                 pedidosPorAtender.remove(nodo);
             }
         }

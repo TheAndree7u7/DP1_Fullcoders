@@ -33,6 +33,7 @@ public class AlgoritmoGenetico {
         this.mapa = mapa;
         this.pedidos = pedidos;
 
+        // Selecciono los pedidos y los colocamos en el mapa
         for (Pedido pedido : pedidos) {
             mapa.setNodo(pedido.getCoordenada(), pedido);
         }
@@ -40,12 +41,13 @@ public class AlgoritmoGenetico {
         this.camiones = DataLoader.camiones;
         this.almacenes = DataLoader.almacenes;
         generaciones = 100;
-        poblacionTamano = 40;
+        poblacionTamano = 100;
     }
 
     public void ejecutarAlgoritmo() {
+
+
         List<Individuo> poblacion = inicializarPoblacion();
-       
         for (int i = 0; i < generaciones; i++) {
             List<Individuo> padres = seleccionar_padres(poblacion);
             List<Individuo> hijos = cruzar(padres);
@@ -62,12 +64,12 @@ public class AlgoritmoGenetico {
             Camion camion = gen.getCamion();
             camion.setGen(gen);
         }
-        // if (Parametros.contadorPrueba <= 3){
-        //     System.out.println("Mejor individuo: " + Parametros.contadorPrueba + " " + mejorIndividuo);
-        //     if (Parametros.contadorPrueba == 3){
-        //         System.exit(0);
-        //     }
-        // }
+        if (Parametros.contadorPrueba <= 4){
+            System.out.println("Mejor individuo: " + Parametros.contadorPrueba + " " + mejorIndividuo);
+            if (Parametros.contadorPrueba == 4){
+                System.exit(0);
+            }
+        }
 
         Parametros.contadorPrueba++;
     }
