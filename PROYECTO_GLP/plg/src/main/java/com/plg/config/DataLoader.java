@@ -39,7 +39,7 @@ public class DataLoader {
 
     public static List<Camion> initializeCamiones() {
         for (int i=0; i<2; i++){
-            CamionFactory.crearCamionesPorTipo(TipoCamion.TA, true, coordenadaCentral);
+            CamionFactory.crearCamionesPorTipo(TipoCamion.TD, true, coordenadaCentral);
         }
         for (int i=0; i<4; i++){
             CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);

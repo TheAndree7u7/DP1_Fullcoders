@@ -49,12 +49,12 @@ public class Simulacion {
 
         System.out.println("Ejecutando simulacion...");
         System.out.println("Fecha inicial: " + fechaActual);
-        System.out.println("Fecha final: " + fechaActual.plusDays(2));
-
+        System.out.println("Fecha final: " + fechaActual.plusDays(3));
+        System.out.println("--------------------------");
+        LocalDateTime fechaLimite = LocalDateTime.parse("2025-01-03T00:00:00");
         // Tiempo inicial de ejcución 
         LocalDateTime tiempoInicial = LocalDateTime.now();
-
-
+        
         while (!pedidosSemanal.isEmpty()) {
             Pedido pedido = pedidosSemanal.get(0);
             if (!pedido.getFechaRegistro().isAfter(fechaActual)) {
@@ -75,18 +75,22 @@ public class Simulacion {
                     simulatedAnnealing.ejecutarAlgoritmo();
                 }
                 fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
+                if (fechaActual.isEqual(fechaLimite) || fechaActual.isAfter(fechaLimite)) {
+                    break;
+                }
             }
         }
+        System.out.println("-------------------------");
+        System.out.println("Reporte de la simulación");
+        
 
         LocalDateTime tiempoFinal = LocalDateTime.now();
+        System.out.println("Tiempo final: " + tiempoInicial);
         // Tiempo de ejecución en segundos
-        LocalDateTime tiempoEjecucion = tiempoFinal.minusHours(tiempoInicial.getHour())
-                .minusMinutes(tiempoInicial.getMinute()).minusSeconds(tiempoInicial.getSecond());
+        java.time.Duration tiempoEjecucion = java.time.Duration.between(tiempoInicial, tiempoFinal);
         // Imprimimos los kilometros totales recorridos 
         System.out.println("Kilometros recorridos: " + Parametros.kilometrosRecorridos);
-        System.out.println("Tiempo total de ejecución en segundos : "
-                + tiempoEjecucion.getHour() * 3600 + tiempoEjecucion.getMinute() * 60
-                + tiempoEjecucion.getSecond());
+        System.out.println("Tiempo total de ejecución en segundos : " + tiempoEjecucion.getSeconds());
         System.out.println("Fitness global: " + Parametros.fitnessGlobal);
     }
 
