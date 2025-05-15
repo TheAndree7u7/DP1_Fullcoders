@@ -43,8 +43,8 @@ public class AlgoritmoGenetico {
 
         this.camiones = DataLoader.camiones;
         this.almacenes = DataLoader.almacenes;
-        generaciones = 20;
-        poblacionTamano = 50;
+        generaciones = 10;
+        poblacionTamano = 100;
     }
 
     public void ejecutarAlgoritmo() {
@@ -125,31 +125,35 @@ public class AlgoritmoGenetico {
     }
 
     private List<Individuo> cruzar(Individuo p1, Individuo p2) {
-        int size = p1.getCromosoma().size();
-        int cut = 1 + random.nextInt(size - 1);
-        Individuo c1 = new Individuo();
-        Individuo c2 = new Individuo();
-        c1.setPedidos(p1.getPedidos());
-        c2.setPedidos(p2.getPedidos());
-        List<Gen> genes1 = new ArrayList<>();
-        List<Gen> genes2 = new ArrayList<>();
-        for (int i = 0; i < size; i++) {
-            if (i < cut) {
-                genes1.add(cloneGen(p1.getCromosoma().get(i)));
-                genes2.add(cloneGen(p2.getCromosoma().get(i)));
-            } else {
-                genes1.add(cloneGen(p2.getCromosoma().get(i)));
-                genes2.add(cloneGen(p1.getCromosoma().get(i)));
-            }
-        }
-        // Reparar duplicados y pedidos faltantes
-        repair(genes1, p1.getPedidos());
-        repair(genes2, p1.getPedidos());
-        c1.setCromosoma(genes1);
-        c2.setCromosoma(genes2);
-        c1.setFitness(c1.calcularFitness());
-        c2.setFitness(c2.calcularFitness());
-        return List.of(c1, c2);
+        List<Individuo> hijos = new ArrayList<>();
+        hijos.add(p1);
+        hijos.add(p2);
+        return hijos;
+        // int size = p1.getCromosoma().size();
+        // int cut = 1 + random.nextInt(size - 1);
+        // Individuo c1 = new Individuo();
+        // Individuo c2 = new Individuo();
+        // c1.setPedidos(p1.getPedidos());
+        // c2.setPedidos(p2.getPedidos());
+        // List<Gen> genes1 = new ArrayList<>();
+        // List<Gen> genes2 = new ArrayList<>();
+        // for (int i = 0; i < size; i++) {
+        //     if (i < cut) {
+        //         genes1.add(cloneGen(p1.getCromosoma().get(i)));
+        //         genes2.add(cloneGen(p2.getCromosoma().get(i)));
+        //     } else {
+        //         genes1.add(cloneGen(p2.getCromosoma().get(i)));
+        //         genes2.add(cloneGen(p1.getCromosoma().get(i)));
+        //     }
+        // }
+        // // Reparar duplicados y pedidos faltantes
+        // repair(genes1, p1.getPedidos());
+        // repair(genes2, p1.getPedidos());
+        // c1.setCromosoma(genes1);
+        // c2.setCromosoma(genes2);
+        // c1.setFitness(c1.calcularFitness());
+        // c2.setFitness(c2.calcularFitness());
+        // return List.of(c1, c2);
     }
 
     // Clona un Gen (camion, nodos y ruta)

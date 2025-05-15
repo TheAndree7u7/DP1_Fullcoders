@@ -3,6 +3,7 @@ package com.plg.utils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import com.plg.config.DataLoader;
 import com.plg.entity.Almacen;
@@ -73,24 +74,25 @@ public class Individuo {
             Nodo nodo = nodos.get(i);
 
             // Con probabilidad de un 20% agrego almacen central o intermedio
-            if (Math.random() < 0.1) {
-                // Agregar el almacén central o intermedio
-                if (Math.random() < 0.5) {
-                    nodo = almacenCentral;
-                } else {
-                    // Selecionamos cualquiera de los almacenes intermedios
-                    List<Almacen> almacenesIntermedios = new ArrayList<>(almacenes);
-                    almacenesIntermedios.remove(almacenCentral);
-                    int randomIndex = (int) (Math.random() * almacenesIntermedios.size());
-                    nodo = almacenesIntermedios.get(randomIndex);
-                }
-                // Agregamos el nodo al gen antes de agregar el pedido
-                gen.getNodos().add(nodo);
-            }
+            // if (Math.random() < 0.1) {
+            //     Agregar el almacén central o intermedio
+            //     if (Math.random() < 0.5) {
+            //         nodo = almacenCentral;
+            //     } else {
+            //         Selecionamos cualquiera de los almacenes intermedios
+            //         List<Almacen> almacenesIntermedios = new ArrayList<>(almacenes);
+            //         almacenesIntermedios.remove(almacenCentral);
+            //         int randomIndex = (int) (Math.random() * almacenesIntermedios.size());
+            //         nodo = almacenesIntermedios.get(randomIndex);
+            //     }
+            //     Agregamos el nodo al gen antes de agregar el pedido
+            //     gen.getNodos().add(nodo);
+            // }
 
             // Asignamos el pedido al gen
             gen.getNodos().add(nodo);
         }
+
         // Asignar el almacén central a cada gen para que cada camion retorne al almacén
         // central
         for (Gen gen : cromosoma) {
@@ -111,83 +113,25 @@ public class Individuo {
         return fitness;
     }
 
+ 
     public void mutar() {
-        // Realizaremos dos tipos de mutaciones cada una con un 50% de probabilidad
-        // 1. Intercambiar dos nodos entre dos genes
-        if (Math.random() < 0.5) {
-            intercambiarNodos();
-        } else {
-            // 2. Pasar un nodo de un gen a otro
-            pasarPedido();
+        // Simplified mutation: swap a random pedido between two random routes
+        Random rnd = new Random();
+        int g1 = rnd.nextInt(cromosoma.size());
+        int g2 = rnd.nextInt(cromosoma.size());
+        while (g2 == g1) {
+            g2 = rnd.nextInt(cromosoma.size());
         }
-
-    }
-
-    private void intercambiarNodos() {
-        // Mutación híbrida: 2-opt en una ruta o swap entre rutas
-        if (Math.random() < 0.5) {
-            // 2-opt dentro de un gen
-            int gi = (int) (Math.random() * cromosoma.size());
-            List<Nodo> ruta = cromosoma.get(gi).getNodos();
-            int n = ruta.size();
-            if (n > 4) {
-                // evitar extremos de almacén
-                int a = 1 + (int) (Math.random() * (n - 3));
-                int b = a + 1 + (int) (Math.random() * (n - a - 2));
-                Collections.reverse(ruta.subList(a, b + 1));
-                this.fitness = calcularFitness();
-            }
-        } else {
-            // Swap de un nodo (no almacén) entre dos genes
-            int g1 = (int) (Math.random() * cromosoma.size());
-            int g2 = (int) (Math.random() * cromosoma.size());
-            if (g1 != g2) {
-                List<Nodo> r1 = cromosoma.get(g1).getNodos();
-                List<Nodo> r2 = cromosoma.get(g2).getNodos();
-                if (r1.size() > 2 && r2.size() > 2) {
-                    int i1 = 1 + (int) (Math.random() * (r1.size() - 2));
-                    int i2 = 1 + (int) (Math.random() * (r2.size() - 2));
-                    Nodo tmp = r1.get(i1);
-                    r1.set(i1, r2.get(i2));
-                    r2.set(i2, tmp);
-                    this.fitness = calcularFitness();
-                }
-            }
+        var route1 = cromosoma.get(g1).getNodos();
+        var route2 = cromosoma.get(g2).getNodos();
+        if (route1.size() > 2 && route2.size() > 2) {
+            int i1 = rnd.nextInt(route1.size() - 2) + 1;
+            int i2 = rnd.nextInt(route2.size() - 2) + 1;
+            var temp = route1.get(i1);
+            route1.set(i1, route2.get(i2));
+            route2.set(i2, temp);
+            this.fitness = calcularFitness();
         }
-    }
-
-    private void pasarPedido() {
-        // Mutación de relocación: mover un pedido al mejor hueco en otra ruta
-        // Seleccionar gen y pedido al azar (no almacén)
-        int gFrom = (int) (Math.random() * cromosoma.size());
-        List<Nodo> fromRuta = cromosoma.get(gFrom).getNodos();
-        if (fromRuta.size() <= 3) return; // nada que mover
-        int idx = 1 + (int) (Math.random() * (fromRuta.size() - 2));
-        Nodo ped = fromRuta.remove(idx);
-        // Buscar mejor inserción en otras rutas
-        double bestCost = Double.MAX_VALUE;
-        int bestGen = -1, bestPos = -1;
-        for (int gTo = 0; gTo < cromosoma.size(); gTo++) {
-            if (gTo == gFrom) continue;
-            List<Nodo> toRuta = cromosoma.get(gTo).getNodos();
-            for (int pos = 1; pos < toRuta.size(); pos++) {
-                Nodo prev = toRuta.get(pos - 1), next = toRuta.get(pos);
-                double dOld = Mapa.getInstance().aStar(prev, next).size();
-                double dNew = Mapa.getInstance().aStar(prev, ped).size() + Mapa.getInstance().aStar(ped, next).size();
-                double delta = dNew - dOld;
-                if (delta < bestCost) {
-                    bestCost = delta; bestGen = gTo; bestPos = pos;
-                }
-            }
-        }
-        // Insertar donde mejor
-        if (bestGen >= 0) {
-            cromosoma.get(bestGen).getNodos().add(bestPos, ped);
-        } else {
-            // si no hay mejor, devolver al origen antes del final
-            fromRuta.add(idx, ped);
-        }
-        this.fitness = calcularFitness();
     }
 
     @Override

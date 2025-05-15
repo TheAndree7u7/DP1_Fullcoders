@@ -51,7 +51,7 @@ public class Simulacion {
         System.out.println("Fecha inicial: " + fechaActual);
         System.out.println("Fecha final: " + fechaActual.plusDays(3));
         System.out.println("--------------------------");
-        LocalDateTime fechaLimite = LocalDateTime.parse("2025-01-03T00:00:00");
+        LocalDateTime fechaLimite = LocalDateTime.parse("2025-02-07T00:00:00");
         // Tiempo inicial de ejcución 
         LocalDateTime tiempoInicial = LocalDateTime.now();
         
@@ -68,11 +68,11 @@ public class Simulacion {
                     System.out.println("Tiempo actual: " + fechaActual);
 
                     List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
-                    // AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
-                    // algoritmoGenetico.ejecutarAlgoritmo();
-                    SimulatedAnnealing simulatedAnnealing = new SimulatedAnnealing(mapa,
-                            pedidosEnviar);
-                    simulatedAnnealing.ejecutarAlgoritmo();
+                    AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
+                    algoritmoGenetico.ejecutarAlgoritmo();
+                    // SimulatedAnnealing simulatedAnnealing = new SimulatedAnnealing(mapa,
+                    //         pedidosEnviar);
+                    // simulatedAnnealing.ejecutarAlgoritmo();
                 }
                 fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
                 if (fechaActual.isEqual(fechaLimite) || fechaActual.isAfter(fechaLimite)) {

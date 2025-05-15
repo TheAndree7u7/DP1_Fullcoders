@@ -36,10 +36,10 @@ public class SimulatedAnnealing {
     public SimulatedAnnealing(Mapa mapa, List<Pedido> pedidos) {
         this.mapa = mapa;
         this.pedidos = pedidos;
-        this.maxIterations = 100;         // reducir iteraciones para rapidez
-        this.initialTemperature = 500;   // temperatura inicial moderada
+        this.maxIterations = 10;         // reducir iteraciones para rapidez
+        this.initialTemperature = 2;   // temperatura inicial moderada
         this.coolingRate = 0.01;        // tasa de enfriamiento moderada
-        this.maxCycles = 10;              // menos ciclos para no tardar tanto
+        this.maxCycles = 1; // menos ciclos para no tardar tanto
         // Colocar pedidos en el mapa
         for (Pedido pedido : pedidos) {
             mapa.setNodo(pedido.getCoordenada(), pedido);
@@ -75,7 +75,7 @@ public class SimulatedAnnealing {
                 if (ap > random.nextDouble()) {
                     currentSolution = neighbor;
                 }
-                if (currentSolution.getFitness() > bestSolution.getFitness()) {
+                if (currentSolution.getFitness() < bestSolution.getFitness() && currentSolution.getFitness() != Double.NEGATIVE_INFINITY){
                     bestSolution = currentSolution;
                 }
             }
