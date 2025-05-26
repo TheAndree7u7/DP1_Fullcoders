@@ -1,13 +1,16 @@
+import { Route, Routes } from 'react-router-dom'
 import './App.css'
+import SimulacionSemanal from './views/SimulacionSemanal'
 
 function App() {
 
   return (
     <div>
+      <Routes>
+        <Route path="/" element={<SimulacionSemanal />} />
 
-      <h1 className="text-3xl font-bold underline">
-        Hello world!
-      </h1>
+      </Routes>
+
     </div>
   )
 }
