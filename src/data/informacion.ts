@@ -1,107 +1,126 @@
-export const informacion = [
+// Datos estáticos de rutas de camiones y sus pedidos asignados
+export const rutasCamiones = [
   {
     id: 'TA01',
-    tipo: 'camion',
-    estado: 'En Camino',
-    ruta: Array.from({ length: 25 }, (_, i) => `(${1},${i + 1})`),
-    puntoDestino: "(1,25)",
+    ruta: ['(1,1)', '(1,2)', '(1,3)', '(1,4)', '(1,5)'],
+    puntoDestino: '(1,5)',
+    pedido: 'PED001',
   },
   {
     id: 'TA02',
-    tipo: 'camion',
-    estado: 'En Espera',
-    ruta: Array.from({ length: 30 }, (_, i) => `(${i + 5},5)`),
-    puntoDestino: "(34,5)",
+    ruta: ['(5,5)', '(6,5)', '(7,5)', '(8,5)', '(9,5)', '(10,5)'],
+    puntoDestino: '(10,5)',
+    pedido: 'PED002',
   },
   {
     id: 'TA03',
-    tipo: 'camion',
-    estado: 'Regresando',
-    ruta: Array.from({ length: 20 }, (_, i) => `(${15},${30 - i})`),
-    puntoDestino: "(15,11)",
+    ruta: ['(10,10)', '(10,9)', '(10,8)', '(10,7)', '(10,6)', '(10,5)', '(10,4)'],
+    puntoDestino: '(10,4)',
+    pedido: 'PED003',
   },
   {
     id: 'TA04',
-    tipo: 'camion',
-    estado: 'En Camino',
-    ruta: Array.from({ length: 25 }, (_, i) => `(${20},${20 + i})`),
-    puntoDestino: "(20,44)",
+    ruta: ['(20,20)', '(20,21)', '(20,22)', '(20,23)', '(20,24)', '(20,25)', '(20,26)', '(20,27)', '(20,28)', '(20,29)', '(20,30)'],
+    puntoDestino: '(20,30)',
+    pedido: 'PED004',
   },
+];
+
+// Estado de los camiones por cada instante (1 nodo por hora)
+export const estadosPorInstante = [
+  // Hora 1
   {
-    id: 'TA05',
-    tipo: 'camion',
-    estado: 'En Camino',
-    ruta: Array.from({ length: 20 }, (_, i) => `(${25 + i},25)`),
-    puntoDestino: "(44,25)",
+    timestamp: 1,
+    camiones: [
+      { id: 'TA01', ubicacion: '(1,1)', porcentaje: 0, estado: 'En Camino' },
+      { id: 'TA02', ubicacion: '(5,5)', porcentaje: 0, estado: 'En Camino' },
+      { id: 'TA03', ubicacion: '(10,10)', porcentaje: 0, estado: 'En Camino' },
+      { id: 'TA04', ubicacion: '(20,20)', porcentaje: 0, estado: 'En Camino' },
+    ],
   },
+  // Hora 2
   {
-    id: 'TA06',
-    tipo: 'camion',
-    estado: 'En Camino',
-    ruta: Array.from({ length: 30 }, (_, i) => `(${35},${10 + i})`),
-    puntoDestino: "(35,39)",
+    timestamp: 2,
+    camiones: [
+      { id: 'TA01', ubicacion: '(1,2)', porcentaje: 25, estado: 'En Camino' },
+      { id: 'TA02', ubicacion: '(6,5)', porcentaje: 16, estado: 'En Camino' },
+      { id: 'TA03', ubicacion: '(10,9)', porcentaje: 16, estado: 'En Camino' },
+      { id: 'TA04', ubicacion: '(20,21)', porcentaje: 9, estado: 'En Camino' },
+    ],
   },
+  // Hora 3
   {
-    id: 'TA07',
-    tipo: 'camion',
-    estado: 'En Camino',
-    ruta: Array.from({ length: 26 }, (_, i) => `(${40},${40 - i})`).filter(c => !c.includes('-')),
-    puntoDestino: "(40,15)",
+    timestamp: 3,
+    camiones: [
+      { id: 'TA01', ubicacion: '(1,3)', porcentaje: 50, estado: 'En Camino' },
+      { id: 'TA02', ubicacion: '(7,5)', porcentaje: 33, estado: 'En Camino' },
+      { id: 'TA03', ubicacion: '(10,8)', porcentaje: 33, estado: 'En Camino' },
+      { id: 'TA04', ubicacion: '(20,22)', porcentaje: 18, estado: 'En Camino' },
+    ],
   },
+  // Hora 4
   {
-    id: 'TA08',
-    tipo: 'camion',
-    estado: 'En Espera',
-    ruta: Array.from({ length: 25 }, (_, i) => `(${45 + i},10)`),
-    puntoDestino: "(69,10)",
+    timestamp: 4,
+    camiones: [
+      { id: 'TA01', ubicacion: '(1,4)', porcentaje: 75, estado: 'En Camino' },
+      { id: 'TA02', ubicacion: '(8,5)', porcentaje: 50, estado: 'En Camino' },
+      { id: 'TA03', ubicacion: '(10,7)', porcentaje: 50, estado: 'En Camino' },
+      { id: 'TA04', ubicacion: '(20,23)', porcentaje: 27, estado: 'En Camino' },
+    ],
   },
+  // Hora 5
   {
-    id: 'TA09',
-    tipo: 'camion',
-    estado: 'Regresando',
-    ruta: Array.from({ length: 16 }, (_, i) => `(${55},${15 - i})`),
-    puntoDestino: "(55,0)",
+    timestamp: 5,
+    camiones: [
+      { id: 'TA01', ubicacion: '(1,5)', porcentaje: 100, estado: 'Entregado' },
+      { id: 'TA02', ubicacion: '(9,5)', porcentaje: 66, estado: 'En Camino' },
+      { id: 'TA03', ubicacion: '(10,6)', porcentaje: 66, estado: 'En Camino' },
+      { id: 'TA04', ubicacion: '(20,24)', porcentaje: 36, estado: 'En Camino' },
+    ],
   },
+  // Hora 6
   {
-    id: 'TA10',
-    tipo: 'camion',
-    estado: 'En Camino',
-    ruta: Array.from({ length: 10 }, (_, i) => `(${60 + i},5)`),
-    puntoDestino: "(69,5)",
+    timestamp: 6,
+    camiones: [
+      { id: 'TA02', ubicacion: '(10,5)', porcentaje: 83, estado: 'En Camino' },
+      { id: 'TA03', ubicacion: '(10,5)', porcentaje: 83, estado: 'En Camino' },
+      { id: 'TA04', ubicacion: '(20,25)', porcentaje: 45, estado: 'En Camino' },
+    ],
   },
+  // Hora 7
   {
-    id: 'TA11',
-    tipo: 'camion',
-    estado: 'En Camino',
-    ruta: Array.from({ length: 20 }, (_, i) => `(${5 + i},45)`),
-    puntoDestino: "(24,45)",
+    timestamp: 7,
+    camiones: [
+      { id: 'TA03', ubicacion: '(10,4)', porcentaje: 100, estado: 'Entregado' },
+      { id: 'TA04', ubicacion: '(20,26)', porcentaje: 54, estado: 'En Camino' },
+    ],
   },
+  // Hora 8
   {
-    id: 'TA12',
-    tipo: 'camion',
-    estado: 'En Espera',
-    ruta: Array.from({ length: 15 }, (_, i) => `(${15},${35 + i})`),
-    puntoDestino: "(15,49)",
+    timestamp: 8,
+    camiones: [
+      { id: 'TA04', ubicacion: '(20,27)', porcentaje: 63, estado: 'En Camino' },
+    ],
   },
+  // Hora 9
   {
-    id: 'TA13',
-    tipo: 'camion',
-    estado: 'Regresando',
-    ruta: Array.from({ length: 31 }, (_, i) => `(${30},${30 - i})`).filter(c => !c.includes('-')),
-    puntoDestino: "(30,0)",
+    timestamp: 9,
+    camiones: [
+      { id: 'TA04', ubicacion: '(20,28)', porcentaje: 72, estado: 'En Camino' },
+    ],
   },
+  // Hora 10
   {
-    id: 'TA14',
-    tipo: 'camion',
-    estado: 'En Camino',
-    ruta: Array.from({ length: 20 }, (_, i) => `(${50 + i},45)`),
-    puntoDestino: "(69,45)",
+    timestamp: 10,
+    camiones: [
+      { id: 'TA04', ubicacion: '(20,29)', porcentaje: 81, estado: 'En Camino' },
+    ],
   },
+  // Hora 11
   {
-    id: 'TA15',
-    tipo: 'camion',
-    estado: 'En Camino',
-    ruta: Array.from({ length: 10 }, (_, i) => `(${65},${40 + i})`),
-    puntoDestino: "(65,49)",
+    timestamp: 11,
+    camiones: [
+      { id: 'TA04', ubicacion: '(20,30)', porcentaje: 100, estado: 'Entregado' },
+    ],
   },
 ];

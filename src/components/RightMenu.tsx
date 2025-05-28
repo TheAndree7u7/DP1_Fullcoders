@@ -1,8 +1,8 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
-import CardCamion from './CardCamion';
 import TablaPedidos from './TablaPedidos';
 import MetricasRendimiento from './MetricasRendimiento';
+import CardsCamiones from './CardCamion';
 
 interface RightMenuProps {
   expanded: boolean;
@@ -24,8 +24,7 @@ const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded }) => {
 
       <div className="flex flex-col gap-4 overflow-y-auto">
         <div className="text-md font-medium">Estado de los camiones</div>
-        <CardCamion />
-        <CardCamion />
+        <CardsCamiones />
         <div className="text-md font-medium">Datos de los pedidos</div>
         <TablaPedidos />
         <div className="text-md font-medium">Métricas de rendimiento</div>

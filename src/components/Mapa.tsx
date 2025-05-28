@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { informacion } from '../data/informacion';
+import { useEffect, useRef, useState } from 'react';
+import { useSimulacion } from '../context/SimulacionContext';
 
 const GRID_WIDTH = 70;
 const GRID_HEIGHT = 50;
@@ -7,26 +7,15 @@ const CELL_SIZE = 14;
 const SVG_WIDTH = GRID_WIDTH * CELL_SIZE;
 const SVG_HEIGHT = GRID_HEIGHT * CELL_SIZE;
 
-type Coord = { x: number; y: number };
-
-type SimCamion = {
-  id: string;
-  color: string;
-  ruta: Coord[];
-  indiceRuta: number;
-  posicion: Coord;
-  rotacion: number;
-};
-
-const parseCoord = (s: string): Coord => {
+const parseCoord = (s) => {
   const match = s.match(/\((\d+),\s*(\d+)\)/);
   if (!match) throw new Error(`Coordenada inválida: ${s}`);
   return { x: parseInt(match[1]), y: parseInt(match[2]) };
 };
 
-const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b']; // rojo, azul, verde, amarillo
+const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b'];
 
-const calcularRotacion = (prev: Coord, next: Coord): number => {
+const calcularRotacion = (prev, next) => {
   const dx = next.x - prev.x;
   const dy = next.y - prev.y;
   if (dx === 1) return 0;
@@ -36,46 +25,31 @@ const calcularRotacion = (prev: Coord, next: Coord): number => {
   return 0;
 };
 
-const Mapa: React.FC = () => {
-  const [camiones, setCamiones] = useState<SimCamion[]>([]);
+const Mapa = () => {
+  const [camionesVisuales, setCamionesVisuales] = useState([]);
   const [running, setRunning] = useState(false);
   const [intervalo, setIntervalo] = useState(1000);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef(null);
+  const { horaActual, camiones, rutasCamiones, avanzarHora } = useSimulacion();
 
   useEffect(() => {
-    const iniciales: SimCamion[] = informacion.map((info, idx) => {
+    const iniciales = rutasCamiones.map((info, idx) => {
       const ruta = info.ruta.map(parseCoord);
       return {
         id: info.id,
         color: colors[idx % colors.length],
         ruta,
-        indiceRuta: 0,
         posicion: ruta[0],
         rotacion: 0,
       };
     });
-    setCamiones(iniciales);
-  }, []);
+    setCamionesVisuales(iniciales);
+  }, [rutasCamiones]);
 
   useEffect(() => {
     if (running) {
       intervalRef.current = setInterval(() => {
-        setCamiones(prev =>
-          prev.map(camion => {
-            if (camion.indiceRuta < camion.ruta.length - 1) {
-              const nextIndex = camion.indiceRuta + 1;
-              const nextCoord = camion.ruta[nextIndex];
-              const angle = calcularRotacion(camion.posicion, nextCoord);
-              return {
-                ...camion,
-                indiceRuta: nextIndex,
-                posicion: nextCoord,
-                rotacion: angle,
-              };
-            }
-            return camion;
-          })
-        );
+        avanzarHora();
       }, intervalo);
     } else {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -83,7 +57,23 @@ const Mapa: React.FC = () => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [running, intervalo]);
+  }, [running, intervalo, avanzarHora]);
+
+  useEffect(() => {
+    setCamionesVisuales((prevCamiones) =>
+      prevCamiones.map(camion => {
+        const nuevo = camiones.find(c => c.id === camion.id);
+        if (!nuevo) return camion;
+        const nuevaCoord = parseCoord(nuevo.ubicacion);
+        const rot = calcularRotacion(camion.posicion, nuevaCoord);
+        return {
+          ...camion,
+          posicion: nuevaCoord,
+          rotacion: rot,
+        };
+      })
+    );
+  }, [camiones]);
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -92,7 +82,6 @@ const Mapa: React.FC = () => {
         height={SVG_HEIGHT}
         className="border border-gray-500 bg-white rounded-xl"
       >
-        {/* Grid */}
         {[...Array(GRID_WIDTH + 1)].map((_, i) => (
           <line key={`v-${i}`} x1={i * CELL_SIZE} y1={0} x2={i * CELL_SIZE} y2={SVG_HEIGHT} stroke="#d1d5db" strokeWidth={1} />
         ))}
@@ -100,8 +89,7 @@ const Mapa: React.FC = () => {
           <line key={`h-${i}`} x1={0} y1={i * CELL_SIZE} x2={SVG_WIDTH} y2={i * CELL_SIZE} stroke="#d1d5db" strokeWidth={1} />
         ))}
 
-        {/* Rutas */}
-        {camiones.map(camion => (
+        {camionesVisuales.map(camion => (
           <polyline
             key={`ruta-${camion.id}`}
             fill="none"
@@ -112,8 +100,7 @@ const Mapa: React.FC = () => {
           />
         ))}
 
-        {/* Camiones */}
-        {camiones.map(camion => {
+        {camionesVisuales.map(camion => {
           const { posicion, rotacion, color } = camion;
           const cx = posicion.x * CELL_SIZE;
           const cy = posicion.y * CELL_SIZE;

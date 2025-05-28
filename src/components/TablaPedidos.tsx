@@ -1,15 +1,15 @@
-import React from 'react';
+// components/TablaPedidos.tsx
+import { useSimulacion } from '../context/SimulacionContext';
 
 const TablaPedidos: React.FC = () => {
+  const { camiones } = useSimulacion();
   const headers = ["Número", "Cantidad", "Ubicación", "Estado"];
-  const data = [
-    ["123456789", "10", "(10,2)", "En camino"],
-    ["987654321", "5", "(9,4)", "En camino"],
-    ["345678901", "2", "(8,6)", "En camino"],
-    ["234567890", "1", "(7,8)", "En camino"],
-    ["234567890", "1", "(7,8)", "En espera"],
-    ["456789012", "3", "(6,10)", "Entregado"],
-  ];
+  const data = camiones.map((camion) => [
+    camion.id,
+    Math.floor(Math.random() * 10 + 1).toString(),
+    camion.ubicacion,
+    camion.estado,
+  ]);
 
   return (
     <div className="overflow-auto rounded-lg border border-gray-200">

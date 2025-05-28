@@ -1,18 +1,16 @@
-import { Route, Routes } from 'react-router-dom'
-import './App.css'
-import SimulacionSemanal from './views/SimulacionSemanal'
+import { Route, Routes } from 'react-router-dom';
+import './App.css';
+import SimulacionSemanal from './views/SimulacionSemanal';
+import { SimulacionProvider } from './context/SimulacionContext';
 
 function App() {
-
   return (
-    <div>
+    <SimulacionProvider>
       <Routes>
         <Route path="/" element={<SimulacionSemanal />} />
-
       </Routes>
-
-    </div>
-  )
+    </SimulacionProvider>
+  );
 }
 
-export default App
+export default App;
