@@ -141,4 +141,20 @@ public class CamionFactory {
     public static int getCantidadCamionesPorTipo(TipoCamion tipo) {
         return contadorCamiones.getOrDefault(tipo, 0);
     }
+
+
+
+    /**
+     * Obtiene un camión por su código.
+     *
+     * @param codigo Código del camión
+     * @return Camion correspondiente al código, o null si no se encuentra
+     */
+    public static Camion getCamionPorCodigo(String codigo) {
+        return camiones.stream()
+                .filter(c -> c.getCodigo().equals(codigo))
+                .findFirst()
+                .orElse(null);
+                
+    }
 }

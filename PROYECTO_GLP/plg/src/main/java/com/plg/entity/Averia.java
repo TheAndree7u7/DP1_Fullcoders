@@ -6,7 +6,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
+import java.util.NoSuchElementException;
 import java.util.Random;
+
+import com.plg.utils.ExcepcionesPerzonalizadas.InvalidDataFormatException;
+
 
 @Data
 @NoArgsConstructor
@@ -22,24 +26,33 @@ public class Averia {
     private Boolean estado; // true: activo, false: inactivo
 
 
-    public Averia(String line) {
+    public Averia(String line) throws InvalidDataFormatException {
+        if (line == null || line.trim().isEmpty()) {
+            throw new InvalidDataFormatException("La línea de avería no puede ser nula o vacía.");
+        }
+
         String[] partes = line.split("_");
-        String turno = partes[0];
+        if (partes.length != 3) {
+            throw new InvalidDataFormatException("Formato de línea de avería incorrecto. Se esperaban 3 partes separadas por '_'. Línea: " + line);
+        }
+
+        String turnoStr = partes[0];
         String codigoCamion = partes[1];
-        String tipoIncidente = partes[2];
-        TipoTurno tipoTurno = new TipoTurno(turno);
-        TipoIncidente tipoIncidenteObj = new TipoIncidente(tipoIncidente);
+        String tipoIncidenteStr = partes[2];
 
-        Camion camion = CamionFactory.camiones.stream()
-                .filter(c -> c.getCodigo().equals(codigoCamion))
-                .findFirst()
-                .orElse(null);
-
-        this.camion = camion;
-        this.turno = tipoTurno;
-        this.tipoIncidente = tipoIncidenteObj;
-
+        if (turnoStr.trim().isEmpty() || codigoCamion.trim().isEmpty() || tipoIncidenteStr.trim().isEmpty()) {
+            throw new InvalidDataFormatException("Los componentes de la avería (turno, código de camión, tipo de incidente) no pueden estar vacíos. Línea: " + line);
+        }
         
+        this.turno = new TipoTurno(turnoStr); // El constructor de TipoTurno ya valida
+        this.tipoIncidente = new TipoIncidente(tipoIncidenteStr); // El constructor de TipoIncidente ya valida
+
+        try {
+            this.camion = CamionFactory.getCamionPorCodigo(codigoCamion);
+        } catch (NoSuchElementException e) {
+            throw new InvalidDataFormatException("Error en la línea de avería: " + line + ". Detalles: " + e.getMessage(), e);
+        }
     }
+
 
 }

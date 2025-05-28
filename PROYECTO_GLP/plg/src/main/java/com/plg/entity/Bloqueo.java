@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.plg.utils.ExcepcionesPerzonalizadas.InvalidDataFormatException;
 import com.plg.utils.Herramientas;
 
 @Data
@@ -20,12 +21,24 @@ public class Bloqueo {
     private List<Nodo> nodosBloqueados;
     private Boolean activo;
 
-    public Bloqueo(String line) {
+    public Bloqueo(String line) throws InvalidDataFormatException {
         nodosBloqueados = new ArrayList<>();
         String[] partes = line.split(":");
+        if (partes.length != 2) {
+            throw new InvalidDataFormatException("Formato de línea de bloqueo incorrecto. Se esperaban 2 partes separadas por ':'. Línea: " + line);
+       
+        }
         String[] partesFecha = partes[0].split("-");
+        if (partesFecha.length != 2) {
+            throw new InvalidDataFormatException("Formato de rango de fechas de bloqueo incorrecto. Se esperaban 2 fechas separadas por '-'. Valor: " + partes[0] + ". Línea: " + line);
+        }
+
         LocalDateTime fecha1 = Herramientas.readFecha(partesFecha[0]);
         LocalDateTime fecha2 = Herramientas.readFecha(partesFecha[1]);
+
+        if (fecha1.isAfter(fecha2)) {
+            throw new InvalidDataFormatException("La fecha de inicio del bloqueo no puede ser posterior a la fecha de fin. Inicio: " + fecha1 + ", Fin: " + fecha2 + ". Línea: " + line);
+        }
 
         List<Coordenada> coordenadas = new ArrayList<>();
         String[] coordenadasBloqueo = partes[1].split(",");
@@ -37,8 +50,7 @@ public class Bloqueo {
                 coordenadas.add(coordenada);
             }
         } else {
-            System.out.println("Error en el formato de coordenadas de bloqueo: " + partes[1]);
-            return;
+            throw new InvalidDataFormatException("Error en el formato de coordenadas de bloqueo: " + partes[1] + ". Línea: " + line);
         }
 
         for (int i = 0; i < coordenadas.size() - 1; i++) {

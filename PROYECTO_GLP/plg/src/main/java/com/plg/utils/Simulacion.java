@@ -32,10 +32,14 @@ public class Simulacion {
         fechaActual = startDate;
         DataLoader.initializeAlmacenes();
         DataLoader.initializeCamiones();
-        DataLoader.initializeMantenimientos();
-        DataLoader.initializeAverias();
-        DataLoader.initializePedidos();
-        DataLoader.initializeBloqueos();
+        try {
+            DataLoader.initializeMantenimientos();
+            DataLoader.initializeAverias();
+            DataLoader.initializePedidos();
+            DataLoader.initializeBloqueos();
+        } catch (java.io.IOException | ExcepcionesPerzonalizadas.InvalidDataFormatException e) {
+            e.printStackTrace();
+        }
         LocalDateTime fechaFin = fechaActual.plusDays(7);
         pedidosSemanal = DataLoader.pedidos.stream()
                 .filter(pedido -> pedido.getFechaRegistro().isAfter(fechaActual)
@@ -52,9 +56,9 @@ public class Simulacion {
         System.out.println("Fecha final: " + fechaActual.plusDays(3));
         System.out.println("--------------------------");
         LocalDateTime fechaLimite = LocalDateTime.parse("2025-02-07T00:00:00");
-        // Tiempo inicial de ejcución 
+        // Tiempo inicial de ejcución
         LocalDateTime tiempoInicial = LocalDateTime.now();
-        
+
         while (!pedidosSemanal.isEmpty()) {
             Pedido pedido = pedidosSemanal.get(0);
             if (!pedido.getFechaRegistro().isAfter(fechaActual)) {
@@ -71,7 +75,7 @@ public class Simulacion {
                     AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
                     algoritmoGenetico.ejecutarAlgoritmo();
                     // SimulatedAnnealing simulatedAnnealing = new SimulatedAnnealing(mapa,
-                    //         pedidosEnviar);
+                    // pedidosEnviar);
                     // simulatedAnnealing.ejecutarAlgoritmo();
                 }
                 fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
@@ -82,13 +86,12 @@ public class Simulacion {
         }
         System.out.println("-------------------------");
         System.out.println("Reporte de la simulación");
-        
 
         LocalDateTime tiempoFinal = LocalDateTime.now();
         System.out.println("Tiempo final: " + tiempoInicial);
         // Tiempo de ejecución en segundos
         java.time.Duration tiempoEjecucion = java.time.Duration.between(tiempoInicial, tiempoFinal);
-        // Imprimimos los kilometros totales recorridos 
+        // Imprimimos los kilometros totales recorridos
         System.out.println("Kilometros recorridos: " + Parametros.kilometrosRecorridos);
         System.out.println("Tiempo total de ejecución en segundos : " + tiempoEjecucion.getSeconds());
         System.out.println("Fitness global: " + Parametros.fitnessGlobal);
@@ -106,7 +109,7 @@ public class Simulacion {
 
     public static void actualizarEstadoGlobal(LocalDateTime fechaActual) {
         actualizarRepositorios(fechaActual);
-        //actualizarBloqueos(fechaActual);
+        // actualizarBloqueos(fechaActual);
         actualizarCamiones(fechaActual);
     }
 
