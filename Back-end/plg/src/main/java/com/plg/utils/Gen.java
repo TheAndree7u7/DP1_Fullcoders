@@ -21,7 +21,7 @@ import java.util.List;
 @NoArgsConstructor
 public class Gen {
     private int posNodo = 0;
-    private String descripcion; // En caso el gen tenga fitness negativo agregamos una descripcion del error
+    private String descripcion; 
     private Camion camion;
     private List<Nodo> nodos;
     private List<Nodo> rutaFinal;
@@ -36,7 +36,6 @@ public class Gen {
     public double calcularFitness() {
         this.rutaFinal.clear();
         double fitness = 0.0;
-        // Variables necesarias para la simulación
         Camion camionClone = this.camion.getClone(); 
 
         List<Nodo> nodosClone = new ArrayList<>();

@@ -7,7 +7,6 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest
 @ActiveProfiles("test")
 class PlgApplicationTests {
-
 	@Test
 	void contextLoads() {
 		// This test verifies that the Spring application context loads successfully

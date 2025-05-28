@@ -38,63 +38,27 @@ public class Individuo {
     }
 
     private void inicializarCromosoma() {
-        // Cargamos los almacenes
         List<Almacen> almacenes = DataLoader.almacenes;
-        // Cargamos los camiones
         List<Camion> camionesOperativos = DataLoader.camiones;
 
         cromosoma = new ArrayList<>();
 
-        // Inicializar un gen para cada camión operativo    
         for (Camion camion : camionesOperativos) {
             cromosoma.add(new Gen(camion, new ArrayList<>()));
         }
 
-        Almacen almacenCentral = almacenes.get(0); // Almacén central
+        Almacen almacenCentral = almacenes.get(0);
         List<Nodo> nodos = new ArrayList<>();
         nodos.addAll(pedidos);
-
-        // // Con probabilidad de un 20% agrego camionesAveriados
-        // if (Math.random() < 0.2) {
-        // nodos.addAll(camionesAveriados);
-        // }
-
-        // Mezclar los nodos para garantizar aleatoriedad
         Collections.shuffle(nodos);
-
-        // Mezclamos los genes para garantizar aleatoriedad
         List<Gen> camionesMezclados = new ArrayList<>(cromosoma);
         Collections.shuffle(camionesMezclados);
-
-        // Recorremos todos los nodos = pedidos
         for (int i = nodos.size()-1; i >= 0;  i--) {
-            // Obtener el gen correspondiente a un camion mezclado
             Gen gen = camionesMezclados.get(i % camionesMezclados.size());
-            // Obtener el pedido
             Nodo nodo = nodos.get(i);
-
-            // Con probabilidad de un 20% agrego almacen central o intermedio
-            // if (Math.random() < 0.1) {
-            //     Agregar el almacén central o intermedio
-            //     if (Math.random() < 0.5) {
-            //         nodo = almacenCentral;
-            //     } else {
-            //         Selecionamos cualquiera de los almacenes intermedios
-            //         List<Almacen> almacenesIntermedios = new ArrayList<>(almacenes);
-            //         almacenesIntermedios.remove(almacenCentral);
-            //         int randomIndex = (int) (Math.random() * almacenesIntermedios.size());
-            //         nodo = almacenesIntermedios.get(randomIndex);
-            //     }
-            //     Agregamos el nodo al gen antes de agregar el pedido
-            //     gen.getNodos().add(nodo);
-            // }
-
-            // Asignamos el pedido al gen
             gen.getNodos().add(nodo);
         }
 
-        // Asignar el almacén central a cada gen para que cada camion retorne al almacén
-        // central
         for (Gen gen : cromosoma) {
             gen.getNodos().add(almacenCentral);
         }

@@ -21,6 +21,6 @@ public class PlgApplication implements CommandLineRunner {
         LocalDateTime fechaActual = Parametros.fecha_inicial;
         Simulacion.configurarSimulacion(fechaActual);
         Simulacion.ejecutarSimulacion();
-
+        
     }
 }
