@@ -33,6 +33,9 @@ public class Simulacion {
     public static Individuo mejorIndividuo = null;
     
 
+    // Colas para simulación
+    public static BlockingQueue<Object> gaTriggerQueue = new SynchronousQueue<>();
+    public static BlockingQueue<Individuo> gaResultQueue = new SynchronousQueue<>();
 
     public static void configurarSimulacion(LocalDateTime startDate) {
         fechaActual = startDate;
@@ -79,17 +82,16 @@ public class Simulacion {
 
                     List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
 
-                    if(!ejecutarAlgoritmo) {
-                        // Detenemos hasta que se active con la api
-                    }
+                    try {
+                        gaTriggerQueue.take();
 
-                    AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
-                    algoritmoGenetico.ejecutarAlgoritmo();
-                    mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
-
-
-                    if(!ejecucionTerminada){
-                        // Nos detenemos hasta que la ejecución termine
+                        AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
+                        algoritmoGenetico.ejecutarAlgoritmo();
+                        gaResultQueue.offer(algoritmoGenetico.getMejorIndividuo());
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        System.err.println("Error al esperar el disparador del algoritmo genético: " + e.getMessage());
+                        e.printStackTrace();
                     }
                 }
                 fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
@@ -112,13 +114,6 @@ public class Simulacion {
     }
 
 
-    public static Individuo ejecutarAlgoritmoGenetico() {
-    
-        AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidos);
-        algoritmoGenetico.ejecutarAlgoritmo();
-        Individuo mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
-        return mejorIndividuo;
-    }
 
     public static List<Pedido> unirPedidosSinRepetidos(Set<Pedido> set1, Set<Pedido> set2) {
         List<Pedido> listaUnida = new ArrayList<>(set1);
