@@ -20,7 +20,12 @@ public class PlgApplication implements CommandLineRunner {
         // Vamos a probar simular con los datos de enero 2025
         LocalDateTime fechaActual = Parametros.fecha_inicial;
         Simulacion.configurarSimulacion(fechaActual);
-        Simulacion.ejecutarSimulacion();
-        
+        Thread simulacionThread = new Thread(() -> {
+            Simulacion.ejecutarSimulacion();
+        });
+        simulacionThread.setName("SimulacionThread");
+        simulacionThread.setDaemon(true); // Permite que la aplicación se cierre sin esperar a que termine la simulación
+        simulacionThread.start();
+        System.out.println("Simulación iniciada. Puedes consultar el estado de la simulación en /api/simulacion/mejor");
     }
 }

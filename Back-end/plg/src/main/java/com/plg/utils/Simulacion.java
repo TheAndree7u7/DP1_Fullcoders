@@ -19,6 +19,9 @@ import com.plg.entity.Mapa;
 import com.plg.entity.Pedido;
 import com.plg.entity.TipoAlmacen;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+
 public class Simulacion {
 
     private static List<Pedido> pedidosSemanal;
@@ -27,6 +30,9 @@ public class Simulacion {
     public static Set<Pedido> pedidosPorAtender = new LinkedHashSet<>();
     public static Set<Pedido> pedidosPlanificados = new LinkedHashSet<>();
     public static Set<Pedido> pedidosEntregados = new LinkedHashSet<>();
+    public static Individuo mejorIndividuo = null;
+    
+
 
     public static void configurarSimulacion(LocalDateTime startDate) {
         fechaActual = startDate;
@@ -72,11 +78,19 @@ public class Simulacion {
                     System.out.println("Tiempo actual: " + fechaActual);
 
                     List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
+
+                    if(!ejecutarAlgoritmo) {
+                        // Detenemos hasta que se active con la api
+                    }
+
                     AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
                     algoritmoGenetico.ejecutarAlgoritmo();
-                    // SimulatedAnnealing simulatedAnnealing = new SimulatedAnnealing(mapa,
-                    // pedidosEnviar);
-                    // simulatedAnnealing.ejecutarAlgoritmo();
+                    mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
+
+
+                    if(!ejecucionTerminada){
+                        // Nos detenemos hasta que la ejecución termine
+                    }
                 }
                 fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
                 if (fechaActual.isEqual(fechaLimite) || fechaActual.isAfter(fechaLimite)) {
@@ -95,6 +109,15 @@ public class Simulacion {
         System.out.println("Kilometros recorridos: " + Parametros.kilometrosRecorridos);
         System.out.println("Tiempo total de ejecución en segundos : " + tiempoEjecucion.getSeconds());
         System.out.println("Fitness global: " + Parametros.fitnessGlobal);
+    }
+
+
+    public static Individuo ejecutarAlgoritmoGenetico() {
+    
+        AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidos);
+        algoritmoGenetico.ejecutarAlgoritmo();
+        Individuo mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
+        return mejorIndividuo;
     }
 
     public static List<Pedido> unirPedidosSinRepetidos(Set<Pedido> set1, Set<Pedido> set2) {
