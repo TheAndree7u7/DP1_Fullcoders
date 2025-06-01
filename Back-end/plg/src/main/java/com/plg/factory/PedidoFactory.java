@@ -1,10 +1,14 @@
-package com.plg.entity;
+package com.plg.factory;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidDataFormatException;
+import com.plg.entity.Coordenada;
+import com.plg.entity.EstadoPedido;
+import com.plg.entity.Pedido;
+import com.plg.entity.TipoNodo;
 import com.plg.utils.Herramientas;
 
 /**

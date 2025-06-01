@@ -1,6 +1,5 @@
 package com.plg.entity;
 
-import java.util.Objects;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

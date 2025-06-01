@@ -1,10 +1,16 @@
-package com.plg.entity;
+package com.plg.factory;
 
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.plg.entity.Camion;
+import com.plg.entity.Coordenada;
+import com.plg.entity.EstadoCamion;
+import com.plg.entity.TipoCamion;
+import com.plg.entity.TipoNodo;
 
 /**
  * Patrón fábrica para crear camiones operativos y averiados.

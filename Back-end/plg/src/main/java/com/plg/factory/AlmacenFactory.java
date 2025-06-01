@@ -1,9 +1,15 @@
-package com.plg.entity;
+package com.plg.factory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.plg.entity.Almacen;
+import com.plg.entity.Coordenada;
+import com.plg.entity.Mapa;
+import com.plg.entity.TipoAlmacen;
+import com.plg.entity.TipoNodo;
 
 /**
  * Patrón fábrica para crear almacenes CENTRALs o secundarios.

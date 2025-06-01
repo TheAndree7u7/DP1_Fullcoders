@@ -7,8 +7,8 @@ import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
-import java.util.Random;
 
+import com.plg.factory.CamionFactory;
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidDataFormatException;
 
 

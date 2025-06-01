@@ -1,6 +1,9 @@
 package com.plg.config;
 
 import com.plg.entity.*;
+import com.plg.factory.AlmacenFactory;
+import com.plg.factory.CamionFactory;
+import com.plg.factory.PedidoFactory;
 import com.plg.utils.Herramientas;
 import com.plg.utils.Parametros;
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidDataFormatException;

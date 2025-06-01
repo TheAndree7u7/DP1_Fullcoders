@@ -4,16 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-
 import com.plg.config.DataLoader;
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
-import com.plg.entity.Coordenada;
-import com.plg.entity.EstadoCamion;
-import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
-import com.plg.entity.TipoNodo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -48,14 +43,19 @@ public class Individuo {
         }
 
         Almacen almacenCentral = almacenes.get(0);
-        List<Nodo> nodos = new ArrayList<>();
-        nodos.addAll(pedidos);
-        Collections.shuffle(nodos);
+        List<Nodo> pedidosMezclados = new ArrayList<>();
+        pedidosMezclados.addAll(pedidos);
+        Collections.shuffle(pedidosMezclados);
         List<Gen> camionesMezclados = new ArrayList<>(cromosoma);
         Collections.shuffle(camionesMezclados);
-        for (int i = nodos.size()-1; i >= 0;  i--) {
+        for (int i = pedidosMezclados.size()-1; i >= 0;  i--) {
             Gen gen = camionesMezclados.get(i % camionesMezclados.size());
-            Nodo nodo = nodos.get(i);
+            Nodo nodo = pedidosMezclados.get(i);
+
+            // Agregamos a la lista de pedidos
+            if(nodo instanceof Pedido) {
+                gen.getPedidos().add((Pedido) nodo);
+            }
             gen.getNodos().add(nodo);
         }
 

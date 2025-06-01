@@ -2,16 +2,15 @@ package com.plg.utils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
+
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.cglib.core.Local;
-
 import com.plg.config.DataLoader;
+import com.plg.dto.IndividuoDto;
 import com.plg.entity.Almacen;
 import com.plg.entity.Bloqueo;
 import com.plg.entity.Camion;
@@ -35,7 +34,7 @@ public class Simulacion {
 
     // Colas para simulación
     public static BlockingQueue<Object> gaTriggerQueue = new SynchronousQueue<>();
-    public static BlockingQueue<Individuo> gaResultQueue = new SynchronousQueue<>();
+    public static BlockingQueue<IndividuoDto> gaResultQueue = new SynchronousQueue<>();
 
     public static void configurarSimulacion(LocalDateTime startDate) {
         fechaActual = startDate;
@@ -84,10 +83,12 @@ public class Simulacion {
 
                     try {
                         gaTriggerQueue.take();
-
                         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
                         algoritmoGenetico.ejecutarAlgoritmo();
-                        gaResultQueue.offer(algoritmoGenetico.getMejorIndividuo());
+
+                        IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo());
+
+                        gaResultQueue.offer(mejorIndividuoDto);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         System.err.println("Error al esperar el disparador del algoritmo genético: " + e.getMessage());

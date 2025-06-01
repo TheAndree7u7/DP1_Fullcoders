@@ -25,12 +25,14 @@ public class Gen {
     private Camion camion;
     private List<Nodo> nodos;
     private List<Nodo> rutaFinal;
+    private List<Pedido> pedidos;
     private double fitness;
 
     public Gen(Camion camionOriginal, List<Nodo> nodosOriginal) {
         this.camion = camionOriginal;
         this.nodos = nodosOriginal;
         this.rutaFinal = new ArrayList<>();
+        this.pedidos = new ArrayList<>();
     }
 
     public double calcularFitness() {
