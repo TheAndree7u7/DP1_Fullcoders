@@ -11,7 +11,6 @@ import com.plg.utils.ExcepcionesPerzonalizadas.InvalidDataFormatException;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -24,7 +23,6 @@ public class DataLoader {
     private static String pathMantenimientos = "data/mantenimientos/mantpreventivo.txt";
     private static String pathBloqueos = "data/bloqueos/" + Parametros.anho + Parametros.mes + ".bloqueos.txt";
 
-    private static Mapa mapa = Mapa.getInstance();
     private static Coordenada coordenadaCentral = new Coordenada(8, 12);
 
     public static final List<Mantenimiento> mantenimientos = new ArrayList<>();

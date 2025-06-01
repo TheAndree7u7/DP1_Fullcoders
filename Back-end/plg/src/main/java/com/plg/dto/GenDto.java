@@ -22,7 +22,11 @@ public class GenDto {
         for (Nodo nodo : gen.getRutaFinal()) {
             this.nodos.add(new NodoDto(nodo));
         }
-        this.destino = new CoordenadaDto(gen.getPedidos().getLast().getCoordenada());
+        if(gen.getPedidos().isEmpty()) {
+            this.destino = new CoordenadaDto(gen.getCamion().getCoordenada());
+        }else{
+            this.destino = new CoordenadaDto(gen.getPedidos().getLast().getCoordenada());
+        }
         this.pedidos = new ArrayList<>();
         for (Pedido pedido : gen.getPedidos()) {
             this.pedidos.add(new PedidoDto(pedido));

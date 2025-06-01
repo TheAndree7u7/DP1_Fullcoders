@@ -19,6 +19,7 @@ import com.plg.entity.Pedido;
 import com.plg.entity.TipoAlmacen;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.SynchronousQueue;
 
 public class Simulacion {
@@ -35,6 +36,8 @@ public class Simulacion {
     // Colas para simulación
     public static BlockingQueue<Object> gaTriggerQueue = new SynchronousQueue<>();
     public static BlockingQueue<IndividuoDto> gaResultQueue = new SynchronousQueue<>();
+    public static Semaphore iniciar = new Semaphore(0);
+    public static Semaphore continuar = new Semaphore(0);
 
     public static void configurarSimulacion(LocalDateTime startDate) {
         fechaActual = startDate;
@@ -82,13 +85,13 @@ public class Simulacion {
                     List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
 
                     try {
-                        gaTriggerQueue.take();
+                        iniciar.acquire(); 
                         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
                         algoritmoGenetico.ejecutarAlgoritmo();
-
+            
                         IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo());
-
                         gaResultQueue.offer(mejorIndividuoDto);
+                        continuar.acquire(); 
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         System.err.println("Error al esperar el disparador del algoritmo genético: " + e.getMessage());

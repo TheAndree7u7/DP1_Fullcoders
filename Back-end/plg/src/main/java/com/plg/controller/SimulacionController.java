@@ -4,7 +4,6 @@ import com.plg.utils.Simulacion;
 import com.plg.dto.IndividuoDto;
 
 
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,16 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/simulacion")
 public class SimulacionController {
 
-    private static final long TIMEOUT_SECONDS = 30;
-
     @GetMapping("/mejor")
     public IndividuoDto obtenerMejorIndividuo() {
 
         IndividuoDto mejorIndividuoDto = null;
         try {
-            Simulacion.gaTriggerQueue.offer(new Object(), 5, TimeUnit.SECONDS);
-            mejorIndividuoDto = Simulacion.gaResultQueue.poll(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-
+            Simulacion.iniciar.release();
+            mejorIndividuoDto = Simulacion.gaResultQueue.poll(5, java.util .concurrent.TimeUnit.SECONDS);
+            Simulacion.continuar.release(); // Liberar el semáforo para continuar la simulación 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
