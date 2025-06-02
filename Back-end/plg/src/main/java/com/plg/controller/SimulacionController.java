@@ -8,9 +8,12 @@ import com.plg.dto.IndividuoDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 @RestController
 @RequestMapping("/api/simulacion")
+@CrossOrigin(origins = "*") // O usa "http://localhost:5173" para mayor seguridad
+
 public class SimulacionController {
 
     @GetMapping("/mejor")
