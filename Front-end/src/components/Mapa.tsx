@@ -30,7 +30,10 @@ const Mapa = () => {
   const [running, setRunning] = useState(false);
   const [intervalo, setIntervalo] = useState(1000);
   const intervalRef = useRef(null);
-  const { horaActual, camiones, rutasCamiones, avanzarHora } = useSimulacion();
+  const { horaActual, camiones, rutasCamiones, avanzarHora, cargando } = useSimulacion();
+
+
+
 
   useEffect(() => {
     const iniciales = rutasCamiones.map((info, idx) => {
@@ -74,6 +77,11 @@ const Mapa = () => {
       })
     );
   }, [camiones]);
+
+
+  if (cargando) {
+    return <p>Cargando simulación...</p>;
+  }
 
   return (
     <div className="flex flex-col items-center gap-2">
