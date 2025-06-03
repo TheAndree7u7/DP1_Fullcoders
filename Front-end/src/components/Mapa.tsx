@@ -69,10 +69,22 @@ const Mapa = () => {
         if (!nuevo) return camion;
         const nuevaCoord = parseCoord(nuevo.ubicacion);
         const rot = calcularRotacion(camion.posicion, nuevaCoord);
+        
+        // Encontrar el índice de la posición actual en la ruta
+        const rutaActual = camion.ruta;
+        const posicionActual = nuevaCoord;
+        const indiceActual = rutaActual.findIndex(
+          punto => punto.x === posicionActual.x && punto.y === posicionActual.y
+        );
+        
+        // Filtrar la ruta para mostrar solo los puntos que faltan por recorrer
+        const rutaRestante = rutaActual.slice(indiceActual);
+        
         return {
           ...camion,
           posicion: nuevaCoord,
           rotacion: rot,
+          ruta: rutaRestante
         };
       })
     );
