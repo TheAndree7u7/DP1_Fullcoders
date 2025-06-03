@@ -5,6 +5,23 @@ En esta carpeta se encuentra la interfaz de usuario desarrollada con **React** y
 simulación calculada por el backend. A continuación se describe cada parte con
 detalle.
 
+## Orden recomendado de revisión
+
+1. **`SimulacionContext.tsx`** – Carga el `IndividuoDto` desde el backend y
+   prepara la estructura de rutas. Observa las llamadas a
+   `getMejorIndividuo` en las líneas 24‑48
+   【F:Front-end/src/context/SimulacionContext.tsx†L24-L48】.
+2. **`simulacionApiService.ts`** – Define la función `getMejorIndividuo` que
+   realiza la petición `fetch` al backend (líneas 1‑23)
+   【F:Front-end/src/services/simulacionApiService.ts†L1-L23】.
+3. **`components/Mapa.tsx`** – Muestra el avance de los camiones sobre una
+   cuadrícula SVG. Consulta los datos del contexto y actualiza animaciones en las
+   líneas 38‑78
+   【F:Front-end/src/components/Mapa.tsx†L38-L78】.
+4. **`views/SimulacionSemanal.tsx`** – Orquesta la página principal usando el
+   mapa y un menú lateral (líneas 9‑28)
+   【F:Front-end/src/views/SimulacionSemanal.tsx†L9-L28】.
+
 ## 1. Estructura Principal
 
 ```
@@ -67,7 +84,16 @@ expandir u ocultar el menú【F:Front-end/src/views/SimulacionSemanal.tsx†L9-L
 código completo se encuentra en las líneas 1‑23
 【F:Front-end/src/services/simulacionApiService.ts†L1-L23】.
 
-## 7. Ejecutar el Frontend
+## 7. Comunicación con el Backend
+
+El servicio anterior envía una petición GET al endpoint `/mejor`. El controlador
+del backend activa la simulación y responde con el `IndividuoDto` más reciente.
+En `SimulacionContext.tsx` se espera la respuesta y se transforman los datos en
+`RutaCamion` para que el mapa los pueda animar. Toda interacción se realiza vía
+HTTP; no existe canal inverso, por lo que el frontend consulta periódicamente
+según sea necesario.
+
+## 8. Ejecutar el Frontend
 
 Instale las dependencias y ejecute el servidor de desarrollo:
 
