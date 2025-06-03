@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSimulacion } from '../context/SimulacionContext';
+import type { Coordenada } from '../types';
+
+interface CamionVisual {
+  id: string;
+  color: string;
+  ruta: Coordenada[];
+  posicion: Coordenada;
+  rotacion: number;
+}
 
 const GRID_WIDTH = 70;
 const GRID_HEIGHT = 50;
@@ -7,7 +16,7 @@ const CELL_SIZE = 14;
 const SVG_WIDTH = GRID_WIDTH * CELL_SIZE;
 const SVG_HEIGHT = GRID_HEIGHT * CELL_SIZE;
 
-const parseCoord = (s) => {
+const parseCoord = (s: string): Coordenada => {
   const match = s.match(/\((\d+),\s*(\d+)\)/);
   if (!match) throw new Error(`Coordenada inválida: ${s}`);
   return { x: parseInt(match[1]), y: parseInt(match[2]) };
@@ -15,7 +24,7 @@ const parseCoord = (s) => {
 
 const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b'];
 
-const calcularRotacion = (prev, next) => {
+const calcularRotacion = (prev: Coordenada, next: Coordenada): number => {
   const dx = next.x - prev.x;
   const dy = next.y - prev.y;
   if (dx === 1) return 0;
@@ -26,14 +35,11 @@ const calcularRotacion = (prev, next) => {
 };
 
 const Mapa = () => {
-  const [camionesVisuales, setCamionesVisuales] = useState([]);
+  const [camionesVisuales, setCamionesVisuales] = useState<CamionVisual[]>([]);
   const [running, setRunning] = useState(false);
   const [intervalo, setIntervalo] = useState(1000);
-  const intervalRef = useRef(null);
-  const { horaActual, camiones, rutasCamiones, avanzarHora, cargando } = useSimulacion();
-
-
-
+  const intervalRef = useRef<number | null>(null);
+  const { camiones, rutasCamiones, avanzarHora, cargando } = useSimulacion();
 
   useEffect(() => {
     const iniciales = rutasCamiones.map((info, idx) => {
@@ -51,14 +57,14 @@ const Mapa = () => {
 
   useEffect(() => {
     if (running) {
-      intervalRef.current = setInterval(() => {
+      intervalRef.current = window.setInterval(() => {
         avanzarHora();
       }, intervalo);
     } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (intervalRef.current) window.clearInterval(intervalRef.current);
     }
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (intervalRef.current) window.clearInterval(intervalRef.current);
     };
   }, [running, intervalo, avanzarHora]);
 
@@ -74,7 +80,7 @@ const Mapa = () => {
         const rutaActual = camion.ruta;
         const posicionActual = nuevaCoord;
         const indiceActual = rutaActual.findIndex(
-          punto => punto.x === posicionActual.x && punto.y === posicionActual.y
+          (punto: Coordenada) => punto.x === posicionActual.x && punto.y === posicionActual.y
         );
         
         // Filtrar la ruta para mostrar solo los puntos que faltan por recorrer
@@ -89,7 +95,6 @@ const Mapa = () => {
       })
     );
   }, [camiones]);
-
 
   if (cargando) {
     return <p>Cargando simulación...</p>;
@@ -116,7 +121,7 @@ const Mapa = () => {
             stroke={camion.color}
             strokeWidth={2}
             strokeDasharray="4 2"
-            points={camion.ruta.map(p => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
+            points={camion.ruta.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
           />
         ))}
 
