@@ -119,13 +119,17 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const cargarDatos = async (esInicial: boolean = false) => {
     if (esInicial) setCargando(true);
     try {
+      console.log("Iniciando solicitud al servidor...");
       const data: Individuo = await getMejorIndividuo();
+      console.log("Datos recibidos:", data);
       const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen) => ({
         id: gen.camion.codigo,
         ruta: gen.nodos.map(n => `(${n.coordenada.x},${n.coordenada.y})`),
         puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
         pedidos: gen.pedidos,
       }));
+
+      setRutasCamiones(nuevasRutas);
 
       const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
         const anterior = camiones.find(c => c.id === ruta.id);
@@ -138,7 +142,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         };
       });
 
-      setRutasCamiones(nuevasRutas);
       setCamiones(nuevosCamiones);
       if (esInicial) setHoraActual(HORA_PRIMERA_ACTUALIZACION);
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
