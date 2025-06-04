@@ -28,12 +28,6 @@ const parseCoord = (s: string): Coordenada => {
 const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b'];
 
 const calcularRotacion = (prev: Coordenada, next: Coordenada): number => {
-  // Validar que ambas coordenadas existen
-  if (!prev || !next || prev.x === undefined || prev.y === undefined || 
-      next.x === undefined || next.y === undefined) {
-    return 0; // Rotación por defecto
-  }
-  
   const dx = next.x - prev.x;
   const dy = next.y - prev.y;
   if (dx === 1) return 0;
@@ -126,38 +120,26 @@ const Mapa = () => {
     setCamionesVisuales((prevCamiones) =>
       prevCamiones.map(camion => {
         const nuevo = camiones.find(c => c.id === camion.id);
-        if (!nuevo || !nuevo.ubicacion) return camion;
+        if (!nuevo) return camion;
+        const nuevaCoord = parseCoord(nuevo.ubicacion);
+        const rot = calcularRotacion(camion.posicion, nuevaCoord);
         
-        try {
-          const nuevaCoord = parseCoord(nuevo.ubicacion);
-          // Validar que la nueva coordenada es válida
-          if (nuevaCoord.x === undefined || nuevaCoord.y === undefined) {
-            console.warn(`🚚 Coordenada inválida para camión ${camion.id}:`, nuevo.ubicacion);
-            return camion;
-          }
-          
-          const rot = calcularRotacion(camion.posicion, nuevaCoord);
-          
-          // Encontrar el índice de la posición actual en la ruta
-          const rutaActual = camion.ruta;
-          const posicionActual = nuevaCoord;
-          const indiceActual = rutaActual.findIndex(
-            (punto: Coordenada) => punto.x === posicionActual.x && punto.y === posicionActual.y
-          );
-          
-          // Filtrar la ruta para mostrar solo los puntos que faltan por recorrer
-          const rutaRestante = indiceActual >= 0 ? rutaActual.slice(indiceActual) : rutaActual;
-          
-          return {
-            ...camion,
-            posicion: nuevaCoord,
-            rotacion: rot,
-            ruta: rutaRestante
-          };
-        } catch (error) {
-          console.error(`🚚 Error parseando coordenada para camión ${camion.id}:`, nuevo.ubicacion, error);
-          return camion;
-        }
+        // Encontrar el índice de la posición actual en la ruta
+        const rutaActual = camion.ruta;
+        const posicionActual = nuevaCoord;
+        const indiceActual = rutaActual.findIndex(
+          (punto: Coordenada) => punto.x === posicionActual.x && punto.y === posicionActual.y
+        );
+        
+        // Filtrar la ruta para mostrar solo los puntos que faltan por recorrer
+        const rutaRestante = rutaActual.slice(indiceActual);
+        
+        return {
+          ...camion,
+          posicion: nuevaCoord,
+          rotacion: rot,
+          ruta: rutaRestante
+        };
       })
     );
   }, [camiones]);

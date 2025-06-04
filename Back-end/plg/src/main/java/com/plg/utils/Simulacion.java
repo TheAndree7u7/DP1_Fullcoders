@@ -32,14 +32,10 @@ public class Simulacion {
     public static Set<Pedido> pedidosEntregados = new LinkedHashSet<>();
     public static Individuo mejorIndividuo = null;
     
-    // Contador para control de frecuencia del algoritmo genético
-    private static int contadorEjecuciones = 0;
-    private static final int INTERVALO_ALGORITMO_GENETICO = 4; // Ejecutar cada 4 intervalos (2 horas)
-    
 
-    // Colas para simulación - Usar cola con capacidad limitada
-    public static BlockingQueue<Object> gaTriggerQueue = new java.util.concurrent.LinkedBlockingQueue<>(1);
-    public static BlockingQueue<IndividuoDto> gaResultQueue = new java.util.concurrent.LinkedBlockingQueue<>(1);
+    // Colas para simulación
+    public static BlockingQueue<Object> gaTriggerQueue = new SynchronousQueue<>();
+    public static BlockingQueue<IndividuoDto> gaResultQueue = new SynchronousQueue<>();
     public static Semaphore iniciar = new Semaphore(0);
     public static Semaphore continuar = new Semaphore(0);
 
@@ -86,67 +82,20 @@ public class Simulacion {
                 actualizarEstadoGlobal(fechaActual);
                 if (!pedidosPorAtender.isEmpty()) {
                     System.out.println("------------------------");
-                    System.out.println("⏰ Tiempo actual: " + fechaActual);
-                    System.out.println("📦 Pedidos por atender: " + pedidosPorAtender.size());
-                    System.out.println("📋 Pedidos planificados: " + pedidosPlanificados.size());
-                    
-                    contadorEjecuciones++;
-                    
-                    // Solo ejecutar algoritmo genético cada INTERVALO_ALGORITMO_GENETICO veces
-                    if (contadorEjecuciones % INTERVALO_ALGORITMO_GENETICO == 0) {
-                        System.out.println("🧬 Ejecutando algoritmo genético (iteración " + contadorEjecuciones + ")");
-                        
-                        List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
-                        System.out.println("🚚 Total pedidos a procesar: " + pedidosEnviar.size());
-                        
-                        try {
-                            // Esperar con timeout más corto para evitar bloqueos
-                            boolean adquirido = iniciar.tryAcquire(2, java.util.concurrent.TimeUnit.SECONDS);
-                            
-                            if (!adquirido) {
-                                System.out.println("⏳ Timeout esperando señal de inicio, continuando automáticamente...");
-                            }
-                            
-                            AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
-                            algoritmoGenetico.ejecutarAlgoritmo();            
-                            IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(), pedidosEnviar, bloqueosActivos);
-                            
-                            // Intentar ofrecer datos con timeout
-                            boolean ofrecido = gaResultQueue.offer(mejorIndividuoDto, 1, java.util.concurrent.TimeUnit.SECONDS);
-                            if (!ofrecido) {
-                                System.out.println("⚠️  Cola llena, datos no enviados");
-                            }
-                            
-                            // Esperar señal de continuar con timeout
-                            boolean continuarAdquirido = continuar.tryAcquire(3, java.util.concurrent.TimeUnit.SECONDS);
-                            if (!continuarAdquirido) {
-                                System.out.println("⏳ Timeout esperando señal de continuar, avanzando automáticamente...");
-                            }
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                            System.err.println("❌ Error al esperar el disparador del algoritmo genético: " + e.getMessage());
-                            e.printStackTrace();
-                            
-                            // Crear una solución de emergencia si hay error con los semáforos
-                            try {
-                                AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
-                                algoritmoGenetico.ejecutarAlgoritmo();
-                                IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(), pedidosEnviar, bloqueosActivos);
-                                gaResultQueue.offer(mejorIndividuoDto);
-                            } catch (Exception ex) {
-                                System.err.println("❌ Error crítico en algoritmo genético: " + ex.getMessage());
-                                ex.printStackTrace();
-                            }
-                        } catch (Exception e) {
-                            System.err.println("❌ Error inesperado en simulación: " + e.getMessage());
-                            e.printStackTrace();
-                        }
-                    } else {
-                        System.out.println("⏭️ Saltando ejecución de algoritmo genético (" + contadorEjecuciones + "/" + INTERVALO_ALGORITMO_GENETICO + ")");
-                        System.out.println("🚚 Usando rutas existentes para movimiento de camiones");
+                    System.out.println("Tiempo actual: " + fechaActual);
+                    List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
+                    try {
+                        iniciar.acquire(); 
+                        AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
+                        algoritmoGenetico.ejecutarAlgoritmo();            
+                        IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(), pedidosEnviar, bloqueosActivos);
+                        gaResultQueue.offer(mejorIndividuoDto);
+                        continuar.acquire(); 
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        System.err.println("Error al esperar el disparador del algoritmo genético: " + e.getMessage());
+                        e.printStackTrace();
                     }
-                } else {
-                    System.out.println("⏰ Tiempo actual: " + fechaActual + " - Sin pedidos por procesar");
                 }
                 fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
                 if (fechaActual.isEqual(fechaLimite) || fechaActual.isAfter(fechaLimite)) {
@@ -154,17 +103,11 @@ public class Simulacion {
                 }
             }
         }
-        System.out.println("=== REPORTE FINAL DE LA SIMULACIÓN ===");
-        System.out.println("⏱️  Duración total: " + Parametros.fecha_inicial + " hasta " + fechaActual);
-        System.out.println("📊 Estadísticas finales:");
-        System.out.println("   • Kilómetros recorridos: " + Parametros.kilometrosRecorridos);
-        System.out.println("   • Fitness global: " + Parametros.fitnessGlobal);
-        System.out.println("   • Pedidos entregados: " + pedidosEntregados.size());
-        System.out.println("   • Pedidos planificados: " + pedidosPlanificados.size());
-        System.out.println("   • Pedidos pendientes: " + pedidosPorAtender.size());
-        System.out.println("   • Total pedidos procesados: " + (pedidosEntregados.size() + pedidosPlanificados.size()));
-        System.out.println("✅ Simulación completada exitosamente");
-        System.out.println("================================================");
+        System.out.println("-------------------------");
+        System.out.println("Reporte de la simulación");
+        System.out.println("Kilometros recorridos: " + Parametros.kilometrosRecorridos);
+        System.out.println("Fitness global: " + Parametros.fitnessGlobal);
+
     }
 
 
