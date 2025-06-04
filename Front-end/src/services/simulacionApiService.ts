@@ -45,3 +45,32 @@ export async function getMejorIndividuo(): Promise<Individuo> {
     throw error;
   }
 }
+
+export async function getEstadoRapido(): Promise<{ status: string; message: string; timestamp: number }> {
+  try {
+    console.log("🚀 Solicitando estado rápido...");
+    const response = await fetch(`${API_BASE_URL}/estado-rapido`);
+    
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("⚡ Estado rápido recibido:", data);
+    return data;
+  } catch (error) {
+    console.error("❌ Error al obtener estado rápido:", error);
+    throw error;
+  }
+}
+
+// Función híbrida que decide qué endpoint usar
+export async function getDataOptimizada(necesitaActualizacionCompleta: boolean): Promise<Individuo | { status: string }> {
+  if (necesitaActualizacionCompleta) {
+    console.log("🔄 Solicitando actualización completa del algoritmo genético...");
+    return await getMejorIndividuo();
+  } else {
+    console.log("⚡ Usando interpolación local...");
+    return await getEstadoRapido();
+  }
+}

@@ -15,8 +15,9 @@ import type { Individuo, Pedido } from '../types';
  */
 const HORA_INICIAL = 0;
 const HORA_PRIMERA_ACTUALIZACION = 1;
-const NODOS_PARA_ACTUALIZACION = 25;
+const NODOS_PARA_ACTUALIZACION = 50;
 const INCREMENTO_PORCENTAJE = 1;
+const INTERVALO_ACTUALIZACION_BACKEND = 120;
 
 /**
  * @interface CamionEstado
@@ -87,6 +88,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [cargando, setCargando] = useState<boolean>(true);
   const [nodosRestantesAntesDeActualizar, setNodosRestantesAntesDeActualizar] = useState<number>(NODOS_PARA_ACTUALIZACION);
   const [esperandoActualizacion, setEsperandoActualizacion] = useState<boolean>(false);
+  const [pasosSinceLastBackendUpdate, setPasosSinceLastBackendUpdate] = useState<number>(0);
 
   // Cargar almacenes al inicio
   useEffect(() => {
@@ -119,13 +121,32 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const cargarDatos = async (esInicial: boolean = false) => {
     if (esInicial) setCargando(true);
     try {
+      console.log('🔄 CONTEXTO: Cargando datos desde API...');
       const data: Individuo = await getMejorIndividuo();
+      
+      console.log('📊 CONTEXTO: Datos completos recibidos:', data);
+      console.log('🧬 CONTEXTO: Cromosoma tiene', data.cromosoma?.length || 0, 'genes');
+      
+      // Debug detallado del cromosoma
+      data.cromosoma?.forEach((gen, index) => {
+        console.log(`🧬 Gen ${index}:`, {
+          camion: gen.camion?.codigo,
+          nodos: gen.nodos?.length || 0,
+          pedidos: gen.pedidos?.length || 0,
+          pedidosDetalles: gen.pedidos
+        });
+      });
+      
       const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen) => ({
         id: gen.camion.codigo,
         ruta: gen.nodos.map(n => `(${n.coordenada.x},${n.coordenada.y})`),
         puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
         pedidos: gen.pedidos,
       }));
+
+      console.log('🚚 CONTEXTO: Rutas generadas:', nuevasRutas);
+      console.log('📦 CONTEXTO: Total de pedidos en todas las rutas:', 
+                  nuevasRutas.reduce((total, ruta) => total + ruta.pedidos.length, 0));
 
       const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
         const anterior = camiones.find(c => c.id === ruta.id);
@@ -143,8 +164,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (esInicial) setHoraActual(HORA_PRIMERA_ACTUALIZACION);
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
       setEsperandoActualizacion(false);
+      
+      console.log('✅ CONTEXTO: Estados actualizados exitosamente');
     } catch (error) {
-      console.error("Error al cargar datos de simulación:", error);
+      console.error("❌ CONTEXTO: Error al cargar datos de simulación:", error);
     } finally {
       if (esInicial) setCargando(false);
     }
@@ -157,6 +180,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
    */
   const avanzarHora = async () => {
     if (esperandoActualizacion) return;
+
+    // Incrementar contador de pasos desde última actualización del backend
+    const nuevosPasos = pasosSinceLastBackendUpdate + 1;
+    setPasosSinceLastBackendUpdate(nuevosPasos);
 
     const nuevosCamiones = camiones.map((camion) => {
       const ruta = rutasCamiones.find(r => r.id === camion.id);
@@ -179,12 +206,18 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const quedan = nodosRestantesAntesDeActualizar - 1;
     setNodosRestantesAntesDeActualizar(quedan);
 
-    if (quedan <= 0) {
+    // Decidir si actualizar desde backend basado en tiempo transcurrido
+    const deberiaActualizarBackend = quedan <= 0 || nuevosPasos >= INTERVALO_ACTUALIZACION_BACKEND;
+
+    if (deberiaActualizarBackend) {
+      console.log(`🔄 Actualizando desde backend después de ${nuevosPasos} pasos`);
       setEsperandoActualizacion(true);
       setCamiones(nuevosCamiones);
       setHoraActual(prev => prev + 1);
+      setPasosSinceLastBackendUpdate(0); // Reset contador
       await cargarDatos(false);
     } else {
+      // Solo actualización local (interpolación)
       setCamiones(nuevosCamiones);
       setHoraActual(prev => prev + 1);
     }
