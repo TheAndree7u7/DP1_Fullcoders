@@ -33,8 +33,8 @@ public class AlgoritmoGenetico {
     public AlgoritmoGenetico(Mapa mapa, List<Pedido> pedidos) {
         this.mapa = mapa;
         this.pedidos = pedidos;
-        generaciones = 10;
-        poblacionTamano = 100;
+        generaciones = 20;
+        poblacionTamano = 200;
     }
 
     public void ejecutarAlgoritmo() {
