@@ -34,6 +34,9 @@ public class Almacen extends Nodo {
 
     private boolean activo;
 
+    private Almacen almacenCopia;
+
+
     public Almacen(Coordenada coordenada, boolean bloqueado, double gScore, double fScore, TipoNodo tipoNodo) {
         super(coordenada, bloqueado, gScore, fScore, tipoNodo);
     }
@@ -68,6 +71,30 @@ public class Almacen extends Nodo {
             .activo(activo)
             .build();
     }
+
+    public void guardarCopia() {
+        this.almacenCopia = getClone();
+    }
+
+    public void restaurarCopia() {
+    if (almacenCopia != null) {
+        super.setCoordenada(almacenCopia.getCoordenada()); 
+        super.setBloqueado(almacenCopia.isBloqueado());
+        super.setGScore(almacenCopia.getGScore());
+        super.setFScore(almacenCopia.getFScore());
+        super.setTipoNodo(almacenCopia.getTipoNodo());
+        this.nombre = almacenCopia.getNombre();
+        this.capacidadActualGLP = almacenCopia.getCapacidadActualGLP();
+        this.capacidadMaximaGLP = almacenCopia.getCapacidadMaximaGLP();
+        this.capacidadActualCombustible = almacenCopia.getCapacidadActualCombustible();
+        this.capacidadMaximaCombustible = almacenCopia.getCapacidadMaximaCombustible();
+        this.esCentral = almacenCopia.isEsCentral();
+        this.permiteCamionesEstacionados = almacenCopia.isPermiteCamionesEstacionados();
+        this.tipo = almacenCopia.getTipo(); 
+        this.activo = almacenCopia.isActivo();
+    }
+}
+
 
     @Override
     public String toString() {

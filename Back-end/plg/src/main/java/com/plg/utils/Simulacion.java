@@ -74,7 +74,7 @@ public class Simulacion {
         while (!pedidosSemanal.isEmpty()) {
             Pedido pedido = pedidosSemanal.get(0);
             // Voy agregando pedidos a la lista de pedidos
-            if (!pedido.getFechaRegistro().isAfter(fechaActual)) {
+            if (pedidoConFechaMenorAFechaActual(pedido, fechaActual)) {
                 pedidosSemanal.remove(0);
                 pedidosPorAtender.add(pedido);
             } else {
@@ -107,16 +107,7 @@ public class Simulacion {
         System.out.println("Kilometros recorridos: " + Parametros.kilometrosRecorridos);
         System.out.println("Fitness global: " + Parametros.fitnessGlobal);
 
-        System.out.println("\n=== RESUMEN FINAL DE LA SIMULACIÓN ===");
-        System.out.println("📈 Métricas de rendimiento:");
- 
-        System.out.println("   • Kilómetros totales recorridos: " + Parametros.kilometrosRecorridos);
-        System.out.println("   • Fitness global alcanzado: " + Parametros.fitnessGlobal);
-        System.out.println("\n=== FIN DE LA SIMULACIÓN ===\n");
     }
-
-
-
 
 
     public static List<Pedido> unirPedidosSinRepetidos(Set<Pedido> set1, Set<Pedido> set2) {
@@ -173,7 +164,11 @@ public class Simulacion {
         System.out.println("Cantidad de pedidos semanales: " + pedidosSemanal.size());
         System.out.println("Cantidad de almacenes: " + DataLoader.almacenes.size());
         System.out.println("Cantidad de camiones: " + DataLoader.camiones.size());
-        System.out.println("-------------------------");
+
+    }
+
+    private static boolean pedidoConFechaMenorAFechaActual(Pedido pedido, LocalDateTime fechaActual) {
+        return pedido.getFechaRegistro().isBefore(fechaActual) || pedido.getFechaRegistro().isEqual(fechaActual);
     }
 
 }

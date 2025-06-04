@@ -27,25 +27,14 @@ public class AlgoritmoGenetico {
     private int generaciones;
     private Mapa mapa;
     private List<Pedido> pedidos;
-    private List<Camion> camiones; // Camiones operativos
-    private List<Almacen> almacenes;
     private Individuo mejorIndividuo;
     private final Random random = new Random();
 
     public AlgoritmoGenetico(Mapa mapa, List<Pedido> pedidos) {
         this.mapa = mapa;
         this.pedidos = pedidos;
-
-        // Selecciono los pedidos y los colocamos en el mapa
-        for (Pedido pedido : pedidos) {
-            mapa.setNodo(pedido.getCoordenada(), pedido);
-        }
-
-        this.camiones = DataLoader.camiones;
-        this.almacenes = DataLoader.almacenes;
-        // Reducimos el número de generaciones y tamaño de población para mejor rendimiento
-        generaciones = 5;
-        poblacionTamano = 50;
+        generaciones = 10;
+        poblacionTamano = 100;
     }
 
     public void ejecutarAlgoritmo() {
@@ -75,21 +64,16 @@ public class AlgoritmoGenetico {
                 generacionesSinMejora++;
             }
         }
-        
+        // Ordenar población
         poblacion.sort((ind1, ind2) -> Double.compare(ind1.getFitness(), ind2.getFitness()));
         mejorIndividuo = poblacion.get(0);
-        
-        if (mejorIndividuo.getFitness() == Double.MIN_VALUE || mejorIndividuo.getFitness() == 0.0) {
-            System.out.println("Descripción: " + mejorIndividuo.getDescripcion());
-            System.out.println("No se ha encontrado una solución");
-            System.out.println("Mejor individuo: " + mejorIndividuo);
-            System.exit(0);
+        verificarMejorIndividuo(mejorIndividuo);
+        actualizarParametrosGlobales(mejorIndividuo);
+        System.out.println("Fitness algoritmo genético: " + Parametros.contadorPrueba + " " + mejorIndividuo.getFitness());
+        for (Gen gen : mejorIndividuo.getCromosoma()) {
+            Camion camion = gen.getCamion();
+            camion.setGen(gen);
         }
-        
-        Parametros.fitnessGlobal += mejorIndividuo.getFitness();
-        Parametros.kilometrosRecorridos += mejorIndividuo.getCromosoma().stream()
-                .mapToDouble(gen -> gen.getRutaFinal().size()).sum();
-        Parametros.contadorPrueba++;
     }
 
     private List<Individuo> seleccionar_mejores(List<Individuo> padres, List<Individuo> hijos) {
@@ -137,27 +121,29 @@ public class AlgoritmoGenetico {
     }
 
     private List<Individuo> cruzar(List<Individuo> seleccionados) {
-        List<Individuo> nuevaPoblacion = new ArrayList<>();
+        return seleccionados;
+
+        // List<Individuo> nuevaPoblacion = new ArrayList<>();
         
-        // Aseguramos que haya al menos 2 individuos para cruzar
-        if (seleccionados.size() < 2) {
-            return seleccionados;
-        }
+        // // Aseguramos que haya al menos 2 individuos para cruzar
+        // if (seleccionados.size() < 2) {
+        //     return seleccionados;
+        // }
         
-        // Cruzamos los individuos en pares
-        for (int i = 0; i < seleccionados.size() - 1; i += 2) {
-            Individuo padre1 = seleccionados.get(i);
-            Individuo padre2 = seleccionados.get(i + 1);
-            List<Individuo> hijos = cruzar(padre1, padre2);
-            nuevaPoblacion.addAll(hijos);
-        }
+        // // Cruzamos los individuos en pares
+        // for (int i = 0; i < seleccionados.size() - 1; i += 2) {
+        //     Individuo padre1 = seleccionados.get(i);
+        //     Individuo padre2 = seleccionados.get(i + 1);
+        //     List<Individuo> hijos = cruzar(padre1, padre2);
+        //     nuevaPoblacion.addAll(hijos);
+        // }
         
-        // Si el número de seleccionados es impar, agregamos el último individuo sin cruzar
-        if (seleccionados.size() % 2 != 0) {
-            nuevaPoblacion.add(seleccionados.get(seleccionados.size() - 1));
-        }
+        // // Si el número de seleccionados es impar, agregamos el último individuo sin cruzar
+        // if (seleccionados.size() % 2 != 0) {
+        //     nuevaPoblacion.add(seleccionados.get(seleccionados.size() - 1));
+        // }
         
-        return nuevaPoblacion;
+        // return nuevaPoblacion;
     }
 
     private List<Individuo> cruzar(Individuo p1, Individuo p2) {
@@ -241,58 +227,17 @@ public class AlgoritmoGenetico {
         return resultado;
     }
 
-    // Clona un Gen (camion, nodos y ruta)
-    private Gen cloneGen(Gen gen) {
-        Gen copy = new Gen();
-        copy.setPosNodo(gen.getPosNodo());
-        copy.setDescripcion(gen.getDescripcion());
-        copy.setCamion(gen.getCamion().getClone());
-        List<Nodo> nodesCopy = new ArrayList<>();
-        for (Nodo nodo : gen.getNodos()) {
-            if (nodo instanceof Pedido) {
-                nodesCopy.add(((Pedido) nodo).getClone());
-            } else {
-                nodesCopy.add(nodo);
-            }
+    public void verificarMejorIndividuo(Individuo individuo) {
+        if (individuo.getFitness() == Double.MIN_VALUE || individuo.getFitness() == 0.0) {
+            System.out.println("No se ha encontrado una solución");
+            System.exit(0);
         }
-        copy.setNodos(nodesCopy);
-        copy.setRutaFinal(new ArrayList<>());
-        copy.setFitness(gen.getFitness());
-        return copy;
     }
 
-    // Repara duplicados y agrega pedidos faltantes (round-robin)
-    private void repair(List<Gen> genes, List<Pedido> originalPedidos) {
-        Set<String> seen = new HashSet<>();
-        List<Pedido> missing = new ArrayList<>(originalPedidos);
-        for (Gen gen : genes) {
-            List<Nodo> newNodes = new ArrayList<>();
-            for (Nodo nodo : gen.getNodos()) {
-                if (nodo instanceof Pedido) {
-                    String code = ((Pedido) nodo).getCodigo();
-                    if (!seen.contains(code)) {
-                        seen.add(code);
-                        newNodes.add(nodo);
-                        missing.removeIf(p -> p.getCodigo().equals(code));
-                    }
-                } else {
-                    newNodes.add(nodo);
-                }
-            }
-            gen.setNodos(newNodes);
-        }
-        int idx = 0;
-        for (Pedido ped : missing) {
-            Gen g = genes.get(idx++ % genes.size());
-            g.getNodos().add(ped);
-        }
-        // Asegurar que cada ruta termina en el almacén central
-        Almacen central = DataLoader.almacenes.get(0);
-        for (Gen gen : genes) {
-            List<Nodo> nodeList = gen.getNodos();
-            if (nodeList.isEmpty() || !central.equals(nodeList.get(nodeList.size() - 1))) {
-                nodeList.add(central);
-            }
-        }
+    public void actualizarParametrosGlobales(Individuo individuo) {
+        Parametros.fitnessGlobal = individuo.getFitness();
+        Parametros.kilometrosRecorridos = individuo.getCromosoma().stream()
+                .mapToDouble(gen -> gen.getRutaFinal().size()).sum();
+        Parametros.contadorPrueba++;
     }
 }

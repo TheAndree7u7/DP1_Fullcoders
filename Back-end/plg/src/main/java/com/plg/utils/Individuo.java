@@ -21,38 +21,34 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Individuo {
     private double fitness;
-    private String descripcion; // En caso el individuo tenga fitness negativo agregamos una descripcion del
-                                // error
+    private String descripcion;
     private List<Gen> cromosoma;
     private List<Pedido> pedidos; // Lista de pedidos
 
     public Individuo(List<Pedido> pedidos) {
         this.pedidos = pedidos;
+        this.descripcion = "";
         inicializarCromosoma();
         this.fitness = calcularFitness();
     }
 
     private void inicializarCromosoma() {
         List<Almacen> almacenes = DataLoader.almacenes;
-        List<Camion> camionesOperativos = DataLoader.camiones;
-
+        List<Camion> camiones = DataLoader.camiones;
         cromosoma = new ArrayList<>();
-
-        for (Camion camion : camionesOperativos) {
+        for (Camion camion : camiones) {
             cromosoma.add(new Gen(camion, new ArrayList<>()));
         }
-
         Almacen almacenCentral = almacenes.get(0);
         List<Nodo> pedidosMezclados = new ArrayList<>();
         pedidosMezclados.addAll(pedidos);
         Collections.shuffle(pedidosMezclados);
-        List<Gen> camionesMezclados = new ArrayList<>(cromosoma);
-        Collections.shuffle(camionesMezclados);
+        List<Gen> genesMezclados = new ArrayList<>(cromosoma);
+        Collections.shuffle(genesMezclados);
         for (int i = pedidosMezclados.size()-1; i >= 0;  i--) {
-            Gen gen = camionesMezclados.get(i % camionesMezclados.size());
+            Gen gen = genesMezclados.get(i % genesMezclados.size());
             Nodo nodo = pedidosMezclados.get(i);
 
-            // Agregamos a la lista de pedidos
             if(nodo instanceof Pedido) {
                 gen.getPedidos().add((Pedido) nodo);
             }
@@ -65,7 +61,9 @@ public class Individuo {
     }
 
     public double calcularFitness() {
-        double fitness = 0.0;
+        this.fitness = 0.0; 
+        this.descripcion = ""; // Reiniciar la descripción
+        guardarEstadoActual(); // Guardar el estado actual antes de calcular el fitness
         for (Gen gen : cromosoma) {
             double fitnessGen = gen.calcularFitness();
             if (fitnessGen == Double.MIN_VALUE) {
@@ -74,7 +72,32 @@ public class Individuo {
             }
             fitness += fitnessGen; // Sumar el fitness de cada gen
         }
+        restaurarEstadoActual();
         return fitness;
+    }
+
+    public void guardarEstadoActual(){
+        for(Pedido pedido : pedidos){
+            pedido.guardarCopia();
+        }
+        for(Almacen almacen : DataLoader.almacenes){
+            almacen.guardarCopia();
+        }
+        for(Camion camion : DataLoader.camiones){
+            camion.guardarCopia();
+        }
+    }
+
+    public void restaurarEstadoActual(){
+        for(Pedido pedido : pedidos){
+            pedido.restaurarCopia();
+        }
+        for(Almacen almacen : DataLoader.almacenes){
+            almacen.restaurarCopia();
+        }
+        for(Camion camion : DataLoader.camiones){
+            camion.restaurarCopia();
+        }
     }
 
  
