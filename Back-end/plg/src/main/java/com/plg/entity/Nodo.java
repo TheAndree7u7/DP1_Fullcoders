@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
 @NoArgsConstructor
@@ -47,6 +48,7 @@ public class Nodo {
     }
 
     // El siguiente método clone se puede sobreescribir en las subclases
+    @JsonIgnore
     public Nodo getClone() {
         return Nodo.builder()
                 .coordenada(getCoordenada())
