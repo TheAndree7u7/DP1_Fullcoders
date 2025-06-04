@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.plg.dto.request.PedidoRequest;
 import com.plg.service.PedidoService;
@@ -36,6 +37,22 @@ public class PedidoController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al obtener pedidos: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Lista los pedidos dentro de un rango de fechas.
+     */
+    @GetMapping("/rango")
+    public ResponseEntity<?> listarPorFecha(@RequestParam String inicio,
+            @RequestParam String fin) {
+        try {
+            java.time.LocalDateTime start = java.time.LocalDateTime.parse(inicio);
+            java.time.LocalDateTime end = java.time.LocalDateTime.parse(fin);
+            return ResponseEntity.ok(pedidoService.listarPorFecha(start, end));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error al filtrar pedidos: " + e.getMessage());
         }
     }
 

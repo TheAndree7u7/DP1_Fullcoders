@@ -6,8 +6,10 @@ Todos los endpoints permiten **CORS** para facilitar las pruebas.
 ### Pedidos
 - **GET /api/pedidos**  
   Lista todos los pedidos cargados en memoria.
-- **GET /api/pedidos/resumen**  
+- **GET /api/pedidos/resumen**
   Devuelve un resumen con el total y el número de pedidos por estado.
+- **GET /api/pedidos/rango?inicio=YYYY-MM-DDTHH:MM&fin=YYYY-MM-DDTHH:MM**
+  Lista los pedidos cuyo `fechaRegistro` se encuentra en el rango indicado.
 - **POST /api/pedidos**  
   Crea un nuevo pedido. Ejemplo de cuerpo JSON:
   ```json
