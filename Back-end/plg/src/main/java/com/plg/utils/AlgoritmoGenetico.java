@@ -9,8 +9,10 @@ import java.util.HashSet;
 import com.plg.config.DataLoader;
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
+import com.plg.entity.Coordenada;
 import com.plg.entity.Mapa;
 import com.plg.entity.Pedido;
+import com.plg.entity.TipoNodo;
 import com.plg.entity.Nodo;
 
 import lombok.AllArgsConstructor;
@@ -35,6 +37,21 @@ public class AlgoritmoGenetico {
         this.pedidos = pedidos;
         generaciones = 50;
         poblacionTamano = 200;
+        // Borramos los pedidos del mapa
+        for(int i=0; i<mapa.getFilas(); i++){
+            for(int j=0; j<mapa.getColumnas(); j++){
+                Nodo nodo = mapa.getMatriz().get(i).get(j);
+                if(nodo instanceof Pedido){
+                    Nodo nodoaux = Nodo.builder().coordenada(new Coordenada(i, j)).tipoNodo(TipoNodo.NORMAL).build();
+                    mapa.setNodo(nodo.getCoordenada(), nodoaux);
+                }
+            }
+        }
+        // Colocamos todos los nuevos pedidos en el mapa
+        for (Pedido pedido : pedidos) {
+            mapa.setNodo(pedido.getCoordenada(), pedido);
+        }
+
     }
 
     public void ejecutarAlgoritmo() {
