@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
 @Setter
@@ -48,6 +49,7 @@ public class Almacen extends Nodo {
     /**
      * Retorna un clon de este almacén conservando todos sus atributos.
      */
+    @JsonIgnore
     public Almacen getClone() {
         return Almacen.builder()
             .coordenada(getCoordenada())
