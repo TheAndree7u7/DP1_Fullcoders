@@ -1,0 +1,67 @@
+package com.plg.controller;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.plg.dto.request.CamionRequest;
+import com.plg.service.CamionService;
+
+/**
+ * Controlador REST para camiones.
+ */
+@RestController
+@RequestMapping("/api/camiones")
+@CrossOrigin(origins = "*")
+public class CamionController {
+
+    private final CamionService camionService;
+
+    public CamionController(CamionService camionService) {
+        this.camionService = camionService;
+    }
+
+    /**
+     * Lista todos los camiones.
+     */
+    @GetMapping
+    public ResponseEntity<?> listar() {
+        try {
+            return ResponseEntity.ok(camionService.listar());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener camiones: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Resumen de camiones por tipo.
+     */
+    @GetMapping("/resumen")
+    public ResponseEntity<?> resumen() {
+        try {
+            return ResponseEntity.ok(camionService.resumen());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener resumen: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Agrega un nuevo camión.
+     */
+    @PostMapping
+    public ResponseEntity<?> agregar(@RequestBody CamionRequest request) {
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(camionService.agregar(request));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error al crear camión: " + e.getMessage());
+        }
+    }
+}
