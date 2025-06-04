@@ -32,61 +32,107 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [camiones, setCamiones] = useState<CamionEstado[]>([]);
   const [rutasCamiones, setRutasCamiones] = useState<RutaCamion[]>([]);
   const [cargando, setCargando] = useState<boolean>(true);
+  const [nodosRestantesAntesDeActualizar, setNodosRestantesAntesDeActualizar] = useState<number>(25);
+  const [esperandoActualizacion, setEsperandoActualizacion] = useState<boolean>(false);
 
   useEffect(() => {
-    const cargarDatos = async () => {
-      setCargando(true);
-      try {
-        const data: Individuo = await getMejorIndividuo();
-        console.log(data);
-        const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen) => ({
-          id: gen.camion.codigo,
-          ruta: gen.nodos.map(n => `(${n.coordenada.x},${n.coordenada.y})`),
-          puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
-          pedidos: gen.pedidos,
-        }));
-
-        const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => ({
-          id: ruta.id,
-          ubicacion: ruta.ruta[0],
-          porcentaje: 0,
-          estado: 'En Camino',
-        }));
-
-        setRutasCamiones(nuevasRutas);
-        setCamiones(nuevosCamiones);
-        setHoraActual(1);
-      } catch (error) {
-        console.error("Error al cargar datos de simulación:", error);
-      } finally {
-        setCargando(false);
-      }
-    };
-
     cargarDatos();
   }, []);
 
-  const avanzarHora = () => {
-    setCamiones((prevCamiones) =>
-      prevCamiones.map((camion) => {
-        const ruta = rutasCamiones.find(r => r.id === camion.id);
-        if (!ruta) return camion;
+  const cargarDatos = async () => {
+    setCargando(true);
+    try {
+      const data: Individuo = await getMejorIndividuo();
+      const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen) => ({
+        id: gen.camion.codigo,
+        ruta: gen.nodos.map(n => `(${n.coordenada.x},${n.coordenada.y})`),
+        puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
+        pedidos: gen.pedidos,
+      }));
 
-        const siguientePaso = camion.porcentaje + 1;
-        const rutaLength = ruta.ruta.length;
+      const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => ({
+        id: ruta.id,
+        ubicacion: ruta.ruta[0],
+        porcentaje: 0,
+        estado: 'En Camino',
+      }));
 
-        if (siguientePaso >= rutaLength) {
-          return { ...camion, estado: 'Entregado', porcentaje: rutaLength - 1 };
-        }
+      setRutasCamiones(nuevasRutas);
+      setCamiones(nuevosCamiones);
+      setHoraActual(1);
+      setNodosRestantesAntesDeActualizar(25);
+      setEsperandoActualizacion(false);
+    } catch (error) {
+      console.error("Error al cargar datos de simulación:", error);
+    } finally {
+      setCargando(false);
+    }
+  };
 
+  const avanzarHora = async () => {
+    if (esperandoActualizacion || cargando) return;
+
+    const nuevosCamiones = camiones.map((camion) => {
+      const ruta = rutasCamiones.find(r => r.id === camion.id);
+      if (!ruta) return camion;
+
+      const siguientePaso = camion.porcentaje + 1;
+      const rutaLength = ruta.ruta.length;
+
+      if (siguientePaso >= rutaLength) {
+        return { ...camion, estado: 'Entregado', porcentaje: rutaLength - 1 };
+      }
+
+      return {
+        ...camion,
+        porcentaje: siguientePaso,
+        ubicacion: ruta.ruta[siguientePaso],
+      };
+    });
+
+    const quedan = nodosRestantesAntesDeActualizar - 1;
+    setNodosRestantesAntesDeActualizar(quedan);
+
+    if (quedan <= 0) {
+      setEsperandoActualizacion(true);
+      await recargarRutasDesdeBackend();
+    } else {
+      setCamiones(nuevosCamiones);
+      setHoraActual(prev => prev + 1);
+    }
+  };
+
+  const recargarRutasDesdeBackend = async () => {
+    setCargando(true);
+    try {
+      const data = await getMejorIndividuo();
+      const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen) => ({
+        id: gen.camion.codigo,
+        ruta: gen.nodos.map(n => `(${n.coordenada.x},${n.coordenada.y})`),
+        puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
+        pedidos: gen.pedidos,
+      }));
+
+      const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
+        const anterior = camiones.find(c => c.id === ruta.id);
+        const ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
         return {
-          ...camion,
-          porcentaje: siguientePaso,
-          ubicacion: ruta.ruta[siguientePaso],
+          id: ruta.id,
+          ubicacion,
+          porcentaje: 0,
+          estado: 'En Camino',
         };
-      })
-    );
-    setHoraActual(prev => prev + 1);
+      });
+
+      setRutasCamiones(nuevasRutas);
+      setCamiones(nuevosCamiones);
+      setNodosRestantesAntesDeActualizar(25);
+      setEsperandoActualizacion(false);
+    } catch (error) {
+      console.error("Error al recargar rutas:", error);
+    } finally {
+      setCargando(false);
+    }
   };
 
   const reiniciar = () => {
@@ -98,6 +144,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }));
     setCamiones(nuevosCamiones);
     setHoraActual(1);
+    setNodosRestantesAntesDeActualizar(25);
+    setEsperandoActualizacion(false);
   };
 
   return (
