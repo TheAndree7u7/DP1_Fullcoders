@@ -4,19 +4,109 @@
 
 El Front-end está construido con React + TypeScript + Vite, siguiendo una arquitectura modular y escalable.
 
-### Estructura de Carpetas
-```
-src/
-├── assets/         # Recursos estáticos (imágenes, iconos, etc.)
-├── components/     # Componentes reutilizables
-├── context/        # Contextos de React para estado global
-├── data/          # Datos estáticos y mocks
-├── services/      # Servicios para comunicación con el backend
-├── views/         # Componentes principales de cada vista
-├── types.ts       # Definiciones de tipos TypeScript
-├── App.tsx        # Componente raíz de la aplicación
-└── main.tsx       # Punto de entrada de la aplicación
-```
+### Estructura de Carpetas y Archivos
+
+#### Archivos Raíz
+- **`main.tsx`**
+  - Punto de entrada de la aplicación
+  - Configura React y el DOM
+  - Inicializa providers globales
+
+- **`App.tsx`**
+  - Componente raíz de la aplicación
+  - Define el layout principal
+  - Configura las rutas principales
+
+- **`types.ts`**
+  - Definiciones de tipos TypeScript
+  - Interfaces compartidas
+  - Tipos de datos comunes
+
+- **`vite-env.d.ts`**
+  - Declaraciones de tipos para Vite
+  - Configuración del entorno
+
+- **`index.css`**
+  - Estilos globales
+  - Variables CSS
+  - Reset de estilos
+
+#### Carpetas Principales
+
+##### 1. `assets/`
+Contiene recursos estáticos:
+- Imágenes
+- Iconos
+- Fuentes
+- Otros recursos multimedia
+
+##### 2. `components/`
+Componentes reutilizables:
+- **`RightMenu.tsx`**
+  - Menú lateral derecho
+  - Navegación secundaria
+  - Acciones rápidas
+
+- **`TablaPedidos.tsx`**
+  - Tabla de pedidos
+  - Visualización de datos
+  - Ordenamiento y filtrado
+
+- **`MetricasRendimiento.tsx`**
+  - Métricas de rendimiento
+  - Gráficos y estadísticas
+  - KPIs principales
+
+- **`Navbar.tsx`**
+  - Barra de navegación principal
+  - Menú de usuario
+  - Búsqueda y acciones
+
+- **`Mapa.tsx`**
+  - Visualización de mapas
+  - Geolocalización
+  - Marcadores y rutas
+
+- **`CardCamion.tsx`**
+  - Tarjeta de información de camión
+  - Estado y detalles
+  - Acciones rápidas
+
+##### 3. `context/`
+Contextos de React para estado global:
+- **`AuthContext.tsx`**
+  - Manejo de autenticación
+  - Estado del usuario
+  - Tokens JWT
+
+- **`UserContext.tsx`**
+  - Datos del usuario
+  - Preferencias
+  - Configuraciones
+
+##### 4. `data/`
+Datos estáticos y mocks:
+- **`mockData.ts`**
+  - Datos de prueba
+  - Simulaciones de API
+
+- **`constants.ts`**
+  - Constantes globales
+  - Configuraciones
+
+##### 5. `services/`
+Servicios para comunicación con el backend:
+- **`simulacionApiService.ts`**
+  - Servicios de simulación
+  - Llamadas a API de simulación
+  - Manejo de datos de simulación
+
+##### 6. `views/`
+Vistas principales:
+- **`SimulacionSemanal.tsx`**
+  - Simulación de rutas semanales
+  - Planificación de entregas
+  - Visualización de resultados
 
 ## Orden Recomendado para Entender el Código
 
@@ -52,14 +142,13 @@ Cada vista representa una página completa de la aplicación:
 
 ### 4. Lógica de Negocio
 1. **`services/`**
-   - `api.ts` - Configuración de axios y endpoints
-   - `auth.service.ts` - Servicios de autenticación
-   - `user.service.ts` - Servicios de usuario
+   - `simulacionApiService.ts` - Servicios de simulación
    - Otros servicios específicos
 
 2. **`context/`**
    - `AuthContext.tsx` - Manejo de estado de autenticación
    - `UserContext.tsx` - Manejo de estado de usuario
+   - `SimulacionContext.tsx` - Estado de simulación
    - Otros contextos según necesidad
 
 ## Flujo de Datos
