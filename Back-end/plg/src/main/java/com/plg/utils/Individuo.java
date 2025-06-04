@@ -42,19 +42,18 @@ public class Individuo {
         Almacen almacenCentral = almacenes.get(0);
         List<Nodo> pedidosMezclados = new ArrayList<>();
         pedidosMezclados.addAll(pedidos);
-        Collections.shuffle(pedidosMezclados);
+        Collections.shuffle(pedidosMezclados, new Random());
         List<Gen> genesMezclados = new ArrayList<>(cromosoma);
-        Collections.shuffle(genesMezclados);
-        for (int i = pedidosMezclados.size()-1; i >= 0;  i--) {
-            Gen gen = genesMezclados.get(i % genesMezclados.size());
-            Nodo nodo = pedidosMezclados.get(i);
+        Collections.shuffle(genesMezclados, new Random());
 
-            if(nodo instanceof Pedido) {
-                gen.getPedidos().add((Pedido) nodo);
+        Random selectorDeGen = new Random();
+        for(Nodo pedido : pedidosMezclados) {
+            Gen gen = genesMezclados.get(selectorDeGen.nextInt(genesMezclados.size()));      
+            if (pedido instanceof Pedido) {
+                gen.getPedidos().add((Pedido) pedido);
             }
-            gen.getNodos().add(nodo);
+            gen.getNodos().add(pedido);
         }
-
         for (Gen gen : cromosoma) {
             gen.getNodos().add(almacenCentral);
         }
@@ -66,9 +65,9 @@ public class Individuo {
         guardarEstadoActual(); // Guardar el estado actual antes de calcular el fitness
         for (Gen gen : cromosoma) {
             double fitnessGen = gen.calcularFitness();
-            if (fitnessGen == Double.MIN_VALUE) {
+            if (fitnessGen == Double.POSITIVE_INFINITY) {
                 this.descripcion = gen.getDescripcion(); // Guardar la descripción del error
-                return Double.MIN_VALUE; // Si algún gen tiene fitness mínimo, el individuo es inválido
+                return Double.POSITIVE_INFINITY; // Si algún gen tiene fitness máximo, el individuo es inválido
             }
             fitness += fitnessGen; // Sumar el fitness de cada gen
         }

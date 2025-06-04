@@ -87,7 +87,9 @@ public class Simulacion {
                     try {
                         iniciar.acquire(); 
                         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
-                        algoritmoGenetico.ejecutarAlgoritmo();            
+                        algoritmoGenetico.ejecutarAlgoritmo();  
+                        // SimulatedAnnealing simulatedAnnealing = new SimulatedAnnealing(mapa, pedidosEnviar);
+                        // simulatedAnnealing.ejecutarAlgoritmo();          
                         IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(), pedidosEnviar, bloqueosActivos);
                         gaResultQueue.offer(mejorIndividuoDto);
                         continuar.acquire(); 

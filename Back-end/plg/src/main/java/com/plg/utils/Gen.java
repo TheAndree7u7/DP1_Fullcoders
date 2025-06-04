@@ -49,8 +49,9 @@ public class Gen {
 
             double distanciaCalculada = rutaAstar.size();
             double distanciaMaxima = camion.calcularDistanciaMaxima();
-            if (!validarDistanciaMaxima(distanciaMaxima, distanciaCalculada, nodo1, nodo2)) {
-                fitness = Double.MIN_VALUE;
+            if (distanciaMaxima < distanciaCalculada) {
+                fitness = Double.POSITIVE_INFINITY;
+                this.descripcion = descripcionDistanciaLejana(distanciaMaxima, distanciaCalculada, nodo1, nodo2);
                 break;
             }
             if (nodo2 instanceof Pedido) {
@@ -65,7 +66,7 @@ public class Gen {
                 boolean volumenGLPAsignado = camion.getCapacidadActualGLP() >= pedido.getVolumenGLPAsignado();
 
                 if (tiempoMenorQueLimite && volumenGLPAsignado) {
-                    fitness += tiempoEntregaLimite - tiempoLlegada;
+                    fitness += distanciaCalculada; // Aumentamos el fitness por la distancia recorrida
                     // Combustible gastado
                     camion.actualizarCombustible(distanciaCalculada);
 
@@ -76,8 +77,8 @@ public class Gen {
                     }
                     rutaFinal.addAll(rutaAstar);
                 } else {
-                    fitness = Double.MIN_VALUE;
-                    //imprimirDescripcionError(pedido, camion, tiempoEntregaLimite, tiempoLlegada, tiempoMenorQueLimite, volumenGLPAsignado);
+                    fitness = Double.POSITIVE_INFINITY;
+                    this.descripcion = descripcionError(pedido, camion, tiempoEntregaLimite, tiempoLlegada, tiempoMenorQueLimite, volumenGLPAsignado);
                     break;
                 }
             } else if (nodo2 instanceof Almacen || nodo2 instanceof Camion) {
@@ -105,36 +106,31 @@ public class Gen {
         }
     }
 
-    public boolean validarDistanciaMaxima(double distanciaMaxima, double distanciaCalculada, Nodo nodo1, Nodo nodo2) {
-        if (distanciaMaxima < distanciaCalculada) {
-            // this.descripcion = "El camion con código " + camion.getCodigo() + 
-            //     " no puede recorrer la distancia de " + distanciaCalculada + 
-            //     " km. La distancia máxima es de " + distanciaMaxima + 
-            //     " km." + " El camión se encuentra en la posición " + nodo1.getCoordenada() + 
-            //     " y se dirige a la posición " + nodo2.getCoordenada() + ".";
-            return false;
-        }
-        return true;
+    public String descripcionDistanciaLejana(double distanciaMaxima, double distanciaCalculada, Nodo nodo1, Nodo nodo2) {
+        return "El camion con código " + camion.getCodigo() + 
+                    " no puede recorrer la distancia de " + distanciaCalculada + 
+                    " km. La distancia máxima es de " + distanciaMaxima + 
+                    " km." + " El camión se encuentra en la posición " + nodo1.getCoordenada() + 
+                    " y se dirige a la posición " + nodo2.getCoordenada() + ".";
     }
 
-    public void imprimirDescripcionError(Pedido pedido, Camion camion, double tiempoEntregaLimite, double tiempoLlegada, boolean tiempoMenorQueLimite, boolean volumenGLPAsignado) {
+    public String descripcionError(Pedido pedido, Camion camion, double tiempoEntregaLimite, double tiempoLlegada, boolean tiempoMenorQueLimite, boolean volumenGLPAsignado) {
+        String respuesta = "";
         if (!tiempoMenorQueLimite) {
-            System.out.println("El camion con código " 
-            + camion.getCodigo() +
+            respuesta =  "El camion con código " + camion.getCodigo() +
              " no puede llegar a tiempo al pedido "
               + pedido.getCodigo() + ". Tiempo de entrega: "
                + tiempoEntregaLimite + " horas. Tiempo de llegada: "
-                + tiempoLlegada + " horas.");
+                + tiempoLlegada + " horas.";
+          
         } else if (!volumenGLPAsignado) {
-            System.out.println("El camion con código "
-             + camion.getCodigo() +
-              " no tiene suficiente GLP para entregar el pedido "
-               + pedido.getCodigo() +
-                ". Volumen GLP asignado: "
-                 + pedido.getVolumenGLPAsignado() +
-                  ". Volumen GLP disponible: "
-                   + camion.getCapacidadActualGLP());
+            respuesta = "El camion con código " + camion.getCodigo() +
+             " no tiene suficiente GLP para entregar el pedido "
+              + pedido.getCodigo() + ". Volumen de GLP asignado: "
+               + pedido.getVolumenGLPAsignado() + " m³. Capacidad actual de GLP: "
+                + camion.getCapacidadActualGLP() + " m³.";
         }
+        return respuesta;
     }
 
     @Override

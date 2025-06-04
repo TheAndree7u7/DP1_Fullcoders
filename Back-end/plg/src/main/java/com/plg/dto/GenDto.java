@@ -3,6 +3,7 @@ package com.plg.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.plg.config.DataLoader;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
 import com.plg.utils.Gen;
@@ -23,7 +24,7 @@ public class GenDto {
             this.nodos.add(new NodoDto(nodo));
         }
         if(gen.getPedidos().isEmpty()) {
-            this.destino = new CoordenadaDto(gen.getCamion().getCoordenada());
+            this.destino = new CoordenadaDto(DataLoader.almacenes.get(0).getCoordenada());
         }else{
             this.destino = new CoordenadaDto(gen.getPedidos().getLast().getCoordenada());
         }

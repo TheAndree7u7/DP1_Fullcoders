@@ -101,11 +101,11 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
    */
   const cargarAlmacenes = async () => {
     try {
-      console.log('🔄 ALMACENES: Llamando a getAlmacenes...');
+      //console.log('🔄 ALMACENES: Llamando a getAlmacenes...');
       const data = await getAlmacenes();
-      console.log('✅ ALMACENES: Datos recibidos:', data);
+      //console.log('✅ ALMACENES: Datos recibidos:', data);
       setAlmacenes(data);
-      console.log('💾 ALMACENES: Estado actualizado con', data.length, 'almacenes');
+      //console.log('💾 ALMACENES: Estado actualizado con', data.length, 'almacenes');
     } catch (error) {
       console.error('❌ ALMACENES: Error al cargar almacenes:', error);
     }

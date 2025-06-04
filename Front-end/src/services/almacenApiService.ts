@@ -16,9 +16,9 @@ export interface Almacen {
 }
 
 export const getAlmacenes = async (): Promise<Almacen[]> => {
-  console.log('🌐 API: Haciendo petición a http://localhost:8085/api/almacenes');
+  //console.log('🌐 API: Haciendo petición a http://localhost:8085/api/almacenes');
   const response = await axios.get<AlmacenBackend[]>('http://localhost:8085/api/almacenes');
-  console.log('📥 API: Respuesta recibida:', response.data);
+  //console.log('📥 API: Respuesta recibida:', response.data);
   const almacenesTransformados = response.data.map(a => ({
     id: a.nombre.replace(/\s+/g, '-').toLowerCase(),
     nombre: a.nombre,
@@ -26,6 +26,6 @@ export const getAlmacenes = async (): Promise<Almacen[]> => {
     coordenada: { x: a.coordenada.columna, y: a.coordenada.fila },
     activo: a.activo,
   }));
-  console.log('🔄 API: Almacenes transformados:', almacenesTransformados);
+  //console.log('🔄 API: Almacenes transformados:', almacenesTransformados);
   return almacenesTransformados;
 };

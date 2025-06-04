@@ -40,12 +40,12 @@ const calcularRotacion = (prev: Coordenada, next: Coordenada): number => {
 const Mapa = () => {
   const [camionesVisuales, setCamionesVisuales] = useState<CamionVisual[]>([]);
   const [running, setRunning] = useState(false);
-  const [intervalo, setIntervalo] = useState(1000);
+  const [intervalo, setIntervalo] = useState(300);
   const intervalRef = useRef<number | null>(null);
   const { camiones, rutasCamiones, almacenes, avanzarHora, cargando } = useSimulacion();
 
   // DEBUG: Verificar que almacenes llega al componente
-  console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
+  //console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
 
   // Función para obtener los pedidos pendientes (no entregados)
   const getPedidosPendientes = () => {
@@ -86,8 +86,8 @@ const Mapa = () => {
   };
 
   const pedidosPendientes = getPedidosPendientes();
-  console.log('👥 MAPA: Pedidos pendientes (clientes):', pedidosPendientes);
-  console.log('🚚 MAPA: Estado de camiones:', camiones);
+  //console.log('👥 MAPA: Pedidos pendientes (clientes):', pedidosPendientes);
+  //console.log('🚚 MAPA: Estado de camiones:', camiones);
 
   useEffect(() => {
     const iniciales = rutasCamiones.map((info, idx) => {
@@ -117,32 +117,33 @@ const Mapa = () => {
   }, [running, intervalo, avanzarHora]);
 
   useEffect(() => {
-    setCamionesVisuales((prevCamiones) =>
-      prevCamiones.map(camion => {
-        const nuevo = camiones.find(c => c.id === camion.id);
-        if (!nuevo) return camion;
-        const nuevaCoord = parseCoord(nuevo.ubicacion);
-        const rot = calcularRotacion(camion.posicion, nuevaCoord);
-        
-        // Encontrar el índice de la posición actual en la ruta
-        const rutaActual = camion.ruta;
-        const posicionActual = nuevaCoord;
-        const indiceActual = rutaActual.findIndex(
-          (punto: Coordenada) => punto.x === posicionActual.x && punto.y === posicionActual.y
-        );
-        
-        // Filtrar la ruta para mostrar solo los puntos que faltan por recorrer
-        const rutaRestante = rutaActual.slice(indiceActual);
-        
+    // Rebuild visuals whenever routes or truck states change
+    setCamionesVisuales(() =>
+      rutasCamiones.map((info, idx) => {
+        const rutaCoords = info.ruta.map(parseCoord);
+        const estadoCamion = camiones.find(c => c.id === info.id);
+        // Determine current and previous positions
+        const currentPos = estadoCamion ? parseCoord(estadoCamion.ubicacion) : rutaCoords[0];
+        let prevPos = rutaCoords[0];
+        if (estadoCamion && estadoCamion.porcentaje > 0) {
+          const prevIdx = Math.min(rutaCoords.length - 1, Math.floor(estadoCamion.porcentaje));
+          prevPos = rutaCoords[prevIdx];
+        }
+        const rot = calcularRotacion(prevPos, currentPos);
+        // Compute remaining path
+        const porcentaje = estadoCamion ? estadoCamion.porcentaje : 0;
+        const idxRest = Math.ceil(porcentaje);
+        const rutaRestante = rutaCoords.slice(idxRest);
         return {
-          ...camion,
-          posicion: nuevaCoord,
-          rotacion: rot,
-          ruta: rutaRestante
-        };
+          id: info.id,
+          color: colors[idx % colors.length],
+          ruta: rutaRestante,
+          posicion: currentPos,
+          rotacion: rot
+        } as CamionVisual;
       })
     );
-  }, [camiones]);
+  }, [camiones, rutasCamiones]);
 
   if (cargando) {
     return <p>Cargando simulación...</p>;
@@ -165,7 +166,7 @@ const Mapa = () => {
 
         {/* Clientes/Pedidos */}
         {pedidosPendientes.map(pedido => {
-          console.log('👤 MAPA: Renderizando cliente:', pedido.codigo, 'en posición:', pedido.coordenada);
+          //console.log('👤 MAPA: Renderizando cliente:', pedido.codigo, 'en posición:', pedido.coordenada);
           return (
             <g key={pedido.codigo}>
               <image
@@ -193,7 +194,7 @@ const Mapa = () => {
 
         {/* Almacenes */}
         {almacenes.map(almacen => {
-          console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
+          //console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
           return (
             <g key={almacen.id}>
               <image
@@ -220,34 +221,38 @@ const Mapa = () => {
         })}
 
         {/* Rutas de camiones */}
-        {camionesVisuales.map(camion => (
-          <polyline
-            key={`ruta-${camion.id}`}
-            fill="none"
-            stroke={camion.color}
-            strokeWidth={2}
-            strokeDasharray="4 2"
-            points={camion.ruta.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
-          />
-        ))}
+        {camionesVisuales
+          .filter(camion => camiones.find(c => c.id === camion.id)?.estado !== 'Entregado' && camion.ruta.length > 1)
+          .map(camion => (
+            <polyline
+              key={`ruta-${camion.id}`}
+              fill="none"
+              stroke={camion.color}
+              strokeWidth={2}
+              strokeDasharray="4 2"
+              points={camion.ruta.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
+            />
+          ))}
 
         {/* Camiones */}
-        {camionesVisuales.map(camion => {
-          const { posicion, rotacion, color } = camion;
-          const cx = posicion.x * CELL_SIZE;
-          const cy = posicion.y * CELL_SIZE;
-          return (
-            <g
-              key={camion.id}
-              transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
-              style={{ transition: 'transform 0.8s linear' }}
-            >
-              <rect x={-6} y={-4} width={12} height={8} rx={2} fill={color} stroke="black" strokeWidth={0.5} />
-              <circle cx={-4} cy={5} r={1.5} fill="black" />
-              <circle cx={4} cy={5} r={1.5} fill="black" />
-            </g>
-          );
-        })}
+        {camionesVisuales
+          .filter(camion => camiones.find(c => c.id === camion.id)?.estado !== 'Entregado')
+          .map(camion => {
+             const { posicion, rotacion, color } = camion;
+             const cx = posicion.x * CELL_SIZE;
+             const cy = posicion.y * CELL_SIZE;
+             return (
+               <g
+                 key={camion.id}
+                 transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
+                 style={{ transition: 'transform 0.8s linear' }}
+               >
+                 <rect x={-6} y={-4} width={12} height={8} rx={2} fill={color} stroke="black" strokeWidth={0.5} />
+                 <circle cx={-4} cy={5} r={1.5} fill="black" />
+                 <circle cx={4} cy={5} r={1.5} fill="black" />
+               </g>
+             );
+          })}
       </svg>
 
       <div className="flex items-center gap-4 mt-2">

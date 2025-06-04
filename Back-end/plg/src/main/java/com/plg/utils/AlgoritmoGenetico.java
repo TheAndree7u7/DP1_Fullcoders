@@ -33,7 +33,7 @@ public class AlgoritmoGenetico {
     public AlgoritmoGenetico(Mapa mapa, List<Pedido> pedidos) {
         this.mapa = mapa;
         this.pedidos = pedidos;
-        generaciones = 20;
+        generaciones = 50;
         poblacionTamano = 200;
     }
 
@@ -44,8 +44,8 @@ public class AlgoritmoGenetico {
         
         for (int i = 0; i < generaciones && generacionesSinMejora < 3; i++) {
             List<Individuo> padres = seleccionar_padres(poblacion);
-            List<Individuo> hijos = cruzar(padres);
-            
+            // List<Individuo> hijos = cruzar(padres);
+            List<Individuo> hijos = padres;
             // Mutación selectiva - solo mutamos algunos hijos
             for (int j = 0; j < hijos.size(); j++) {
                 if (random.nextDouble() < 0.3) { // 30% de probabilidad de mutación
@@ -121,29 +121,29 @@ public class AlgoritmoGenetico {
     }
 
     private List<Individuo> cruzar(List<Individuo> seleccionados) {
-        return seleccionados;
+   
 
-        // List<Individuo> nuevaPoblacion = new ArrayList<>();
+        List<Individuo> nuevaPoblacion = new ArrayList<>();
         
-        // // Aseguramos que haya al menos 2 individuos para cruzar
-        // if (seleccionados.size() < 2) {
-        //     return seleccionados;
-        // }
+        // Aseguramos que haya al menos 2 individuos para cruzar
+        if (seleccionados.size() < 2) {
+            return seleccionados;
+        }
         
-        // // Cruzamos los individuos en pares
-        // for (int i = 0; i < seleccionados.size() - 1; i += 2) {
-        //     Individuo padre1 = seleccionados.get(i);
-        //     Individuo padre2 = seleccionados.get(i + 1);
-        //     List<Individuo> hijos = cruzar(padre1, padre2);
-        //     nuevaPoblacion.addAll(hijos);
-        // }
+        // Cruzamos los individuos en pares
+        for (int i = 0; i < seleccionados.size() - 1; i += 2) {
+            Individuo padre1 = seleccionados.get(i);
+            Individuo padre2 = seleccionados.get(i + 1);
+            List<Individuo> hijos = cruzar(padre1, padre2);
+            nuevaPoblacion.addAll(hijos);
+        }
         
-        // // Si el número de seleccionados es impar, agregamos el último individuo sin cruzar
-        // if (seleccionados.size() % 2 != 0) {
-        //     nuevaPoblacion.add(seleccionados.get(seleccionados.size() - 1));
-        // }
+        // Si el número de seleccionados es impar, agregamos el último individuo sin cruzar
+        if (seleccionados.size() % 2 != 0) {
+            nuevaPoblacion.add(seleccionados.get(seleccionados.size() - 1));
+        }
         
-        // return nuevaPoblacion;
+        return nuevaPoblacion;
     }
 
     private List<Individuo> cruzar(Individuo p1, Individuo p2) {
@@ -228,8 +228,8 @@ public class AlgoritmoGenetico {
     }
 
     public void verificarMejorIndividuo(Individuo individuo) {
-        if (individuo.getFitness() == Double.MIN_VALUE || individuo.getFitness() == 0.0) {
-            System.out.println("No se ha encontrado una solución");
+        if (individuo.getFitness() == Double.POSITIVE_INFINITY) {
+            System.out.println(individuo.getDescripcion());
             System.exit(0);
         }
     }

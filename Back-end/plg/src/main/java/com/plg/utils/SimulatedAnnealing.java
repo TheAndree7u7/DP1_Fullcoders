@@ -27,7 +27,7 @@ public class SimulatedAnnealing {
     private Mapa mapa;
     private List<Pedido> pedidos;
     private int maxCycles;  // número máximo de ciclos de enfriamiento
-
+    private Individuo mejorIndividuo;
     private Individuo currentSolution;
     private Individuo bestSolution;
 
@@ -75,7 +75,7 @@ public class SimulatedAnnealing {
                 if (ap > random.nextDouble()) {
                     currentSolution = neighbor;
                 }
-                if (currentSolution.getFitness() < bestSolution.getFitness() && currentSolution.getFitness() != Double.NEGATIVE_INFINITY){
+                if (currentSolution.getFitness() < bestSolution.getFitness() && currentSolution.getFitness() != Double.POSITIVE_INFINITY){
                     bestSolution = currentSolution;
                 }
             }
