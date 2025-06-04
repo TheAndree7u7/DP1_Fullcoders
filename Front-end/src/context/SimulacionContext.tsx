@@ -36,11 +36,11 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [esperandoActualizacion, setEsperandoActualizacion] = useState<boolean>(false);
 
   useEffect(() => {
-    cargarDatos();
+    cargarDatos(true);
   }, []);
 
-  const cargarDatos = async () => {
-    setCargando(true);
+  const cargarDatos = async (esInicial: boolean = false) => {
+    if (esInicial) setCargando(true);
     try {
       const data: Individuo = await getMejorIndividuo();
       const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen) => ({
@@ -50,27 +50,31 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         pedidos: gen.pedidos,
       }));
 
-      const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => ({
-        id: ruta.id,
-        ubicacion: ruta.ruta[0],
-        porcentaje: 0,
-        estado: 'En Camino',
-      }));
+      const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
+        const anterior = camiones.find(c => c.id === ruta.id);
+        const ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
+        return {
+          id: ruta.id,
+          ubicacion,
+          porcentaje: 0,
+          estado: 'En Camino',
+        };
+      });
 
       setRutasCamiones(nuevasRutas);
       setCamiones(nuevosCamiones);
-      setHoraActual(1);
+      if (esInicial) setHoraActual(1);
       setNodosRestantesAntesDeActualizar(25);
       setEsperandoActualizacion(false);
     } catch (error) {
       console.error("Error al cargar datos de simulación:", error);
     } finally {
-      setCargando(false);
+      if (esInicial) setCargando(false);
     }
   };
 
   const avanzarHora = async () => {
-    if (esperandoActualizacion || cargando) return;
+    if (esperandoActualizacion) return;
 
     const nuevosCamiones = camiones.map((camion) => {
       const ruta = rutasCamiones.find(r => r.id === camion.id);
@@ -95,43 +99,12 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     if (quedan <= 0) {
       setEsperandoActualizacion(true);
-      await recargarRutasDesdeBackend();
+      setCamiones(nuevosCamiones);
+      setHoraActual(prev => prev + 1);
+      await cargarDatos(false);
     } else {
       setCamiones(nuevosCamiones);
       setHoraActual(prev => prev + 1);
-    }
-  };
-
-  const recargarRutasDesdeBackend = async () => {
-    setCargando(true);
-    try {
-      const data = await getMejorIndividuo();
-      const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen) => ({
-        id: gen.camion.codigo,
-        ruta: gen.nodos.map(n => `(${n.coordenada.x},${n.coordenada.y})`),
-        puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
-        pedidos: gen.pedidos,
-      }));
-
-      const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
-        const anterior = camiones.find(c => c.id === ruta.id);
-        const ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
-        return {
-          id: ruta.id,
-          ubicacion,
-          porcentaje: 0,
-          estado: 'En Camino',
-        };
-      });
-
-      setRutasCamiones(nuevasRutas);
-      setCamiones(nuevosCamiones);
-      setNodosRestantesAntesDeActualizar(25);
-      setEsperandoActualizacion(false);
-    } catch (error) {
-      console.error("Error al recargar rutas:", error);
-    } finally {
-      setCargando(false);
     }
   };
 
