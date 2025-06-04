@@ -15,7 +15,7 @@ import type { Individuo, Pedido } from '../types';
  */
 const HORA_INICIAL = 0;
 const HORA_PRIMERA_ACTUALIZACION = 1;
-const NODOS_PARA_ACTUALIZACION = 25;
+const NODOS_PARA_ACTUALIZACION = 50;
 const INCREMENTO_PORCENTAJE = 1;
 
 /**
