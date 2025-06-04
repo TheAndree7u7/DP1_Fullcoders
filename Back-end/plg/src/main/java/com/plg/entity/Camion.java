@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 import com.plg.utils.Gen;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -168,6 +169,7 @@ public class Camion extends Nodo {
         calcularDistanciaMaxima();
     }   
 
+    @JsonIgnore
     public Camion getClone() {
         return Camion.builder()
                 .codigo(this.codigo)
