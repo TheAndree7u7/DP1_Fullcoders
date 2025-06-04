@@ -7,6 +7,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getMejorIndividuo } from '../services/simulacionApiService';
+import { getAlmacenes, type Almacen } from '../services/almacenApiService';
 import type { Individuo, Pedido } from '../types';
 
 /**
@@ -53,6 +54,7 @@ export interface RutaCamion {
  * @property {number} horaActual - Hora actual de la simulación
  * @property {CamionEstado[]} camiones - Estado actual de todos los camiones
  * @property {RutaCamion[]} rutasCamiones - Rutas asignadas a cada camión
+ * @property {Almacen[]} almacenes - Lista de almacenes disponibles
  * @property {() => void} avanzarHora - Función para avanzar la simulación una hora
  * @property {() => void} reiniciar - Función para reiniciar la simulación
  * @property {boolean} cargando - Estado de carga de datos
@@ -61,6 +63,7 @@ interface SimulacionContextType {
   horaActual: number;
   camiones: CamionEstado[];
   rutasCamiones: RutaCamion[];
+  almacenes: Almacen[];
   avanzarHora: () => void;
   reiniciar: () => void;
   cargando: boolean;
@@ -80,14 +83,33 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [horaActual, setHoraActual] = useState<number>(HORA_INICIAL);
   const [camiones, setCamiones] = useState<CamionEstado[]>([]);
   const [rutasCamiones, setRutasCamiones] = useState<RutaCamion[]>([]);
+  const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [cargando, setCargando] = useState<boolean>(true);
   const [nodosRestantesAntesDeActualizar, setNodosRestantesAntesDeActualizar] = useState<number>(NODOS_PARA_ACTUALIZACION);
   const [esperandoActualizacion, setEsperandoActualizacion] = useState<boolean>(false);
 
-  // Carga inicial de datos
+  // Cargar almacenes al inicio
   useEffect(() => {
+    console.log('🚀 CONTEXTO: Montando contexto y cargando almacenes...');
+    cargarAlmacenes();
     cargarDatos(true);
   }, []);
+
+  /**
+   * @function cargarAlmacenes
+   * @description Carga los datos de almacenes desde el backend
+   */
+  const cargarAlmacenes = async () => {
+    try {
+      console.log('🔄 ALMACENES: Llamando a getAlmacenes...');
+      const data = await getAlmacenes();
+      console.log('✅ ALMACENES: Datos recibidos:', data);
+      setAlmacenes(data);
+      console.log('💾 ALMACENES: Estado actualizado con', data.length, 'almacenes');
+    } catch (error) {
+      console.error('❌ ALMACENES: Error al cargar almacenes:', error);
+    }
+  };
 
   /**
    * @function cargarDatos
@@ -187,7 +209,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   return (
     <SimulacionContext.Provider
-      value={{ horaActual, camiones, rutasCamiones, avanzarHora, reiniciar, cargando }}
+      value={{ horaActual, camiones, rutasCamiones, almacenes, avanzarHora, reiniciar, cargando }}
     >
       {children}
     </SimulacionContext.Provider>

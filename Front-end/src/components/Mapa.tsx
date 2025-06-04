@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSimulacion } from '../context/SimulacionContext';
 import type { Coordenada } from '../types';
+import almacenCentralIcon from '../assets/almacen_central.svg';
+import almacenIntermedioIcon from '../assets/almacen_intermedio.svg';
 
 interface CamionVisual {
   id: string;
@@ -39,7 +41,10 @@ const Mapa = () => {
   const [running, setRunning] = useState(false);
   const [intervalo, setIntervalo] = useState(1000);
   const intervalRef = useRef<number | null>(null);
-  const { camiones, rutasCamiones, avanzarHora, cargando } = useSimulacion();
+  const { camiones, rutasCamiones, almacenes, avanzarHora, cargando } = useSimulacion();
+
+  // DEBUG: Verificar que almacenes llega al componente
+  console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
 
   useEffect(() => {
     const iniciales = rutasCamiones.map((info, idx) => {
@@ -107,6 +112,7 @@ const Mapa = () => {
         height={SVG_HEIGHT}
         className="border border-gray-500 bg-white rounded-xl"
       >
+        {/* Grid */}
         {[...Array(GRID_WIDTH + 1)].map((_, i) => (
           <line key={`v-${i}`} x1={i * CELL_SIZE} y1={0} x2={i * CELL_SIZE} y2={SVG_HEIGHT} stroke="#d1d5db" strokeWidth={1} />
         ))}
@@ -114,6 +120,35 @@ const Mapa = () => {
           <line key={`h-${i}`} x1={0} y1={i * CELL_SIZE} x2={SVG_WIDTH} y2={i * CELL_SIZE} stroke="#d1d5db" strokeWidth={1} />
         ))}
 
+        {/* Almacenes */}
+        {almacenes.map(almacen => {
+          console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
+          return (
+            <g key={almacen.id}>
+              <image
+                href={almacen.tipo === 'CENTRAL' ? almacenCentralIcon : almacenIntermedioIcon}
+                x={almacen.coordenada.x * CELL_SIZE - 20}
+                y={almacen.coordenada.y * CELL_SIZE - 20}
+                width={40}
+                height={40}
+              />
+              <text
+                x={almacen.coordenada.x * CELL_SIZE}
+                y={almacen.coordenada.y * CELL_SIZE + 30}
+                textAnchor="middle"
+                fontSize="12"
+                fill={almacen.tipo === 'CENTRAL' ? '#2563eb' : '#16a34a'}
+                fontWeight="bold"
+                stroke="#fff"
+                strokeWidth="0.5"
+              >
+                {almacen.nombre}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* Rutas de camiones */}
         {camionesVisuales.map(camion => (
           <polyline
             key={`ruta-${camion.id}`}
@@ -125,6 +160,7 @@ const Mapa = () => {
           />
         ))}
 
+        {/* Camiones */}
         {camionesVisuales.map(camion => {
           const { posicion, rotacion, color } = camion;
           const cx = posicion.x * CELL_SIZE;
