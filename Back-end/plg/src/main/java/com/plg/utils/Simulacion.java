@@ -62,33 +62,25 @@ public class Simulacion {
 
     public static void ejecutarSimulacion() {
 
-        System.out.println("Ejecutando simulacion...");
-        System.out.println("Fecha inicial: " + fechaActual);
-        System.out.println("Fecha final: " + fechaActual.plusDays(3));
-        System.out.println("--------------------------");
-        LocalDateTime fechaLimite = LocalDateTime.parse("2025-02-07T00:00:00");
-        // Tiempo inicial de ejcución
-        LocalDateTime tiempoInicial = LocalDateTime.now();
 
+        imprimirDatosSimulacion();
+        LocalDateTime fechaLimite = Parametros.fecha_inicial.plusDays(7);
         while (!pedidosSemanal.isEmpty()) {
             Pedido pedido = pedidosSemanal.get(0);
+            // Voy agregando pedidos a la lista de pedidos
             if (!pedido.getFechaRegistro().isAfter(fechaActual)) {
                 pedidosSemanal.remove(0);
                 pedidosPorAtender.add(pedido);
             } else {
                 actualizarEstadoGlobal(fechaActual);
                 if (!pedidosPorAtender.isEmpty()) {
-                    // // Tiempo de ejecucion
                     System.out.println("------------------------");
                     System.out.println("Tiempo actual: " + fechaActual);
-
                     List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
-
                     try {
                         iniciar.acquire(); 
                         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
-                        algoritmoGenetico.ejecutarAlgoritmo();
-            
+                        algoritmoGenetico.ejecutarAlgoritmo();            
                         IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo());
                         gaResultQueue.offer(mejorIndividuoDto);
                         continuar.acquire(); 
@@ -106,16 +98,11 @@ public class Simulacion {
         }
         System.out.println("-------------------------");
         System.out.println("Reporte de la simulación");
-
-        LocalDateTime tiempoFinal = LocalDateTime.now();
-        System.out.println("Tiempo final: " + tiempoInicial);
-        // Tiempo de ejecución en segundos
-        java.time.Duration tiempoEjecucion = java.time.Duration.between(tiempoInicial, tiempoFinal);
-        // Imprimimos los kilometros totales recorridos
         System.out.println("Kilometros recorridos: " + Parametros.kilometrosRecorridos);
-        System.out.println("Tiempo total de ejecución en segundos : " + tiempoEjecucion.getSeconds());
         System.out.println("Fitness global: " + Parametros.fitnessGlobal);
     }
+
+
 
 
 
@@ -164,6 +151,16 @@ public class Simulacion {
             camion.actualizarEstado(Parametros.intervaloTiempo, pedidosPorAtender, pedidosPlanificados,
                     pedidosEntregados, fechaActual);
         }
+    }
+
+    private static void imprimirDatosSimulacion() {
+        System.out.println("Datos de la simulación:");
+        System.out.println("Fecha inicial: " + Parametros.fecha_inicial);
+        System.out.println("Intervalo de tiempo: " + Parametros.intervaloTiempo + " minutos");
+        System.out.println("Cantidad de pedidos semanales: " + pedidosSemanal.size());
+        System.out.println("Cantidad de almacenes: " + DataLoader.almacenes.size());
+        System.out.println("Cantidad de camiones: " + DataLoader.camiones.size());
+        System.out.println("-------------------------");
     }
 
 }
