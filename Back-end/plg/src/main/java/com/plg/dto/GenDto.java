@@ -19,7 +19,7 @@ public class GenDto {
     public GenDto(Gen gen) {
         this.camion = new CamionDto(gen.getCamion());
         this.nodos = new ArrayList<>();
-        for (Nodo nodo : gen.getRutaFinal()) {
+        for (Nodo nodo : gen.getRuta()) {
             this.nodos.add(new NodoDto(nodo));
         }
         if(gen.getPedidos().isEmpty()) {

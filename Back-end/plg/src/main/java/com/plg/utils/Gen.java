@@ -24,22 +24,24 @@ public class Gen {
     private String descripcion; 
     private Camion camion;
     private List<Nodo> nodos;
-    private List<Nodo> rutaFinal;
+    private List<Nodo> ruta;
     private List<Pedido> pedidos;
     private double fitness;
 
-    public Gen(Camion camionOriginal, List<Nodo> nodosOriginal) {
+    public Gen(Camion camionOriginal) {
         this.camion = camionOriginal;
-        this.nodos = nodosOriginal;
-        this.rutaFinal = new ArrayList<>();
+        this.nodos = new ArrayList<>();
+        this.ruta = new ArrayList<>();
         this.pedidos = new ArrayList<>();
     }
 
     public double calcularFitness() {
-        this.rutaFinal.clear();
+        this.ruta.clear();
         double fitness = 0.0;
         Camion camionClone = this.camion.getClone(); 
 
+        // Esto esta mal pues aqui se debe sacar un clon de todo el mapa
+        // y no de los nodos individualmente
         List<Nodo> nodosClone = new ArrayList<>();
         for (Nodo nodo : nodos) {
             nodosClone.add(nodo.getClone());
@@ -88,7 +90,7 @@ public class Gen {
                     if (i > 0){
                         ruta.remove(0);
                     }
-                    rutaFinal.addAll(ruta);
+                    ruta.addAll(ruta);
                 } else {
                     fitness = Double.MIN_VALUE;
                     if(!tiempoMenorQueLimite) {
@@ -106,7 +108,7 @@ public class Gen {
                     ruta.remove(0);
                 }
 
-                rutaFinal.addAll(ruta);
+                ruta.addAll(ruta);
             }
         }
         this.fitness = fitness;

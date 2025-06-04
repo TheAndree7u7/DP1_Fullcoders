@@ -106,19 +106,18 @@ public class Camion extends Nodo {
     
         // En el tiempo transcurrido donde se puede encontrar el camión
 
-        // System.out.println("gen.nodos.size() = " + gen.getRutaFinal().size());
+        // System.out.println("gen.nodos.size() = " + gen.getRuta().size());
 
-        int intermedio = Math.min(gen.getPosNodo(), gen.getRutaFinal().size()-1);
+        int intermedio = Math.min(gen.getPosNodo(), gen.getRuta().size()-1);
 
         // System.out.println("intermedio = " + intermedio);
-
         // Axtualiza la posición del camión en el mapa
-        Coordenada nuevaCoordenada = gen.getRutaFinal().get(intermedio).getCoordenada();
+        Coordenada nuevaCoordenada = gen.getRuta().get(intermedio).getCoordenada();
         setCoordenada(nuevaCoordenada);
 
         // Actualizamos el estado de los pedidos
         for(int i=0; i<=intermedio; i++){
-            Nodo nodo = gen.getRutaFinal().get(i);
+            Nodo nodo = gen.getRuta().get(i);
             if(nodo.getTipoNodo() == TipoNodo.PEDIDO){
                 Pedido pedido = (Pedido) nodo;
                 if (pedido.getEstado() == EstadoPedido.ENTREGADO){
@@ -133,8 +132,8 @@ public class Camion extends Nodo {
                 pedidosPlanificados.remove(nodo);
             }
         }
-        for (int i=intermedio+1; i<gen.getRutaFinal().size(); i++){
-            Nodo nodo = gen.getRutaFinal().get(i);
+        for (int i=intermedio+1; i<gen.getRuta().size(); i++){
+            Nodo nodo = gen.getRuta().get(i);
             if(nodo.getTipoNodo() == TipoNodo.PEDIDO){
                 Pedido pedido = (Pedido) nodo;
                 if (pedido.getEstado() == EstadoPedido.ENTREGADO){
@@ -148,8 +147,8 @@ public class Camion extends Nodo {
 
         // Si ya regresé al almacén central, actualizo el combustible del camión
         // y la carga de GLP
-        if (gen.getRutaFinal().get(intermedio).getTipoNodo() == TipoNodo.ALMACEN){
-            Almacen almacen = (Almacen) gen.getRutaFinal().get(intermedio);
+        if (gen.getRuta().get(intermedio).getTipoNodo() == TipoNodo.ALMACEN){
+            Almacen almacen = (Almacen) gen.getRuta().get(intermedio);
             if (almacen.getTipo() == TipoAlmacen.CENTRAL){
                 this.combustibleActual = this.combustibleMaximo;
                 this.capacidadActualGLP = this.capacidadMaximaGLP;

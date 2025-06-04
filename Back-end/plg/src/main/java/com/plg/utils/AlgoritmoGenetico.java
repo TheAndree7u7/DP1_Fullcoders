@@ -27,7 +27,7 @@ public class AlgoritmoGenetico {
     private int generaciones;
     private Mapa mapa;
     private List<Pedido> pedidos;
-    private List<Camion> camiones; // Camiones operativos
+    private List<Camion> camiones; 
     private List<Almacen> almacenes;
     private Individuo mejorIndividuo;
     private final Random random = new Random();
@@ -35,12 +35,9 @@ public class AlgoritmoGenetico {
     public AlgoritmoGenetico(Mapa mapa, List<Pedido> pedidos) {
         this.mapa = mapa;
         this.pedidos = pedidos;
-
-        // Selecciono los pedidos y los colocamos en el mapa
         for (Pedido pedido : pedidos) {
             mapa.setNodo(pedido.getCoordenada(), pedido);
         }
-
         this.camiones = DataLoader.camiones;
         this.almacenes = DataLoader.almacenes;
         generaciones = 10;
@@ -48,7 +45,6 @@ public class AlgoritmoGenetico {
     }
 
     public void ejecutarAlgoritmo() {
-
         List<Individuo> poblacion = inicializarPoblacion();
         for (int i = 0; i < generaciones; i++) {
             List<Individuo> padres = seleccionar_padres(poblacion);
@@ -76,7 +72,7 @@ public class AlgoritmoGenetico {
         }
         Parametros.fitnessGlobal += mejorIndividuo.getFitness();
         Parametros.kilometrosRecorridos += mejorIndividuo.getCromosoma().stream()
-                .mapToDouble(gen -> gen.getRutaFinal().size()).sum();
+                .mapToDouble(gen -> gen.getRuta().size()).sum();
         Parametros.contadorPrueba++;
     }
 
@@ -171,7 +167,7 @@ public class AlgoritmoGenetico {
             }
         }
         copy.setNodos(nodesCopy);
-        copy.setRutaFinal(new ArrayList<>());
+        copy.setRuta(new ArrayList<>());
         copy.setFitness(gen.getFitness());
         return copy;
     }

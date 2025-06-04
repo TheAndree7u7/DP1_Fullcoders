@@ -93,7 +93,7 @@ public class SimulatedAnnealing {
             temp *= 1 - coolingRate;
         }
         Parametros.kilometrosRecorridos += bestSolution.getCromosoma().stream()
-                .mapToDouble(gen -> gen.getRutaFinal().size())
+                .mapToDouble(gen -> gen.getRuta().size())
                 .sum();
         Parametros.fitnessGlobal += bestSolution.getFitness();
         // System.out.println("[SA] Finished SA after " + cycle + " cycles and " + maxIterations + " iter each.");
@@ -118,8 +118,8 @@ public class SimulatedAnnealing {
         List<Gen> genesCopy = new ArrayList<>();
         for (Gen gen : solution.getCromosoma()) {
             Gen g = new Gen();
-            // Inicializar rutaFinal para evitar NullPointerException en calcularFitness
-            g.setRutaFinal(new ArrayList<>());
+            // Inicializar ruta para evitar NullPointerException en calcularFitness
+            g.setRuta(new ArrayList<>());
             g.setPosNodo(gen.getPosNodo());
             g.setDescripcion(gen.getDescripcion());
             // Clonar camion

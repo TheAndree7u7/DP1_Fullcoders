@@ -35,13 +35,10 @@ public class Individuo {
     private void inicializarCromosoma() {
         List<Almacen> almacenes = DataLoader.almacenes;
         List<Camion> camionesOperativos = DataLoader.camiones;
-
         cromosoma = new ArrayList<>();
-
         for (Camion camion : camionesOperativos) {
-            cromosoma.add(new Gen(camion, new ArrayList<>()));
+            cromosoma.add(new Gen(camion));
         }
-
         Almacen almacenCentral = almacenes.get(0);
         List<Nodo> pedidosMezclados = new ArrayList<>();
         pedidosMezclados.addAll(pedidos);
@@ -51,8 +48,6 @@ public class Individuo {
         for (int i = pedidosMezclados.size()-1; i >= 0;  i--) {
             Gen gen = camionesMezclados.get(i % camionesMezclados.size());
             Nodo nodo = pedidosMezclados.get(i);
-
-            // Agregamos a la lista de pedidos
             if(nodo instanceof Pedido) {
                 gen.getPedidos().add((Pedido) nodo);
             }
