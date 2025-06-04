@@ -15,6 +15,10 @@ export interface Nodo {
 
 export interface Pedido {
   codigo: string;
+  coordenada: Coordenada; // Heredado de Nodo
+  horasLimite?: number;
+  volumenGLPAsignado?: number;
+  estado?: string;
 }
 
 export interface Gen {

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSimulacion } from '../context/SimulacionContext';
-import type { Coordenada } from '../types';
+import type { Coordenada, Pedido } from '../types';
 import almacenCentralIcon from '../assets/almacen_central.svg';
 import almacenIntermedioIcon from '../assets/almacen_intermedio.svg';
+import clienteIcon from '../assets/cliente.svg';
 
 interface CamionVisual {
   id: string;
@@ -45,6 +46,48 @@ const Mapa = () => {
 
   // DEBUG: Verificar que almacenes llega al componente
   console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
+
+  // Función para obtener los pedidos pendientes (no entregados)
+  const getPedidosPendientes = () => {
+    const pedidosPendientes: Pedido[] = [];
+    
+    rutasCamiones.forEach(ruta => {
+      const camionActual = camiones.find(c => c.id === ruta.id);
+      if (!camionActual) {
+        // Si no hay estado del camión, mostrar todos los pedidos
+        pedidosPendientes.push(...ruta.pedidos);
+        return;
+      }
+
+      // Obtener la posición actual del camión en la ruta
+      const posicionActual = camionActual.porcentaje;
+      
+      // Si el camión está entregado, no mostrar ningún pedido de esta ruta
+      if (camionActual.estado === 'Entregado') {
+        return;
+      }
+
+      // Para cada pedido de esta ruta, verificar si ya fue visitado
+      ruta.pedidos.forEach(pedido => {
+        // Buscar el índice del nodo que corresponde a este pedido
+        const indicePedidoEnRuta = ruta.ruta.findIndex(nodo => {
+          const coordNodo = parseCoord(nodo);
+          return coordNodo.x === pedido.coordenada.x && coordNodo.y === pedido.coordenada.y;
+        });
+
+        // Si el pedido está en un nodo que aún no ha sido visitado, mostrarlo
+        if (indicePedidoEnRuta === -1 || indicePedidoEnRuta > posicionActual) {
+          pedidosPendientes.push(pedido);
+        }
+      });
+    });
+
+    return pedidosPendientes;
+  };
+
+  const pedidosPendientes = getPedidosPendientes();
+  console.log('👥 MAPA: Pedidos pendientes (clientes):', pedidosPendientes);
+  console.log('🚚 MAPA: Estado de camiones:', camiones);
 
   useEffect(() => {
     const iniciales = rutasCamiones.map((info, idx) => {
@@ -119,6 +162,34 @@ const Mapa = () => {
         {[...Array(GRID_HEIGHT + 1)].map((_, i) => (
           <line key={`h-${i}`} x1={0} y1={i * CELL_SIZE} x2={SVG_WIDTH} y2={i * CELL_SIZE} stroke="#d1d5db" strokeWidth={1} />
         ))}
+
+        {/* Clientes/Pedidos */}
+        {pedidosPendientes.map(pedido => {
+          console.log('👤 MAPA: Renderizando cliente:', pedido.codigo, 'en posición:', pedido.coordenada);
+          return (
+            <g key={pedido.codigo}>
+              <image
+                href={clienteIcon}
+                x={pedido.coordenada.x * CELL_SIZE - 15}
+                y={pedido.coordenada.y * CELL_SIZE - 15}
+                width={30}
+                height={30}
+              />
+              <text
+                x={pedido.coordenada.x * CELL_SIZE}
+                y={pedido.coordenada.y * CELL_SIZE + 25}
+                textAnchor="middle"
+                fontSize="10"
+                fill="#dc2626"
+                fontWeight="bold"
+                stroke="#fff"
+                strokeWidth="0.5"
+              >
+                {pedido.codigo}
+              </text>
+            </g>
+          );
+        })}
 
         {/* Almacenes */}
         {almacenes.map(almacen => {
