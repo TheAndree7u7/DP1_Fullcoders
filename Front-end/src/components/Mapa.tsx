@@ -22,7 +22,12 @@ const parseCoord = (s: string): Coordenada => {
   return { x: parseInt(match[1]), y: parseInt(match[2]) };
 };
 
-const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b'];
+const colors = [
+  '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6',
+  '#ec4899', '#22d3ee', '#a3e635', '#eab308', '#f43f5e',
+  '#06b6d4', '#84cc16', '#e879f9', '#4ade80', '#f97316',
+  '#c084fc', '#2dd4bf', '#fde047', '#facc15', '#7dd3fc'
+];
 
 const calcularRotacion = (prev: Coordenada, next: Coordenada): number => {
   const dx = next.x - prev.x;
@@ -75,17 +80,17 @@ const Mapa = () => {
         if (!nuevo) return camion;
         const nuevaCoord = parseCoord(nuevo.ubicacion);
         const rot = calcularRotacion(camion.posicion, nuevaCoord);
-        
+
         // Encontrar el índice de la posición actual en la ruta
         const rutaActual = camion.ruta;
         const posicionActual = nuevaCoord;
         const indiceActual = rutaActual.findIndex(
           (punto: Coordenada) => punto.x === posicionActual.x && punto.y === posicionActual.y
         );
-        
+
         // Filtrar la ruta para mostrar solo los puntos que faltan por recorrer
         const rutaRestante = rutaActual.slice(indiceActual);
-        
+
         return {
           ...camion,
           posicion: nuevaCoord,
