@@ -78,6 +78,7 @@ public class Simulacion {
                 pedidosSemanal.remove(0);
                 pedidosPorAtender.add(pedido);
             } else {
+                List<Bloqueo> bloqueosActivos = actualizarBloqueos(fechaActual);
                 actualizarEstadoGlobal(fechaActual);
                 if (!pedidosPorAtender.isEmpty()) {
                     System.out.println("------------------------");
@@ -87,7 +88,7 @@ public class Simulacion {
                         iniciar.acquire(); 
                         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
                         algoritmoGenetico.ejecutarAlgoritmo();            
-                        IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo());
+                        IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(), pedidosEnviar, bloqueosActivos);
                         gaResultQueue.offer(mejorIndividuoDto);
                         continuar.acquire(); 
                     } catch (InterruptedException e) {
@@ -122,19 +123,21 @@ public class Simulacion {
 
     public static void actualizarEstadoGlobal(LocalDateTime fechaActual) {
         actualizarRepositorios(fechaActual);
-        // actualizarBloqueos(fechaActual);
         actualizarCamiones(fechaActual);
     }
 
-    private static void actualizarBloqueos(LocalDateTime fechaActual) {
+    private static List<Bloqueo> actualizarBloqueos(LocalDateTime fechaActual) {
         List<Bloqueo> bloqueos = DataLoader.bloqueos;
+        List<Bloqueo> bloqueosActivos = new ArrayList<>();
         for (Bloqueo bloqueo : bloqueos) {
             if (bloqueo.getFechaInicio().isBefore(fechaActual) && bloqueo.getFechaFin().isAfter(fechaActual)) {
                 bloqueo.activarBloqueo();
+                bloqueosActivos.add(bloqueo);
             } else {
                 bloqueo.desactivarBloqueo();
             }
         }
+        return bloqueosActivos;
     }
 
     private static void actualizarRepositorios(LocalDateTime fechaActual) {
