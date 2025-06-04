@@ -3,6 +3,7 @@ package com.plg.entity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,6 +34,7 @@ public class Pedido extends Nodo {
         );
     }
 
+    @JsonIgnore
     public Pedido getClone() {
         return Pedido.builder()
             .coordenada(getCoordenada())

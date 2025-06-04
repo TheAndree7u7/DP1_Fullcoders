@@ -56,8 +56,14 @@ public class Simulacion {
                 .filter(pedido -> pedido.getFechaRegistro().isAfter(fechaActual)
                         && pedido.getFechaRegistro().isBefore(fechaFin))
                 .collect(Collectors.toList());
-        System.out.println("Pedidos totales: " + DataLoader.pedidos.size());
-        System.out.println("Pedidos cargados en la semana: " + pedidosSemanal.size());
+        System.out.println("\n=== INICIO DE LA SIMULACIÓN ===");
+        System.out.println("📊 Estadísticas iniciales:");
+        System.out.println("   • Total de pedidos en el sistema: " + DataLoader.pedidos.size());
+        System.out.println("   • Pedidos a procesar en esta semana: " + pedidosSemanal.size());
+        System.out.println("\n⏰ Configuración temporal:");
+        System.out.println("   • Fecha de inicio: " + fechaActual);
+        System.out.println("   • Fecha de finalización: " + fechaActual.plusDays(3));
+        System.out.println("\n=== INICIANDO PROCESO DE SIMULACIÓN ===\n");
     }
 
     public static void ejecutarSimulacion() {
@@ -100,6 +106,15 @@ public class Simulacion {
         System.out.println("Reporte de la simulación");
         System.out.println("Kilometros recorridos: " + Parametros.kilometrosRecorridos);
         System.out.println("Fitness global: " + Parametros.fitnessGlobal);
+
+        System.out.println("\n=== RESUMEN FINAL DE LA SIMULACIÓN ===");
+        System.out.println("📈 Métricas de rendimiento:");
+        System.out.println("   • Tiempo de inicio: " + tiempoInicial);
+        System.out.println("   • Tiempo de finalización: " + tiempoFinal);
+        System.out.println("   • Duración total: " + tiempoEjecucion.getSeconds() + " segundos");
+        System.out.println("   • Kilómetros totales recorridos: " + Parametros.kilometrosRecorridos);
+        System.out.println("   • Fitness global alcanzado: " + Parametros.fitnessGlobal);
+        System.out.println("\n=== FIN DE LA SIMULACIÓN ===\n");
     }
 
 
