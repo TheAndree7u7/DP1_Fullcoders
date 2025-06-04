@@ -20,6 +20,7 @@ public class Bloqueo {
     private LocalDateTime fechaFin;
     private List<Nodo> nodosBloqueados;
     private Boolean activo;
+    
 
     public Bloqueo(String line) throws InvalidDataFormatException {
         nodosBloqueados = new ArrayList<>();
