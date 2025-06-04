@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,17 @@ public class PedidoService {
      */
     public List<Pedido> listar() {
         return pedidoRepository.findAll();
+    }
+
+    /**
+     * Lista los pedidos registrados entre dos fechas.
+     *
+     * @param inicio fecha y hora inicial
+     * @param fin    fecha y hora final
+     * @return lista de pedidos en el rango
+     */
+    public List<Pedido> listarPorFecha(LocalDateTime inicio, LocalDateTime fin) {
+        return pedidoRepository.findAllBetween(inicio, fin);
     }
 
     /**
