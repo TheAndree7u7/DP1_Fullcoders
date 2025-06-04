@@ -48,12 +48,12 @@ public class DataLoader {
         for (int i = 0; i < 4; i++) {
             CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);
         }
-        for (int i = 0; i < 4; i++) {
-            CamionFactory.crearCamionesPorTipo(TipoCamion.TC, true, coordenadaCentral);
-        }
-        for (int i = 0; i < 10; i++) {
-            CamionFactory.crearCamionesPorTipo(TipoCamion.TD, true, coordenadaCentral);
-        }
+        // for (int i = 0; i < 4; i++) {
+        //     CamionFactory.crearCamionesPorTipo(TipoCamion.TC, true, coordenadaCentral);
+        // }
+        // for (int i = 0; i < 10; i++) {
+        //     CamionFactory.crearCamionesPorTipo(TipoCamion.TD, true, coordenadaCentral);
+        // }
         camiones = CamionFactory.camiones;
         return camiones;
     }

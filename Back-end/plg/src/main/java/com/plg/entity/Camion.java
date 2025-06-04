@@ -43,6 +43,8 @@ public class Camion extends Nodo {
     // Gen
     private Gen gen;
 
+    private Camion camionCopia;
+
     public Camion(Coordenada coordenada, boolean bloqueado, double gScore, TipoNodo tipoNodo, double fScore) {
         super(coordenada, bloqueado, gScore, fScore, tipoNodo);
     }
@@ -83,7 +85,7 @@ public class Camion extends Nodo {
     } 
 
 
-    public void actualizarCargaPedido(double volumenGLP) {
+    public void entregarVolumenGLP(double volumenGLP) {
         // double pesoGLPPedido = volumenGLP * 0.5;  
         // pesoCarga -= pesoGLPPedido;
         capacidadActualGLP -= volumenGLP;
@@ -126,7 +128,7 @@ public class Camion extends Nodo {
                 }
                 pedidosEntregados.add(pedido);
                 // Voy al GLP del camión y reduzco la carga porque lo entrego
-                actualizarCargaPedido(pedido.getVolumenGLPAsignado());
+                entregarVolumenGLP(pedido.getVolumenGLPAsignado());
                 // Marcamos el pedido como entregado para no considerarlo en la siguiente iteración
                 pedido.setEstado(EstadoPedido.ENTREGADO);
                 pedidosPorAtender.remove(nodo);
@@ -186,6 +188,33 @@ public class Camion extends Nodo {
                 .fScore(getFScore())
                 .tipoNodo(getTipoNodo())
                 .build();
+    }
+
+
+    public void guardarCopia() {
+        this.camionCopia = getClone();
+    }
+
+    public void restaurarCopia() {
+        if (this.camionCopia != null) {
+            this.codigo = camionCopia.getCodigo();
+            this.tipo = camionCopia.getTipo();
+            this.capacidadMaximaGLP = camionCopia.getCapacidadMaximaGLP();
+            this.capacidadActualGLP = camionCopia.getCapacidadActualGLP();
+            this.tara = camionCopia.getTara();
+            this.pesoCarga = camionCopia.getPesoCarga();
+            this.pesoCombinado = camionCopia.getPesoCombinado();
+            this.estado = camionCopia.getEstado();
+            this.combustibleMaximo = camionCopia.getCombustibleMaximo();
+            this.combustibleActual = camionCopia.getCombustibleActual();
+            this.velocidadPromedio = camionCopia.getVelocidadPromedio();
+            this.distanciaMaxima = camionCopia.calcularDistanciaMaxima();
+            setCoordenada(camionCopia.getCoordenada());
+            setBloqueado(camionCopia.isBloqueado());
+            setGScore(camionCopia.getGScore());
+            setFScore(camionCopia.getFScore());
+            setTipoNodo(camionCopia.getTipoNodo());
+        }
     }
 
 }

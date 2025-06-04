@@ -16,6 +16,9 @@ public class Pedido extends Nodo {
     private LocalDateTime fechaRegistro;
     private double volumenGLPAsignado;
     private EstadoPedido estado;
+
+    private Pedido pedidoCopia;
+
     public Pedido(Coordenada coordenada, boolean bloqueado, double gScore, double fScore, TipoNodo tipoNodo) {
         super(coordenada, bloqueado, gScore, fScore, tipoNodo);
     }
@@ -47,5 +50,25 @@ public class Pedido extends Nodo {
             .estado(estado)
             .build();
     }
+
+
+    public void guardarCopia() {
+        this.pedidoCopia = this.getClone();
+    }
+    
+    public void restaurarCopia() {
+        if (this.pedidoCopia != null) {
+            this.setCoordenada(this.pedidoCopia.getCoordenada());
+            this.setBloqueado(this.pedidoCopia.isBloqueado());
+            this.setGScore(this.pedidoCopia.getGScore());
+            this.setFScore(this.pedidoCopia.getFScore());
+            this.setTipoNodo(this.pedidoCopia.getTipoNodo());
+            this.codigo = this.pedidoCopia.getCodigo();
+            this.horasLimite = this.pedidoCopia.getHorasLimite();
+            this.fechaRegistro = this.pedidoCopia.getFechaRegistro();
+            this.volumenGLPAsignado = this.pedidoCopia.getVolumenGLPAsignado();
+            this.estado = this.pedidoCopia.getEstado();
+        }
+    }   
 
 }
