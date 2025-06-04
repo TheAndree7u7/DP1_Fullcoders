@@ -44,16 +44,30 @@ const Mapa = () => {
   useEffect(() => {
     const iniciales = rutasCamiones.map((info, idx) => {
       const ruta = info.ruta.map(parseCoord);
+      // Buscar la ubicación actual del camión en camiones
+      const camionEstado = camiones.find(c => c.id === info.id);
+      const posicionInicial = ruta[0]; // Siempre ruta[0] como punto inicial
+      let rutaRestante = ruta;
+      if (camionEstado) {
+        const ubicacionActual = parseCoord(camionEstado.ubicacion);
+        const indiceActual = ruta.findIndex(
+          (p) => p.x === ubicacionActual.x && p.y === ubicacionActual.y
+        );
+        if (indiceActual >= 0) {
+          // No cambiar posicionInicial, siempre ruta[0]
+          rutaRestante = ruta.slice(indiceActual);
+        }
+      }
       return {
         id: info.id,
         color: colors[idx % colors.length],
-        ruta,
-        posicion: ruta[0],
+        ruta: rutaRestante,
+        posicion: posicionInicial,
         rotacion: 0,
       };
     });
     setCamionesVisuales(iniciales);
-  }, [rutasCamiones]);
+  }, [rutasCamiones, camiones]);
 
   useEffect(() => {
     if (running) {
@@ -68,7 +82,7 @@ const Mapa = () => {
     };
   }, [running, intervalo, avanzarHora]);
 
-  useEffect(() => {
+   useEffect(() => {
     setCamionesVisuales((prevCamiones) =>
       prevCamiones.map(camion => {
         const nuevo = camiones.find(c => c.id === camion.id);

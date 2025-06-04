@@ -49,18 +49,24 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
         pedidos: gen.pedidos,
       }));
-
-      const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
-        const anterior = camiones.find(c => c.id === ruta.id);
-        const ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
-        return {
-          id: ruta.id,
-          ubicacion,
-          porcentaje: 0,
-          estado: 'En Camino',
-        };
-      });
-
+      console.log("Rutas cargadas:", nuevasRutas);
+      //Filtrar camioes sin pedidos
+     const nuevosCamiones: CamionEstado[] = nuevasRutas
+    .filter(ruta => ruta.pedidos.length > 0)
+    .map((ruta) => {
+      const anterior = camiones.find(c => c.id === ruta.id);
+      const ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
+      const porcentaje = anterior?.porcentaje ?? 0;
+      const estado = anterior?.estado ?? 'En Camino';
+      return {
+        id: ruta.id,
+        ubicacion,
+        porcentaje,
+        estado,
+    };
+  });
+      console.log("Camiones cargados:", nuevosCamiones);
+      console.log("individuo:", data);
       setRutasCamiones(nuevasRutas);
       setCamiones(nuevosCamiones);
       if (esInicial) setHoraActual(1);
@@ -108,8 +114,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
-  const reiniciar = () => {
-    const nuevosCamiones: CamionEstado[] = rutasCamiones.map((ruta) => ({
+ const reiniciar = () => {
+ const nuevosCamiones: CamionEstado[] = rutasCamiones.map((ruta) => ({
       id: ruta.id,
       ubicacion: ruta.ruta[0],
       porcentaje: 0,
@@ -119,7 +125,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setHoraActual(1);
     setNodosRestantesAntesDeActualizar(25);
     setEsperandoActualizacion(false);
-  };
+ };
 
   return (
     <SimulacionContext.Provider
@@ -128,8 +134,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       {children}
     </SimulacionContext.Provider>
   );
-};
-
+}
 export const useSimulacion = (): SimulacionContextType => {
   const context = useContext(SimulacionContext);
   if (!context) throw new Error('useSimulacion debe usarse dentro de SimulacionProvider');
