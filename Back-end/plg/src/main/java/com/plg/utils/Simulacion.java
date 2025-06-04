@@ -107,14 +107,6 @@ public class Simulacion {
         System.out.println("Kilometros recorridos: " + Parametros.kilometrosRecorridos);
         System.out.println("Fitness global: " + Parametros.fitnessGlobal);
 
-        System.out.println("\n=== RESUMEN FINAL DE LA SIMULACIÓN ===");
-        System.out.println("📈 Métricas de rendimiento:");
-        System.out.println("   • Tiempo de inicio: " + tiempoInicial);
-        System.out.println("   • Tiempo de finalización: " + tiempoFinal);
-        System.out.println("   • Duración total: " + tiempoEjecucion.getSeconds() + " segundos");
-        System.out.println("   • Kilómetros totales recorridos: " + Parametros.kilometrosRecorridos);
-        System.out.println("   • Fitness global alcanzado: " + Parametros.fitnessGlobal);
-        System.out.println("\n=== FIN DE LA SIMULACIÓN ===\n");
     }
 
 
