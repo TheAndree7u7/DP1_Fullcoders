@@ -1,4 +1,4 @@
-import type { Individuo } from "../models/Individuo";
+import type { Individuo } from "../types";
 const API_BASE_URL = "http://localhost:8085/api/simulacion";
 
 export async function getMejorIndividuo(): Promise<Individuo> {
