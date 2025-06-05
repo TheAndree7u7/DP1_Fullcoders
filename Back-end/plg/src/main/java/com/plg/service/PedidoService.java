@@ -59,6 +59,23 @@ public class PedidoService {
     }
 
     /**
+     * Calcula un resumen de pedidos por estado dentro de un rango de fechas.
+     *
+     * @param inicio fecha y hora inicial del rango
+     * @param fin    fecha y hora final del rango
+     * @return mapa con el total y el conteo por estado
+     */
+    public Map<String, Object> resumenPorFecha(LocalDateTime inicio, LocalDateTime fin) {
+        List<Pedido> pedidos = pedidoRepository.findAllBetween(inicio, fin);
+        Map<String, Object> datos = new HashMap<>();
+        datos.put("total", pedidos.size());
+        datos.put("porEstado",
+                pedidos.stream()
+                        .collect(Collectors.groupingBy(p -> p.getEstado().name(), Collectors.counting())));
+        return datos;
+    }
+
+    /**
      * Crea un nuevo pedido utilizando los datos de la solicitud.
      */
     public Pedido agregar(PedidoRequest request) {
