@@ -6,6 +6,8 @@ import java.util.List;
 import com.plg.entity.Bloqueo;
 import com.plg.entity.Nodo;
 
+import lombok.Data;
+@Data
 public class BloqueoDto {
     private List<CoordenadaDto> coordenadas;
 
