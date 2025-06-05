@@ -70,6 +70,22 @@ public class PedidoController {
     }
 
     /**
+     * Resumen de pedidos por estado dentro de un rango de fechas.
+     */
+    @GetMapping("/resumen/rango")
+    public ResponseEntity<?> resumenPorFecha(@RequestParam String inicio,
+            @RequestParam String fin) {
+        try {
+            java.time.LocalDateTime start = java.time.LocalDateTime.parse(inicio);
+            java.time.LocalDateTime end = java.time.LocalDateTime.parse(fin);
+            return ResponseEntity.ok(pedidoService.resumenPorFecha(start, end));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error al obtener resumen: " + e.getMessage());
+        }
+    }
+
+    /**
      * Agrega un nuevo pedido.
      */
     @PostMapping
