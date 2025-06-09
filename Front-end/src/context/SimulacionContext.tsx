@@ -9,6 +9,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getMejorIndividuo } from '../services/simulacionApiService';
 import { getAlmacenes, type Almacen } from '../services/almacenApiService';
 import type { Individuo, Pedido } from '../types';
+import { ON_LOGS_ACTIVE, log, error as logError } from '../logControl';
 
 /**
  * Constantes de configuración de la simulación
@@ -90,7 +91,9 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // Cargar almacenes al inicio
   useEffect(() => {
-    console.log('🚀 CONTEXTO: Montando contexto y cargando almacenes...');
+    if (ON_LOGS_ACTIVE) {
+      log('🚀 CONTEXTO: Montando contexto y cargando almacenes...');
+    }
     cargarAlmacenes();
     cargarDatos(true);
   }, []);
@@ -101,13 +104,13 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
    */
   const cargarAlmacenes = async () => {
     try {
-      //console.log('🔄 ALMACENES: Llamando a getAlmacenes...');
+      if (ON_LOGS_ACTIVE) log('🔄 ALMACENES: Llamando a getAlmacenes...');
       const data = await getAlmacenes();
-      //console.log('✅ ALMACENES: Datos recibidos:', data);
+      if (ON_LOGS_ACTIVE) log('✅ ALMACENES: Datos recibidos:', data);
       setAlmacenes(data);
-      //console.log('💾 ALMACENES: Estado actualizado con', data.length, 'almacenes');
+      if (ON_LOGS_ACTIVE) log('💾 ALMACENES: Estado actualizado con', data.length, 'almacenes');
     } catch (error) {
-      console.error('❌ ALMACENES: Error al cargar almacenes:', error);
+      if (ON_LOGS_ACTIVE) logError('❌ ALMACENES: Error al cargar almacenes:', error instanceof Error ? error.message : String(error));
     }
   };
 
@@ -119,9 +122,9 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const cargarDatos = async (esInicial: boolean = false) => {
     if (esInicial) setCargando(true);
     try {
-      console.log("Iniciando solicitud al servidor...");
+      if (ON_LOGS_ACTIVE) log("Iniciando solicitud al servidor...");
       const data: Individuo = await getMejorIndividuo();
-      console.log("Datos recibidos:", data);
+      if (ON_LOGS_ACTIVE) log("Datos recibidos:", data);
       const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen) => ({
         id: gen.camion.codigo,
         ruta: gen.nodos.map(n => `(${n.coordenada.x},${n.coordenada.y})`),
@@ -147,7 +150,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
       setEsperandoActualizacion(false);
     } catch (error) {
-      console.error("Error al cargar datos de simulación:", error);
+      if (ON_LOGS_ACTIVE) logError("Error al cargar datos de simulación:", error instanceof Error ? error.message : String(error));
     } finally {
       if (esInicial) setCargando(false);
     }

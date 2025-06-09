@@ -32,9 +32,53 @@ public class Gen {
         this.pedidos = new ArrayList<>();
     }
 
+    public boolean validarRuta() {
+        double combustibleDisponible = camion.getCombustibleActual();
+        double distanciaTotal = 0;
+        
+        for (int i = 0; i < nodos.size(); i++) {
+            Nodo nodo1, nodo2;
+            if(i == 0){
+                nodo1 = camion;
+                nodo2 = nodos.get(i);
+            }else{
+                nodo1 = nodos.get(i - 1);
+                nodo2 = nodos.get(i);
+            }
+            List<Nodo> rutaAstar = Mapa.getInstance().aStar(nodo1, nodo2);
+            double distanciaCalculada = rutaAstar.size();
+            
+            // Verificar si hay suficiente combustible para esta parte de la ruta
+            double combustibleNecesario = (distanciaCalculada * (camion.getTara() + camion.getPesoCarga())) / 180;
+            if (combustibleNecesario > combustibleDisponible) {
+                this.descripcion = descripcionDistanciaLejana(
+                    (combustibleDisponible * 180) / (camion.getTara() + camion.getPesoCarga()),
+                    distanciaCalculada,
+                    nodo1,
+                    nodo2
+                );
+                return false;
+            }
+            
+            distanciaTotal += distanciaCalculada;
+            combustibleDisponible -= combustibleNecesario;
+            
+            // Si llegamos a un almacén, recargamos combustible
+            if (nodo2 instanceof Almacen) {
+                combustibleDisponible = camion.getCombustibleMaximo();
+            }
+        }
+        return true;
+    }
+
     public double calcularFitness() {
         this.rutaFinal.clear();
         double fitness = 0.0;
+
+        // Primero validamos la ruta completa
+        if (!validarRuta()) {
+            return Double.POSITIVE_INFINITY;
+        }
 
         for (int i = 0; i < nodos.size(); i++) {
             Nodo nodo1, nodo2;
@@ -48,12 +92,6 @@ public class Gen {
             List<Nodo> rutaAstar = Mapa.getInstance().aStar(nodo1, nodo2);
 
             double distanciaCalculada = rutaAstar.size();
-            double distanciaMaxima = camion.calcularDistanciaMaxima();
-            if (distanciaMaxima < distanciaCalculada) {
-                fitness = Double.POSITIVE_INFINITY;
-                this.descripcion = descripcionDistanciaLejana(distanciaMaxima, distanciaCalculada, nodo1, nodo2);
-                break;
-            }
             if (nodo2 instanceof Pedido) {
                 Pedido pedido = (Pedido) nodo2;
 

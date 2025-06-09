@@ -115,10 +115,23 @@ public class AlgoritmoGenetico {
 
     private List<Individuo> inicializarPoblacion() {
         List<Individuo> poblacion = new ArrayList<>();
-        for (int i = 0; i < poblacionTamano; i++) {
+        int intentosMaximos = poblacionTamano * 2; // Permitimos más intentos para encontrar soluciones válidas
+        int intentos = 0;
+        
+        while (poblacion.size() < poblacionTamano && intentos < intentosMaximos) {
             Individuo individuo = new Individuo(pedidos);
-            poblacion.add(individuo);
+            // Verificamos que el individuo sea válido
+            if (individuo.getFitness() != Double.POSITIVE_INFINITY) {
+                poblacion.add(individuo);
+            }
+            intentos++;
         }
+        
+        // Si no pudimos generar suficientes individuos válidos, lanzamos una excepción
+        if (poblacion.size() < poblacionTamano) {
+            throw new RuntimeException("No se pudieron generar suficientes individuos válidos para la población inicial");
+        }
+        
         return poblacion;
     }
 
@@ -207,14 +220,27 @@ public class AlgoritmoGenetico {
             nuevaRuta1 = eliminarDuplicados(nuevaRuta1);
             nuevaRuta2 = eliminarDuplicados(nuevaRuta2);
             
+            // Aseguramos que la ruta termine en el almacén central
             nuevaRuta1.add(almacenCentral);
             nuevaRuta2.add(almacenCentral);
             
             nuevoGen1.setNodos(nuevaRuta1);
             nuevoGen2.setNodos(nuevaRuta2);
             
-            hijo1.getCromosoma().add(nuevoGen1);
-            hijo2.getCromosoma().add(nuevoGen2);
+            // Validamos las rutas antes de agregarlas
+            if (nuevoGen1.validarRuta()) {
+                hijo1.getCromosoma().add(nuevoGen1);
+            } else {
+                // Si la ruta no es válida, usamos la ruta del padre
+                hijo1.getCromosoma().add(gen1);
+            }
+            
+            if (nuevoGen2.validarRuta()) {
+                hijo2.getCromosoma().add(nuevoGen2);
+            } else {
+                // Si la ruta no es válida, usamos la ruta del padre
+                hijo2.getCromosoma().add(gen2);
+            }
         }
         
         hijo1.setFitness(hijo1.calcularFitness());
