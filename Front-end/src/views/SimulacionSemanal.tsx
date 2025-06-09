@@ -9,7 +9,7 @@ const SimulacionSemanal: React.FC = () => {
 
   return (
     <div className="bg-[#F5F5F5] w-screen h-screen flex flex-col pt-16">
-      <Navbar />
+      <Navbar title="Simulación Semanal" />
       <div className="flex flex-row flex-1 gap-4 px-4 pb-4 overflow-hidden relative">
         {/* Mapa */}
         <div className={`transition-all duration-300 ${menuExpandido ? "flex-[2]" : "flex-[1]"}`}>
