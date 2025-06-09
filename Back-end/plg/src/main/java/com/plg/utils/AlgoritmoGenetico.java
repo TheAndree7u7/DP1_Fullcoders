@@ -55,6 +55,12 @@ public class AlgoritmoGenetico {
     }
 
     public void ejecutarAlgoritmo() {
+        // Validar que todos los camiones tengan combustible suficiente
+        if (!validarCombustibleCamiones()) {
+            System.out.println("Error: Algunos camiones no tienen combustible suficiente para continuar.");
+            return;
+        }
+        
         List<Individuo> poblacion = inicializarPoblacion();
         double mejorFitness = Double.MIN_VALUE;
         int generacionesSinMejora = 0;
@@ -84,6 +90,14 @@ public class AlgoritmoGenetico {
         // Ordenar población
         poblacion.sort((ind1, ind2) -> Double.compare(ind1.getFitness(), ind2.getFitness()));
         mejorIndividuo = poblacion.get(0);
+        
+        // Verificar que el mejor individuo sea factible
+        if (mejorIndividuo.getFitness() == Double.POSITIVE_INFINITY) {
+            System.out.println("Error: No se pudo encontrar una solución factible.");
+            System.out.println("Razón: " + mejorIndividuo.getDescripcion());
+            return;
+        }
+        
         verificarMejorIndividuo(mejorIndividuo);
         actualizarParametrosGlobales(mejorIndividuo);
         System.out.println("Fitness algoritmo genético: " + Parametros.contadorPrueba + " " + mejorIndividuo.getFitness());
@@ -256,5 +270,23 @@ public class AlgoritmoGenetico {
         Parametros.kilometrosRecorridos = individuo.getCromosoma().stream()
                 .mapToDouble(gen -> gen.getRutaFinal().size()).sum();
         Parametros.contadorPrueba++;
+    }
+
+    /**
+     * Valida que todos los camiones tengan combustible suficiente para continuar
+     * @return true si todos los camiones tienen combustible positivo, false en caso contrario
+     */
+    private boolean validarCombustibleCamiones() {
+        List<Camion> camiones = DataLoader.camiones;
+        for (Camion camion : camiones) {
+            camion.calcularDistanciaMaxima();
+            if (camion.getDistanciaMaxima() <= 0) {
+                System.out.println("El camión " + camion.getCodigo() + " no tiene combustible suficiente. " +
+                    "Combustible actual: " + camion.getCombustibleActual() + " galones. " +
+                    "Distancia máxima: " + camion.getDistanciaMaxima() + " km.");
+                return false;
+            }
+        }
+        return true;
     }
 }
