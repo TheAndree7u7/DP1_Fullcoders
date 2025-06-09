@@ -61,12 +61,17 @@ public class AlgoritmoGenetico {
         
         for (int i = 0; i < generaciones && generacionesSinMejora < 3; i++) {
             List<Individuo> padres = seleccionar_padres(poblacion);
-            // List<Individuo> hijos = cruzar(padres);
-            List<Individuo> hijos = padres;
+            List<Individuo> hijos = cruzar(padres);
+            
             // Mutación selectiva - solo mutamos algunos hijos
             for (int j = 0; j < hijos.size(); j++) {
                 if (random.nextDouble() < 0.3) { // 30% de probabilidad de mutación
+                    Individuo hijoOriginal = hijos.get(j);
                     hijos.get(j).mutar();
+                    // Si la mutación resultó en una ruta inválida, revertimos al hijo original
+                    if (hijos.get(j).getFitness() == Double.POSITIVE_INFINITY) {
+                        hijos.set(j, hijoOriginal);
+                    }
                 }
             }
             
@@ -81,6 +86,7 @@ public class AlgoritmoGenetico {
                 generacionesSinMejora++;
             }
         }
+        
         // Ordenar población
         poblacion.sort((ind1, ind2) -> Double.compare(ind1.getFitness(), ind2.getFitness()));
         mejorIndividuo = poblacion.get(0);
@@ -216,9 +222,9 @@ public class AlgoritmoGenetico {
                 nuevaRuta2.addAll(ruta2);
             }
             
-            // Optimizamos la eliminación de duplicados
-            nuevaRuta1 = eliminarDuplicados(nuevaRuta1);
-            nuevaRuta2 = eliminarDuplicados(nuevaRuta2);
+            // Optimizamos la eliminación de duplicados manteniendo el orden
+            nuevaRuta1 = eliminarDuplicadosManteniendoOrden(nuevaRuta1);
+            nuevaRuta2 = eliminarDuplicadosManteniendoOrden(nuevaRuta2);
             
             // Aseguramos que la ruta termine en el almacén central
             nuevaRuta1.add(almacenCentral);
@@ -251,7 +257,7 @@ public class AlgoritmoGenetico {
         return hijos;
     }
     
-    private List<Nodo> eliminarDuplicados(List<Nodo> ruta) {
+    private List<Nodo> eliminarDuplicadosManteniendoOrden(List<Nodo> ruta) {
         List<Nodo> resultado = new ArrayList<>();
         Set<String> codigosVistos = new HashSet<>();
         

@@ -1,5 +1,5 @@
 // Control global de logs para el front-end
-export const ON_LOGS_ACTIVE = true;
+export const ON_LOGS_ACTIVE = false;
 
 export function log(...args: unknown[]): void {
   if (ON_LOGS_ACTIVE) {

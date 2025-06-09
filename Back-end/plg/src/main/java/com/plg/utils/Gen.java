@@ -5,6 +5,7 @@ import com.plg.entity.Camion;
 import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
+import com.plg.entity.Coordenada;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,9 +33,40 @@ public class Gen {
         this.pedidos = new ArrayList<>();
     }
 
+    private boolean detectarTeletransporte(Nodo nodo1, Nodo nodo2, List<Nodo> rutaAstar) {
+        // Si la ruta está vacía, es un teletransporte
+        if (rutaAstar.isEmpty()) {
+            this.descripcion = "Teletransporte detectado: No existe ruta entre " + 
+                nodo1.getCoordenada() + " y " + nodo2.getCoordenada();
+            return true;
+        }
+
+        // Verificar que la ruta sea continua
+        for (int i = 0; i < rutaAstar.size() - 1; i++) {
+            Nodo actual = rutaAstar.get(i);
+            Nodo siguiente = rutaAstar.get(i + 1);
+            
+            // Calcular distancia entre nodos adyacentes
+            double distancia = Math.sqrt(
+                Math.pow(actual.getCoordenada().getFila() - siguiente.getCoordenada().getFila(), 2) +
+                Math.pow(actual.getCoordenada().getColumna() - siguiente.getCoordenada().getColumna(), 2)
+            );
+            
+            // Si la distancia es mayor a 1, es un teletransporte
+            if (distancia > 1.5) { // Usamos 1.5 para permitir movimientos diagonales
+                this.descripcion = "Teletransporte detectado en la ruta: " +
+                    actual.getCoordenada() + " -> " + siguiente.getCoordenada() +
+                    " (distancia: " + distancia + ")";
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean validarRuta() {
         double combustibleDisponible = camion.getCombustibleActual();
         double distanciaTotal = 0;
+        Coordenada posicionActual = camion.getCoordenada();
         
         for (int i = 0; i < nodos.size(); i++) {
             Nodo nodo1, nodo2;
@@ -45,7 +77,15 @@ public class Gen {
                 nodo1 = nodos.get(i - 1);
                 nodo2 = nodos.get(i);
             }
+
+            // Obtener la ruta entre los nodos
             List<Nodo> rutaAstar = Mapa.getInstance().aStar(nodo1, nodo2);
+            
+            // Detectar teletransportes
+            if (detectarTeletransporte(nodo1, nodo2, rutaAstar)) {
+                return false;
+            }
+
             double distanciaCalculada = rutaAstar.size();
             
             // Verificar si hay suficiente combustible para esta parte de la ruta
@@ -67,6 +107,9 @@ public class Gen {
             if (nodo2 instanceof Almacen) {
                 combustibleDisponible = camion.getCombustibleMaximo();
             }
+
+            // Actualizar la posición actual
+            posicionActual = nodo2.getCoordenada();
         }
         return true;
     }
@@ -74,6 +117,7 @@ public class Gen {
     public double calcularFitness() {
         this.rutaFinal.clear();
         double fitness = 0.0;
+        Coordenada posicionActual = camion.getCoordenada();
 
         // Primero validamos la ruta completa
         if (!validarRuta()) {
@@ -89,9 +133,16 @@ public class Gen {
                 nodo1 = nodos.get(i - 1);
                 nodo2 = nodos.get(i);
             }
+
+            // Verificar que los nodos sean adyacentes o tengan una ruta válida
             List<Nodo> rutaAstar = Mapa.getInstance().aStar(nodo1, nodo2);
+            if (rutaAstar.isEmpty()) {
+                this.descripcion = "No existe una ruta válida entre " + nodo1.getCoordenada() + " y " + nodo2.getCoordenada();
+                return Double.POSITIVE_INFINITY;
+            }
 
             double distanciaCalculada = rutaAstar.size();
+
             if (nodo2 instanceof Pedido) {
                 Pedido pedido = (Pedido) nodo2;
 
@@ -126,6 +177,9 @@ public class Gen {
                 }
                 rutaFinal.addAll(rutaAstar);
             }
+
+            // Actualizar la posición actual
+            posicionActual = nodo2.getCoordenada();
         }
         this.fitness = fitness;
         return fitness;
