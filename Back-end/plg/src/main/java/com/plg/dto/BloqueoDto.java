@@ -15,4 +15,8 @@ public class BloqueoDto {
             this.coordenadas.add(new CoordenadaDto(nodo.getCoordenada()));
         }
     }
+
+    public List<CoordenadaDto> getCoordenadas() {
+        return coordenadas;
+    }
 }
