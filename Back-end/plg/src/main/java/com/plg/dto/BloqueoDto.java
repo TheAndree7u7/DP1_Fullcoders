@@ -7,6 +7,7 @@ import com.plg.entity.Bloqueo;
 import com.plg.entity.Nodo;
 
 public class BloqueoDto {
+
     private List<CoordenadaDto> coordenadas;
 
     public BloqueoDto(Bloqueo bloqueo) {
