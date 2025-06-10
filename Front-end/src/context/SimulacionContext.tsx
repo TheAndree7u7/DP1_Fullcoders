@@ -8,7 +8,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getMejorIndividuo } from '../services/simulacionApiService';
 import { getAlmacenes, type Almacen } from '../services/almacenApiService';
-import type { Individuo, Pedido } from '../types';
+import type { Pedido, Coordenada, Individuo, Gen, Nodo } from '../types';
 
 /**
  * Constantes de configuración de la simulación
@@ -67,6 +67,11 @@ interface SimulacionContextType {
   avanzarHora: () => void;
   reiniciar: () => void;
   cargando: boolean;
+  bloqueos: Bloqueo[];
+}
+
+export interface Bloqueo {
+  coordenadas: Coordenada[];
 }
 
 // Creación del contexto con valor inicial undefined
@@ -87,6 +92,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [cargando, setCargando] = useState<boolean>(true);
   const [nodosRestantesAntesDeActualizar, setNodosRestantesAntesDeActualizar] = useState<number>(NODOS_PARA_ACTUALIZACION);
   const [esperandoActualizacion, setEsperandoActualizacion] = useState<boolean>(false);
+  const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
 
   // Cargar almacenes al inicio
   useEffect(() => {
@@ -120,11 +126,12 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (esInicial) setCargando(true);
     try {
       console.log("Iniciando solicitud al servidor...");
-      const data: Individuo = await getMejorIndividuo();
+      type IndividuoConBloqueos = Individuo & { bloqueos?: Bloqueo[] };
+      const data = await getMejorIndividuo() as IndividuoConBloqueos;
       console.log("Datos recibidos:", data);
-      const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen) => ({
+      const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => ({
         id: gen.camion.codigo,
-        ruta: gen.nodos.map(n => `(${n.coordenada.x},${n.coordenada.y})`),
+        ruta: gen.nodos.map((n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`),
         puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
         pedidos: gen.pedidos,
       }));
@@ -143,6 +150,12 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       });
 
       setCamiones(nuevosCamiones);
+      // Extraer bloqueos si existen
+      if (data.bloqueos) {
+        setBloqueos(data.bloqueos);
+      } else {
+        setBloqueos([]);
+      }
       if (esInicial) setHoraActual(HORA_PRIMERA_ACTUALIZACION);
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
       setEsperandoActualizacion(false);
@@ -212,7 +225,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   return (
     <SimulacionContext.Provider
-      value={{ horaActual, camiones, rutasCamiones, almacenes, avanzarHora, reiniciar, cargando }}
+      value={{ horaActual, camiones, rutasCamiones, almacenes, avanzarHora, reiniciar, cargando, bloqueos }}
     >
       {children}
     </SimulacionContext.Provider>

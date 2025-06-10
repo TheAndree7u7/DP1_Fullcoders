@@ -19,6 +19,9 @@ const CELL_SIZE = 14;
 const SVG_WIDTH = GRID_WIDTH * CELL_SIZE;
 const SVG_HEIGHT = GRID_HEIGHT * CELL_SIZE;
 
+// Parametrización del grosor de línea de bloqueos
+const BLOQUEO_STROKE_WIDTH = 4;
+
 const parseCoord = (s: string): Coordenada => {
   const match = s.match(/\((\d+),\s*(\d+)\)/);
   if (!match) throw new Error(`Coordenada inválida: ${s}`);
@@ -47,7 +50,7 @@ const Mapa = () => {
   const [running, setRunning] = useState(false);
   const [intervalo, setIntervalo] = useState(300);
   const intervalRef = useRef<number | null>(null);
-  const { camiones, rutasCamiones, almacenes, avanzarHora, cargando } = useSimulacion();
+  const { camiones, rutasCamiones, almacenes, avanzarHora, cargando, bloqueos } = useSimulacion();
 
   // DEBUG: Verificar que almacenes llega al componente
   //console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
@@ -167,6 +170,19 @@ const Mapa = () => {
         ))}
         {[...Array(GRID_HEIGHT + 1)].map((_, i) => (
           <line key={`h-${i}`} x1={0} y1={i * CELL_SIZE} x2={SVG_WIDTH} y2={i * CELL_SIZE} stroke="#d1d5db" strokeWidth={1} />
+        ))}
+
+        {/* Bloqueos */}
+        {bloqueos && bloqueos.map((bloqueo, idx) => (
+          <polyline
+            key={`bloqueo-${idx}`}
+            fill="none"
+            stroke="#dc2626"
+            strokeWidth={BLOQUEO_STROKE_WIDTH}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            points={bloqueo.coordenadas.map(coord => `${coord.x * CELL_SIZE},${coord.y * CELL_SIZE}`).join(' ')}
+          />
         ))}
 
         {/* Clientes/Pedidos */}

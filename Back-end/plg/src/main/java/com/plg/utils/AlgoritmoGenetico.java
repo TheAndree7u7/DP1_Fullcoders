@@ -61,11 +61,11 @@ public class AlgoritmoGenetico {
         
         for (int i = 0; i < generaciones && generacionesSinMejora < 3; i++) {
             List<Individuo> padres = seleccionar_padres(poblacion);
-            //List<Individuo> hijos = cruzar(padres);
+            // List<Individuo> hijos = cruzar(padres);
             List<Individuo> hijos = padres;
             // Mutación selectiva - solo mutamos algunos hijos
             for (int j = 0; j < hijos.size(); j++) {
-                if (random.nextDouble() < 0.3) { // 30% de probabilidad de mutación
+                if (random.nextDouble() < 0.7) { // 70% de probabilidad de mutación
                     hijos.get(j).mutar();
                 }
             }
