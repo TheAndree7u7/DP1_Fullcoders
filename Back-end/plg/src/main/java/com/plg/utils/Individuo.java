@@ -47,8 +47,8 @@ public class Individuo {
         Collections.shuffle(genesMezclados, new Random());
 
         Random selectorDeGen = new Random();
-        for(Nodo pedido : pedidosMezclados) {
-            Gen gen = genesMezclados.get(selectorDeGen.nextInt(genesMezclados.size()));      
+        for (Nodo pedido : pedidosMezclados) {
+            Gen gen = genesMezclados.get(selectorDeGen.nextInt(genesMezclados.size()));
             if (pedido instanceof Pedido) {
                 gen.getPedidos().add((Pedido) pedido);
             }
@@ -56,6 +56,21 @@ public class Individuo {
         }
         for (Gen gen : cromosoma) {
             gen.getNodos().add(almacenCentral);
+        }
+        // Insertar almacenes intermedios (almacenes index 1 y 2) en rutas largas
+        for (Gen gen : cromosoma) {
+            List<Nodo> nodos = gen.getNodos();
+            if (nodos.size() > 3) { // al menos dos pedidos y un almacén central
+                // Insertar almacén intermedio con cierta probabilidad entre dos pedidos
+                for (int i = 1; i < nodos.size() - 2; i++) { // entre el primer pedido y el penúltimo
+                    if (selectorDeGen.nextDouble() < 0.5) { // 50% de probabilidad
+                        // Elegir aleatoriamente entre almacén 1 o 2 si existen
+                        Almacen almacenIntermedio = almacenes.size() > 2 ? almacenes.get(1 + selectorDeGen.nextInt(2)) : almacenes.get(1);
+                        nodos.add(i + 1, almacenIntermedio);
+                        i++; // saltar el almacén recién insertado para evitar inserciones consecutivas
+                    }
+                }
+            }
         }
     }
 
