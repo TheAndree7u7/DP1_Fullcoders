@@ -17,9 +17,9 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@NoArgsConstructor
 public class Gen {
 
     private int posNodo = 0;
@@ -39,13 +39,6 @@ public class Gen {
 
     public double calcularFitness() {
         this.rutaFinal.clear();
-
-        // ✅ VALIDACIÓN PREVIA: Verificar si puede completar toda la ruta del cromosoma
-        if (!puedeCompletarRutaCompleta()) {
-            this.fitness = Double.POSITIVE_INFINITY;
-            return this.fitness;
-        }
-
         double fitness = 0.0;
 
         for (int i = 0; i < nodos.size(); i++) {
@@ -101,121 +94,8 @@ public class Gen {
                 rutaFinal.addAll(rutaAstar);
             }
         }
-
-        // ✅ VALIDACIÓN FINAL: Verificar regreso al almacén si completó toda la ruta
-        if (fitness != Double.POSITIVE_INFINITY && !nodos.isEmpty()) {
-            if (!puedeRegresarAlAlmacen()) {
-                fitness = Double.POSITIVE_INFINITY;
-                return this.fitness;
-            }
-        }
-
         this.fitness = fitness;
         return fitness;
-    }
-
-// ✅ NUEVO MÉTODO: Validar toda la ruta del cromosoma antes de ejecutarla
-    private boolean puedeCompletarRutaCompleta() {
-        if (nodos.isEmpty()) {
-            return true;
-        }
-
-        // Crear una copia del camión para simulación sin modificar el original
-        Camion camionSimulacion = crearCopiaCamion();
-        double distanciaTotalRecorrida = 0.0;
-        Nodo nodoAnterior = camionSimulacion;
-
-        // Simular toda la ruta
-        for (Nodo nodoActual : nodos) {
-            List<Nodo> rutaParcial = Mapa.getInstance().aStar(nodoAnterior, nodoActual);
-            double distanciaTramo = rutaParcial.size();
-            distanciaTotalRecorrida += distanciaTramo;
-
-            // Verificar si puede llegar a este nodo
-            double distanciaMaximaPosible = camionSimulacion.calcularDistanciaMaxima();
-            if (distanciaMaximaPosible < distanciaTramo) {
-                this.descripcion = "El camión " + camion.getCodigo()
-                        + " no puede completar la ruta del cromosoma. "
-                        + "No puede llegar al nodo " + nodoActual.getCoordenada()
-                        + " desde " + nodoAnterior.getCoordenada() + ". "
-                        + "Distancia requerida: " + distanciaTramo + " km, "
-                        + "distancia máxima posible: " + distanciaMaximaPosible + " km.";
-                return false;
-            }
-
-            // Simular el consumo de combustible y GLP
-            camionSimulacion.actualizarCombustible(distanciaTramo);
-
-            if (nodoActual instanceof Pedido) {
-                Pedido pedido = (Pedido) nodoActual;
-                camionSimulacion.entregarVolumenGLP(pedido.getVolumenGLPAsignado());
-            } else if (nodoActual instanceof Almacen || nodoActual instanceof Camion) {
-                // Simular recarga
-                camionSimulacion.setCombustibleActual(camionSimulacion.getCombustibleMaximo());
-                camionSimulacion.setCapacidadActualGLP(camionSimulacion.getCapacidadMaximaGLP());
-            }
-
-            nodoAnterior = nodoActual;
-        }
-
-        // ✅ CRUCIAL: Verificar si puede regresar al almacén de origen
-        List<Nodo> rutaRegreso = Mapa.getInstance().aStar(nodoAnterior, camion);
-        double distanciaRegreso = rutaRegreso.size();
-        double distanciaMaximaParaRegreso = camionSimulacion.calcularDistanciaMaxima();
-
-        if (distanciaMaximaParaRegreso < distanciaRegreso) {
-            this.descripcion = "El camión " + camion.getCodigo()
-                    + " no puede regresar al almacén después de completar todos los pedidos. "
-                    + "Distancia de regreso requerida: " + distanciaRegreso + " km, "
-                    + "distancia máxima posible: " + distanciaMaximaParaRegreso + " km. "
-                    + "Posición final: " + nodoAnterior.getCoordenada()
-                    + ", almacén: " + camion.getCoordenada() + ".";
-            return false;
-        }
-
-        return true;
-    }
-
-// ✅ NUEVO MÉTODO: Verificar si puede regresar al almacén al final
-    private boolean puedeRegresarAlAlmacen() {
-        if (nodos.isEmpty()) {
-            return true;
-        }
-
-        Nodo ultimoNodo = nodos.get(nodos.size() - 1);
-        List<Nodo> rutaRegreso = Mapa.getInstance().aStar(ultimoNodo, camion);
-        double distanciaRegreso = rutaRegreso.size();
-        double distanciaMaxima = camion.calcularDistanciaMaxima();
-
-        if (distanciaMaxima < distanciaRegreso) {
-            this.descripcion = "El camión " + camion.getCodigo()
-                    + " no puede regresar al almacén desde " + ultimoNodo.getCoordenada()
-                    + " al almacén " + camion.getCoordenada() + ". "
-                    + "Distancia de regreso: " + distanciaRegreso + " km, "
-                    + "distancia máxima: " + distanciaMaxima + " km.";
-            return false;
-        }
-
-        return true;
-    }
-
-// ✅ NUEVO MÉTODO: Crear copia del camión para simulación
-    private Camion crearCopiaCamion() {
-        Camion copia = new Camion();
-        copia.setCodigo(camion.getCodigo());
-        copia.setTipo(camion.getTipo());
-        copia.setCapacidadMaximaGLP(camion.getCapacidadMaximaGLP());
-        copia.setCapacidadActualGLP(camion.getCapacidadActualGLP());
-        copia.setTara(camion.getTara());
-        copia.setPesoCarga(camion.getPesoCarga());
-        copia.setPesoCombinado(camion.getPesoCombinado());
-        copia.setEstado(camion.getEstado());
-        copia.setCombustibleMaximo(camion.getCombustibleMaximo());
-        copia.setCombustibleActual(camion.getCombustibleActual());
-        copia.setVelocidadPromedio(camion.getVelocidadPromedio());
-        copia.setDistanciaMaxima(camion.getDistanciaMaxima());
-        copia.setCoordenada(camion.getCoordenada());
-        return copia;
     }
 
     private void recargarCamion(Camion camion, Nodo nodo) {
