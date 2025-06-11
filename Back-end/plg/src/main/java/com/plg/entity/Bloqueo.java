@@ -1,7 +1,9 @@
 package com.plg.entity;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -14,6 +16,8 @@ import com.plg.utils.Herramientas;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class Bloqueo {
 
     private LocalDateTime fechaInicio;

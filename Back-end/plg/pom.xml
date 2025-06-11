@@ -28,6 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
+		<lombok.version>1.18.38</lombok.version>  <!-- aquí -->
 	</properties>
 	<dependencies>
 
@@ -128,6 +129,7 @@
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
+							<version>1.18.38</version><!-- igual que arriba -->
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
@@ -140,6 +142,7 @@
 						<exclude>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
+							<version>1.18.38</version><!-- igual que arriba -->
 						</exclude>
 					</excludes>
 				</configuration>

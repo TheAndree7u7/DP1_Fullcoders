@@ -7,7 +7,11 @@ import com.plg.entity.Bloqueo;
 import com.plg.entity.Nodo;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 @Data
+@Getter
+@Setter
 public class BloqueoDto {
     private List<CoordenadaDto> coordenadas;
 
