@@ -2,9 +2,13 @@
 import { useState, useRef, useEffect } from "react";
 import logo from "../assets/logo.png";
 
+interface Props {
+  title: string;
+}
 
-const Navbar: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
+
+const Navbar: React.FC<Props> = ({ title }) => {
+  const [, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,7 +30,7 @@ const Navbar: React.FC = () => {
       <div className="flex items-center space-x-8">
         <img src={logo} alt="logo" className="w-[24px] h-[24p]" />
         <div className="font-bold text-[14px] text-[#1890FF]">GLPSoft</div>
-        <div className="text-black font-bold text-xl">Ejecución semanal</div>
+        <div className="text-black font-bold text-xl">{title}</div>
       </div>
 
     </nav>
