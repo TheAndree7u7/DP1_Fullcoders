@@ -8,7 +8,7 @@ interface Props {
 
 
 const Navbar: React.FC<Props> = ({ title }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

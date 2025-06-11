@@ -15,11 +15,6 @@ const CELL_SIZE = 14;
 const SVG_WIDTH = GRID_WIDTH * CELL_SIZE;
 const SVG_HEIGHT = GRID_HEIGHT * CELL_SIZE;
 
-const parseCoord = (s: string): Coordenada => {
-  const match = s.match(/\((\d+),\s*(\d+)\)/);
-  if (!match) throw new Error(`Coordenada inválida: ${s}`);
-  return { x: parseInt(match[1]), y: parseInt(match[2]) };
-};
 
 const calcularRotacion = (prev: Coordenada, next: Coordenada): number => {
   const dx = next.x - prev.x;

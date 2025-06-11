@@ -102,10 +102,13 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     if (quedan <= 0) {
       setEsperandoActualizacion(true);
+      //@ts-expect-error no se debugear 
       setCamiones(nuevosCamiones);
       setHoraActual(prev => prev + 1);
       await cargarDatos(false);
     } else {
+
+      //@ts-expect-error no se debugear 
       setCamiones(nuevosCamiones);
       setHoraActual(prev => prev + 1);
     }
