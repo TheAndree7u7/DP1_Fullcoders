@@ -9,8 +9,10 @@ import java.util.HashSet;
 import com.plg.config.DataLoader;
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
+import com.plg.entity.Coordenada;
 import com.plg.entity.Mapa;
 import com.plg.entity.Pedido;
+import com.plg.entity.TipoNodo;
 import com.plg.entity.Nodo;
 
 import lombok.AllArgsConstructor;
@@ -33,19 +35,40 @@ public class AlgoritmoGenetico {
     public AlgoritmoGenetico(Mapa mapa, List<Pedido> pedidos) {
         this.mapa = mapa;
         this.pedidos = pedidos;
-        generaciones = 10;
-        poblacionTamano = 100;
+        generaciones = 50;
+        poblacionTamano = 200;
+        // Borramos los pedidos del mapa
+        for(int i=0; i<mapa.getFilas(); i++){
+            for(int j=0; j<mapa.getColumnas(); j++){
+                Nodo nodo = mapa.getMatriz().get(i).get(j);
+                if(nodo instanceof Pedido){
+                    Nodo nodoaux = Nodo.builder().coordenada(new Coordenada(i, j)).tipoNodo(TipoNodo.NORMAL).build();
+                    mapa.setNodo(nodo.getCoordenada(), nodoaux);
+                }
+            }
+        }
+        // Colocamos todos los nuevos pedidos en el mapa
+        for (Pedido pedido : pedidos) {
+            mapa.setNodo(pedido.getCoordenada(), pedido);
+        }
+
     }
 
     public void ejecutarAlgoritmo() {
+        // Validar que todos los camiones tengan combustible suficiente
+        if (!validarCombustibleCamiones()) {
+            System.out.println("Error: Algunos camiones no tienen combustible suficiente para continuar.");
+            return;
+        }
+        
         List<Individuo> poblacion = inicializarPoblacion();
         double mejorFitness = Double.MIN_VALUE;
         int generacionesSinMejora = 0;
         
         for (int i = 0; i < generaciones && generacionesSinMejora < 3; i++) {
             List<Individuo> padres = seleccionar_padres(poblacion);
-            List<Individuo> hijos = cruzar(padres);
-            
+            // List<Individuo> hijos = cruzar(padres);
+            List<Individuo> hijos = padres;
             // Mutación selectiva - solo mutamos algunos hijos
             for (int j = 0; j < hijos.size(); j++) {
                 if (random.nextDouble() < 0.3) { // 30% de probabilidad de mutación
@@ -67,6 +90,14 @@ public class AlgoritmoGenetico {
         // Ordenar población
         poblacion.sort((ind1, ind2) -> Double.compare(ind1.getFitness(), ind2.getFitness()));
         mejorIndividuo = poblacion.get(0);
+        
+        // Verificar que el mejor individuo sea factible
+        if (mejorIndividuo.getFitness() == Double.POSITIVE_INFINITY) {
+            System.out.println("Error: No se pudo encontrar una solución factible.");
+            System.out.println("Razón: " + mejorIndividuo.getDescripcion());
+            return;
+        }
+        
         verificarMejorIndividuo(mejorIndividuo);
         actualizarParametrosGlobales(mejorIndividuo);
         System.out.println("Fitness algoritmo genético: " + Parametros.contadorPrueba + " " + mejorIndividuo.getFitness());
@@ -121,29 +152,29 @@ public class AlgoritmoGenetico {
     }
 
     private List<Individuo> cruzar(List<Individuo> seleccionados) {
-        return seleccionados;
+   
 
-        // List<Individuo> nuevaPoblacion = new ArrayList<>();
+        List<Individuo> nuevaPoblacion = new ArrayList<>();
         
-        // // Aseguramos que haya al menos 2 individuos para cruzar
-        // if (seleccionados.size() < 2) {
-        //     return seleccionados;
-        // }
+        // Aseguramos que haya al menos 2 individuos para cruzar
+        if (seleccionados.size() < 2) {
+            return seleccionados;
+        }
         
-        // // Cruzamos los individuos en pares
-        // for (int i = 0; i < seleccionados.size() - 1; i += 2) {
-        //     Individuo padre1 = seleccionados.get(i);
-        //     Individuo padre2 = seleccionados.get(i + 1);
-        //     List<Individuo> hijos = cruzar(padre1, padre2);
-        //     nuevaPoblacion.addAll(hijos);
-        // }
+        // Cruzamos los individuos en pares
+        for (int i = 0; i < seleccionados.size() - 1; i += 2) {
+            Individuo padre1 = seleccionados.get(i);
+            Individuo padre2 = seleccionados.get(i + 1);
+            List<Individuo> hijos = cruzar(padre1, padre2);
+            nuevaPoblacion.addAll(hijos);
+        }
         
-        // // Si el número de seleccionados es impar, agregamos el último individuo sin cruzar
-        // if (seleccionados.size() % 2 != 0) {
-        //     nuevaPoblacion.add(seleccionados.get(seleccionados.size() - 1));
-        // }
+        // Si el número de seleccionados es impar, agregamos el último individuo sin cruzar
+        if (seleccionados.size() % 2 != 0) {
+            nuevaPoblacion.add(seleccionados.get(seleccionados.size() - 1));
+        }
         
-        // return nuevaPoblacion;
+        return nuevaPoblacion;
     }
 
     private List<Individuo> cruzar(Individuo p1, Individuo p2) {
@@ -228,8 +259,8 @@ public class AlgoritmoGenetico {
     }
 
     public void verificarMejorIndividuo(Individuo individuo) {
-        if (individuo.getFitness() == Double.MIN_VALUE || individuo.getFitness() == 0.0) {
-            System.out.println("No se ha encontrado una solución");
+        if (individuo.getFitness() == Double.POSITIVE_INFINITY) {
+            System.out.println(individuo.getDescripcion());
             System.exit(0);
         }
     }
@@ -239,5 +270,23 @@ public class AlgoritmoGenetico {
         Parametros.kilometrosRecorridos = individuo.getCromosoma().stream()
                 .mapToDouble(gen -> gen.getRutaFinal().size()).sum();
         Parametros.contadorPrueba++;
+    }
+
+    /**
+     * Valida que todos los camiones tengan combustible suficiente para continuar
+     * @return true si todos los camiones tienen combustible positivo, false en caso contrario
+     */
+    private boolean validarCombustibleCamiones() {
+        List<Camion> camiones = DataLoader.camiones;
+        for (Camion camion : camiones) {
+            camion.calcularDistanciaMaxima();
+            if (camion.getDistanciaMaxima() <= 0) {
+                System.out.println("El camión " + camion.getCodigo() + " no tiene combustible suficiente. " +
+                    "Combustible actual: " + camion.getCombustibleActual() + " galones. " +
+                    "Distancia máxima: " + camion.getDistanciaMaxima() + " km.");
+                return false;
+            }
+        }
+        return true;
     }
 }

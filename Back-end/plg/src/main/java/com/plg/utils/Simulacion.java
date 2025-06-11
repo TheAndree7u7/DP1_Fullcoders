@@ -83,11 +83,17 @@ public class Simulacion {
                 if (!pedidosPorAtender.isEmpty()) {
                     System.out.println("------------------------");
                     System.out.println("Tiempo actual: " + fechaActual);
+                    
+                    // Verificar y reabastecer camiones antes de ejecutar el algoritmo genético
+                    verificarYReabastecerCamiones();
+                    
                     List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
                     try {
                         iniciar.acquire(); 
                         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
-                        algoritmoGenetico.ejecutarAlgoritmo();            
+                        algoritmoGenetico.ejecutarAlgoritmo();  
+                        // SimulatedAnnealing simulatedAnnealing = new SimulatedAnnealing(mapa, pedidosEnviar);
+                        // simulatedAnnealing.ejecutarAlgoritmo();          
                         IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(), pedidosEnviar, bloqueosActivos);
                         gaResultQueue.offer(mejorIndividuoDto);
                         continuar.acquire(); 
@@ -172,6 +178,52 @@ public class Simulacion {
 
     private static boolean pedidoConFechaMenorAFechaActual(Pedido pedido, LocalDateTime fechaActual) {
         return pedido.getFechaRegistro().isBefore(fechaActual) || pedido.getFechaRegistro().isEqual(fechaActual);
+    }
+
+    /**
+     * Verifica el estado de combustible de todos los camiones y los reabastece automáticamente
+     * si tienen combustible insuficiente para continuar operando
+     */
+    private static void verificarYReabastecerCamiones() {
+        List<Camion> camiones = DataLoader.camiones;
+        Almacen almacenCentral = DataLoader.almacenes.stream()
+            .filter(almacen -> almacen.getTipo() == TipoAlmacen.CENTRAL)
+            .findFirst()
+            .orElse(null);
+            
+        if (almacenCentral == null) {
+            System.err.println("Error: No se encontró el almacén central para reabastecimiento");
+            return;
+        }
+        
+        for (Camion camion : camiones) {
+            camion.calcularDistanciaMaxima();
+            
+            // Si el camión tiene combustible insuficiente (menos de 50 km de autonomía o combustible <= 0), reabastecerlo
+            if (camion.getDistanciaMaxima() <= 50.0 || camion.getCombustibleActual() <= 0.0) {
+                System.out.println("⚠️  Reabastecimiento automático para camión " + camion.getCodigo());
+                System.out.println("   • Combustible actual: " + String.format("%.2f", camion.getCombustibleActual()) + " galones");
+                System.out.println("   • Distancia máxima antes: " + String.format("%.2f", camion.getDistanciaMaxima()) + " km");
+                
+                // Mover camión al almacén central y reabastecerlo
+                camion.setCoordenada(almacenCentral.getCoordenada());
+                camion.setCombustibleActual(camion.getCombustibleMaximo());
+                camion.setCapacidadActualGLP(camion.getCapacidadMaximaGLP());
+                
+                // Actualizar recursos del almacén central
+                almacenCentral.setCapacidadActualGLP(
+                    almacenCentral.getCapacidadActualGLP() - camion.getCapacidadMaximaGLP()
+                );
+                almacenCentral.setCapacidadCombustible(
+                    almacenCentral.getCapacidadCombustible() - camion.getCombustibleMaximo()
+                );
+                
+                camion.calcularDistanciaMaxima();
+                System.out.println("   • Combustible después: " + String.format("%.2f", camion.getCombustibleActual()) + " galones");
+                System.out.println("   • Distancia máxima después: " + String.format("%.2f", camion.getDistanciaMaxima()) + " km");
+                System.out.println("   ✅ Reabastecimiento completado");
+            }
+        }
     }
 
 }

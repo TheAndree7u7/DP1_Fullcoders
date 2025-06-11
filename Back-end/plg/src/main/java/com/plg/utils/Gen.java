@@ -36,6 +36,31 @@ public class Gen {
         this.rutaFinal.clear();
         double fitness = 0.0;
 
+        // Validación inicial: verificar que el camión tenga combustible
+        camion.calcularDistanciaMaxima();
+        if (camion.getDistanciaMaxima() <= 0) {
+            fitness = Double.POSITIVE_INFINITY;
+            this.descripcion = "El camión " + camion.getCodigo() + " no tiene combustible suficiente para iniciar la ruta. " +
+                "Combustible actual: " + camion.getCombustibleActual() + " galones. " +
+                "Distancia máxima calculada: " + camion.getDistanciaMaxima() + " km.";
+            return fitness;
+        }
+
+        // VALIDACIÓN PREVIA: Calcular la distancia total de toda la ruta antes de ejecutarla
+        double distanciaTotalRuta = calcularDistanciaTotalRuta();
+        double distanciaMaximaInicial = camion.getDistanciaMaxima();
+        
+        if (distanciaTotalRuta > distanciaMaximaInicial) {
+            fitness = Double.POSITIVE_INFINITY;
+            this.descripcion = "⚠️ RUTA NO FACTIBLE ⚠️\n" +
+                "Camión: " + camion.getCodigo() + "\n" +
+                "• Distancia total de la ruta: " + String.format("%.2f", distanciaTotalRuta) + " km\n" +
+                "• Distancia máxima del camión: " + String.format("%.2f", distanciaMaximaInicial) + " km\n" +
+                "• Déficit de combustible: " + String.format("%.2f", distanciaTotalRuta - distanciaMaximaInicial) + " km\n" +
+                "💡 Esta ruta se rechaza desde la planificación para evitar que el camión se quede sin combustible.";
+            return fitness;
+        }
+
         for (int i = 0; i < nodos.size(); i++) {
             Nodo nodo1, nodo2;
             if(i == 0){
@@ -49,8 +74,19 @@ public class Gen {
 
             double distanciaCalculada = rutaAstar.size();
             double distanciaMaxima = camion.calcularDistanciaMaxima();
-            if (!validarDistanciaMaxima(distanciaMaxima, distanciaCalculada, nodo1, nodo2)) {
-                fitness = Double.MIN_VALUE;
+            
+            // Mejorar la validación de distancia
+            if (distanciaMaxima <= 0) {
+                fitness = Double.POSITIVE_INFINITY;
+                this.descripcion = "El camión " + camion.getCodigo() + " se quedó sin combustible durante la ruta. " +
+                    "Combustible actual: " + camion.getCombustibleActual() + " galones. " +
+                    "Posición actual: " + nodo1.getCoordenada() + ", Destino: " + nodo2.getCoordenada();
+                break;
+            }
+            
+            if (distanciaMaxima < distanciaCalculada) {
+                fitness = Double.POSITIVE_INFINITY;
+                this.descripcion = descripcionDistanciaLejana(distanciaMaxima, distanciaCalculada, nodo1, nodo2);
                 break;
             }
             if (nodo2 instanceof Pedido) {
@@ -65,7 +101,7 @@ public class Gen {
                 boolean volumenGLPAsignado = camion.getCapacidadActualGLP() >= pedido.getVolumenGLPAsignado();
 
                 if (tiempoMenorQueLimite && volumenGLPAsignado) {
-                    fitness += tiempoEntregaLimite - tiempoLlegada;
+                    fitness += distanciaCalculada; // Aumentamos el fitness por la distancia recorrida
                     // Combustible gastado
                     camion.actualizarCombustible(distanciaCalculada);
 
@@ -76,8 +112,8 @@ public class Gen {
                     }
                     rutaFinal.addAll(rutaAstar);
                 } else {
-                    fitness = Double.MIN_VALUE;
-                    //imprimirDescripcionError(pedido, camion, tiempoEntregaLimite, tiempoLlegada, tiempoMenorQueLimite, volumenGLPAsignado);
+                    fitness = Double.POSITIVE_INFINITY;
+                    this.descripcion = descripcionError(pedido, camion, tiempoEntregaLimite, tiempoLlegada, tiempoMenorQueLimite, volumenGLPAsignado);
                     break;
                 }
             } else if (nodo2 instanceof Almacen || nodo2 instanceof Camion) {
@@ -105,36 +141,65 @@ public class Gen {
         }
     }
 
-    public boolean validarDistanciaMaxima(double distanciaMaxima, double distanciaCalculada, Nodo nodo1, Nodo nodo2) {
-        if (distanciaMaxima < distanciaCalculada) {
-            // this.descripcion = "El camion con código " + camion.getCodigo() + 
-            //     " no puede recorrer la distancia de " + distanciaCalculada + 
-            //     " km. La distancia máxima es de " + distanciaMaxima + 
-            //     " km." + " El camión se encuentra en la posición " + nodo1.getCoordenada() + 
-            //     " y se dirige a la posición " + nodo2.getCoordenada() + ".";
-            return false;
-        }
-        return true;
+    public String descripcionDistanciaLejana(double distanciaMaxima, double distanciaCalculada, Nodo nodo1, Nodo nodo2) {
+        return "⚠️  COMBUSTIBLE INSUFICIENTE ⚠️" + "\n" +
+               "Camión: " + camion.getCodigo() + "\n" + 
+               "• Distancia requerida: " + String.format("%.2f", distanciaCalculada) + " km\n" +
+               "• Distancia máxima disponible: " + String.format("%.2f", distanciaMaxima) + " km\n" +
+               "• Combustible actual: " + String.format("%.2f", camion.getCombustibleActual()) + " galones\n" +
+               "• Posición actual: " + nodo1.getCoordenada() + "\n" +
+               "• Destino: " + nodo2.getCoordenada() + "\n" +
+               "💡 Sugerencia: El camión necesita reabastecerse en el almacén central.";
     }
 
-    public void imprimirDescripcionError(Pedido pedido, Camion camion, double tiempoEntregaLimite, double tiempoLlegada, boolean tiempoMenorQueLimite, boolean volumenGLPAsignado) {
+    public String descripcionError(Pedido pedido, Camion camion, double tiempoEntregaLimite, double tiempoLlegada, boolean tiempoMenorQueLimite, boolean volumenGLPAsignado) {
+        String respuesta = "";
         if (!tiempoMenorQueLimite) {
-            System.out.println("El camion con código " 
-            + camion.getCodigo() +
+            respuesta =  "El camion con código " + camion.getCodigo() +
              " no puede llegar a tiempo al pedido "
               + pedido.getCodigo() + ". Tiempo de entrega: "
                + tiempoEntregaLimite + " horas. Tiempo de llegada: "
-                + tiempoLlegada + " horas.");
+                + tiempoLlegada + " horas.";
+          
         } else if (!volumenGLPAsignado) {
-            System.out.println("El camion con código "
-             + camion.getCodigo() +
-              " no tiene suficiente GLP para entregar el pedido "
-               + pedido.getCodigo() +
-                ". Volumen GLP asignado: "
-                 + pedido.getVolumenGLPAsignado() +
-                  ". Volumen GLP disponible: "
-                   + camion.getCapacidadActualGLP());
+            respuesta = "El camion con código " + camion.getCodigo() +
+             " no tiene suficiente GLP para entregar el pedido "
+              + pedido.getCodigo() + ". Volumen de GLP asignado: "
+               + pedido.getVolumenGLPAsignado() + " m³. Capacidad actual de GLP: "
+                + camion.getCapacidadActualGLP() + " m³.";
         }
+        return respuesta;
+    }
+
+    /**
+     * Calcula la distancia total que debe recorrer el camión para completar toda la ruta
+     * incluyendo todos los nodos y el regreso al almacén central
+     * @return distancia total en kilómetros
+     */
+    private double calcularDistanciaTotalRuta() {
+        if (nodos == null || nodos.isEmpty()) {
+            return 0.0;
+        }
+        
+        double distanciaTotal = 0.0;
+        
+        // Calcular distancia desde la posición actual del camión hasta todos los nodos
+        for (int i = 0; i < nodos.size(); i++) {
+            Nodo nodo1, nodo2;
+            if (i == 0) {
+                nodo1 = camion;
+                nodo2 = nodos.get(i);
+            } else {
+                nodo1 = nodos.get(i - 1);
+                nodo2 = nodos.get(i);
+            }
+            
+            // Calcular la ruta A* entre los nodos
+            List<Nodo> rutaAstar = Mapa.getInstance().aStar(nodo1, nodo2);
+            distanciaTotal += rutaAstar.size();
+        }
+        
+        return distanciaTotal;
     }
 
     @Override

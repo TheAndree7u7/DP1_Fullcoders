@@ -75,14 +75,44 @@ public class Camion extends Nodo {
 
 
     public double calcularDistanciaMaxima() {
+        // Validaciones de seguridad
+        if (combustibleActual <= 0.0) {
+            this.distanciaMaxima = 0.0;
+            return this.distanciaMaxima;
+        }
+        
+        if (tara + pesoCarga <= 0.0) {
+            System.err.println("⚠️ Error: Peso total del camión " + codigo + " es <= 0");
+            this.distanciaMaxima = 0.0;
+            return this.distanciaMaxima;
+        }
+        
         this.distanciaMaxima = (combustibleActual * 180) / (tara + pesoCarga);
+        
+        // Asegurar que la distancia máxima nunca sea negativa
+        this.distanciaMaxima = Math.max(0.0, this.distanciaMaxima);
+        
         return this.distanciaMaxima;
     }
 
     public void actualizarCombustible(double distancia) {
-
-        double combustibleUsado = this.combustibleActual * distancia  / this.distanciaMaxima;
-        this.combustibleActual -= combustibleUsado;
+        // Calcular combustible usado solo si hay suficiente distancia máxima
+        if (this.distanciaMaxima <= 0) {
+            System.out.println("⚠️ Advertencia: Camión " + codigo + " no puede moverse, sin combustible");
+            return;
+        }
+        
+        double combustibleUsado = this.combustibleActual * distancia / this.distanciaMaxima;
+        
+        // Asegurar que el combustible nunca sea negativo
+        this.combustibleActual = Math.max(0.0, this.combustibleActual - combustibleUsado);
+        
+        // Si el combustible llega a cero, establecer distancia máxima a cero también
+        if (this.combustibleActual <= 0.0) {
+            this.combustibleActual = 0.0;
+            this.distanciaMaxima = 0.0;
+            System.out.println("⚠️ Camión " + codigo + " se ha quedado sin combustible");
+        }
     } 
 
 
@@ -99,10 +129,26 @@ public class Camion extends Nodo {
             return;
         }
 
+        // Verificar si el camión tiene combustible suficiente antes de moverse
+        calcularDistanciaMaxima();
+        if (this.distanciaMaxima <= 0.0) {
+            System.out.println("🚫 Camión " + codigo + " no puede moverse: sin combustible suficiente");
+            return;
+        }
+
         // Actualizar el nodo en el que se encuentra el camión
         int cantNodos = (int) (intervaloTiempo * velocidadPromedio / 60);
         int antiguo = gen.getPosNodo();
-        gen.setPosNodo(antiguo + cantNodos);
+        
+        // Verificar que la distancia a recorrer no exceda la capacidad de combustible
+        int distanciaDeseada = cantNodos;
+        if (distanciaDeseada > this.distanciaMaxima) {
+            // Limitar el movimiento a lo que permite el combustible disponible
+            distanciaDeseada = (int) Math.floor(this.distanciaMaxima);
+            System.out.println("⚠️ Camión " + codigo + " limitado por combustible: puede moverse solo " + distanciaDeseada + " nodos");
+        }
+        
+        gen.setPosNodo(antiguo + distanciaDeseada);
         int distanciaRecorrida = gen.getPosNodo() - antiguo;
         actualizarCombustible(distanciaRecorrida);
         

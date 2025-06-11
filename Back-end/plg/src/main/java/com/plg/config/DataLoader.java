@@ -42,9 +42,9 @@ public class DataLoader {
     }
 
     public static List<Camion> initializeCamiones() {
-        // for (int i=0; i<2; i++){
-        // CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);
-        // }
+        for (int i = 0; i < 2; i++) {
+            CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);
+        }
         for (int i = 0; i < 4; i++) {
             CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);
         }
@@ -58,7 +58,7 @@ public class DataLoader {
         return camiones;
     }
 
-    public static List<Averia> initializeAverias() throws InvalidDataFormatException , IOException {
+    public static List<Averia> initializeAverias() throws InvalidDataFormatException, IOException {
         List<String> lines = Herramientas.readAllLines(pathAverias);
         for (String line : lines) {
             Averia averia = new Averia(line);
@@ -67,7 +67,7 @@ public class DataLoader {
         return averias;
     }
 
-    public static List<Pedido> initializePedidos() throws InvalidDataFormatException , IOException {
+    public static List<Pedido> initializePedidos() throws InvalidDataFormatException, IOException {
         List<String> lines = Herramientas.readAllLines(pathPedidos);
         for (String line : lines) {
             PedidoFactory.crearPedido(line);
@@ -80,7 +80,7 @@ public class DataLoader {
      * Inicializa la lista de mantenimientos a partir del archivo de mantenimientos.
      *
      * @return Lista de mantenimientos inicializados.
-     * @throws IOException si ocurre un error al leer el archivo.
+     * @throws IOException                si ocurre un error al leer el archivo.
      * @throws InvalidDataFormatException si el formato de los datos es inválido.
      */
     public static List<Mantenimiento> initializeMantenimientos()
