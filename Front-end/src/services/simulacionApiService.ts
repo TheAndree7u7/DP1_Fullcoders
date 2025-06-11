@@ -1,5 +1,5 @@
 import type { Individuo } from "../types";
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = "http://200.16.7.182/back-end/api/simulacion";
 
 export async function getMejorIndividuo(): Promise<Individuo> {
   try {
