@@ -1,7 +1,6 @@
-import React from 'react';
-import { ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronRight, ChevronDown } from 'lucide-react';
 import TablaPedidos from './TablaPedidos';
-import MetricasRendimiento from './MetricasRendimiento';
 import CardsCamiones from './CardCamion';
 
 interface RightMenuProps {
@@ -10,6 +9,9 @@ interface RightMenuProps {
 }
 
 const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded }) => {
+  const [showCamiones, setShowCamiones] = useState(true);
+  const [showPedidos, setShowPedidos] = useState(true);
+
   if (!expanded) return null;
 
   return (
@@ -23,13 +25,17 @@ const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded }) => {
       </button>
 
       <div className="flex flex-col gap-4 overflow-y-auto">
-        <div className="text-md font-medium">Estado de los camiones</div>
-        <CardsCamiones />
-        <div className="text-md font-medium">Datos de los pedidos</div>
-        <TablaPedidos />
-        <div className="text-md font-medium">Métricas de rendimiento</div>
-        <MetricasRendimiento />
-        <div className="text-md font-medium">Indicadores de camiones</div>
+        <div className="flex items-center justify-between cursor-pointer" onClick={() => setShowCamiones(!showCamiones)}>
+          <div className="text-md font-medium">Estado de los camiones</div>
+          {showCamiones ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+        </div>
+        {showCamiones && <CardsCamiones />}
+
+        <div className="flex items-center justify-between cursor-pointer" onClick={() => setShowPedidos(!showPedidos)}>
+          <div className="text-md font-medium">Datos de los pedidos</div>
+          {showPedidos ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+        </div>
+        {showPedidos && <TablaPedidos />}
       </div>
     </div>
   );
