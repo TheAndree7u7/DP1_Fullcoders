@@ -1,5 +1,7 @@
 import type { Individuo } from "../types";
-const API_BASE_URL = "http://localhost:8085/api/simulacion";
+import { API_URLS } from "../config/api";
+
+const API_BASE_URL = API_URLS.SIMULACION_BASE;
 
 export async function getMejorIndividuo(): Promise<Individuo> {
   try {
