@@ -1,0 +1,6522 @@
+{
+    "cromosoma": [
+        {
+            "camion": {
+                "codigo": "TB01"
+            },
+            "nodos": [
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 9
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 8
+                    }
+                }
+            ],
+            "destino": {
+                "x": 57,
+                "y": 17
+            },
+            "pedidos": [
+                {
+                    "codigo": "PEDIDO-17-57"
+                }
+            ]
+        },
+        {
+            "camion": {
+                "codigo": "TB02"
+            },
+            "nodos": [
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 9
+                    }
+                }
+            ],
+            "destino": {
+                "x": 43,
+                "y": 44
+            },
+            "pedidos": [
+                {
+                    "codigo": "PEDIDO-44-43"
+                }
+            ]
+        },
+        {
+            "camion": {
+                "codigo": "TB03"
+            },
+            "nodos": [
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 7
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 6
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 6
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 14,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 4
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 18,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 18,
+                        "y": 2
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 18,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 21,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 23,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 24,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 25,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 26,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 27,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 28,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 29,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 30,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 31,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 31,
+                        "y": 0
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 32,
+                        "y": 0
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 33,
+                        "y": 0
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 34,
+                        "y": 0
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 35,
+                        "y": 0
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 36,
+                        "y": 0
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 36,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 35,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 34,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 33,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 32,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 31,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 31,
+                        "y": 2
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 30,
+                        "y": 2
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 30,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 29,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 28,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 28,
+                        "y": 4
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 27,
+                        "y": 4
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 26,
+                        "y": 4
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 25,
+                        "y": 4
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 25,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 25,
+                        "y": 6
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 25,
+                        "y": 7
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 24,
+                        "y": 7
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 24,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 23,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 21,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 18,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 14,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 8
+                    }
+                }
+            ],
+            "destino": {
+                "x": 36,
+                "y": 0
+            },
+            "pedidos": [
+                {
+                    "codigo": "PEDIDO-0-36"
+                }
+            ]
+        },
+        {
+            "camion": {
+                "codigo": "TB04"
+            },
+            "nodos": [
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 7
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 6
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 6
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 14,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 4
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 18,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 18,
+                        "y": 2
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 18,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 21,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 23,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 24,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 25,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 26,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 27,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 28,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 29,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 30,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 31,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 32,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 33,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 34,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 35,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 36,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 37,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 38,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 39,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 40,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 41,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 42,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 42,
+                        "y": 2
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 42,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 41,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 40,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 39,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 38,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 37,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 36,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 35,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 34,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 33,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 32,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 31,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 30,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 30,
+                        "y": 4
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 30,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 29,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 28,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 27,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 26,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 25,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 24,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 23,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 21,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 21,
+                        "y": 6
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 6
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 7
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 7
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 18,
+                        "y": 7
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 7
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 7
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 14,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 8
+                    }
+                }
+            ],
+            "destino": {
+                "x": 42,
+                "y": 1
+            },
+            "pedidos": [
+                {
+                    "codigo": "PEDIDO-1-42"
+                }
+            ]
+        },
+        {
+            "camion": {
+                "codigo": "TC01"
+            },
+            "nodos": [
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 7
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 6
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 11,
+                        "y": 6
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 11,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 11,
+                        "y": 4
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 11,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 11,
+                        "y": 2
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 10,
+                        "y": 2
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 9,
+                        "y": 2
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 9,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 9,
+                        "y": 4
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 10,
+                        "y": 4
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 10,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 11,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 6
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 7
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 8
+                    }
+                }
+            ],
+            "destino": {
+                "x": 9,
+                "y": 2
+            },
+            "pedidos": [
+                {
+                    "codigo": "PEDIDO-2-9"
+                }
+            ]
+        },
+        {
+            "camion": {
+                "codigo": "TC02"
+            },
+            "nodos": [
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 9
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 10
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 10
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 11
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 12
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 13
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 14
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 15
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 14,
+                        "y": 15
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 15
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 16
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 17
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 18
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 19
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 19
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 20
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 21
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 21
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 22
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 23
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 24
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 25
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 26
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 27
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 28
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 29
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 30
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 31
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 32
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 18,
+                        "y": 32
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 32
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 32
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 33
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 34
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 21,
+                        "y": 34
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 21,
+                        "y": 35
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 35
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 36
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 37
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 38
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 39
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 40
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 41
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 42
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 41
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 40
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 21,
+                        "y": 40
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 21,
+                        "y": 39
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 21,
+                        "y": 38
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 21,
+                        "y": 37
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 21,
+                        "y": 36
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 36
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 35
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 34
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 33
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 32
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 31
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 31
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 30
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 29
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 28
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 27
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 26
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 25
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 24
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 23
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 22
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 21
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 20
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 19
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 18
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 18,
+                        "y": 18
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 18,
+                        "y": 17
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 17
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 16
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 16
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 15
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 15
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 14
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 13
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 12
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 11
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 10
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 9
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 14,
+                        "y": 9
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 9
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 9
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 8
+                    }
+                }
+            ],
+            "destino": {
+                "x": 22,
+                "y": 42
+            },
+            "pedidos": [
+                {
+                    "codigo": "PEDIDO-42-22"
+                }
+            ]
+        },
+        {
+            "camion": {
+                "codigo": "TC03"
+            },
+            "nodos": [
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 7
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 6
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 6
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 4
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 14,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 2
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 1
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 2
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 3
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 4
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 14,
+                        "y": 4
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 14,
+                        "y": 5
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 14,
+                        "y": 6
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 14,
+                        "y": 7
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 14,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 8
+                    }
+                }
+            ],
+            "destino": {
+                "x": 16,
+                "y": 1
+            },
+            "pedidos": [
+                {
+                    "codigo": "PEDIDO-1-16"
+                }
+            ]
+        },
+        {
+            "camion": {
+                "codigo": "TC04"
+            },
+            "nodos": [
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 9
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 10
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 10
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 11
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 12
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 13
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 14
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 15
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 14,
+                        "y": 15
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 15
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 15
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 16
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 16
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 17
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 18,
+                        "y": 17
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 18,
+                        "y": 18
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 18
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 19
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 19
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 21,
+                        "y": 19
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 19
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 23,
+                        "y": 19
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 23,
+                        "y": 20
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 23,
+                        "y": 21
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 23,
+                        "y": 22
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 23,
+                        "y": 23
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 23,
+                        "y": 24
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 23,
+                        "y": 25
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 23,
+                        "y": 26
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 24,
+                        "y": 26
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 25,
+                        "y": 26
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 26,
+                        "y": 26
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 27,
+                        "y": 26
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 28,
+                        "y": 26
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 29,
+                        "y": 26
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 30,
+                        "y": 26
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 30,
+                        "y": 25
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 30,
+                        "y": 24
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 29,
+                        "y": 24
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 29,
+                        "y": 23
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 29,
+                        "y": 22
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 29,
+                        "y": 21
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 29,
+                        "y": 20
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 29,
+                        "y": 19
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 28,
+                        "y": 19
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 27,
+                        "y": 19
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 27,
+                        "y": 18
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 26,
+                        "y": 18
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 25,
+                        "y": 18
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 24,
+                        "y": 18
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 23,
+                        "y": 18
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 18
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 22,
+                        "y": 17
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 21,
+                        "y": 17
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 21,
+                        "y": 16
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 21,
+                        "y": 15
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 15
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 20,
+                        "y": 14
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 19,
+                        "y": 14
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 18,
+                        "y": 14
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 14
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 13
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 17,
+                        "y": 12
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 12
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 16,
+                        "y": 11
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 15,
+                        "y": 11
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 14,
+                        "y": 11
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 11
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 10
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 9
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 8
+                    }
+                }
+            ],
+            "destino": {
+                "x": 30,
+                "y": 26
+            },
+            "pedidos": [
+                {
+                    "codigo": "PEDIDO-26-30"
+                }
+            ]
+        },
+        {
+            "camion": {
+                "codigo": "TD01"
+            },
+            "nodos": [
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 8
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 9
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 12,
+                        "y": 10
+                    }
+                },
+                {
+                    "coordenada": {
+                        "x": 13,
+                        "y": 10
+                    }
+                },
+                {
+          "coordenada": {
+            "x": 13,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 14,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 14
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 19,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 22,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 24,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 25,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 26,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 16
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 28,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 28,
+            "y": 20
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 20
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 21
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 22
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 22
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 31,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 32,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 33,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 34,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 34,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 34,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 35,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 36,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 37,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 38,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 39,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 40,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 41,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 42,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 42,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 43,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 43,
+            "y": 27
+          }
+        },
+        {
+          "coordenada": {
+            "x": 44,
+            "y": 27
+          }
+        },
+        {
+          "coordenada": {
+            "x": 45,
+            "y": 27
+          }
+        },
+        {
+          "coordenada": {
+            "x": 45,
+            "y": 28
+          }
+        },
+        {
+          "coordenada": {
+            "x": 46,
+            "y": 28
+          }
+        },
+        {
+          "coordenada": {
+            "x": 46,
+            "y": 29
+          }
+        },
+        {
+          "coordenada": {
+            "x": 47,
+            "y": 29
+          }
+        },
+        {
+          "coordenada": {
+            "x": 48,
+            "y": 29
+          }
+        },
+        {
+          "coordenada": {
+            "x": 48,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 49,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 49,
+            "y": 31
+          }
+        },
+        {
+          "coordenada": {
+            "x": 50,
+            "y": 31
+          }
+        },
+        {
+          "coordenada": {
+            "x": 51,
+            "y": 31
+          }
+        },
+        {
+          "coordenada": {
+            "x": 51,
+            "y": 32
+          }
+        },
+        {
+          "coordenada": {
+            "x": 52,
+            "y": 32
+          }
+        },
+        {
+          "coordenada": {
+            "x": 53,
+            "y": 32
+          }
+        },
+        {
+          "coordenada": {
+            "x": 54,
+            "y": 32
+          }
+        },
+        {
+          "coordenada": {
+            "x": 55,
+            "y": 32
+          }
+        },
+        {
+          "coordenada": {
+            "x": 56,
+            "y": 32
+          }
+        },
+        {
+          "coordenada": {
+            "x": 56,
+            "y": 33
+          }
+        },
+        {
+          "coordenada": {
+            "x": 56,
+            "y": 34
+          }
+        },
+        {
+          "coordenada": {
+            "x": 57,
+            "y": 34
+          }
+        },
+        {
+          "coordenada": {
+            "x": 57,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 57,
+            "y": 36
+          }
+        },
+        {
+          "coordenada": {
+            "x": 57,
+            "y": 37
+          }
+        },
+        {
+          "coordenada": {
+            "x": 57,
+            "y": 36
+          }
+        },
+        {
+          "coordenada": {
+            "x": 57,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 56,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 55,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 54,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 53,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 52,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 51,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 50,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 49,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 48,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 47,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 46,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 45,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 44,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 43,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 42,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 41,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 40,
+            "y": 35
+          }
+        },
+        {
+          "coordenada": {
+            "x": 40,
+            "y": 34
+          }
+        },
+        {
+          "coordenada": {
+            "x": 40,
+            "y": 33
+          }
+        },
+        {
+          "coordenada": {
+            "x": 39,
+            "y": 33
+          }
+        },
+        {
+          "coordenada": {
+            "x": 39,
+            "y": 32
+          }
+        },
+        {
+          "coordenada": {
+            "x": 39,
+            "y": 31
+          }
+        },
+        {
+          "coordenada": {
+            "x": 39,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 39,
+            "y": 29
+          }
+        },
+        {
+          "coordenada": {
+            "x": 39,
+            "y": 28
+          }
+        },
+        {
+          "coordenada": {
+            "x": 38,
+            "y": 28
+          }
+        },
+        {
+          "coordenada": {
+            "x": 37,
+            "y": 28
+          }
+        },
+        {
+          "coordenada": {
+            "x": 36,
+            "y": 28
+          }
+        },
+        {
+          "coordenada": {
+            "x": 35,
+            "y": 28
+          }
+        },
+        {
+          "coordenada": {
+            "x": 34,
+            "y": 28
+          }
+        },
+        {
+          "coordenada": {
+            "x": 34,
+            "y": 27
+          }
+        },
+        {
+          "coordenada": {
+            "x": 34,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 34,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 33,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 33,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 33,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 32,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 31,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 28,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 22
+          }
+        },
+        {
+          "coordenada": {
+            "x": 26,
+            "y": 22
+          }
+        },
+        {
+          "coordenada": {
+            "x": 25,
+            "y": 22
+          }
+        },
+        {
+          "coordenada": {
+            "x": 25,
+            "y": 21
+          }
+        },
+        {
+          "coordenada": {
+            "x": 24,
+            "y": 21
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 21
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 20
+          }
+        },
+        {
+          "coordenada": {
+            "x": 22,
+            "y": 20
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 20
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 19,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 16
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 14
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 14
+          }
+        },
+        {
+          "coordenada": {
+            "x": 14,
+            "y": 14
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 14
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        }
+      ],
+      "destino": {
+        "x": 57,
+        "y": 37
+      },
+      "pedidos": [
+        {
+          "codigo": "PEDIDO-37-57"
+        }
+      ]
+    },
+    {
+      "camion": {
+        "codigo": "TD02"
+      },
+      "nodos": [
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 14,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 14
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 19,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 22,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 24,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 25,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 26,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 16
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 28,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 28,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 31,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 32,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 33,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 34,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 35,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 36,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 37,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 38,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 39,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 40,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 41,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 42,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 43,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 44,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 44,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 44,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 43,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 42,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 41,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 40,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 39,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 38,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 37,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 36,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 35,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 34,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 33,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 32,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 31,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 28,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 16
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 26,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 26,
+            "y": 14
+          }
+        },
+        {
+          "coordenada": {
+            "x": 26,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 26,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 25,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 24,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 22,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 19,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 14,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        }
+      ],
+      "destino": {
+        "x": 44,
+        "y": 19
+      },
+      "pedidos": [
+        {
+          "codigo": "PEDIDO-19-44"
+        }
+      ]
+    },
+    {
+      "camion": {
+        "codigo": "TD03"
+      },
+      "nodos": [
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 7
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 6
+          }
+        },
+        {
+          "coordenada": {
+            "x": 11,
+            "y": 6
+          }
+        },
+        {
+          "coordenada": {
+            "x": 11,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 10,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 9,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 8,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 7,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 6,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 5,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 4,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 3,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 4,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 5,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 5,
+            "y": 6
+          }
+        },
+        {
+          "coordenada": {
+            "x": 6,
+            "y": 6
+          }
+        },
+        {
+          "coordenada": {
+            "x": 7,
+            "y": 6
+          }
+        },
+        {
+          "coordenada": {
+            "x": 8,
+            "y": 6
+          }
+        },
+        {
+          "coordenada": {
+            "x": 9,
+            "y": 6
+          }
+        },
+        {
+          "coordenada": {
+            "x": 10,
+            "y": 6
+          }
+        },
+        {
+          "coordenada": {
+            "x": 10,
+            "y": 7
+          }
+        },
+        {
+          "coordenada": {
+            "x": 11,
+            "y": 7
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 7
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        }
+      ],
+      "destino": {
+        "x": 3,
+        "y": 5
+      },
+      "pedidos": [
+        {
+          "codigo": "PEDIDO-5-3"
+        }
+      ]
+    },
+    {
+      "camion": {
+        "codigo": "TD04"
+      },
+      "nodos": [
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        }
+      ],
+      "destino": {
+        "x": 12,
+        "y": 8
+      },
+      "pedidos": []
+    },
+    {
+      "camion": {
+        "codigo": "TD05"
+      },
+      "nodos": [
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 14
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 14,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 16
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 20
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 20
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 21
+          }
+        },
+        {
+          "coordenada": {
+            "x": 19,
+            "y": 21
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 21
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 22
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 27
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 27
+          }
+        },
+        {
+          "coordenada": {
+            "x": 22,
+            "y": 27
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 27
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 28
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 29
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 24,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 25,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 26,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 28,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 31
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 31
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 29
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 29
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 28
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 27
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 28,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 26,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 25,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 24,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 22,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 22,
+            "y": 22
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 22
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 21
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 20
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 20
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 19,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 16
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 14
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 14,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 14,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 14,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        }
+      ],
+      "destino": {
+        "x": 30,
+        "y": 31
+      },
+      "pedidos": [
+        {
+          "codigo": "PEDIDO-31-30"
+        }
+      ]
+    },
+    {
+      "camion": {
+        "codigo": "TD06"
+      },
+      "nodos": [
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 14,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 19,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 22,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 24,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 25,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 26,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 28,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 31,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 32,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 33,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 34,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 35,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 36,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 37,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 38,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 39,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 40,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 41,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 42,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 43,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 44,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 45,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 46,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 47,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 48,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 49,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 50,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 51,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 52,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 53,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 53,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 54,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 55,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 56,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 57,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 58,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 59,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 60,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 61,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 62,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 63,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 64,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 65,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 66,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 67,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 67,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 68,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 69,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 69,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 69,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 68,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 67,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 66,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 65,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 64,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 63,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 62,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 61,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 60,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 59,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 58,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 57,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 56,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 55,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 54,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 53,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 52,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 51,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 50,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 49,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 49,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 48,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 47,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 46,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 45,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 44,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 43,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 42,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 41,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 40,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 40,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 39,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 38,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 37,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 36,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 35,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 34,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 33,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 32,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 31,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 28,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 26,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 25,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 24,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 22,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 19,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 14,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        }
+      ],
+      "destino": {
+        "x": 69,
+        "y": 13
+      },
+      "pedidos": [
+        {
+          "codigo": "PEDIDO-13-69"
+        }
+      ]
+    },
+    {
+      "camion": {
+        "codigo": "TD07"
+      },
+      "nodos": [
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 11,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 11,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 10,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 9,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 8,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 7,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 6,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 5,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 4,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 5,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 6,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 6,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 7,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 8,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 9,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 10,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 11,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 11,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        }
+      ],
+      "destino": {
+        "x": 4,
+        "y": 11
+      },
+      "pedidos": [
+        {
+          "codigo": "PEDIDO-11-4"
+        }
+      ]
+    },
+    {
+      "camion": {
+        "codigo": "TD08"
+      },
+      "nodos": [
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 14
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 14,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 16
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 16
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 19,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 19,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 20
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 21
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 22
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 22,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 24,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 25,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 26,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 28,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 31,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 31,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 31,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 22
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 21
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 20
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 28,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 28,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 26,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 25,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 25,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 24,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 16
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 22,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 14
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 19,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 14,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 14,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        }
+      ],
+      "destino": {
+        "x": 31,
+        "y": 26
+      },
+      "pedidos": [
+        {
+          "codigo": "PEDIDO-26-31"
+        }
+      ]
+    },
+    {
+      "camion": {
+        "codigo": "TD09"
+      },
+      "nodos": [
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 14
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 16
+          }
+        },
+        {
+          "coordenada": {
+            "x": 14,
+            "y": 16
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 16
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 20
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 21
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 22
+          }
+        },
+        {
+          "coordenada": {
+            "x": 19,
+            "y": 22
+          }
+        },
+        {
+          "coordenada": {
+            "x": 19,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 19,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 22,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 24,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 25,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 26,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 28,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 28,
+            "y": 27
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 27
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 27
+          }
+        },
+        {
+          "coordenada": {
+            "x": 31,
+            "y": 27
+          }
+        },
+        {
+          "coordenada": {
+            "x": 32,
+            "y": 27
+          }
+        },
+        {
+          "coordenada": {
+            "x": 33,
+            "y": 27
+          }
+        },
+        {
+          "coordenada": {
+            "x": 33,
+            "y": 28
+          }
+        },
+        {
+          "coordenada": {
+            "x": 34,
+            "y": 28
+          }
+        },
+        {
+          "coordenada": {
+            "x": 35,
+            "y": 28
+          }
+        },
+        {
+          "coordenada": {
+            "x": 35,
+            "y": 29
+          }
+        },
+        {
+          "coordenada": {
+            "x": 35,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 36,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 37,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 38,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 39,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 39,
+            "y": 31
+          }
+        },
+        {
+          "coordenada": {
+            "x": 39,
+            "y": 30
+          }
+        },
+        {
+          "coordenada": {
+            "x": 39,
+            "y": 29
+          }
+        },
+        {
+          "coordenada": {
+            "x": 38,
+            "y": 29
+          }
+        },
+        {
+          "coordenada": {
+            "x": 38,
+            "y": 28
+          }
+        },
+        {
+          "coordenada": {
+            "x": 38,
+            "y": 27
+          }
+        },
+        {
+          "coordenada": {
+            "x": 38,
+            "y": 26
+          }
+        },
+        {
+          "coordenada": {
+            "x": 38,
+            "y": 25
+          }
+        },
+        {
+          "coordenada": {
+            "x": 38,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 37,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 36,
+            "y": 24
+          }
+        },
+        {
+          "coordenada": {
+            "x": 36,
+            "y": 23
+          }
+        },
+        {
+          "coordenada": {
+            "x": 36,
+            "y": 22
+          }
+        },
+        {
+          "coordenada": {
+            "x": 36,
+            "y": 21
+          }
+        },
+        {
+          "coordenada": {
+            "x": 36,
+            "y": 20
+          }
+        },
+        {
+          "coordenada": {
+            "x": 36,
+            "y": 19
+          }
+        },
+        {
+          "coordenada": {
+            "x": 36,
+            "y": 18
+          }
+        },
+        {
+          "coordenada": {
+            "x": 36,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 35,
+            "y": 17
+          }
+        },
+        {
+          "coordenada": {
+            "x": 35,
+            "y": 16
+          }
+        },
+        {
+          "coordenada": {
+            "x": 35,
+            "y": 15
+          }
+        },
+        {
+          "coordenada": {
+            "x": 35,
+            "y": 14
+          }
+        },
+        {
+          "coordenada": {
+            "x": 34,
+            "y": 14
+          }
+        },
+        {
+          "coordenada": {
+            "x": 34,
+            "y": 13
+          }
+        },
+        {
+          "coordenada": {
+            "x": 34,
+            "y": 12
+          }
+        },
+        {
+          "coordenada": {
+            "x": 34,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 33,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 32,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 31,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 30,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 29,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 28,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 27,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 26,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 25,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 24,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 23,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 22,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 21,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 20,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 19,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 18,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 17,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 16,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 15,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 14,
+            "y": 11
+          }
+        },
+        {
+          "coordenada": {
+            "x": 14,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 13,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 10
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 9
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        }
+      ],
+      "destino": {
+        "x": 39,
+        "y": 31
+      },
+      "pedidos": [
+        {
+          "codigo": "PEDIDO-31-39"
+        }
+      ]
+    },
+    {
+      "camion": {
+        "codigo": "TD10"
+      },
+      "nodos": [
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 7
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 6
+          }
+        },
+        {
+          "coordenada": {
+            "x": 11,
+            "y": 6
+          }
+        },
+        {
+          "coordenada": {
+            "x": 11,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 10,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 10,
+            "y": 4
+          }
+        },
+        {
+          "coordenada": {
+            "x": 9,
+            "y": 4
+          }
+        },
+        {
+          "coordenada": {
+            "x": 8,
+            "y": 4
+          }
+        },
+        {
+          "coordenada": {
+            "x": 7,
+            "y": 4
+          }
+        },
+        {
+          "coordenada": {
+            "x": 8,
+            "y": 4
+          }
+        },
+        {
+          "coordenada": {
+            "x": 9,
+            "y": 4
+          }
+        },
+        {
+          "coordenada": {
+            "x": 9,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 10,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 11,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 5
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 6
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 7
+          }
+        },
+        {
+          "coordenada": {
+            "x": 12,
+            "y": 8
+          }
+        }
+      ],
+      "destino": {
+        "x": 7,
+        "y": 4
+      },
+      "pedidos": [
+        {
+          "codigo": "PEDIDO-4-7"
+        }
+      ]
+    }
+  ]
+}
