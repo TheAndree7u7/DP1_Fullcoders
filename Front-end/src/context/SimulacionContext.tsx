@@ -15,7 +15,7 @@ import type { Pedido, Coordenada, Individuo, Gen, Nodo } from '../types';
  */
 const HORA_INICIAL = 0;
 const HORA_PRIMERA_ACTUALIZACION = 1;
-const NODOS_PARA_ACTUALIZACION = 200;
+const NODOS_PARA_ACTUALIZACION = 100;
 const INCREMENTO_PORCENTAJE = 1;
 
 /**
