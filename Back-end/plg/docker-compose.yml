@@ -1,0 +1,9 @@
+services:
+  plg-app:
+    build: .
+    container_name: plg-app-container
+    ports:
+      - "8085:8085"
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
