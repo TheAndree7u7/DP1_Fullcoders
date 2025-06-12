@@ -1,5 +1,8 @@
 package com.plg.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
 import com.plg.entity.Mapa;
@@ -10,15 +13,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Gen {
+
     private int posNodo = 0;
-    private String descripcion; 
+    private String descripcion;
     private Camion camion;
     private List<Nodo> nodos;
     private List<Nodo> rutaFinal;
@@ -38,10 +39,10 @@ public class Gen {
 
         for (int i = 0; i < nodos.size(); i++) {
             Nodo nodo1, nodo2;
-            if(i == 0){
+            if (i == 0) {
                 nodo1 = camion;
                 nodo2 = nodos.get(i);
-            }else{
+            } else {
                 nodo1 = nodos.get(i - 1);
                 nodo2 = nodos.get(i);
             }
@@ -72,7 +73,7 @@ public class Gen {
 
                     // Actualizamos el volumen de GLP del camion
                     camion.entregarVolumenGLP(pedido.getVolumenGLPAsignado());
-                    if (i > 0){
+                    if (i > 0) {
                         rutaAstar.remove(0);
                     }
                     rutaFinal.addAll(rutaAstar);
@@ -83,7 +84,7 @@ public class Gen {
                 }
             } else if (nodo2 instanceof Almacen || nodo2 instanceof Camion) {
                 recargarCamion(camion, nodo2);
-                if (i > 0){
+                if (i > 0) {
                     rutaAstar.remove(0);
                 }
                 rutaFinal.addAll(rutaAstar);
@@ -99,36 +100,36 @@ public class Gen {
             camion.setCapacidadActualGLP(camion.getCapacidadMaximaGLP());
             if (nodo instanceof Almacen) {
                 Almacen almacen = (Almacen) nodo;
-                almacen.setCapacidadActualGLP(almacen.getCapacidadActualGLP()- camion.getCapacidadMaximaGLP());
-                almacen.setCapacidadCombustible(almacen.getCapacidadCombustible()- camion.getCombustibleMaximo());
+                almacen.setCapacidadActualGLP(almacen.getCapacidadActualGLP() - camion.getCapacidadMaximaGLP());
+                almacen.setCapacidadCombustible(almacen.getCapacidadCombustible() - camion.getCombustibleMaximo());
 
             }
         }
     }
 
     public String descripcionDistanciaLejana(double distanciaMaxima, double distanciaCalculada, Nodo nodo1, Nodo nodo2) {
-        return "El camion con código " + camion.getCodigo() + 
-                    " no puede recorrer la distancia de " + distanciaCalculada + 
-                    " km. La distancia máxima es de " + distanciaMaxima + 
-                    " km." + " El camión se encuentra en la posición " + nodo1.getCoordenada() + 
-                    " y se dirige a la posición " + nodo2.getCoordenada() + ".";
+        return "El camion con código " + camion.getCodigo()
+                + " no puede recorrer la distancia de " + distanciaCalculada
+                + " km. La distancia máxima es de " + distanciaMaxima
+                + " km." + " El camión se encuentra en la posición " + nodo1.getCoordenada()
+                + " y se dirige a la posición " + nodo2.getCoordenada() + ".";
     }
 
     public String descripcionError(Pedido pedido, Camion camion, double tiempoEntregaLimite, double tiempoLlegada, boolean tiempoMenorQueLimite, boolean volumenGLPAsignado) {
         String respuesta = "";
         if (!tiempoMenorQueLimite) {
-            respuesta =  "El camion con código " + camion.getCodigo() +
-             " no puede llegar a tiempo al pedido "
-              + pedido.getCodigo() + ". Tiempo de entrega: "
-               + tiempoEntregaLimite + " horas. Tiempo de llegada: "
-                + tiempoLlegada + " horas.";
-          
+            respuesta = "El camion con código " + camion.getCodigo()
+                    + " no puede llegar a tiempo al pedido "
+                    + pedido.getCodigo() + ". Tiempo de entrega: "
+                    + tiempoEntregaLimite + " horas. Tiempo de llegada: "
+                    + tiempoLlegada + " horas.";
+
         } else if (!volumenGLPAsignado) {
-            respuesta = "El camion con código " + camion.getCodigo() +
-             " no tiene suficiente GLP para entregar el pedido "
-              + pedido.getCodigo() + ". Volumen de GLP asignado: "
-               + pedido.getVolumenGLPAsignado() + " m³. Capacidad actual de GLP: "
-                + camion.getCapacidadActualGLP() + " m³.";
+            respuesta = "El camion con código " + camion.getCodigo()
+                    + " no tiene suficiente GLP para entregar el pedido "
+                    + pedido.getCodigo() + ". Volumen de GLP asignado: "
+                    + pedido.getVolumenGLPAsignado() + " m³. Capacidad actual de GLP: "
+                    + camion.getCapacidadActualGLP() + " m³.";
         }
         return respuesta;
     }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+
 import com.plg.config.DataLoader;
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
@@ -20,6 +21,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class Individuo {
+
     private double fitness;
     private String descripcion;
     private List<Gen> cromosoma;
@@ -35,8 +37,24 @@ public class Individuo {
     private void inicializarCromosoma() {
         List<Almacen> almacenes = DataLoader.almacenes;
         List<Camion> camiones = DataLoader.camiones;
+
+        // FILTRAR CAMIONES EN MANTENIMIENTO - Ubicación más eficiente
+        List<Camion> camionesDisponibles = camiones.stream()
+                .filter(camion -> camion.getEstado() != com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
+                .collect(java.util.stream.Collectors.toList());
+
+        // Verificar que tengamos camiones disponibles
+        if (camionesDisponibles.isEmpty()) {
+            System.err.println("⚠️  ADVERTENCIA: No hay camiones disponibles (todos en mantenimiento)");
+            // En caso de emergencia, usar todos los camiones
+            camionesDisponibles = camiones;
+        } else {
+            System.out.println("🚛 Camiones disponibles para algoritmo: " + camionesDisponibles.size()
+                    + " de " + camiones.size() + " totales");
+        }
+
         cromosoma = new ArrayList<>();
-        for (Camion camion : camiones) {
+        for (Camion camion : camionesDisponibles) {
             cromosoma.add(new Gen(camion, new ArrayList<>()));
         }
         Almacen almacenCentral = almacenes.get(0);
@@ -75,7 +93,7 @@ public class Individuo {
     }
 
     public double calcularFitness() {
-        this.fitness = 0.0; 
+        this.fitness = 0.0;
         this.descripcion = ""; // Reiniciar la descripción
         guardarEstadoActual(); // Guardar el estado actual antes de calcular el fitness
         for (Gen gen : cromosoma) {
@@ -90,31 +108,30 @@ public class Individuo {
         return fitness;
     }
 
-    public void guardarEstadoActual(){
-        for(Pedido pedido : pedidos){
+    public void guardarEstadoActual() {
+        for (Pedido pedido : pedidos) {
             pedido.guardarCopia();
         }
-        for(Almacen almacen : DataLoader.almacenes){
+        for (Almacen almacen : DataLoader.almacenes) {
             almacen.guardarCopia();
         }
-        for(Camion camion : DataLoader.camiones){
+        for (Camion camion : DataLoader.camiones) {
             camion.guardarCopia();
         }
     }
 
-    public void restaurarEstadoActual(){
-        for(Pedido pedido : pedidos){
+    public void restaurarEstadoActual() {
+        for (Pedido pedido : pedidos) {
             pedido.restaurarCopia();
         }
-        for(Almacen almacen : DataLoader.almacenes){
+        for (Almacen almacen : DataLoader.almacenes) {
             almacen.restaurarCopia();
         }
-        for(Camion camion : DataLoader.camiones){
+        for (Camion camion : DataLoader.camiones) {
             camion.restaurarCopia();
         }
     }
 
- 
     public void mutar() {
         Random rnd = new Random();
         int g1 = rnd.nextInt(cromosoma.size());

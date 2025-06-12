@@ -2,11 +2,12 @@ package com.plg.utils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-
 import java.util.LinkedHashSet;
-
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.SynchronousQueue;
 import java.util.stream.Collectors;
 
 import com.plg.config.DataLoader;
@@ -18,10 +19,6 @@ import com.plg.entity.Mapa;
 import com.plg.entity.Pedido;
 import com.plg.entity.TipoAlmacen;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.SynchronousQueue;
-
 public class Simulacion {
 
     private static List<Pedido> pedidosSemanal;
@@ -31,7 +28,6 @@ public class Simulacion {
     public static Set<Pedido> pedidosPlanificados = new LinkedHashSet<>();
     public static Set<Pedido> pedidosEntregados = new LinkedHashSet<>();
     public static Individuo mejorIndividuo = null;
-    
 
     // Colas para simulación
     public static BlockingQueue<Object> gaTriggerQueue = new SynchronousQueue<>();
@@ -54,7 +50,7 @@ public class Simulacion {
         LocalDateTime fechaFin = fechaActual.plusDays(7);
         pedidosSemanal = DataLoader.pedidos.stream()
                 .filter(pedido -> pedido.getFechaRegistro().isAfter(fechaActual)
-                        && pedido.getFechaRegistro().isBefore(fechaFin))
+                && pedido.getFechaRegistro().isBefore(fechaFin))
                 .collect(Collectors.toList());
         System.out.println("\n=== INICIO DE LA SIMULACIÓN ===");
         System.out.println("📊 Estadísticas iniciales:");
@@ -67,7 +63,6 @@ public class Simulacion {
     }
 
     public static void ejecutarSimulacion() {
-
 
         imprimirDatosSimulacion();
         LocalDateTime fechaLimite = Parametros.fecha_inicial.plusDays(7);
@@ -85,14 +80,14 @@ public class Simulacion {
                     System.out.println("Tiempo actual: " + fechaActual);
                     List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
                     try {
-                        iniciar.acquire(); 
+                        iniciar.acquire();
                         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
-                        algoritmoGenetico.ejecutarAlgoritmo();  
+                        algoritmoGenetico.ejecutarAlgoritmo();
                         // SimulatedAnnealing simulatedAnnealing = new SimulatedAnnealing(mapa, pedidosEnviar);
                         // simulatedAnnealing.ejecutarAlgoritmo();          
                         IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(), pedidosEnviar, bloqueosActivos);
                         gaResultQueue.offer(mejorIndividuoDto);
-                        continuar.acquire(); 
+                        continuar.acquire();
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         System.err.println("Error al esperar el disparador del algoritmo genético: " + e.getMessage());
@@ -111,7 +106,6 @@ public class Simulacion {
         System.out.println("Fitness global: " + Parametros.fitnessGlobal);
 
     }
-
 
     public static List<Pedido> unirPedidosSinRepetidos(Set<Pedido> set1, Set<Pedido> set2) {
         List<Pedido> listaUnida = new ArrayList<>(set1);
@@ -156,9 +150,72 @@ public class Simulacion {
 
     private static void actualizarCamiones(LocalDateTime fechaActual) {
         List<Camion> camiones = DataLoader.camiones;
+
+        // VERIFICAR MANTENIMIENTOS: Solo una vez al inicio del día (00:00)
+        // Actualiza TODOS los camiones según corresponda
+        if (fechaActual.getHour() == 0 && fechaActual.getMinute() == 0) {
+            verificarYActualizarMantenimientos(camiones, fechaActual);
+        }
+
         for (Camion camion : camiones) {
             camion.actualizarEstado(Parametros.intervaloTiempo, pedidosPorAtender, pedidosPlanificados,
                     pedidosEntregados, fechaActual);
+        }
+    }
+
+    /**
+     * Verifica mantenimientos programados y actualiza estados de camiones Se
+     * ejecuta al inicio del día (00:00) y actualiza TODOS los camiones
+     */
+    private static void verificarYActualizarMantenimientos(List<Camion> camiones, LocalDateTime fechaActual) {
+        System.out.println("🔧 Verificando mantenimientos programados para: " + fechaActual.toLocalDate() + " - INICIO DEL DÍA");
+
+        int dia = fechaActual.getDayOfMonth();
+        int mes = fechaActual.getMonthValue();
+
+        for (Camion camion : camiones) {
+            if (tieneMantenimientoProgramado(camion, dia, mes)) {
+                // Camión debe estar en mantenimiento HOY
+                camion.setEstado(com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO);
+                System.out.println("   • Camión " + camion.getCodigo() + " → EN MANTENIMIENTO");
+            } else {
+                // Camión NO debe estar en mantenimiento HOY - asegurar que esté disponible
+                if (camion.getEstado() == com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO) {
+                    camion.setEstado(com.plg.entity.EstadoCamion.DISPONIBLE);
+                    System.out.println("   • Camión " + camion.getCodigo() + " → DISPONIBLE (fin mantenimiento)");
+                }
+                // Si ya estaba disponible u otro estado, no cambiar nada
+            }
+        }
+    }
+
+    /**
+     * Verifica si un camión tiene mantenimiento programado usando la lógica de
+     * ciclos
+     */
+    private static boolean tieneMantenimientoProgramado(Camion camion, int dia, int mes) {
+        try {
+            // Buscar el primer mantenimiento del camión en los datos cargados
+            return DataLoader.mantenimientos.stream()
+                    .filter(m -> m.getCamion() != null
+                    && m.getCamion().getCodigo().equals(camion.getCodigo()))
+                    .findFirst()
+                    .map(primerMantenimiento -> {
+                        // Verificar si el día coincide
+                        if (primerMantenimiento.getDia() != dia) {
+                            return false;
+                        }
+
+                        // Calcular si el mes está en el ciclo (cada 2 meses)
+                        int mesInicial = primerMantenimiento.getMes();
+                        int diferenciaMeses = Math.abs(mes - mesInicial);
+                        return diferenciaMeses % 2 == 0;
+                    })
+                    .orElse(false);
+
+        } catch (Exception e) {
+            System.err.println("Error verificando mantenimiento para " + camion.getCodigo() + ": " + e.getMessage());
+            return false;
         }
     }
 
