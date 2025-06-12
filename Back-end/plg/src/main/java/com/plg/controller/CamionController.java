@@ -64,4 +64,43 @@ public class CamionController {
                     .body("Error al crear camión: " + e.getMessage());
         }
     }
+
+    /**
+     * Resumen de camiones por estado.
+     */
+    @GetMapping("/resumen-estado")
+    public ResponseEntity<?> resumenPorEstado() {
+        try {
+            return ResponseEntity.ok(camionService.resumenPorEstado());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener resumen por estado: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Lista los estados posibles de los camiones con su descripción.
+     */
+    @GetMapping("/estados")
+    public ResponseEntity<?> listarEstados() {
+        try {
+            return ResponseEntity.ok(camionService.listarEstados());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener estados: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Lista todos los camiones con sus datos principales (estado, id, tipo, coordenada).
+     */
+    @GetMapping("/camiones-estado")
+    public ResponseEntity<?> listarCamionesEstado() {
+        try {
+            return ResponseEntity.ok(camionService.listarCamionesEstado());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al listar camiones estado: " + e.getMessage());
+        }
+    }
 }
