@@ -230,7 +230,8 @@ public class MantenimientoService {
 
             // Calcular si el mes actual está en el ciclo de mantenimiento (cada 2 meses)
             int mesInicial = primerMantenimiento.getMes();
-            int diferenciaMeses = mes - mesInicial;
+            //aca debe ser valor absoluto
+            int diferenciaMeses = Math.abs(mes - mesInicial);
 
             System.out.println("DEBUG: Mes inicial: " + mesInicial
                     + ", Mes consultado: " + mes
