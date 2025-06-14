@@ -78,6 +78,22 @@ public class Simulacion {
                 if (!pedidosPorAtender.isEmpty()) {
                     System.out.println("------------------------");
                     System.out.println("Tiempo actual: " + fechaActual);
+
+                    //! ACTUALIZAR CAMIONES SEGUN SU MANTENIMIENTO 
+                    //?SOLO SI LA FECHA ACTUAL ES EL INICIO DEL DÍA
+                    // VERIFICAR MANTENIMIENTOS: Solo una vez al inicio del día (00:00)
+                    // Actualiza TODOS los camiones según corresponda
+                    if (fechaActual.getHour() == 0 && fechaActual.getMinute() == 0) {
+                        //Inicializar la lista de camuiones
+                        List<Camion> camiones = new ArrayList<>();
+                        //COLCAR UN LOG 
+                        System.out.println("🔧 Verificando mantenimientos programados para: " + fechaActual.toLocalDate());
+                        //OBTENER LOS CAMUIONES
+                        camiones = DataLoader.camiones;
+                        verificarYActualizarMantenimientos(camiones, fechaActual);
+                    }
+
+                    //!ACTULIZAR EL MANTENIMIENTO 
                     List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
                     try {
                         iniciar.acquire();
@@ -151,12 +167,6 @@ public class Simulacion {
     private static void actualizarCamiones(LocalDateTime fechaActual) {
         List<Camion> camiones = DataLoader.camiones;
 
-        // VERIFICAR MANTENIMIENTOS: Solo una vez al inicio del día (00:00)
-        // Actualiza TODOS los camiones según corresponda
-        if (fechaActual.getHour() == 0 && fechaActual.getMinute() == 0) {
-            verificarYActualizarMantenimientos(camiones, fechaActual);
-        }
-
         for (Camion camion : camiones) {
             camion.actualizarEstado(Parametros.intervaloTiempo, pedidosPorAtender, pedidosPlanificados,
                     pedidosEntregados, fechaActual);
@@ -226,7 +236,21 @@ public class Simulacion {
         System.out.println("Cantidad de pedidos semanales: " + pedidosSemanal.size());
         System.out.println("Cantidad de almacenes: " + DataLoader.almacenes.size());
         System.out.println("Cantidad de camiones: " + DataLoader.camiones.size());
+        //! ACTUALIZAR CAMIONES SEGUN SU MANTENIMIENTO 
+        //?SOLO SI LA FECHA ACTUAL ES EL INICIO DEL DÍA
+        // VERIFICAR MANTENIMIENTOS: Solo una vez al inicio del día (00:00)
+        // Actualiza TODOS los camiones según corresponda
+        if (fechaActual.getHour() == 0 && fechaActual.getMinute() == 0) {
+            //Inicializar la lista de camuiones
+            List<Camion> camiones = new ArrayList<>();
+            //COLCAR UN LOG 
+            System.out.println("🔧 Verificando mantenimientos programados para: " + fechaActual.toLocalDate());
+            //OBTENER LOS CAMUIONES
+            camiones = DataLoader.camiones;
+            verificarYActualizarMantenimientos(camiones, fechaActual);
+        }
 
+        //!ACTULIZAR EL MANTENIMIENTO 
     }
 
     private static boolean pedidoConFechaMenorAFechaActual(Pedido pedido, LocalDateTime fechaActual) {

@@ -45,11 +45,12 @@ public class Individuo {
 
         // Verificar que tengamos camiones disponibles
         if (camionesDisponibles.isEmpty()) {
-            System.err.println("⚠️  ADVERTENCIA: No hay camiones disponibles (todos en mantenimiento)");
+            LoggerUtil.logError("⚠️  ADVERTENCIA: No hay camiones disponibles (todos en mantenimiento)");
+            LoggerUtil.logWarning("Se usará la lista completa de camiones, incluyendo los que están en mantenimiento.");
             // En caso de emergencia, usar todos los camiones
             camionesDisponibles = camiones;
         } else {
-            System.out.println("🚛 Camiones disponibles para algoritmo: " + camionesDisponibles.size()
+            LoggerUtil.log("🚛 Camiones disponibles para algoritmo: " + camionesDisponibles.size()
                     + " de " + camiones.size() + " totales");
         }
 
