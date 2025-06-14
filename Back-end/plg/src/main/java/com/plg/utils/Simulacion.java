@@ -184,21 +184,37 @@ public class Simulacion {
     private static void verificarYActualizarMantenimientos(List<Camion> camiones, LocalDateTime fechaActual) {
         System.out.println("🔧 Verificando mantenimientos programados para: " + fechaActual.toLocalDate() + " - INICIO DEL DÍA");
 
+        if (camiones == null) {
+            System.out.println("[LOG] La lista de camiones es NULL");
+            return;
+        }
+        if (camiones.isEmpty()) {
+            System.out.println("[LOG] La lista de camiones está VACÍA");
+        }
         int dia = fechaActual.getDayOfMonth();
         int mes = fechaActual.getMonthValue();
 
         for (Camion camion : camiones) {
-            if (tieneMantenimientoProgramado(camion, dia, mes)) {
-                // Camión debe estar en mantenimiento HOY
+            if (camion == null) {
+                System.out.println("[LOG] Camión NULL encontrado en la lista");
+                continue;
+            }
+            // Log de mantenimientos asociados a este camión
+            long mantenimientosCount = com.plg.config.DataLoader.mantenimientos.stream()
+                    .filter(m -> m.getCamion() != null && m.getCamion().getCodigo().equals(camion.getCodigo()))
+                    .count();
+            // System.out.println("[LOG] Camión " + camion.getCodigo() + " tiene " + mantenimientosCount + " mantenimientos registrados en DataLoader.mantenimientos");
+
+            boolean resultado = tieneMantenimientoProgramado(camion, dia, mes);
+            // System.out.println("[LOG] ¿Camión " + camion.getCodigo() + " tiene mantenimiento el " + dia + "/" + mes + "? " + resultado);
+            if (resultado) {
                 camion.setEstado(com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO);
                 System.out.println("   • Camión " + camion.getCodigo() + " → EN MANTENIMIENTO");
             } else {
-                // Camión NO debe estar en mantenimiento HOY - asegurar que esté disponible
                 if (camion.getEstado() == com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO) {
                     camion.setEstado(com.plg.entity.EstadoCamion.DISPONIBLE);
                     System.out.println("   • Camión " + camion.getCodigo() + " → DISPONIBLE (fin mantenimiento)");
                 }
-                // Si ya estaba disponible u otro estado, no cambiar nada
             }
         }
     }
@@ -209,26 +225,33 @@ public class Simulacion {
      */
     private static boolean tieneMantenimientoProgramado(Camion camion, int dia, int mes) {
         try {
+            if (camion == null) {
+                System.out.println("[LOG] tieneMantenimientoProgramado: Camión es NULL");
+                return false;
+            }
             // Buscar el primer mantenimiento del camión en los datos cargados
-            return DataLoader.mantenimientos.stream()
+            return com.plg.config.DataLoader.mantenimientos.stream()
                     .filter(m -> m.getCamion() != null
                     && m.getCamion().getCodigo().equals(camion.getCodigo()))
                     .findFirst()
                     .map(primerMantenimiento -> {
                         // Verificar si el día coincide
                         if (primerMantenimiento.getDia() != dia) {
+                            // System.out.println("[LOG] Camión " + camion.getCodigo() + ": Día no coincide. Esperado: " + primerMantenimiento.getDia() + ", Recibido: " + dia);
                             return false;
                         }
-
-                        // Calcular si el mes está en el ciclo (cada 2 meses)
                         int mesInicial = primerMantenimiento.getMes();
                         int diferenciaMeses = Math.abs(mes - mesInicial);
-                        return diferenciaMeses % 2 == 0;
+                        boolean ciclo = diferenciaMeses % 2 == 0;
+                        // System.out.println("[LOG] Camión " + camion.getCodigo() + ": Mes inicial: " + mesInicial + ", Mes consultado: " + mes + ", Diferencia: " + diferenciaMeses + ", ¿En ciclo?: " + ciclo);
+                        return ciclo;
                     })
-                    .orElse(false);
-
+                    .orElseGet(() -> {
+                        // System.out.println("[LOG] Camión " + camion.getCodigo() + ": No se encontró mantenimiento base");
+                        return false;
+                    });
         } catch (Exception e) {
-            System.err.println("Error verificando mantenimiento para " + camion.getCodigo() + ": " + e.getMessage());
+            System.err.println("Error verificando mantenimiento para " + (camion != null ? camion.getCodigo() : "null") + ": " + e.getMessage());
             return false;
         }
     }
@@ -246,12 +269,16 @@ public class Simulacion {
         // Actualiza TODOS los camiones según corresponda
         if (fechaActual.getHour() == 0 && fechaActual.getMinute() == 0) {
             //Inicializar la lista de camuiones
-            List<Camion> camiones = new ArrayList<>();
+            List<Camion> camiones_en_mantenimiento = new ArrayList<>();
             //COLCAR UN LOG 
             System.out.println("🔧 Verificando mantenimientos programados para: " + fechaActual.toLocalDate());
             //OBTENER LOS CAMUIONES
-            camiones = DataLoader.camiones;
-            verificarYActualizarMantenimientos(camiones, fechaActual);
+            if (DataLoader.camiones != null) {
+                camiones_en_mantenimiento = DataLoader.camiones;
+            } else {
+                System.out.println("[LOG] La lista de camiones es NULL");
+            }
+            verificarYActualizarMantenimientos(camiones_en_mantenimiento, fechaActual);
         }
 
         //!ACTULIZAR EL MANTENIMIENTO 

@@ -118,7 +118,9 @@ public class AveriaController {
     }
 
     /**
-     * Lista los códigos de camiones actualmente averiados (solo códigos, sin duplicados).
+     * Lista los códigos de camiones actualmente averiados (solo códigos, sin
+     * duplicados).
+     *
      * @return Lista de códigos de camiones con avería activa.
      */
     @GetMapping("/camiones-averiados")
