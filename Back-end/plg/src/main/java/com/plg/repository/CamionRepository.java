@@ -35,7 +35,7 @@ public class CamionRepository {
      */
     public Map<String, Long> countByEstado() {
         return findAll().stream()
-            .collect(java.util.stream.Collectors.groupingBy(c -> c.getEstado().name(), java.util.stream.Collectors.counting()));
+                .collect(java.util.stream.Collectors.groupingBy(c -> c.getEstado().name(), java.util.stream.Collectors.counting()));
     }
 
     /**
@@ -43,17 +43,18 @@ public class CamionRepository {
      */
     public java.util.List<java.util.Map<String, String>> listarEstadosPosibles() {
         return java.util.Arrays.stream(com.plg.entity.EstadoCamion.values())
-            .map(e -> {
-                java.util.Map<String, String> map = new java.util.HashMap<>();
-                map.put("estado", e.name());
-                map.put("descripcion", e.getDescripcion());
-                return map;
-            })
-            .collect(java.util.stream.Collectors.toList());
+                .map(e -> {
+                    java.util.Map<String, String> map = new java.util.HashMap<>();
+                    map.put("estado", e.name());
+                    map.put("descripcion", e.getDescripcion());
+                    return map;
+                })
+                .collect(java.util.stream.Collectors.toList());
     }
 
     /**
-     * Lista todos los camiones con sus datos principales (estado, id, tipo, coordenada).
+     * Lista todos los camiones con sus datos principales (estado, id, tipo,
+     * coordenada).
      */
     public List<CamionDto> listarCamionesEstado() {
         return findAll().stream().map(com.plg.dto.CamionDto::new).collect(java.util.stream.Collectors.toList());

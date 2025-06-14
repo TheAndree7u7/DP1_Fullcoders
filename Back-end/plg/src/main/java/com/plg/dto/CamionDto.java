@@ -2,11 +2,11 @@ package com.plg.dto;
 
 import com.plg.entity.Camion;
 
-
 import lombok.Data;
 
 @Data
 public class CamionDto {
+
     private String codigo;
     private String estado;
     private String tipo;

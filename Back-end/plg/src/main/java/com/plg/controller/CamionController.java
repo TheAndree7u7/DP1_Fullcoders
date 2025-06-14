@@ -92,7 +92,8 @@ public class CamionController {
     }
 
     /**
-     * Lista todos los camiones con sus datos principales (estado, id, tipo, coordenada).
+     * Lista todos los camiones con sus datos principales (estado, id, tipo,
+     * coordenada).
      */
     @GetMapping("/camiones-estado")
     public ResponseEntity<?> listarCamionesEstado() {

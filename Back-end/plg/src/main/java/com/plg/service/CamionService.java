@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.plg.dto.request.CamionRequest;
 import com.plg.dto.CamionDto;
+import com.plg.dto.request.CamionRequest;
 import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
 import com.plg.entity.TipoCamion;
@@ -60,7 +60,8 @@ public class CamionService {
     }
 
     /**
-     * Lista los estados posibles de los camiones con su descripción (usando repository).
+     * Lista los estados posibles de los camiones con su descripción (usando
+     * repository).
      */
     public List<Map<String, String>> listarEstados() {
         return camionRepository.listarEstadosPosibles();
@@ -81,7 +82,8 @@ public class CamionService {
     }
 
     /**
-     * Lista todos los camiones con sus datos principales (estado, id, tipo, coordenada).
+     * Lista todos los camiones con sus datos principales (estado, id, tipo,
+     * coordenada).
      */
     public List<CamionDto> listarCamionesEstado() {
         return camionRepository.listarCamionesEstado();
