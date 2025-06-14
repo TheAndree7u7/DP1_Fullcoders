@@ -6,4 +6,4 @@ services:
       - "8085:8085"
     restart: unless-stopped
     environment:
-      - SPRING_PROFILES_ACTIVE=default
+      - SPRING_PROFILES_ACTIVE=defaults

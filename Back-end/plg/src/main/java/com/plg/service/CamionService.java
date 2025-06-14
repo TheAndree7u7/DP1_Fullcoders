@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.plg.dto.CamionDto;
 import com.plg.dto.request.CamionRequest;
 import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
@@ -48,6 +49,25 @@ public class CamionService {
     }
 
     /**
+     * Resumen de camiones por estado (usando repository).
+     */
+    public Map<String, Object> resumenPorEstado() {
+        Map<String, Long> porEstado = camionRepository.countByEstado();
+        Map<String, Object> datos = new HashMap<>();
+        datos.put("total", porEstado.values().stream().mapToLong(Long::longValue).sum());
+        datos.put("porEstado", porEstado);
+        return datos;
+    }
+
+    /**
+     * Lista los estados posibles de los camiones con su descripción (usando
+     * repository).
+     */
+    public List<Map<String, String>> listarEstados() {
+        return camionRepository.listarEstadosPosibles();
+    }
+
+    /**
      * Crea un camión nuevo.
      */
     public Camion agregar(CamionRequest request) {
@@ -59,5 +79,13 @@ public class CamionService {
         } catch (Exception e) {
             throw new InvalidInputException("No se pudo crear el camión", e);
         }
+    }
+
+    /**
+     * Lista todos los camiones con sus datos principales (estado, id, tipo,
+     * coordenada).
+     */
+    public List<CamionDto> listarCamionesEstado() {
+        return camionRepository.listarCamionesEstado();
     }
 }
