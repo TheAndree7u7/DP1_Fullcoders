@@ -109,6 +109,10 @@ public class Simulacion {
                         System.err.println("Error al esperar el disparador del algoritmo genético: " + e.getMessage());
                         e.printStackTrace();
                     }
+                } else {
+                    System.out.println("------------------------");
+                    System.out.println("Tiempo actual: " + fechaActual);
+                    System.out.println("No hay pedidos por atender en este momento.");
                 }
                 fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
                 if (fechaActual.isEqual(fechaLimite) || fechaActual.isAfter(fechaLimite)) {
