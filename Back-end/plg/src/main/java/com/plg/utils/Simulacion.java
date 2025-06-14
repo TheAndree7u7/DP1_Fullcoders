@@ -75,25 +75,26 @@ public class Simulacion {
             } else {
                 List<Bloqueo> bloqueosActivos = actualizarBloqueos(fechaActual);
                 actualizarEstadoGlobal(fechaActual);
+                System.out.println("------------------------");
+                System.out.println("Tiempo actual: " + fechaActual);
+
+                //! ACTUALIZAR CAMIONES SEGUN SU MANTENIMIENTO 
+                //?SOLO SI LA FECHA ACTUAL ES EL INICIO DEL DÍA
+                // VERIFICAR MANTENIMIENTOS: Solo una vez al inicio del día (00:00)
+                // Actualiza TODOS los camiones según corresponda
+                if (fechaActual.getHour() == 0 && fechaActual.getMinute() == 0) {
+                    //Inicializar la lista de camuiones
+                    List<Camion> camiones = new ArrayList<>();
+                    //COLCAR UN LOG 
+                    System.out.println("🔧 Verificando mantenimientos programados para: " + fechaActual.toLocalDate());
+                    //OBTENER LOS CAMUIONES
+                    camiones = DataLoader.camiones;
+                    verificarYActualizarMantenimientos(camiones, fechaActual);
+                }
+
+                //!ACTULIZAR EL MANTENIMIENTO 
                 if (!pedidosPorAtender.isEmpty()) {
-                    System.out.println("------------------------");
-                    System.out.println("Tiempo actual: " + fechaActual);
 
-                    //! ACTUALIZAR CAMIONES SEGUN SU MANTENIMIENTO 
-                    //?SOLO SI LA FECHA ACTUAL ES EL INICIO DEL DÍA
-                    // VERIFICAR MANTENIMIENTOS: Solo una vez al inicio del día (00:00)
-                    // Actualiza TODOS los camiones según corresponda
-                    if (fechaActual.getHour() == 0 && fechaActual.getMinute() == 0) {
-                        //Inicializar la lista de camuiones
-                        List<Camion> camiones = new ArrayList<>();
-                        //COLCAR UN LOG 
-                        System.out.println("🔧 Verificando mantenimientos programados para: " + fechaActual.toLocalDate());
-                        //OBTENER LOS CAMUIONES
-                        camiones = DataLoader.camiones;
-                        verificarYActualizarMantenimientos(camiones, fechaActual);
-                    }
-
-                    //!ACTULIZAR EL MANTENIMIENTO 
                     List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
                     try {
                         iniciar.acquire();
@@ -110,8 +111,7 @@ public class Simulacion {
                         e.printStackTrace();
                     }
                 } else {
-                    System.out.println("------------------------");
-                    System.out.println("Tiempo actual: " + fechaActual);
+
                     System.out.println("No hay pedidos por atender en este momento.");
                 }
                 fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
