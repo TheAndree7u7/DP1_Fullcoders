@@ -116,4 +116,18 @@ public class AveriaController {
                     .body("Error al crear avería: " + e.getMessage());
         }
     }
+
+    /**
+     * Lista los códigos de camiones actualmente averiados (solo códigos, sin duplicados).
+     * @return Lista de códigos de camiones con avería activa.
+     */
+    @GetMapping("/camiones-averiados")
+    public ResponseEntity<?> listarCodigosCamionesAveriados() {
+        try {
+            return ResponseEntity.ok(averiaService.listarCodigosCamionesAveriados());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener camiones averiados: " + e.getMessage());
+        }
+    }
 }

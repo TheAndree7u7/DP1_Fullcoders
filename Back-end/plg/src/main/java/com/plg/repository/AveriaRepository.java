@@ -78,4 +78,17 @@ public class AveriaRepository {
         DataLoader.averias.add(averia);
         return averia;
     }
+
+    /**
+     * Obtiene los códigos únicos de camiones con avería activa.
+     *
+     * @return Lista de códigos de camiones averiados (sin duplicados)
+     */
+    public List<String> findCodigosCamionesAveriados() {
+        return DataLoader.averias.stream()
+                .filter(a -> a.getEstado() != null && a.getEstado() && a.getCamion() != null)
+                .map(a -> a.getCamion().getCodigo())
+                .distinct()
+                .collect(Collectors.toList());
+    }
 }

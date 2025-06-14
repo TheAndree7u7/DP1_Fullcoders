@@ -188,4 +188,13 @@ public class AveriaService {
     public void desactivarAveria(Averia averia) {
         averia.setEstado(false);
     }
+
+    /**
+     * Obtiene los códigos únicos de camiones con avería activa.
+     *
+     * @return Lista de códigos de camiones averiados (sin duplicados)
+     */
+    public List<String> listarCodigosCamionesAveriados() {
+        return averiaRepository.findCodigosCamionesAveriados();
+    }
 }
