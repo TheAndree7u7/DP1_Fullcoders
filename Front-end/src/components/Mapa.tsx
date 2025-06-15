@@ -4,6 +4,7 @@ import type { Coordenada, Pedido } from '../types';
 import almacenCentralIcon from '../assets/almacen_central.svg';
 import almacenIntermedioIcon from '../assets/almacen_intermedio.svg';
 import clienteIcon from '../assets/cliente.svg';
+import { averiarCamion } from '../services/averiaApiService';
 
 interface CamionVisual {
   id: string;
@@ -51,6 +52,9 @@ const Mapa = () => {
   const [intervalo, setIntervalo] = useState(300);
   const intervalRef = useRef<number | null>(null);
   const { camiones, rutasCamiones, almacenes, avanzarHora, cargando, bloqueos } = useSimulacion();
+  const [tooltipCamion, setTooltipCamion] = useState<string | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{x: number, y: number} | null>(null);
+  const [averiando, setAveriando] = useState<string | null>(null);
 
   // DEBUG: Verificar que almacenes llega al componente
   //console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
@@ -152,6 +156,25 @@ const Mapa = () => {
       })
     );
   }, [camiones, rutasCamiones]);
+
+  // Función para manejar click en camión
+  const handleCamionClick = (camionId: string, evt: React.MouseEvent<SVGGElement, MouseEvent>) => {
+    setTooltipCamion(camionId);
+    setTooltipPos({ x: evt.clientX, y: evt.clientY });
+  };
+
+  const handleAveriar = async (camionId: string) => {
+    setAveriando(camionId);
+    try {
+      await averiarCamion(camionId);
+      alert('Camión averiado correctamente');
+    } catch {
+      alert('Error al averiar el camión');
+    } finally {
+      setAveriando(null);
+      setTooltipCamion(null);
+    }
+  };
 
   if (cargando) {
     return <p>Cargando simulación...</p>;
@@ -266,7 +289,8 @@ const Mapa = () => {
                <g
                  key={camion.id}
                  transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
-                 style={{ transition: 'transform 0.8s linear' }}
+                 style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}
+                 onClick={evt => handleCamionClick(camion.id, evt)}
                >
                  <rect x={-6} y={-4} width={12} height={8} rx={2} fill={color} stroke="black" strokeWidth={0.5} />
                  <circle cx={-4} cy={5} r={1.5} fill="black" />
@@ -275,6 +299,38 @@ const Mapa = () => {
              );
           })}
       </svg>
+
+      {/* Tooltip para camión */}
+      {tooltipCamion && tooltipPos && (
+        <div
+          style={{
+            position: 'fixed',
+            left: tooltipPos.x + 10,
+            top: tooltipPos.y + 10,
+            background: 'white',
+            border: '1px solid #ccc',
+            borderRadius: 8,
+            padding: 12,
+            zIndex: 1000,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+          }}
+        >
+          <div className="mb-2 font-bold">Camión: {tooltipCamion}</div>
+          <button
+            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+            disabled={averiando === tooltipCamion}
+            onClick={() => handleAveriar(tooltipCamion)}
+          >
+            {averiando === tooltipCamion ? 'Averiando...' : 'Averiar camión'}
+          </button>
+          <button
+            className="ml-2 text-gray-500 hover:text-black"
+            onClick={() => setTooltipCamion(null)}
+          >
+            Cerrar
+          </button>
+        </div>
+      )}
 
       <div className="flex items-center gap-4 mt-2">
         <button
