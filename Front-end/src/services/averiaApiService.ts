@@ -10,3 +10,13 @@ export async function averiarCamion(camionId: string): Promise<CamionEstado> {
   }
   return response.json();
 }
+
+export async function averiarCamionTipo(camionId: string, tipo: number): Promise<CamionEstado> {
+  const response = await fetch(`${API_BASE_URL}/averiar-camion/${camionId}?tipo=${tipo}`, {
+    method: "POST",
+  });
+  if (!response.ok) {
+    throw new Error("No se pudo averiar el camión");
+  }
+  return response.json();
+}

@@ -4,7 +4,7 @@ import type { Coordenada, Pedido } from '../types';
 import almacenCentralIcon from '../assets/almacen_central.svg';
 import almacenIntermedioIcon from '../assets/almacen_intermedio.svg';
 import clienteIcon from '../assets/cliente.svg';
-import { averiarCamion } from '../services/averiaApiService';
+import { averiarCamionTipo } from '../services/averiaApiService';
 
 interface CamionVisual {
   id: string;
@@ -163,11 +163,11 @@ const Mapa = () => {
     setTooltipPos({ x: evt.clientX, y: evt.clientY });
   };
 
-  const handleAveriar = async (camionId: string) => {
-    setAveriando(camionId);
+  const handleAveriar = async (camionId: string, tipo: number) => {
+    setAveriando(camionId + '-' + tipo);
     try {
-      await averiarCamion(camionId);
-      alert('Camión averiado correctamente');
+      await averiarCamionTipo(camionId, tipo);
+      alert(`Camión averiado correctamente (Tipo ${tipo})`);
     } catch {
       alert('Error al averiar el camión');
     } finally {
@@ -316,15 +316,31 @@ const Mapa = () => {
           }}
         >
           <div className="mb-2 font-bold">Camión: {tooltipCamion}</div>
+          <div className="flex flex-col gap-2">
+            <button
+              className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
+              disabled={averiando === tooltipCamion + '-1'}
+              onClick={() => handleAveriar(tooltipCamion, 1)}
+            >
+              {averiando === tooltipCamion + '-1' ? 'Averiando...' : 'Avería tipo 1'}
+            </button>
+            <button
+              className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded"
+              disabled={averiando === tooltipCamion + '-2'}
+              onClick={() => handleAveriar(tooltipCamion, 2)}
+            >
+              {averiando === tooltipCamion + '-2' ? 'Averiando...' : 'Avería tipo 2'}
+            </button>
+            <button
+              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+              disabled={averiando === tooltipCamion + '-3'}
+              onClick={() => handleAveriar(tooltipCamion, 3)}
+            >
+              {averiando === tooltipCamion + '-3' ? 'Averiando...' : 'Avería tipo 3'}
+            </button>
+          </div>
           <button
-            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-            disabled={averiando === tooltipCamion}
-            onClick={() => handleAveriar(tooltipCamion)}
-          >
-            {averiando === tooltipCamion ? 'Averiando...' : 'Averiar camión'}
-          </button>
-          <button
-            className="ml-2 text-gray-500 hover:text-black"
+            className="mt-2 text-gray-500 hover:text-black"
             onClick={() => setTooltipCamion(null)}
           >
             Cerrar
