@@ -91,4 +91,20 @@ public class AveriaRepository {
                 .distinct()
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Obtiene averías por camión y tipo de incidente.
+     *
+     * @param codigoCamion código del camión
+     * @param tipoIncidente tipo de incidente ("TI1", "TI2", "TI3")
+     * @return Lista de averías filtradas
+     */
+    public List<Averia> findByCamionAndTipo(String codigoCamion, String tipoIncidente) {
+        return DataLoader.averias.stream()
+                .filter(a -> a.getCamion() != null
+                        && a.getCamion().getCodigo().equals(codigoCamion)
+                        && a.getTipoIncidente() != null
+                        && a.getTipoIncidente().getTipo().equals(tipoIncidente))
+                .collect(Collectors.toList());
+    }
 }

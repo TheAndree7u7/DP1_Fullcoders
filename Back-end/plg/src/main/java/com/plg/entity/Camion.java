@@ -42,6 +42,7 @@ public class Camion extends Nodo {
     private double distanciaMaxima;   
 
     // Gen
+    @JsonIgnore
     private Gen gen;
 
     private Camion camionCopia;

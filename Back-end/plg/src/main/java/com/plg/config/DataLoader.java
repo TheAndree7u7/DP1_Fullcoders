@@ -62,7 +62,7 @@ public class DataLoader {
         List<String> lines = Herramientas.readAllLines(pathAverias);
         for (String line : lines) {
             Averia averia = new Averia(line);
-            averias.add(averia);
+ 
         }
         return averias;
     }
@@ -123,6 +123,7 @@ public class DataLoader {
             Camion camion;
             try {
                 camion = CamionFactory.getCamionPorCodigo(codigoTipoCamion);
+ 
             } catch (NoSuchElementException e) {
                 throw new InvalidDataFormatException(
                         "Error en línea de mantenimiento: " + line + ". Detalles: " + e.getMessage());

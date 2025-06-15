@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_URLS } from '../config/api';
 
 export interface AlmacenBackend {
   coordenada: { fila: number; columna: number };
@@ -16,8 +17,8 @@ export interface Almacen {
 }
 
 export const getAlmacenes = async (): Promise<Almacen[]> => {
-  //console.log('🌐 API: Haciendo petición a http://localhost:8085/api/almacenes');
-  const response = await axios.get<AlmacenBackend[]>('http://localhost:8085/api/almacenes');
+  //console.log(`🌐 API: Haciendo petición a ${API_URLS.ALMACENES}`);
+  const response = await axios.get<AlmacenBackend[]>(API_URLS.ALMACENES);
   //console.log('📥 API: Respuesta recibida:', response.data);
   const almacenesTransformados = response.data.map(a => ({
     id: a.nombre.replace(/\s+/g, '-').toLowerCase(),
@@ -28,4 +29,21 @@ export const getAlmacenes = async (): Promise<Almacen[]> => {
   }));
   //console.log('🔄 API: Almacenes transformados:', almacenesTransformados);
   return almacenesTransformados;
+};
+
+// Función centralizada para obtener todos los datos iniciales necesarios
+type DatosIniciales = {
+  almacenes: Almacen[];
+  // Agrega aquí más propiedades si necesitas más datos de otros endpoints
+};
+
+export const getDatosIniciales = async (): Promise<DatosIniciales> => {
+  const almacenes = await getAlmacenes();
+  // Si necesitas más datos, agrégalos aquí usando Promise.all
+  // const [almacenes, pedidos, camiones] = await Promise.all([
+  //   getAlmacenes(),
+  //   getPedidos(),
+  //   getCamiones()
+  // ]);
+  return { almacenes };
 };

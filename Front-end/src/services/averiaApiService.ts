@@ -1,8 +1,8 @@
 import type { CamionEstado } from "../types";
-const API_BASE_URL = "http://localhost:8085/api/simulacion";
+import { API_URLS } from "../config/api";
 
 export async function averiarCamion(camionId: string): Promise<CamionEstado> {
-  const response = await fetch(`${API_BASE_URL}/averiar-camion/${camionId}`, {
+  const response = await fetch(`${API_URLS.SIMULACION_BASE}/averiar-camion/${camionId}`, {
     method: "POST",
   });
   if (!response.ok) {
@@ -12,7 +12,7 @@ export async function averiarCamion(camionId: string): Promise<CamionEstado> {
 }
 
 export async function averiarCamionTipo(camionId: string, tipo: number): Promise<CamionEstado> {
-  const response = await fetch(`${API_BASE_URL}/averiar-camion/${camionId}?tipo=${tipo}`, {
+  const response = await fetch(`${API_URLS.SIMULACION_BASE}/averiar-camion/${camionId}?tipo=${tipo}`, {
     method: "POST",
   });
   if (!response.ok) {

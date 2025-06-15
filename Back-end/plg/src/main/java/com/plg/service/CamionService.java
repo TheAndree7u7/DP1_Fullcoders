@@ -11,6 +11,7 @@ import com.plg.dto.CamionDto;
 import com.plg.dto.request.CamionRequest;
 import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
+import com.plg.entity.EstadoCamion;
 import com.plg.entity.TipoCamion;
 import com.plg.factory.CamionFactory;
 import com.plg.repository.CamionRepository;
@@ -87,5 +88,21 @@ public class CamionService {
      */
     public List<CamionDto> listarCamionesEstado() {
         return camionRepository.listarCamionesEstado();
+    }
+
+    /**
+     * Cambia el estado de un camión por su código.
+     * 
+     * @param codigoCamion Código del camión
+     * @param nuevoEstado  Nuevo estado a asignar
+     * @return El camión actualizado
+     */
+    public Camion cambiarEstado(String codigoCamion, EstadoCamion nuevoEstado) {
+        Camion camion = camionRepository.findAll().stream()
+                .filter(c -> c.getCodigo().equals(codigoCamion))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Camión no encontrado: " + codigoCamion));
+        camion.setEstado(nuevoEstado);
+        return camion;
     }
 }

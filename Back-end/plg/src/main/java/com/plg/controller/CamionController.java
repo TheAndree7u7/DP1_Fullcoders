@@ -91,7 +91,7 @@ public class CamionController {
         }
     }
 
-    /**
+    /**1
      * Lista todos los camiones con sus datos principales (estado, id, tipo,
      * coordenada).
      */

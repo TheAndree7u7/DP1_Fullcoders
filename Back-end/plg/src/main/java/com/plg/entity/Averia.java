@@ -18,6 +18,7 @@ import com.plg.utils.ExcepcionesPerzonalizadas.InvalidDataFormatException;
 @Builder
 public class Averia {
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Camion camion;
     private TipoTurno turno; // T1, T2, T3
     private TipoIncidente tipoIncidente; // TI1, TI2, TI3

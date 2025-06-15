@@ -70,6 +70,17 @@ public class AveriaService {
     }
 
     /**
+     * Lista averías por camión y tipo de incidente.
+     *
+     * @param codigoCamion código del camión
+     * @param tipoIncidente tipo de incidente ("TI1", "TI2", "TI3")
+     * @return Lista de averías filtradas
+     */
+    public List<Averia> listarPorCamionYTipo(String codigoCamion, String tipoIncidente) {
+        return averiaRepository.findByCamionAndTipo(codigoCamion, tipoIncidente);
+    }
+
+    /**
      * Resumen de averías por estado y tipo.
      *
      * @return Mapa con estadísticas de averías
@@ -125,43 +136,19 @@ public class AveriaService {
         if (request.getCodigoCamion() == null || request.getCodigoCamion().trim().isEmpty()) {
             throw new InvalidInputException("El código del camión es obligatorio");
         }
-
-        if (request.getTurno() == null || request.getTurno().trim().isEmpty()) {
-            throw new InvalidInputException("El turno es obligatorio");
-        }
-
         if (request.getTipoIncidente() == null || request.getTipoIncidente().trim().isEmpty()) {
             throw new InvalidInputException("El tipo de incidente es obligatorio");
         }
-
         try {
-            // Validar y obtener el camión
             Camion camion = CamionFactory.getCamionPorCodigo(request.getCodigoCamion());
-
-            // Validar turno
-            TipoTurno turno = new TipoTurno(request.getTurno());
-
-            // Validar tipo de incidente
             TipoIncidente tipoIncidente = new TipoIncidente(request.getTipoIncidente());
-
-            // Crear la avería
+            // Crear la avería solo con los campos requeridos
             Averia averia = new Averia();
             averia.setCamion(camion);
-            averia.setTurno(turno);
             averia.setTipoIncidente(tipoIncidente);
-            averia.setFechaInicio(request.getFechaInicio());
-            averia.setFechaFin(request.getFechaFin());
             averia.setEstado(false); // Por defecto inactiva
-
-            // Validar fechas si se proporcionan
-            if (request.getFechaInicio() != null && request.getFechaFin() != null) {
-                if (request.getFechaInicio().isAfter(request.getFechaFin())) {
-                    throw new InvalidInputException("La fecha de inicio no puede ser posterior a la fecha de fin");
-                }
-            }
-
+            // Los demás campos se ignoran
             return averiaRepository.save(averia);
-
         } catch (NoSuchElementException e) {
             throw new InvalidInputException("Camión no encontrado: " + request.getCodigoCamion());
         } catch (IllegalArgumentException e) {

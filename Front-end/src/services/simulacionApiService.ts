@@ -1,10 +1,10 @@
 import type { Individuo } from "../types";
-const API_BASE_URL = "http://localhost:8085/api/simulacion";
+import { API_URLS } from "../config/api";
 
 export async function getMejorIndividuo(): Promise<Individuo> {
   try {
     console.log("Iniciando solicitud al servidor...");
-    const response = await fetch(`${API_BASE_URL}/mejor`);
+    const response = await fetch(`${API_URLS.MEJOR_INDIVIDUO}`);
     console.log("Respuesta recibida:", {
       status: response.status,
       statusText: response.statusText,
