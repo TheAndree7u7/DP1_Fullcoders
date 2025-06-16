@@ -1,28 +1,20 @@
 version: '3.8'
+
 services:
+  frontend:
+    build:
+      context: ./Front-end
+    container_name: dp1-frontend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+
   backend:
     build:
       context: ./Back-end/plg
-    container_name: plg-app-container
+    container_name: dp1-backend
     ports:
       - "8085:8085"
     restart: unless-stopped
     environment:
       - SPRING_PROFILES_ACTIVE=defaults
-    networks:
-      - dp1net
-
-  frontend:
-    build:
-      context: ./Front-end
-    container_name: frontend-app-container
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    networks:
-      - dp1net
-
-networks:
-  dp1net:
-    driver: bridge
