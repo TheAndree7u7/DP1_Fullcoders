@@ -3,6 +3,7 @@ import { ChevronRight } from 'lucide-react';
 import TablaPedidos from './TablaPedidos';
 import MetricasRendimiento from './MetricasRendimiento';
 import CardsCamiones from './CardCamion';
+import IndicadoresCamiones from './IndicadoresCamiones';
 
 interface RightMenuProps {
   expanded: boolean;
@@ -30,6 +31,7 @@ const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded }) => {
         <div className="text-md font-medium">Métricas de rendimiento</div>
         <MetricasRendimiento />
         <div className="text-md font-medium">Indicadores de camiones</div>
+        <IndicadoresCamiones />
       </div>
     </div>
   );
