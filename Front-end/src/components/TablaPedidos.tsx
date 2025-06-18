@@ -12,7 +12,7 @@ const TablaPedidos: React.FC = () => {
   ]);
 
   return (
-    <div className="rounded-lg border border-gray-200 max-h-80">
+    <div className="rounded-lg border border-gray-200 max-h-64">
       {/* Cabecera fija */}
       <div className="bg-gray-100 sticky top-0 z-10">
         <table className="min-w-full table-auto text-sm text-left">

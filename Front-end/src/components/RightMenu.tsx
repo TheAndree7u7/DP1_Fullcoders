@@ -24,13 +24,13 @@ const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded }) => {
       </button>
 
       <div className="flex flex-col gap-4 overflow-y-auto">
-        <div className="text-md font-medium">Estado de los camiones</div>
+        <div className="text-md font-bold text-gray-700">Estado de los camiones</div>
         <CardsCamiones />
-        <div className="text-md font-medium">Datos de los pedidos</div>
+        <div className="text-md font-bold text-gray-700">Datos de los pedidos</div>
         <TablaPedidos />
-        <div className="text-md font-medium">Métricas de rendimiento</div>
+        <div className="text-md font-bold text-gray-700">Métricas de rendimiento</div>
         <MetricasRendimiento />
-        <div className="text-md font-medium">Indicadores de camiones</div>
+        <div className="text-xs font-bold text-gray-700">Indicadores de camiones</div>
         <IndicadoresCamiones />
       </div>
     </div>

@@ -26,60 +26,50 @@ const IndicadoresCamiones: React.FC = () => {
   });
 
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div className="grid grid-cols-5 gap-1 mb-1">
       {/* Camiones Disponibles */}
-      <div className="flex items-center gap-2 bg-blue-50 rounded-lg p-3">
-        <div className="bg-blue-100 p-2 rounded-lg">
-          <CircleDashed size={20} className="text-blue-600" />
+      <div className="flex flex-col items-center justify-center bg-blue-50 rounded p-1 text-center">
+        <div className="bg-blue-100 p-1 rounded">
+          <CircleDashed size={14} className="text-blue-600" />
         </div>
-        <div>
-          <div className="text-sm font-medium">Disponibles</div>
-          <div className="text-2xl font-bold">{contadorEstados.Disponible}</div>
-        </div>
+        <div className="text-[10px] font-medium">Disponibles</div>
+        <div className="text-sm font-bold">{contadorEstados.Disponible}</div>
       </div>
       
       {/* Camiones En Camino */}
-      <div className="flex items-center gap-2 bg-green-50 rounded-lg p-3">
-        <div className="bg-green-100 p-2 rounded-lg">
-          <Fuel size={20} className="text-green-600" />
+      <div className="flex flex-col items-center justify-center bg-green-50 rounded p-1 text-center">
+        <div className="bg-green-100 p-1 rounded">
+          <Fuel size={14} className="text-green-600" />
         </div>
-        <div>
-          <div className="text-sm font-medium">En Ruta</div>
-          <div className="text-2xl font-bold">{contadorEstados['En Camino']}</div>
-        </div>
+        <div className="text-[10px] font-medium">En Ruta</div>
+        <div className="text-sm font-bold">{contadorEstados['En Camino']}</div>
       </div>
       
       {/* Camiones En Mantenimiento */}
-      <div className="flex items-center gap-2 bg-yellow-50 rounded-lg p-3">
-        <div className="bg-yellow-100 p-2 rounded-lg">
-          <Wrench size={20} className="text-yellow-600" />
+      <div className="flex flex-col items-center justify-center bg-yellow-50 rounded p-1 text-center">
+        <div className="bg-yellow-100 p-1 rounded">
+          <Wrench size={14} className="text-yellow-600" />
         </div>
-        <div>
-          <div className="text-sm font-medium">Mantenimiento</div>
-          <div className="text-2xl font-bold">{contadorEstados['En Mantenimiento']}</div>
-        </div>
+        <div className="text-[10px] font-medium">Mantenim.</div>
+        <div className="text-sm font-bold">{contadorEstados['En Mantenimiento']}</div>
       </div>
       
       {/* Camiones Averiados */}
-      <div className="flex items-center gap-2 bg-red-50 rounded-lg p-3">
-        <div className="bg-red-100 p-2 rounded-lg">
-          <AlertTriangle size={20} className="text-red-600" />
+      <div className="flex flex-col items-center justify-center bg-red-50 rounded p-1 text-center">
+        <div className="bg-red-100 p-1 rounded">
+          <AlertTriangle size={14} className="text-red-600" />
         </div>
-        <div>
-          <div className="text-sm font-medium">Averiados</div>
-          <div className="text-2xl font-bold">{contadorEstados.Averiado}</div>
-        </div>
+        <div className="text-[10px] font-medium">Averiados</div>
+        <div className="text-sm font-bold">{contadorEstados.Averiado}</div>
       </div>
       
       {/* Camiones con Entregas Completadas */}
-      <div className="flex items-center gap-2 bg-emerald-50 rounded-lg p-3 col-span-2">
-        <div className="bg-emerald-100 p-2 rounded-lg">
-          <CheckCircle2 size={20} className="text-emerald-600" />
+      <div className="flex flex-col items-center justify-center bg-emerald-50 rounded p-1 text-center">
+        <div className="bg-emerald-100 p-1 rounded">
+          <CheckCircle2 size={14} className="text-emerald-600" />
         </div>
-        <div>
-          <div className="text-sm font-medium">Entregas Completadas</div>
-          <div className="text-2xl font-bold">{contadorEstados.Entregado}</div>
-        </div>
+        <div className="text-[10px] font-medium">Entregados</div>
+        <div className="text-sm font-bold">{contadorEstados.Entregado}</div>
       </div>
     </div>
   );

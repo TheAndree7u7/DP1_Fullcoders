@@ -20,7 +20,7 @@ const CardsCamiones: React.FC = () => {
   };
 
   return (
-    <div className="max-h-80 overflow-y-auto pr-1 -mr-1 space-y-2">
+    <div className="max-h-96 overflow-y-auto pr-1 -mr-1 space-y-2">
       {camiones.map((camion) => {
         const camionColor = getCamionColor(camion.id);
         
