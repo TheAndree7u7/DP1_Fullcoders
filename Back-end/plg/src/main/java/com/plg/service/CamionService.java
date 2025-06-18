@@ -1,5 +1,6 @@
 package com.plg.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
 import com.plg.entity.EstadoCamion;
 import com.plg.entity.TipoCamion;
+import com.plg.entity.TipoNodo;
 import com.plg.factory.CamionFactory;
 import com.plg.repository.CamionRepository;
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidInputException;
@@ -92,9 +94,9 @@ public class CamionService {
 
     /**
      * Cambia el estado de un camión por su código.
-     * 
+     *
      * @param codigoCamion Código del camión
-     * @param nuevoEstado  Nuevo estado a asignar
+     * @param nuevoEstado Nuevo estado a asignar
      * @return El camión actualizado
      */
     public Camion cambiarEstado(String codigoCamion, EstadoCamion nuevoEstado) {
@@ -104,5 +106,75 @@ public class CamionService {
                 .orElseThrow(() -> new RuntimeException("Camión no encontrado: " + codigoCamion));
         camion.setEstado(nuevoEstado);
         return camion;
+    }
+
+    /**
+     * Obtiene información detallada de cada camión incluyendo número de pedidos
+     * asociados, cantidad de GLP, combustible, kilómetros restantes y estado.
+     *
+     * @return Lista de mapas con la información detallada de cada camión
+     */
+    public List<Map<String, Object>> obtenerInfoDetallada() {
+        List<Camion> camiones = camionRepository.findAll();
+        List<Map<String, Object>> resultado = new ArrayList<>();
+
+        for (Camion camion : camiones) {
+            Map<String, Object> infoCamion = new HashMap<>();
+
+            // Información básica del camión
+            infoCamion.put("codigo", camion.getCodigo());
+            infoCamion.put("tipo", camion.getTipo().name());
+            infoCamion.put("estado", camion.getEstado().name());
+            infoCamion.put("descripcionEstado", camion.getEstado().getDescripcion());
+
+            // Coordenadas
+            if (camion.getCoordenada() != null) {
+                Map<String, Integer> coordenada = new HashMap<>(); 
+                infoCamion.put("coordenada", coordenada);
+            }
+
+            // Cantidad de GLP
+            infoCamion.put("capacidadMaximaGLP", camion.getCapacidadMaximaGLP());
+            infoCamion.put("capacidadActualGLP", camion.getCapacidadActualGLP());
+            infoCamion.put("porcentajeGLP", (camion.getCapacidadActualGLP() / camion.getCapacidadMaximaGLP()) * 100);
+
+            // Cantidad de gasolina
+            infoCamion.put("combustibleMaximo", camion.getCombustibleMaximo());
+            infoCamion.put("combustibleActual", camion.getCombustibleActual());
+            infoCamion.put("porcentajeCombustible", (camion.getCombustibleActual() / camion.getCombustibleMaximo()) * 100);
+
+            // Kilómetros restantes
+            infoCamion.put("distanciaMaxima", camion.getDistanciaMaxima());
+
+            // Contar pedidos asociados al camión (verificando en el Gen y la ruta)
+            long numeroPedidos = 0;
+            if (camion.getGen() != null && camion.getGen().getRutaFinal() != null) {
+                numeroPedidos = camion.getGen().getRutaFinal().stream()
+                        .filter(nodo -> nodo.getTipoNodo() == TipoNodo.PEDIDO)
+                        .count();
+            }
+            infoCamion.put("numeroPedidos", numeroPedidos);
+
+            resultado.add(infoCamion);
+        }
+        
+        // Ordenar primero por número de pedidos (de mayor a menor) y luego por combustible restante (de menor a mayor)
+        resultado.sort((a, b) -> {
+            // Primero comparar por número de pedidos (descendente)
+            Long pedidosA = (Long) a.get("numeroPedidos");
+            Long pedidosB = (Long) b.get("numeroPedidos");
+            int comparePedidos = pedidosB.compareTo(pedidosA);
+            
+            if (comparePedidos != 0) {
+                return comparePedidos;
+            }
+            
+            // Si tienen el mismo número de pedidos, comparar por combustible restante (ascendente)
+            Double combustibleA = (Double) a.get("combustibleActual");
+            Double combustibleB = (Double) b.get("combustibleActual");
+            return combustibleA.compareTo(combustibleB);
+        });
+
+        return resultado;
     }
 }

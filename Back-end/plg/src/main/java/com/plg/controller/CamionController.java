@@ -91,7 +91,7 @@ public class CamionController {
         }
     }
 
-    /**1
+    /**
      * Lista todos los camiones con sus datos principales (estado, id, tipo,
      * coordenada).
      */
@@ -102,6 +102,21 @@ public class CamionController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al listar camiones estado: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Obtiene información detallada de cada camión incluyendo: - Número de
+     * pedidos asociados - Cantidad de GLP - Cantidad de gasolina - Kilómetros
+     * restantes por recorrer - Estado actual
+     */
+    @GetMapping("/info-detallada")
+    public ResponseEntity<?> obtenerInfoDetallada() {
+        try {
+            return ResponseEntity.ok(camionService.obtenerInfoDetallada());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener información detallada de camiones: " + e.getMessage());
         }
     }
 }
