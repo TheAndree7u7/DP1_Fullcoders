@@ -30,6 +30,7 @@ export interface Gen {
 
 export interface Individuo {
   cromosoma: Gen[];
+  fechaHoraSimulacion?: string; // Fecha y hora de la simulación
 }
 
 // --- Tipos del contexto de simulación ---
@@ -46,4 +47,8 @@ export interface RutaCamion {
   ruta: string[]; // Ejemplo: ["(12,8)", "(13,8)"]
   puntoDestino: string; // Ejemplo: "(57,17)"
   pedidos: Pedido[];
+}
+
+export interface Simulacion {
+  fechaHoraSimulacion: string; // JavaScript recibe LocalDateTime como string ISO
 }

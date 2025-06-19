@@ -8,7 +8,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getMejorIndividuo } from '../services/simulacionApiService';
 import { getAlmacenes, type Almacen } from '../services/almacenApiService';
-import type { Pedido, Coordenada, Individuo, Gen, Nodo } from '../types';
+import type { Pedido, Coordenada, Individuo, Gen, Nodo, Simulacion } from '../types';
 
 /**
  * Constantes de configuración de la simulación
@@ -134,6 +134,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         ruta: gen.nodos.map((n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`),
         puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
         pedidos: gen.pedidos,
+
       }));
 
       setRutasCamiones(nuevasRutas);

@@ -102,7 +102,7 @@ public class Simulacion {
                         algoritmoGenetico.ejecutarAlgoritmo();
                         // SimulatedAnnealing simulatedAnnealing = new SimulatedAnnealing(mapa, pedidosEnviar);
                         // simulatedAnnealing.ejecutarAlgoritmo();          
-                        IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(), pedidosEnviar, bloqueosActivos);
+                        IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(), pedidosEnviar, bloqueosActivos, fechaActual);
                         gaResultQueue.offer(mejorIndividuoDto);
                         continuar.acquire();
                     } catch (InterruptedException e) {
