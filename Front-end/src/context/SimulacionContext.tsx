@@ -64,6 +64,8 @@ interface SimulacionContextType {
   camiones: CamionEstado[];
   rutasCamiones: RutaCamion[];
   almacenes: Almacen[];
+  fechaHoraSimulacion: string | null; // Fecha y hora de la simulación del backend
+  diaSimulacion: number | null; // Día extraído de fechaHoraSimulacion
   avanzarHora: () => void;
   reiniciar: () => void;
   cargando: boolean;
@@ -93,6 +95,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [nodosRestantesAntesDeActualizar, setNodosRestantesAntesDeActualizar] = useState<number>(NODOS_PARA_ACTUALIZACION);
   const [esperandoActualizacion, setEsperandoActualizacion] = useState<boolean>(false);
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
+  const [fechaHoraSimulacion, setFechaHoraSimulacion] = useState<string | null>(null);
+  const [diaSimulacion, setDiaSimulacion] = useState<number | null>(null);
 
   // Cargar almacenes al inicio
   useEffect(() => {
@@ -126,15 +130,24 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (esInicial) setCargando(true);
     try {
       console.log("Iniciando solicitud al servidor...");
-      type IndividuoConBloqueos = Individuo & { bloqueos?: Bloqueo[] };
+      type IndividuoConBloqueos = Individuo & { bloqueos?: Bloqueo[], fechaHoraSimulacion?: string };
       const data = await getMejorIndividuo() as IndividuoConBloqueos;
       console.log("Datos recibidos:", data);
+
+      // Actualizar fecha y hora de la simulación
+      if (data.fechaHoraSimulacion) {
+        setFechaHoraSimulacion(data.fechaHoraSimulacion);
+        // Extraer el día de la fecha
+        const fecha = new Date(data.fechaHoraSimulacion);
+        setDiaSimulacion(fecha.getDate());
+        console.log("Fecha de simulación actualizada:", data.fechaHoraSimulacion, "Día:", fecha.getDate());
+      }
+
       const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => ({
         id: gen.camion.codigo,
         ruta: gen.nodos.map((n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`),
         puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
         pedidos: gen.pedidos,
-
       }));
 
       setRutasCamiones(nuevasRutas);
@@ -226,7 +239,18 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   return (
     <SimulacionContext.Provider
-      value={{ horaActual, camiones, rutasCamiones, almacenes, avanzarHora, reiniciar, cargando, bloqueos }}
+      value={{ 
+        horaActual, 
+        camiones, 
+        rutasCamiones, 
+        almacenes, 
+        fechaHoraSimulacion,
+        diaSimulacion,
+        avanzarHora, 
+        reiniciar, 
+        cargando, 
+        bloqueos 
+      }}
     >
       {children}
     </SimulacionContext.Provider>
