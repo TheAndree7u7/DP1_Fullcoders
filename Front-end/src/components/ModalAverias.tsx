@@ -1,5 +1,3 @@
-import React from 'react'; // Asegúrate de importar React si no lo estás haciendo
-
 const ModalAverias = () => {
   return (
     <div className="flex w-full max-w-2xl flex-col border-2 rounded-2xl p-6 bg-white shadow-lg">
