@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSimulacion } from '../context/SimulacionContext';
+
+// Constante que define cuánto tiempo (en segundos) representa cada nodo en la simulación
+const SEGUNDOS_POR_NODO = 36;
 
 // Estilos CSS en línea
 const styles = {
@@ -59,25 +62,33 @@ const styles = {
  * Componente que muestra la fecha y hora actual de la simulación
  */
 const FechaHoraSimulacion: React.FC = () => {
-  const { fechaHoraSimulacion, diaSimulacion, horaActual, cargando } = useSimulacion();
-
-  // Formatear la fecha para mostrar
-  const formatearFecha = (fechaStr: string) => {
-    const fecha = new Date(fechaStr);
-    return {
-      completa: fecha.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }) + ' ' + fecha.toLocaleTimeString('es-ES', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      }),
-      hora: fecha.getHours() + ':' + fecha.getMinutes().toString().padStart(2, '0'),
-      dia: fecha.getDate()
-    };
-  };
+  const { fechaHoraSimulacion, horaActual, cargando } = useSimulacion();
+  const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
+  
+  // Esta función ya no se usa, pero la mantenemos por si necesitamos formatear fechas en el futuro
+  
+  // Actualizar la hora simulada cuando cambia fechaHoraSimulacion (datos del backend)
+  useEffect(() => {
+    if (fechaHoraSimulacion) {
+      // Cuando recibimos una nueva fecha del backend, actualizamos nuestra referencia
+      const fechaBase = new Date(fechaHoraSimulacion);
+      setTiempoSimulado(fechaBase);
+    }
+  }, [fechaHoraSimulacion]);
+  
+  // Actualizar la hora simulada cuando avanza la simulación (horaActual)
+  useEffect(() => {
+    if (fechaHoraSimulacion && horaActual > 0) {
+      // Calculamos el tiempo según el nodo actual (siguiendo el avance de la simulación)
+      const fechaBase = new Date(fechaHoraSimulacion);
+      // Calculamos segundos adicionales solo para el incremento local desde la última actualización del backend
+      const segundosAdicionales = horaActual * SEGUNDOS_POR_NODO;
+      
+      // Crea nueva fecha sumando los segundos
+      const nuevaFecha = new Date(fechaBase.getTime() + segundosAdicionales * 1000);
+      setTiempoSimulado(nuevaFecha);
+    }
+  }, [horaActual, fechaHoraSimulacion]);
 
   if (cargando) {
     return (
@@ -99,7 +110,26 @@ const FechaHoraSimulacion: React.FC = () => {
     );
   }
 
-  const { completa, hora, dia } = formatearFecha(fechaHoraSimulacion);
+  // Formatear fecha simulada para mostrar
+  const fechaSimulada = tiempoSimulado ? 
+    tiempoSimulado.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: 'numeric',
+      year: 'numeric'
+    }) + ' ' + 
+    tiempoSimulado.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }) : '';
+  
+  // Formatos más específicos para elementos individuales
+  const horaSimulada = tiempoSimulado ? 
+    tiempoSimulado.getHours().toString().padStart(2, '0') + ':' + 
+    tiempoSimulado.getMinutes().toString().padStart(2, '0') + ':' + 
+    tiempoSimulado.getSeconds().toString().padStart(2, '0') : '';
+  
+  const diaSimulado = tiempoSimulado ? tiempoSimulado.getDate() : '';
 
   return (
     <div style={styles.fechaContainer}>
@@ -108,15 +138,25 @@ const FechaHoraSimulacion: React.FC = () => {
         <span>TIEMPO DE SIMULACIÓN</span>
       </div>
       <div style={styles.contenido}>
-        <div style={styles.fechaCompleta}>{completa}</div>
+        <div style={styles.fechaCompleta}>{fechaSimulada}</div>
         <div style={styles.infoAdicional}>
           <div>
             <span style={styles.etiqueta}>Día: </span>
-            <span style={styles.destacado}>{dia}</span>
+            <span style={styles.destacado}>{diaSimulado}</span>
           </div>
           <div>
-            <span style={styles.etiqueta}>Hora de ejecución: </span>
+            <span style={styles.etiqueta}>Hora en tiempo real: </span>
+            <span style={styles.destacado}>{horaSimulada}</span>
+          </div>
+        </div>
+        <div style={styles.infoAdicional}>
+          <div>
+            <span style={styles.etiqueta}>Nodo actual: </span>
             <span style={styles.destacado}>{horaActual}</span>
+          </div>
+          <div>
+            <span style={styles.etiqueta}>Segundos por nodo: </span>
+            <span style={styles.destacado}>{SEGUNDOS_POR_NODO}</span>
           </div>
         </div>
       </div>

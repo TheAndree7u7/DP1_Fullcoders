@@ -4,7 +4,6 @@ import TablaPedidos from './TablaPedidos';
 import MetricasRendimiento from './MetricasRendimiento';
 import CardsCamiones from './CardCamion';
 import IndicadoresCamiones from './IndicadoresCamiones';
-import FechaHoraSimulacion from './FechaHoraSimulacion';
 
 interface RightMenuProps {
   expanded: boolean;
@@ -23,8 +22,6 @@ const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded }) => {
       >
         <ChevronRight size={12} />
       </button>
-
-      <FechaHoraSimulacion />
 
       <div className="flex flex-col gap-4 overflow-y-auto">
         <div className="text-md font-bold text-gray-700">Estado de los camiones</div>

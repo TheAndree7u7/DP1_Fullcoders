@@ -1,25 +1,75 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Mapa from "../components/Mapa";
 import Navbar from "../components/Navbar";
 import RightMenu from "../components/RightMenu";
 import { ChevronLeft } from "lucide-react";
 import { useSimulacion } from "../context/SimulacionContext";
 
+// Constante que define cuánto tiempo (en segundos) representa cada nodo en la simulación
+const SEGUNDOS_POR_NODO = 36;
+
 const SimulacionSemanal: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
-  const { diaSimulacion, fechaHoraSimulacion } = useSimulacion();
+  const { diaSimulacion, fechaHoraSimulacion, horaActual } = useSimulacion();
+  const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
+
+  // Actualizar la hora simulada cuando avanza la simulación
+  useEffect(() => {
+    if (fechaHoraSimulacion && horaActual > 0) {
+      // Calculamos el tiempo según el nodo actual
+      const fechaBase = new Date(fechaHoraSimulacion);
+      // Calculamos segundos adicionales para el incremento local
+      const segundosAdicionales = horaActual * SEGUNDOS_POR_NODO;
+      
+      // Crea nueva fecha sumando los segundos
+      const nuevaFecha = new Date(fechaBase.getTime() + segundosAdicionales * 1000);
+      setTiempoSimulado(nuevaFecha);
+    } else if (fechaHoraSimulacion) {
+      setTiempoSimulado(new Date(fechaHoraSimulacion));
+    }
+  }, [horaActual, fechaHoraSimulacion]);
+
+  // Formato para la fecha y hora simulada
+  const fechaSimulada = tiempoSimulado ? 
+    tiempoSimulado.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: 'numeric',
+      year: 'numeric'
+    }) + ' ' + 
+    tiempoSimulado.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }) : '';
+  
+  const horaSimulada = tiempoSimulado ? 
+    tiempoSimulado.getHours().toString().padStart(2, '0') + ':' + 
+    tiempoSimulado.getMinutes().toString().padStart(2, '0') + ':' + 
+    tiempoSimulado.getSeconds().toString().padStart(2, '0') : '';
 
   return (
     <div className="bg-[#F5F5F5] w-screen h-screen flex flex-col pt-16">
       <Navbar />
       <div className="bg-[#1E293B] text-white py-2 px-4 flex justify-between items-center">
         <h1 className="font-bold">Ejecución Semanal {diaSimulacion && `- Día ${diaSimulacion}`}</h1>
-        {fechaHoraSimulacion && (
-          <div className="text-sm">
-            <span className="mr-2">Fecha de la simulación:</span>
-            <span className="font-bold text-blue-300">
-              {new Date(fechaHoraSimulacion).toLocaleString('es-ES')}
-            </span>
+        {tiempoSimulado && (
+          <div className="text-sm flex items-center gap-4">
+            <div>
+              <span className="mr-2">Fecha de la simulación:</span>
+              <span className="font-bold text-blue-300">{fechaSimulada}</span>
+            </div>
+            <div>
+              <span className="mr-2">Hora en tiempo real:</span>
+              <span className="font-bold text-blue-300">{horaSimulada}</span>
+            </div>
+            <div>
+              <span className="mr-2">Nodo actual:</span>
+              <span className="font-bold text-blue-300">{horaActual}</span>
+            </div>
+            <div>
+              <span className="mr-2">Seg/nodo:</span>
+              <span className="font-bold text-blue-300">{SEGUNDOS_POR_NODO}</span>
+            </div>
           </div>
         )}
       </div>
