@@ -96,19 +96,6 @@ public class AveriaController {
     }
 
     /**
-     * Resumen de averías por estado y tipo.
-     */
-    @GetMapping("/resumen")
-    public ResponseEntity<?> resumen() {
-        try {
-            return ResponseEntity.ok(averiaService.resumen());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al obtener resumen: " + e.getMessage());
-        }
-    }
-
-    /**
      * Agrega una nueva avería solo con código de camión y tipo de incidente.
      */
     @PostMapping
@@ -118,36 +105,52 @@ public class AveriaController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("El código del camión es obligatorio");
             }
-            if (request.getTipoIncidente() == null || request.getTipoIncidente().trim().isEmpty()) {
+            if (request.getTipoIncidente() == null) {
+
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("El tipo de incidente es obligatorio");
+
             }
+
             // Solo se pasan los campos requeridos, los demás se ignoran
-            AveriaRequest minimalRequest = new AveriaRequest();
-            minimalRequest.setCodigoCamion(request.getCodigoCamion());
-            minimalRequest.setTipoIncidente(request.getTipoIncidente());
+            ResponseEntity<Averia> minimalRequest = new AveriaRequest();
+
+            minimalRequest = 
+
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(averiaService.agregar(minimalRequest));
+
         } catch (Exception e) {
+
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Error al crear avería: " + e.getMessage());
+
         }
     }
 
     /**
+     *
      * Lista los códigos de camiones actualmente averiados (solo códigos, sin
      * duplicados).
+     *
+     *
      *
      * @return Lista de códigos de camiones con avería activa.
      */
     @GetMapping("/camiones-averiados")
+
     public ResponseEntity<?> listarCodigosCamionesAveriados() {
+
         try {
+
             return ResponseEntity.ok(averiaService.listarCodigosCamionesAveriados());
         } catch (Exception e) {
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al obtener camiones averiados: " + e.getMessage());
+
         }
+
     }
 
     /**
@@ -157,7 +160,7 @@ public class AveriaController {
     public ResponseEntity<?> listarPorCamionYTipo(@RequestParam String codigoCamion, @RequestParam String tipoIncidente) {
         try {
             return ResponseEntity.ok(
-                averiaService.listarPorCamionYTipo(codigoCamion, tipoIncidente)
+                    averiaService.listarPorCamionYTipo(codigoCamion, tipoIncidente)
             );
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -166,7 +169,8 @@ public class AveriaController {
     }
 
     /**
-     * Agrega una nueva avería y cambia el estado del camión a EN_MANTENIMIENTO_POR_AVERIA.
+     * Agrega una nueva avería y cambia el estado del camión a
+     * EN_MANTENIMIENTO_POR_AVERIA.
      */
     @PostMapping("/averiar-camion")
     public ResponseEntity<?> averiarCamion(@RequestBody AveriaRequest request) {

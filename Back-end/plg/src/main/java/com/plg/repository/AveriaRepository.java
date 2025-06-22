@@ -35,7 +35,7 @@ public class AveriaRepository {
     public List<Averia> findAllBetween(LocalDateTime inicio, LocalDateTime fin) {
         return DataLoader.averias.stream()
                 .filter(a -> {
-                    LocalDateTime fechaInicio = a.getFechaInicio();
+                    LocalDateTime fechaInicio = a.getFechaHoraReporte();
                     LocalDateTime fechaFin = a.getFechaFin();
                     // La avería está activa si se superpone con el rango solicitado
                     return fechaInicio != null && fechaFin != null
@@ -102,9 +102,9 @@ public class AveriaRepository {
     public List<Averia> findByCamionAndTipo(String codigoCamion, String tipoIncidente) {
         return DataLoader.averias.stream()
                 .filter(a -> a.getCamion() != null
-                        && a.getCamion().getCodigo().equals(codigoCamion)
-                        && a.getTipoIncidente() != null
-                        && a.getTipoIncidente().getTipo().equals(tipoIncidente))
+                && a.getCamion().getCodigo().equals(codigoCamion)
+                && a.getTipoIncidente() != null
+                && a.getTipoIncidente().getCodigo().equals(tipoIncidente))
                 .collect(Collectors.toList());
     }
 }

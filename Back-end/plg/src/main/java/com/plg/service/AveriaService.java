@@ -13,7 +13,7 @@ import com.plg.dto.request.AveriaRequest;
 import com.plg.entity.Averia;
 import com.plg.entity.Camion;
 import com.plg.entity.TipoIncidente;
-import com.plg.entity.TipoTurno;
+import com.plg.entity.TipoIncidente;
 import com.plg.factory.CamionFactory;
 import com.plg.repository.AveriaRepository;
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidInputException;
@@ -80,49 +80,7 @@ public class AveriaService {
         return averiaRepository.findByCamionAndTipo(codigoCamion, tipoIncidente);
     }
 
-    /**
-     * Resumen de averías por estado y tipo.
-     *
-     * @return Mapa con estadísticas de averías
-     */
-    public Map<String, Object> resumen() {
-        List<Averia> averias = averiaRepository.findAll();
-        Map<String, Object> datos = new HashMap<>();
-
-        datos.put("total", averias.size());
-        datos.put("activas", averias.stream()
-                .mapToLong(a -> a.getEstado() != null && a.getEstado() ? 1 : 0)
-                .sum());
-        datos.put("inactivas", averias.stream()
-                .mapToLong(a -> a.getEstado() == null || !a.getEstado() ? 1 : 0)
-                .sum());
-
-        // Agrupar por tipo de turno
-        Map<String, Long> porTurno = averias.stream()
-                .filter(a -> a.getTurno() != null)
-                .collect(Collectors.groupingBy(
-                        a -> a.getTurno().getTipo(),
-                        Collectors.counting()));
-        datos.put("porTurno", porTurno);
-
-        // Agrupar por tipo de incidente
-        Map<String, Long> porTipoIncidente = averias.stream()
-                .filter(a -> a.getTipoIncidente() != null)
-                .collect(Collectors.groupingBy(
-                        a -> a.getTipoIncidente().getTipo(),
-                        Collectors.counting()));
-        datos.put("porTipoIncidente", porTipoIncidente);
-
-        // Agrupar por camión
-        Map<String, Long> porCamion = averias.stream()
-                .filter(a -> a.getCamion() != null)
-                .collect(Collectors.groupingBy(
-                        a -> a.getCamion().getCodigo(),
-                        Collectors.counting()));
-        datos.put("porCamion", porCamion);
-
-        return datos;
-    }
+    
 
     /**
      * Crea una nueva avería utilizando los datos de la solicitud.
@@ -136,17 +94,15 @@ public class AveriaService {
         if (request.getCodigoCamion() == null || request.getCodigoCamion().trim().isEmpty()) {
             throw new InvalidInputException("El código del camión es obligatorio");
         }
-        if (request.getTipoIncidente() == null || request.getTipoIncidente().trim().isEmpty()) {
+        if (request.getTipoIncidente() == null) {
             throw new InvalidInputException("El tipo de incidente es obligatorio");
         }
         try {
             Camion camion = CamionFactory.getCamionPorCodigo(request.getCodigoCamion());
-            TipoIncidente tipoIncidente = new TipoIncidente(request.getTipoIncidente());
+            TipoIncidente tipoIncidente = request.getTipoIncidente();
             // Crear la avería solo con los campos requeridos
             Averia averia = new Averia();
-            averia.setCamion(camion);
-            averia.setTipoIncidente(tipoIncidente);
-            averia.setEstado(false); // Por defecto inactiva
+            averia = request
             // Los demás campos se ignoran
             return averiaRepository.save(averia);
         } catch (NoSuchElementException e) {

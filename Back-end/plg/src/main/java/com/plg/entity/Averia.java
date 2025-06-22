@@ -26,8 +26,7 @@ public class Averia {
     private LocalDateTime fechaHoraReparacion;
     private LocalDateTime fechaHoraDisponible;
     private int turnoOcurrencia;
-    private double tiempoReparacionEstimado;
-    private LocalDateTime fechaFin;
+    private double tiempoReparacionEstimado; 
     private Boolean estado; // true: activo, false: inactivo
     private Coordenada coordenada;
 
