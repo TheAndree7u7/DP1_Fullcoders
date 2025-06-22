@@ -1,16 +1,16 @@
 package com.plg.entity;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.NoSuchElementException;
 
 import com.plg.factory.CamionFactory;
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidDataFormatException;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
@@ -20,12 +20,16 @@ public class Averia {
 
     @com.fasterxml.jackson.annotation.JsonIgnore
     private Camion camion;
-    private TipoTurno turno; // T1, T2, T3
+
     private TipoIncidente tipoIncidente; // TI1, TI2, TI3
-    private LocalDateTime fechaInicio;
+    private LocalDateTime fechaHoraReporte;
+    private LocalDateTime fechaHoraReparacion;
+    private LocalDateTime fechaHoraDisponible;
+    private int turnoOcurrencia;
+    private double tiempoReparacionEstimado;
     private LocalDateTime fechaFin;
     private Boolean estado; // true: activo, false: inactivo
-
+    private Coordenada coordenada;
 
     public Averia(String line) throws InvalidDataFormatException {
         if (line == null || line.trim().isEmpty()) {
@@ -44,8 +48,7 @@ public class Averia {
         if (turnoStr.trim().isEmpty() || codigoCamion.trim().isEmpty() || tipoIncidenteStr.trim().isEmpty()) {
             throw new InvalidDataFormatException("Los componentes de la avería (turno, código de camión, tipo de incidente) no pueden estar vacíos. Línea: " + line);
         }
-        
-        this.turno = new TipoTurno(turnoStr); // El constructor de TipoTurno ya valida
+
         this.tipoIncidente = new TipoIncidente(tipoIncidenteStr); // El constructor de TipoIncidente ya valida
 
         try {
@@ -55,5 +58,62 @@ public class Averia {
         }
     }
 
+    public void calcularTurnoOcurrencia() {
+        LocalTime hora = fechaHoraReporte.toLocalTime();
+        if (hora.isBefore(LocalTime.of(8, 0))) {
+            this.turnoOcurrencia = 1; // Turno 1: 00:00 - 08:00
+        } else if (hora.isBefore(LocalTime.of(16, 0))) {
+            this.turnoOcurrencia = 2; // Turno 2: 08:00 - 16:00
+        } else {
+            this.turnoOcurrencia = 3; // Turno 3: 16:00 - 24:00
+        }
+    }
 
+    //calcula el tiempo que no estara disponible segun si importa turno o si s va trasladar a almacen central
+    public double calcularTiempoInoperatividad() {
+        double tiempoInoperatividad = 0;
+
+        if (this.tipoIncidente.isRequiereTraslado()) {
+            if (this.tipoIncidente.isImportaTurnoDiaAveria()) {
+                tiempoInoperatividad += this.tipoIncidente.getNTurnosEnReparacion() * 8.0;
+            } else {
+                tiempoInoperatividad += this.tipoIncidente.getHorasReparacionTaller() + this.tipoIncidente.getHorasEsperaEnRuta();
+            }
+        } else {
+            tiempoInoperatividad += this.tipoIncidente.getHorasReparacionRuta();
+        }
+        return tiempoInoperatividad;
+    }
+ 
+    //calcula la fecha y hora de disponibilidad
+    public LocalDateTime calcularFechaHoraDisponible() {
+        LocalDateTime fechaHoraDisponibleLocal = this.fechaHoraReporte;
+        //si requiere traslado
+        if (this.tipoIncidente.isRequiereTraslado()) {
+            //si no importa el turno
+            if (!this.tipoIncidente.isImportaTurnoDiaAveria()) {
+                fechaHoraDisponibleLocal = fechaHoraDisponibleLocal.toLocalDate().plusDays(1).atStartOfDay();
+                fechaHoraDisponibleLocal = fechaHoraDisponibleLocal.plusHours((long) this.tipoIncidente.getHorasReparacionTaller());
+                fechaHoraDisponibleLocal = fechaHoraDisponibleLocal.plusHours((long) this.tipoIncidente.getHorasEsperaEnRuta());
+            } else {
+                // aca solamente si es turno uno
+                switch (this.turnoOcurrencia) {
+                    case 1 ->
+                        fechaHoraDisponibleLocal = fechaHoraDisponibleLocal.toLocalDate().atStartOfDay().plusHours(8);
+                    case 2 ->
+                        fechaHoraDisponibleLocal = fechaHoraDisponibleLocal.toLocalDate().atStartOfDay().plusHours(16);
+                    case 3 ->
+                        fechaHoraDisponibleLocal = fechaHoraDisponibleLocal.toLocalDate().atStartOfDay().plusHours(24);
+                    default -> {
+                    }
+                }
+                fechaHoraDisponibleLocal = fechaHoraDisponibleLocal.plusHours((long) this.tipoIncidente.getHorasReparacionTaller());
+                fechaHoraDisponibleLocal = fechaHoraDisponibleLocal.plusHours((long) this.tipoIncidente.getHorasEsperaEnRuta());
+            }
+        } else {
+            //si no requiere traslado
+            fechaHoraDisponibleLocal = fechaHoraDisponibleLocal.plusHours((long) this.tipoIncidente.getHorasReparacionRuta());
+        }
+        return fechaHoraDisponibleLocal;
+    }
 }

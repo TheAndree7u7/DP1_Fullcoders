@@ -1,14 +1,13 @@
 package com.plg.entity;
 
-import lombok.Getter;
-
 import java.time.LocalDateTime;
 import java.util.Set;
 
-import com.plg.utils.Gen;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.plg.utils.Gen;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
@@ -32,7 +31,7 @@ public class Camion extends Nodo {
     private double pesoCombinado;          // Peso total (tara + carga)
 
     private EstadoCamion estado;
-
+    
     // Combustible
     private double combustibleMaximo;   // Capacidad del tanque en galones
     private double combustibleActual;        // Combustible actual en galones
