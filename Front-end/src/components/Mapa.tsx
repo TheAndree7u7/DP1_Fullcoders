@@ -53,8 +53,12 @@ const Mapa = () => {
   const [intervalo, setIntervalo] = useState(300);
   const intervalRef = useRef<number | null>(null);
   const { camiones, rutasCamiones, almacenes, avanzarHora, cargando, bloqueos } = useSimulacion();
+  // Estado para el tooltip (hover)
   const [tooltipCamion, setTooltipCamion] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{x: number, y: number} | null>(null);
+  // Estado para el modal fijo (click)
+  const [clickedCamion, setClickedCamion] = useState<string | null>(null);
+  const [clickedPos, setClickedPos] = useState<{x: number, y: number} | null>(null);
   const [averiando, setAveriando] = useState<string | null>(null);
 
   // DEBUG: Verificar que almacenes llega al componente
@@ -158,11 +162,7 @@ const Mapa = () => {
     );
   }, [camiones, rutasCamiones]);
 
-  // Función para manejar click en camión
-  const handleCamionClick = (camionId: string, evt: React.MouseEvent<SVGGElement, MouseEvent>) => {
-    setTooltipCamion(camionId);
-    setTooltipPos({ x: evt.clientX, y: evt.clientY });
-  };
+  // Eliminar función no usada
 
   const handleAveriar = async (camionId: string, tipo: number) => {
     setAveriando(camionId + '-' + tipo);
@@ -174,7 +174,7 @@ const Mapa = () => {
       alert('Error al averiar el camión');
     } finally {
       setAveriando(null);
-      setTooltipCamion(null);
+      setClickedCamion(null);
     }
   };
 
@@ -292,7 +292,28 @@ const Mapa = () => {
                  key={camion.id}
                  transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
                  style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}
-                 onClick={evt => handleCamionClick(camion.id, evt)}
+                 onMouseEnter={evt => {
+                   // Solo mostrar tooltip si no hay modal activo
+                   if (!clickedCamion) {
+                     setTooltipCamion(camion.id);
+                     setTooltipPos({ x: evt.clientX, y: evt.clientY });
+                   }
+                 }}
+                 onMouseMove={evt => {
+                   if (!clickedCamion && tooltipCamion === camion.id) {
+                     setTooltipPos({ x: evt.clientX, y: evt.clientY });
+                   }
+                 }}
+                 onMouseLeave={() => {
+                   setTooltipCamion(null);
+                 }}
+                 onClick={evt => {
+                   // Al hacer click, activar el modal permanente
+                   setClickedCamion(camion.id);
+                   setClickedPos({ x: evt.clientX, y: evt.clientY });
+                   // Ocultar el tooltip de hover
+                   setTooltipCamion(null);
+                 }}
                >
                  <rect x={-6} y={-4} width={12} height={8} rx={2} fill={color} stroke="black" strokeWidth={0.5} />
                  <circle cx={-4} cy={5} r={1.5} fill="black" />
@@ -302,52 +323,111 @@ const Mapa = () => {
           })}
       </svg>
 
-      {/* Tooltip para camión */}
+      {/* Tooltip para camión (hover) */}
       {tooltipCamion && tooltipPos && (
-        <div
-          style={{
-            position: 'fixed',
-            left: tooltipPos.x + 10,
-            top: tooltipPos.y + 10,
-            background: 'white',
-            border: '1px solid #ccc',
-            borderRadius: 8,
-            padding: 12,
-            zIndex: 1000,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-          }}
-        >
-          <div className="mb-2 font-bold">Camión: {tooltipCamion}</div>
-          <div className="flex flex-col gap-2">
-            <button
-              className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-              disabled={averiando === tooltipCamion + '-1'}
-              onClick={() => handleAveriar(tooltipCamion, 1)}
+        (() => {
+          const camion = camiones.find(c => c.id === tooltipCamion);
+          return (
+            <div
+              style={{
+                position: 'fixed',
+                left: tooltipPos.x + 10,
+                top: tooltipPos.y + 10,
+                background: 'white',
+                border: '1px solid #ccc',
+                borderRadius: 8,
+                padding: 12,
+                zIndex: 1000,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+              }}
             >
-              {averiando === tooltipCamion + '-1' ? 'Averiando...' : 'Avería tipo 1'}
-            </button>
-            <button
-              className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded"
-              disabled={averiando === tooltipCamion + '-2'}
-              onClick={() => handleAveriar(tooltipCamion, 2)}
+              <div className="mb-2 font-bold">Camión: {tooltipCamion}</div>
+              {camion && (
+                <div className="text-xs mb-2">
+                  Estado: {camion.estado}<br />
+                  Capacidad GLP: {camion.capacidadActualGLP} / {camion.capacidadMaximaGLP}<br />
+                  Combustible: {camion.combustibleActual} / {camion.combustibleMaximo}<br />
+                  Distancia máxima: {camion.distanciaMaxima}<br />
+                  Peso carga: {camion.pesoCarga}<br />
+                  Peso combinado: {camion.pesoCombinado}<br />
+                  Tara: {camion.tara}<br />
+                  Tipo: {camion.tipo}<br />
+                  Velocidad: {camion.velocidadPromedio} km/h<br />
+                  Ubicación: {camion.ubicacion}<br />
+                  Progreso: {camion.porcentaje}
+                </div>
+              )}
+            </div>
+          );
+        })()
+      )}
+
+      {/* Modal para camión (click) */}
+      {clickedCamion && clickedPos && (
+        (() => {
+          const camion = camiones.find(c => c.id === clickedCamion);
+          return (
+            <div
+              style={{
+                position: 'fixed',
+                left: clickedPos.x + 10,
+                top: clickedPos.y + 10,
+                background: 'white',
+                border: '1px solid #ccc',
+                borderRadius: 8,
+                padding: 12,
+                zIndex: 1000,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+              }}
             >
-              {averiando === tooltipCamion + '-2' ? 'Averiando...' : 'Avería tipo 2'}
-            </button>
-            <button
-              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-              disabled={averiando === tooltipCamion + '-3'}
-              onClick={() => handleAveriar(tooltipCamion, 3)}
-            >
-              {averiando === tooltipCamion + '-3' ? 'Averiando...' : 'Avería tipo 3'}
-            </button>
-          </div>
-          <button
-            className="mt-2 text-gray-500 hover:text-black"
-            onClick={() => setTooltipCamion(null)}
-          >
-            Cerrar
-          </button>
-        </div>
+              <div className="mb-2 font-bold">Camión: {clickedCamion}</div>
+              {camion && (
+                <div className="text-xs mb-2">
+                  Estado: {camion.estado}<br />
+                  Capacidad GLP: {camion.capacidadActualGLP} / {camion.capacidadMaximaGLP}<br />
+                  Combustible: {camion.combustibleActual} / {camion.combustibleMaximo}<br />
+                  Distancia máxima: {camion.distanciaMaxima}<br />
+                  Peso carga: {camion.pesoCarga}<br />
+                  Peso combinado: {camion.pesoCombinado}<br />
+                  Tara: {camion.tara}<br />
+                  Tipo: {camion.tipo}<br />
+                  Velocidad: {camion.velocidadPromedio} km/h<br />
+                  Ubicación: {camion.ubicacion}<br />
+                  Progreso: {camion.porcentaje}
+                </div>
+              )}
+              <div className="flex flex-col gap-2">
+                <button
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
+                  disabled={averiando === clickedCamion + '-1'}
+                  onClick={() => handleAveriar(clickedCamion, 1)}
+                >
+                  {averiando === clickedCamion + '-1' ? 'Averiando...' : 'Avería tipo 1'}
+                </button>
+                <button
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded"
+                  disabled={averiando === clickedCamion + '-2'}
+                  onClick={() => handleAveriar(clickedCamion, 2)}
+                >
+                  {averiando === clickedCamion + '-2' ? 'Averiando...' : 'Avería tipo 2'}
+                </button>
+                <button
+                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                  disabled={averiando === clickedCamion + '-3'}
+                  onClick={() => handleAveriar(clickedCamion, 3)}
+                >
+                  {averiando === clickedCamion + '-3' ? 'Averiando...' : 'Avería tipo 3'}
+                </button>
+              </div>
+              <button
+                className="mt-2 text-gray-500 hover:text-black"
+                onClick={() => setClickedCamion(null)}
+              >
+                Cerrar
+              </button>
+            </div>
+          );
+        })()
       )}
 
       <div className="flex items-center gap-4 mt-2">
