@@ -89,13 +89,14 @@ public class AveriaService {
             TipoIncidente tipoIncidente = request.getTipoIncidente();
             // Crear la avería solo con los campos requeridos
             Averia averia = request.toAveria();
-
+            //!CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE INCIDENTE
             averia.calcularTurnoOcurrencia();
 
             averia.getTipoIncidente().initDefaultAverias();
             averia.setFechaHoraDisponible(averia.calcularFechaHoraDisponible());
             averia.setTiempoReparacionEstimado(averia.calcularTiempoInoperatividad());
-
+            //! CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE INCIDENTE
+            
             return averiaRepository.save(averia);
         } catch (NoSuchElementException e) {
             throw new InvalidInputException("Camión no encontrado: " + request.getCodigoCamion());

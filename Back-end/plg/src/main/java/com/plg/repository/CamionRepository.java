@@ -31,6 +31,20 @@ public class CamionRepository {
     }
 
     /**
+     * Actualiza los datos principales de un camión existente.
+     */
+    public Camion update(Camion camion) {
+        // Busca el camión por código y reemplaza los datos principales
+        for (int i = 0; i < DataLoader.camiones.size(); i++) {
+            if (DataLoader.camiones.get(i).getCodigo().equals(camion.getCodigo())) {
+                DataLoader.camiones.set(i, camion);
+                return camion;
+            }
+        }
+        throw new RuntimeException("Camión no encontrado: " + camion.getCodigo());
+    }
+
+    /**
      * Obtiene la cantidad de camiones agrupados por estado.
      */
     public Map<String, Long> countByEstado() {

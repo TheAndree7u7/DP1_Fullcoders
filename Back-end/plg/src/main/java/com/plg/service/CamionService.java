@@ -109,6 +109,25 @@ public class CamionService {
     }
 
     /**
+     * Actualiza los datos principales de un camión por su código.
+     * @param request DTO con los datos a actualizar
+     * @return El camión actualizado
+     */
+    public Camion actualizarDatosPrincipales(com.plg.dto.request.CamionEstadoUpdateRequest request) {
+        Camion camion = camionRepository.findAll().stream()
+                .filter(c -> c.getCodigo().equals(request.getCodigo()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Camión no encontrado: " + request.getCodigo()));
+        if (request.getCoordenada() != null) {
+            camion.setCoordenada(request.getCoordenada());
+        }
+        camion.setCombustibleActual(request.getCombustibleActual());
+        camion.setCapacidadActualGLP(request.getCapacidadActualGLP());
+        camion.setEstado(request.getEstado());
+        return camion;
+    }
+
+    /**
      * Obtiene información detallada de cada camión incluyendo número de pedidos
      * asociados, cantidad de GLP, combustible, kilómetros restantes y estado.
      *

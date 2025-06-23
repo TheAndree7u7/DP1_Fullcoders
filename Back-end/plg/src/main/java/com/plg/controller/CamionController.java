@@ -119,4 +119,17 @@ public class CamionController {
                     .body("Error al obtener información detallada de camiones: " + e.getMessage());
         }
     }
+
+    /**
+     * Endpoint para actualizar datos principales de un camión (coordenada, combustibleActual, capacidadActualGLP, estado).
+     */
+    @PostMapping("/actualizar-datos")
+    public ResponseEntity<?> actualizarDatosPrincipales(@RequestBody com.plg.dto.request.CamionEstadoUpdateRequest request) {
+        try {
+            return ResponseEntity.ok(camionService.actualizarDatosPrincipales(request));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error al actualizar datos del camión: " + e.getMessage());
+        }
+    }
 }
