@@ -2,6 +2,7 @@ package com.plg.dto.request;
 
 import com.plg.entity.Coordenada;
 import com.plg.entity.EstadoCamion;
+
 import lombok.Data;
 
 /**

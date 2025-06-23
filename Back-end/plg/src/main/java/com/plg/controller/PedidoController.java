@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.plg.dto.request.PedidoRequest;
 import com.plg.service.PedidoService;
@@ -79,6 +79,19 @@ public class PedidoController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Error al crear pedido: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Endpoint para actualizar solo el estado de un pedido por su código.
+     */
+    @PostMapping("/actualizar-estado")
+    public ResponseEntity<?> actualizarEstado(@RequestBody com.plg.dto.request.PedidoEstadoUpdateRequest request) {
+        try {
+            return ResponseEntity.ok(pedidoService.actualizarEstado(request));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error al actualizar estado del pedido: " + e.getMessage());
         }
     }
 }

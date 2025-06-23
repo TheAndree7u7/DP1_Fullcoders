@@ -1,18 +1,13 @@
 package com.plg.service;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.plg.dto.request.AveriaRequest;
 import com.plg.entity.Averia;
 import com.plg.entity.Camion;
-import com.plg.entity.TipoIncidente;
 import com.plg.entity.TipoIncidente;
 import com.plg.factory.CamionFactory;
 import com.plg.repository.AveriaRepository;
@@ -96,7 +91,11 @@ public class AveriaService {
             averia.setFechaHoraDisponible(averia.calcularFechaHoraDisponible());
             averia.setTiempoReparacionEstimado(averia.calcularTiempoInoperatividad());
             //! CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE INCIDENTE
+
+            //?--------------------------------------
+            //! Ahora se actualiza el estado del camión
             
+            //! Ahora se actualiza el estado del pedido
             return averiaRepository.save(averia);
         } catch (NoSuchElementException e) {
             throw new InvalidInputException("Camión no encontrado: " + request.getCodigoCamion());

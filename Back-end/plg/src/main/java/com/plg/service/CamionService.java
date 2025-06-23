@@ -121,9 +121,15 @@ public class CamionService {
         if (request.getCoordenada() != null) {
             camion.setCoordenada(request.getCoordenada());
         }
-        camion.setCombustibleActual(request.getCombustibleActual());
-        camion.setCapacidadActualGLP(request.getCapacidadActualGLP());
-        camion.setEstado(request.getEstado());
+        if (request.getCombustibleActual() >= 0) {
+            camion.setCombustibleActual(request.getCombustibleActual());
+        }
+        if (request.getCapacidadActualGLP() >= 0) {
+            camion.setCapacidadActualGLP(request.getCapacidadActualGLP());
+        }
+        if (request.getEstado() != null) {
+            camion.setEstado(request.getEstado());
+        }
         return camion;
     }
 

@@ -1,10 +1,10 @@
 package com.plg.service;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
@@ -69,5 +69,20 @@ public class PedidoService {
         } catch (Exception e) {
             throw new InvalidInputException("No se pudo crear el pedido", e);
         }
+    }
+
+    /**
+     * Actualiza solo el estado de un pedido por su código.
+     *
+     * @param request DTO con el código y el nuevo estado
+     * @return El pedido actualizado
+     */
+    public Pedido actualizarEstado(com.plg.dto.request.PedidoEstadoUpdateRequest request) {
+        Pedido pedido = pedidoRepository.findAll().stream()
+                .filter(p -> p.getCodigo().equals(request.getCodigo()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Pedido no encontrado: " + request.getCodigo()));
+        pedido.setEstado(request.getEstado());
+        return pedido;
     }
 }

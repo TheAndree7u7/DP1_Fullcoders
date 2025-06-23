@@ -1,8 +1,8 @@
 package com.plg.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Repository;
 
@@ -45,5 +45,18 @@ public class PedidoRepository {
     public Pedido save(Pedido pedido) {
         DataLoader.pedidos.add(pedido);
         return pedido;
+    }
+
+    /**
+     * Actualiza el estado de un pedido existente.
+     */
+    public Pedido update(Pedido pedido) {
+        for (int i = 0; i < DataLoader.pedidos.size(); i++) {
+            if (DataLoader.pedidos.get(i).getCodigo().equals(pedido.getCodigo())) {
+                DataLoader.pedidos.set(i, pedido);
+                return pedido;
+            }
+        }
+        throw new RuntimeException("Pedido no encontrado: " + pedido.getCodigo());
     }
 }

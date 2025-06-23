@@ -78,3 +78,36 @@ Permite registrar una nueva avería indicando solo el código del camión y el t
 ```
 
 > Cambia los valores según el camión y tipo de incidente que desees registrar.
+
+---
+
+# Servicio: Actualizar estado de un pedido
+
+**Endpoint:** `POST /api/pedidos/actualizar-estado`
+
+Permite actualizar únicamente el estado de un pedido, identificándolo por su código.
+
+## Ejemplo de uso en Postman
+
+- **URL:** `http://localhost:8080/api/pedidos/actualizar-estado`
+- **Método:** POST
+- **Headers:**
+    - Content-Type: application/json
+- **Body (raw, JSON):**
+```json
+{
+  "codigo": "PEDIDO001",
+  "estado": "ENTREGADO"
+}
+```
+
+- **Respuesta exitosa:**
+```json
+{
+  "codigo": "PEDIDO001",
+  "estado": "ENTREGADO"
+  // ...otros campos del pedido
+}
+```
+
+> Cambia los valores según el pedido y estado que desees actualizar.
