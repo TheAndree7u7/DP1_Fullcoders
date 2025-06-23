@@ -2,6 +2,17 @@
 
 export interface Camion {
   codigo: string;
+  capacidadActualGLP: number;  // Can be decimal
+  capacidadMaximaGLP: number;  // Can be decimal
+  combustibleActual: number;   // Can be decimal
+  combustibleMaximo: number;   // Can be decimal
+  distanciaMaxima: number;     // Can be decimal
+  estado: string;
+  pesoCarga: number;           // Can be decimal
+  pesoCombinado: number;       // Can be decimal
+  tara: number;                // Can be decimal
+  tipo: string;
+  velocidadPromedio: number;   // Can be decimal
 }
 
 export interface Coordenada {

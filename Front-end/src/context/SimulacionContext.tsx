@@ -34,6 +34,16 @@ export interface CamionEstado {
   ubicacion: string; // "(x,y)"
   porcentaje: number;
   estado: 'En Camino' | 'Entregado' | 'Averiado' | 'En Mantenimiento' | 'Disponible';
+  capacidadActualGLP: number;
+  capacidadMaximaGLP: number;  
+  combustibleActual: number;
+  combustibleMaximo: number;
+  distanciaMaxima: number; 
+  pesoCarga: number;
+  pesoCombinado: number;
+  tara: number;
+  tipo: string;
+  velocidadPromedio: number;
 }
 
 /**
@@ -157,12 +167,25 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
         const anterior = camiones.find(c => c.id === ruta.id);
+        // Buscar el gen correspondiente para obtener los datos completos del camión
+        const gen = data.cromosoma.find((g: Gen) => g.camion.codigo === ruta.id);
+        const camion = gen?.camion;
         const ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
         return {
           id: ruta.id,
           ubicacion,
           porcentaje: 0,
-          estado: 'En Camino',
+          estado: camion?.estado === 'DISPONIBLE' ? 'Disponible' : 'En Camino',
+          capacidadActualGLP: camion?.capacidadActualGLP ?? 0,
+          capacidadMaximaGLP: camion?.capacidadMaximaGLP ?? 0,
+          combustibleActual: camion?.combustibleActual ?? 0,
+          combustibleMaximo: camion?.combustibleMaximo ?? 0,
+          distanciaMaxima: camion?.distanciaMaxima ?? 0,
+          pesoCarga: camion?.pesoCarga ?? 0,
+          pesoCombinado: camion?.pesoCombinado ?? 0,
+          tara: camion?.tara ?? 0,
+          tipo: camion?.tipo ?? '',
+          velocidadPromedio: camion?.velocidadPromedio ?? 0,
         };
       });
 
@@ -228,12 +251,26 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
    * @description Reinicia la simulación a su estado inicial
    */
   const reiniciar = () => {
-    const nuevosCamiones: CamionEstado[] = rutasCamiones.map((ruta) => ({
-      id: ruta.id,
-      ubicacion: ruta.ruta[0],
-      porcentaje: 0,
-      estado: 'En Camino' as const,
-    }));
+    const nuevosCamiones: CamionEstado[] = rutasCamiones.map((ruta) => {
+      // Aquí intentamos mantener los datos previos del camión si existen
+      const anterior = camiones.find(c => c.id === ruta.id);
+      return {
+        id: ruta.id,
+        ubicacion: ruta.ruta[0],
+        porcentaje: 0,
+        estado: anterior?.estado ?? 'En Camino',
+        capacidadActualGLP: anterior?.capacidadActualGLP ?? 0,
+        capacidadMaximaGLP: anterior?.capacidadMaximaGLP ?? 0,
+        combustibleActual: anterior?.combustibleActual ?? 0,
+        combustibleMaximo: anterior?.combustibleMaximo ?? 0,
+        distanciaMaxima: anterior?.distanciaMaxima ?? 0,
+        pesoCarga: anterior?.pesoCarga ?? 0,
+        pesoCombinado: anterior?.pesoCombinado ?? 0,
+        tara: anterior?.tara ?? 0,
+        tipo: anterior?.tipo ?? '',
+        velocidadPromedio: anterior?.velocidadPromedio ?? 0,
+      };
+    });
     setCamiones(nuevosCamiones);
     setHoraActual(HORA_PRIMERA_ACTUALIZACION);
     setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
