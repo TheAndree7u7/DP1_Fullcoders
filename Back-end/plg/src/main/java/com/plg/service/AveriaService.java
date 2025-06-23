@@ -40,17 +40,6 @@ public class AveriaService {
     }
 
     /**
-     * Lista averías registradas entre dos fechas.
-     *
-     * @param inicio fecha y hora inicial
-     * @param fin fecha y hora final
-     * @return lista de averías en el rango
-     */
-    public List<Averia> listarPorFecha(LocalDateTime inicio, LocalDateTime fin) {
-        return averiaRepository.findAllBetween(inicio, fin);
-    }
-
-    /**
      * Lista todas las averías activas.
      *
      * @return Lista de averías activas
@@ -80,8 +69,6 @@ public class AveriaService {
         return averiaRepository.findByCamionAndTipo(codigoCamion, tipoIncidente);
     }
 
-    
-
     /**
      * Crea una nueva avería utilizando los datos de la solicitud.
      *
@@ -101,9 +88,14 @@ public class AveriaService {
             Camion camion = CamionFactory.getCamionPorCodigo(request.getCodigoCamion());
             TipoIncidente tipoIncidente = request.getTipoIncidente();
             // Crear la avería solo con los campos requeridos
-            Averia averia = new Averia();
-            averia = request
-            // Los demás campos se ignoran
+            Averia averia = request.toAveria();
+
+            averia.calcularTurnoOcurrencia();
+
+            averia.getTipoIncidente().initDefaultAverias();
+            averia.setFechaHoraDisponible(averia.calcularFechaHoraDisponible());
+            averia.setTiempoReparacionEstimado(averia.calcularTiempoInoperatividad());
+
             return averiaRepository.save(averia);
         } catch (NoSuchElementException e) {
             throw new InvalidInputException("Camión no encontrado: " + request.getCodigoCamion());

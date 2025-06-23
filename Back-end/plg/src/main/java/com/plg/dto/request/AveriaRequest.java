@@ -24,7 +24,8 @@ public class AveriaRequest {
 
     private String codigoCamion;
     private TipoIncidente tipoIncidente; // TI1, TI2, TI3
- 
+
+    private LocalDateTime fechaHoraReporte; // Fecha y hora del reporte
     private Coordenada coordenada;
     private LocalDateTime fechaHoraReparacion;
     private LocalDateTime fechaHoraDisponible;
@@ -32,13 +33,36 @@ public class AveriaRequest {
     private double tiempoReparacionEstimado;
     private Boolean estado; // true: activo, false: inactivo
 
+    /**
+     * Constructor copia que crea una nueva instancia de AveriaRequest copiando
+     * los valores de otra instancia.
+     *
+     * @param other La instancia de AveriaRequest cuyos valores se copiarán
+     */
+    public AveriaRequest(AveriaRequest other) {
+
+        this.codigoCamion = other.codigoCamion;
+        this.tipoIncidente = other.tipoIncidente;
+
+        this.coordenada = other.coordenada;
+        this.fechaHoraReparacion = other.fechaHoraReparacion;
+        this.fechaHoraDisponible = other.fechaHoraDisponible;
+        this.fechaHoraReporte = other.fechaHoraReporte;
+        
+        this.turnoOcurrencia = other.turnoOcurrencia;
+        this.tiempoReparacionEstimado = other.tiempoReparacionEstimado;
+
+        this.estado = other.estado;
+    }
+
     //Contructor que pasa los campos 
     //Request to averia
-    Averia toAveria() {
+    public Averia toAveria() {
         return Averia.builder()
                 .camion(Camion.builder().codigo(codigoCamion).build())
                 .tipoIncidente(tipoIncidente)
                 .coordenada(coordenada)
+                .fechaHoraReporte(fechaHoraReporte)
                 .fechaHoraReparacion(fechaHoraReparacion)
                 .fechaHoraDisponible(fechaHoraDisponible)
                 .turnoOcurrencia(turnoOcurrencia)

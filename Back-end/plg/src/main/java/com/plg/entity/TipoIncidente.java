@@ -88,47 +88,57 @@ public class TipoIncidente {
         initDefaultAverias();
     }
 
+    
+        
     public void initDefaultAverias() {
+        
+        this.codigo) {
+         "TI1" -> {
+        descripcion = "Reparable en el lugar por el conductor";
+        horasEsperaEnRuta = 0;
+        horasReparacionRuta = 2;
+        horasReparacionTaller = 0;
+        requiereTraslado = false;
+        puedeContinuarRuta = true;
+        gravedad = 1;
+        permiteTrasvase = false;
+        importaTurnoDiaAveria = false;
 
-        switch (this.codigo) {
-            case "TI1" -> {
-                descripcion = "Reparable en el lugar por el conductor";
-                horasEsperaEnRuta = 0;
-                horasReparacionRuta = 2;
-                horasReparacionTaller = 0;
-                requiereTraslado = false;
-                puedeContinuarRuta = true;
-                gravedad = 1;
-                permiteTrasvase = false;
-                importaTurnoDiaAveria = false;
-                esTurnoReparacion = false;
+    
+            esTurnoReparacion = false;
                 nTurnosEnReparacion = 0;
-                diasReparacion = 0;
-            }
-            case "TI2" -> {
-                descripcion = "Problema que requiere taller";
-                horasEsperaEnRuta = 2;
-                horasReparacionTaller = 8;
-                requiereTraslado = true;
-                puedeContinuarRuta = false;
-                gravedad = 2;
-                permiteTrasvase = true;
-                importaTurnoDiaAveria = true;
-                esTurnoReparacion = true;
+        diasReparacion = 0;
+        
+         "TI2" -> {
+        descripcion = "Problema que requiere taller";
+        horasEsperaEnRuta = 2;
+        horasReparacionTaller = 8;
+        requiereTraslado = true;
+        puedeContinuarRuta = false;
+        gravedad = 2;
+        permiteTrasvase = true;
+        importaTurnoDiaAveria = true;
+
+    
+            esTurnoReparacion = true;
                 nTurnosEnReparacion = 1;
-                diasReparacion = 0;
-            }
-            case "TI3" -> {
-                descripcion = "Problema grave como un choque";
-                horasEsperaEnRuta = 4;
-                horasReparacionTaller = 48;
-                requiereTraslado = true;
-                puedeContinuarRuta = false;
-                gravedad = 3;
-                permiteTrasvase = true;
-                importaTurnoDiaAveria = false;
-                esTurnoReparacion = true;
+        diasReparacion = 0;
+        
+         "TI3" -> {
+        descripcion = "Problema grave como un choque";
+        horasEsperaEnRuta = 4;
+        horasReparacionTaller = 48;
+        requiereTraslado = true;
+        puedeContinuarRuta = false;
+        gravedad = 3;
+        permiteTrasvase = true;
+        importaTurnoDiaAveria = false;
+        esT
+
+    rnoReparacion = true;
                 nTurnosEnReparacion = 0;
+
+
                 diasReparacion = 3;
             }
             default ->

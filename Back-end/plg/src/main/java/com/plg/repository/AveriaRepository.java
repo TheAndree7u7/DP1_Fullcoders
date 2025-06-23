@@ -25,26 +25,7 @@ public class AveriaRepository {
         return DataLoader.averias;
     }
 
-    /**
-     * Devuelve las averías registradas dentro del rango de fechas indicado.
-     *
-     * @param inicio fecha y hora de inicio (inclusive)
-     * @param fin fecha y hora final (exclusive)
-     * @return lista de averías en el rango
-     */
-    public List<Averia> findAllBetween(LocalDateTime inicio, LocalDateTime fin) {
-        return DataLoader.averias.stream()
-                .filter(a -> {
-                    LocalDateTime fechaInicio = a.getFechaHoraReporte();
-                    LocalDateTime fechaFin = a.getFechaFin();
-                    // La avería está activa si se superpone con el rango solicitado
-                    return fechaInicio != null && fechaFin != null
-                            && (fechaInicio.isBefore(fin) || fechaInicio.isEqual(fin))
-                            && (fechaFin.isAfter(inicio) || fechaFin.isEqual(inicio));
-                })
-                .collect(Collectors.toList());
-    }
-
+ 
     /**
      * Obtiene todas las averías activas.
      *
