@@ -1,7 +1,5 @@
 package com.plg.controller;
 
-import java.time.LocalDateTime;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -13,10 +11,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.plg.dto.request.AveriaRequest;
+import com.plg.entity.Averia;
+import com.plg.entity.EstadoCamion;
 import com.plg.service.AveriaService;
 import com.plg.service.CamionService;
-import com.plg.entity.EstadoCamion;
-import com.plg.entity.Averia;
 
 /**
  * Controlador REST para averías.
@@ -94,7 +92,7 @@ public class AveriaController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("El tipo de incidente es obligatorio");
             }
-            
+            request.setEstado(true);
             // Solo se pasan los campos requeridos, los demás se ignoran
             AveriaRequest minimalRequest = new AveriaRequest(request);
 

@@ -16,6 +16,9 @@ import type { Pedido, Coordenada, Individuo, Gen, Nodo } from '../types';
 const HORA_INICIAL = 0;
 const HORA_PRIMERA_ACTUALIZACION = 1;
 const NODOS_PARA_ACTUALIZACION = 100;
+//aca 100 nodos significan 2h de tiempo entonces cada nodo 
+// representa 1.2 minutos de tiempo real, lo que es un valor razonable para simular el avance 
+
 const INCREMENTO_PORCENTAJE = 1;
 
 /**

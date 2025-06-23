@@ -5,6 +5,7 @@ import almacenCentralIcon from '../assets/almacen_central.svg';
 import almacenIntermedioIcon from '../assets/almacen_intermedio.svg';
 import clienteIcon from '../assets/cliente.svg';
 import { averiarCamionTipo } from '../services/averiaApiService';
+import type { AveriaResponse } from '../services/averiaApiService';
 
 interface CamionVisual {
   id: string;
@@ -166,8 +167,9 @@ const Mapa = () => {
   const handleAveriar = async (camionId: string, tipo: number) => {
     setAveriando(camionId + '-' + tipo);
     try {
-      await averiarCamionTipo(camionId, tipo);
-      alert(`Camión averiado correctamente (Tipo ${tipo})`);
+      const fechaHoraReporte = new Date().toISOString();
+      const res: AveriaResponse = await averiarCamionTipo(camionId, tipo, fechaHoraReporte);
+      alert(`Camión averiado correctamente (Tipo ${tipo})\nID avería: ${res.id}\nTurno: ${res.turnoOcurrencia ?? '-'}\nDisponible: ${res.fechaHoraDisponible ?? '-'}\nTiempo reparación: ${res.tiempoReparacionEstimado ?? '-'}`);
     } catch {
       alert('Error al averiar el camión');
     } finally {

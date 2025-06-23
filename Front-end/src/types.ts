@@ -34,12 +34,15 @@ export interface Individuo {
 }
 
 // --- Tipos del contexto de simulación ---
-
 export interface CamionEstado {
   id: string; // Corresponde a camion.codigo
   ubicacion: string; // Ejemplo: "(12,8)"
   porcentaje: number; // Avance de la ruta
-  estado: 'En Camino' | 'Entregado';
+  estado: 'En Camino' | 'Entregado' | 'DISPONIBLE' | 'NO_DISPONIBLE' | 'EN_RUTA' | 'ENTREGANDO_GLP_A_CLIENTE' | 
+          'EN_MANTENIMIENTO' | 'EN_MANTENIMIENTO_PREVENTIVO' | 'EN_MANTENIMIENTO_CORRECTIVO' | 
+          'EN_MANTENIMIENTO_POR_AVERIA' | 'INMOVILIZADO_POR_AVERIA' | 'SIN_COMBUSTIBLE' | 
+          'RECIBIENDO_COMBUSTIBLE' | 'ENTREGANDO_COMBUSTIBLE_A_CAMION' | 'RECIBIENDO_GLP' | 
+          'ENTREGANDO_GLP_A_CAMION' | 'ALMACEN_TEMPORAL';
 }
 
 export interface RutaCamion {

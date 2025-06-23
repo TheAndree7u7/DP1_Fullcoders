@@ -1,19 +1,34 @@
-import type { CamionEstado } from "../types";
-import { API_URLS } from "../config/api";
+ 
+import { API_CONFIG } from "../config/api";
 
-export async function averiarCamion(camionId: string): Promise<CamionEstado> {
-  const response = await fetch(`${API_URLS.SIMULACION_BASE}/averiar-camion/${camionId}`, {
-    method: "POST",
-  });
-  if (!response.ok) {
-    throw new Error("No se pudo averiar el camión");
-  }
-  return response.json();
+// Tipo para la respuesta de avería (puedes ajustarlo según lo que devuelva el backend)
+export interface AveriaResponse {
+  id: number;
+  codigoCamion: string;
+  tipoIncidente: string;
+  fechaHoraOcurrencia: string;
+  fechaHoraDisponible: string;
+  tiempoReparacionEstimado: number;
+  turnoOcurrencia?: number;
+  // ...otros campos posibles
 }
 
-export async function averiarCamionTipo(camionId: string, tipo: number): Promise<CamionEstado> {
-  const response = await fetch(`${API_URLS.SIMULACION_BASE}/averiar-camion/${camionId}?tipo=${tipo}`, {
+// Nuevo servicio: POST /api/averias/averiar-camion
+export async function averiarCamionTipo(
+  codigoCamion: string,
+  tipo: number,
+  fechaHoraReporte: string
+): Promise<AveriaResponse> {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/api/averias/averiar-camion`, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      codigoCamion,
+      tipoIncidente: `TI${tipo}`,
+      fechaHoraReporte
+    })
   });
   if (!response.ok) {
     throw new Error("No se pudo averiar el camión");
