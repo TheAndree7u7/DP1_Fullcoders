@@ -15,6 +15,35 @@ export interface Camion {
   velocidadPromedio: number;   // Can be decimal
 }
 
+// --- Funciones de cálculo para camiones ---
+export function calcularPesoCarga(camion: Camion): number {
+  if (camion.capacidadMaximaGLP === 0) return 0;
+  return (camion.capacidadActualGLP / camion.capacidadMaximaGLP) * camion.pesoCarga;
+}
+
+export function calcularPesoCombinado(camion: Camion): number {
+  const pesoCargaActual = calcularPesoCarga(camion);
+  return camion.tara + pesoCargaActual;
+}
+
+export function calcularConsumoGalones(camion: Camion, distanciaKm: number): number {
+  const pesoCombinado = calcularPesoCombinado(camion);
+  return (distanciaKm * pesoCombinado) / 180;
+}
+
+export function calcularDistanciaMaxima(camion: Camion): number {
+  const pesoCombinado = calcularPesoCombinado(camion);
+  if (pesoCombinado === 0) return 0;
+  // Usamos combustibleActual en lugar de combustibleMaximo para obtener la distancia restante
+  return (camion.combustibleActual * 180) / pesoCombinado;
+}
+
+export function actualizarCamion(camion: Camion): void {
+  camion.pesoCarga = calcularPesoCarga(camion);
+  camion.pesoCombinado = camion.tara + camion.pesoCarga;
+  camion.distanciaMaxima = calcularDistanciaMaxima(camion);
+}
+
 export interface Coordenada {
   x: number;
   y: number;

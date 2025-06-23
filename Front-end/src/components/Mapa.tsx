@@ -329,6 +329,9 @@ const Mapa = () => {
       {tooltipCamion && tooltipPos && (
         (() => {
           const camion = camiones.find(c => c.id === tooltipCamion);
+          const ruta = rutasCamiones.find(r => r.id === tooltipCamion);
+          const numPedidos = ruta?.pedidos?.length || 0;
+          
           return (
             <div
               style={{
@@ -347,11 +350,12 @@ const Mapa = () => {
               {camion && (
                 <div className="text-xs mb-2">
                   Estado: {camion.estado}<br />
-                  Capacidad GLP: {camion.capacidadActualGLP} / {camion.capacidadMaximaGLP}<br />
-                  Combustible: {camion.combustibleActual} / {camion.combustibleMaximo}<br />
-                  Distancia máxima: {camion.distanciaMaxima}<br />
-                  Peso carga: {camion.pesoCarga}<br />
-                  Peso combinado: {camion.pesoCombinado}<br />
+                  Pedidos asignados: {numPedidos}<br />
+                  Capacidad GLP: {camion.capacidadActualGLP.toFixed(2)} / {camion.capacidadMaximaGLP}<br />
+                  Combustible: {camion.combustibleActual.toFixed(2)} / {camion.combustibleMaximo}<br />
+                  Distancia máxima: {camion.distanciaMaxima.toFixed(2)} km<br />
+                  Peso carga: {camion.pesoCarga.toFixed(2)}<br />
+                  Peso combinado: {camion.pesoCombinado.toFixed(2)}<br />
                   Tara: {camion.tara}<br />
                   Tipo: {camion.tipo}<br />
                   Velocidad: {camion.velocidadPromedio} km/h<br />
@@ -368,6 +372,9 @@ const Mapa = () => {
       {clickedCamion && clickedPos && (
         (() => {
           const camion = camiones.find(c => c.id === clickedCamion);
+          const ruta = rutasCamiones.find(r => r.id === clickedCamion);
+          const numPedidos = ruta?.pedidos?.length || 0;
+          
           return (
             <div
               style={{
@@ -386,11 +393,12 @@ const Mapa = () => {
               {camion && (
                 <div className="text-xs mb-2">
                   Estado: {camion.estado}<br />
-                  Capacidad GLP: {camion.capacidadActualGLP} / {camion.capacidadMaximaGLP}<br />
-                  Combustible: {camion.combustibleActual} / {camion.combustibleMaximo}<br />
-                  Distancia máxima: {camion.distanciaMaxima}<br />
-                  Peso carga: {camion.pesoCarga}<br />
-                  Peso combinado: {camion.pesoCombinado}<br />
+                  Pedidos asignados: {numPedidos}<br />
+                  Capacidad GLP: {camion.capacidadActualGLP.toFixed(2)} / {camion.capacidadMaximaGLP}<br />
+                  Combustible: {camion.combustibleActual.toFixed(2)} / {camion.combustibleMaximo}<br />
+                  Distancia máxima: {camion.distanciaMaxima.toFixed(2)} km<br />
+                  Peso carga: {camion.pesoCarga.toFixed(2)}<br />
+                  Peso combinado: {camion.pesoCombinado.toFixed(2)}<br />
                   Tara: {camion.tara}<br />
                   Tipo: {camion.tipo}<br />
                   Velocidad: {camion.velocidadPromedio} km/h<br />

@@ -8,7 +8,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getMejorIndividuo } from '../services/simulacionApiService';
 import { getAlmacenes, type Almacen } from '../services/almacenApiService';
-import type { Pedido, Coordenada, Individuo, Gen, Nodo } from '../types';
+import type { Pedido, Coordenada, Individuo, Gen, Nodo, Camion } from '../types';
+import { calcularPesoCarga, calcularPesoCombinado, calcularConsumoGalones, calcularDistanciaMaxima } from '../types';
 
 /**
  * Constantes de configuración de la simulación
@@ -221,15 +222,83 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const siguientePaso = camion.porcentaje + INCREMENTO_PORCENTAJE;
       const rutaLength = ruta.ruta.length;
 
+      // Si llegó al final de la ruta
       if (siguientePaso >= rutaLength) {
         return { ...camion, estado: 'Entregado' as const, porcentaje: rutaLength - 1 };
       }
 
-      return {
+      // Obtener coordenadas actuales y siguientes para calcular la distancia recorrida
+      const coordActual = parseCoord(camion.ubicacion);
+      const coordSiguiente = parseCoord(ruta.ruta[siguientePaso]);
+      
+      // Calcular distancia entre nodos (en km, asumiendo que cada unidad de coordenada es 1km)
+      const distanciaRecorrida = Math.sqrt(
+        Math.pow(coordSiguiente.x - coordActual.x, 2) + 
+        Math.pow(coordSiguiente.y - coordActual.y, 2)
+      );
+
+      // Adaptar el camión para usar las funciones de cálculo
+      const camionAdaptado = adaptarCamionParaCalculos(camion);
+      
+      // Calcular consumo de combustible usando la función de utilidad
+      const consumoCombustible = calcularConsumoGalones(camionAdaptado, distanciaRecorrida);
+      
+      // Actualizar combustible actual (no puede ser menor que 0)
+      const nuevoCombustible = Math.max(0, camion.combustibleActual - consumoCombustible);
+      
+      // Verificar si hay pedidos para entregar en esta ubicación
+      const pedidosEnEstaUbicacion = ruta.pedidos.filter(pedido => 
+        pedido.coordenada.x === coordSiguiente.x && 
+        pedido.coordenada.y === coordSiguiente.y
+      );
+      
+      // Verificar si el camión está en una coordenada donde tiene que entregar pedidos
+      let nuevoGLP = camion.capacidadActualGLP;
+      const estaEntregandoPedido = pedidosEnEstaUbicacion.length > 0;
+      
+      // Reducir GLP si hay pedidos para entregar en esta ubicación
+      if (estaEntregandoPedido) {
+        console.log(`Camión ${camion.id} entregando ${pedidosEnEstaUbicacion.length} pedidos en (${coordSiguiente.x},${coordSiguiente.y})`);
+        for (const pedido of pedidosEnEstaUbicacion) {
+          if (pedido.volumenGLPAsignado) {
+            console.log(`Reduciendo ${pedido.volumenGLPAsignado} GLP del camión ${camion.id}`);
+            nuevoGLP -= pedido.volumenGLPAsignado;
+          }
+        }
+        // Asegurar que no sea negativo
+        nuevoGLP = Math.max(0, nuevoGLP);
+      }
+      
+      // Crear nuevo estado del camión con valores actualizados
+      const nuevoCamion = {
         ...camion,
         porcentaje: siguientePaso,
         ubicacion: ruta.ruta[siguientePaso],
+        combustibleActual: nuevoCombustible,
+        capacidadActualGLP: nuevoGLP
       };
+      
+      // Adaptar el nuevo estado del camión para los cálculos
+      const nuevoCamionAdaptado = adaptarCamionParaCalculos(nuevoCamion);
+      
+      // Primero actualizar el peso de carga basado en la nueva cantidad de GLP
+      nuevoCamion.pesoCarga = calcularPesoCarga(nuevoCamionAdaptado);
+      
+      // Luego actualizar el peso combinado basado en el nuevo peso de carga
+      nuevoCamion.pesoCombinado = calcularPesoCombinado(nuevoCamionAdaptado);
+      
+      // Finalmente actualizar la distancia máxima basada en el combustible actual y peso combinado
+      nuevoCamion.distanciaMaxima = calcularDistanciaMaxima(nuevoCamionAdaptado);
+      
+      // Log para depuración
+      console.log(`Camión ${camion.id} - Combustible: ${nuevoCombustible.toFixed(2)}/${camion.combustibleMaximo} - GLP: ${nuevoGLP.toFixed(2)}/${camion.capacidadMaximaGLP} - Distancia máx: ${nuevoCamion.distanciaMaxima.toFixed(2)}`);
+      
+      // Si el camión se quedó sin combustible, cambiar su estado
+      if (nuevoCombustible <= 0) {
+        nuevoCamion.estado = 'Averiado';
+      }
+      
+      return nuevoCamion;
     });
 
     const quedan = nodosRestantesAntesDeActualizar - 1;
@@ -307,4 +376,34 @@ export const useSimulacion = (): SimulacionContextType => {
   const context = useContext(SimulacionContext);
   if (!context) throw new Error('useSimulacion debe usarse dentro de SimulacionProvider');
   return context;
+};
+
+/**
+ * Función para parsear una coordenada en formato "(x,y)" a objeto Coordenada
+ */
+const parseCoord = (s: string): Coordenada => {
+  const match = s.match(/\((\d+),\s*(\d+)\)/);
+  if (!match) throw new Error(`Coordenada inválida: ${s}`);
+  return { x: parseInt(match[1]), y: parseInt(match[2]) };
+};
+
+/**
+ * Función adaptadora para convertir un CamionEstado a un objeto compatible con Camion
+ * Esta función es esencial para poder usar las funciones de cálculo en types.ts
+ */
+const adaptarCamionParaCalculos = (camion: CamionEstado): Camion => {
+  return {
+    codigo: camion.id,
+    capacidadActualGLP: camion.capacidadActualGLP,
+    capacidadMaximaGLP: camion.capacidadMaximaGLP,
+    combustibleActual: camion.combustibleActual,
+    combustibleMaximo: camion.combustibleMaximo,
+    distanciaMaxima: camion.distanciaMaxima,
+    estado: camion.estado,
+    pesoCarga: camion.pesoCarga,
+    pesoCombinado: camion.pesoCombinado,
+    tara: camion.tara,
+    tipo: camion.tipo,
+    velocidadPromedio: camion.velocidadPromedio
+  };
 };
