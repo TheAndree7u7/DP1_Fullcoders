@@ -308,11 +308,13 @@ const Mapa = () => {
                    setTooltipCamion(null);
                  }}
                  onClick={evt => {
-                   // Al hacer click, activar el modal permanente
-                   setClickedCamion(camion.id);
-                   setClickedPos({ x: evt.clientX, y: evt.clientY });
-                   // Ocultar el tooltip de hover
-                   setTooltipCamion(null);
+                   // Solo abrir el modal si no hay otro modal ya abierto
+                   if (!clickedCamion) {
+                     setClickedCamion(camion.id);
+                     setClickedPos({ x: evt.clientX, y: evt.clientY });
+                     // Ocultar el tooltip de hover
+                     setTooltipCamion(null);
+                   }
                  }}
                >
                  <rect x={-6} y={-4} width={12} height={8} rx={2} fill={color} stroke="black" strokeWidth={0.5} />
