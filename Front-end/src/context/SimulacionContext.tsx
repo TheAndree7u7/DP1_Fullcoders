@@ -328,13 +328,13 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       
       // Log para depuración - mostrar solo cuando hay cambios significativos
       if (pedidosEntregadosAhora.length > 0 || nuevoCombustible !== camion.combustibleActual) {
-        console.log(`Camión ${camion.id} actualizado:`, {
-          combustible: `${nuevoCombustible.toFixed(2)}/${camion.combustibleMaximo}`,
-          glp: `${nuevoGLP.toFixed(2)}/${camion.capacidadMaximaGLP}`,
-          distanciaMax: nuevoCamion.distanciaMaxima.toFixed(2),
-          ubicacion: nuevoCamion.ubicacion,
-          porcentaje: nuevoCamion.porcentaje
-        });
+        // console.log(`Camión ${camion.id} actualizado:`, {
+        //   combustible: `${nuevoCombustible.toFixed(2)}/${camion.combustibleMaximo}`,
+        //   glp: `${nuevoGLP.toFixed(2)}/${camion.capacidadMaximaGLP}`,
+        //   distanciaMax: nuevoCamion.distanciaMaxima.toFixed(2),
+        //   ubicacion: nuevoCamion.ubicacion,
+        //   porcentaje: nuevoCamion.porcentaje
+        // });
       }
       
       // Si el camión se quedó sin combustible, cambiar su estado
