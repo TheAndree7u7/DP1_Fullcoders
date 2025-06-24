@@ -165,6 +165,24 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         pedidos: gen.pedidos,
       }));
 
+      // Log para verificar los pedidos que llegan del backend
+      console.log("🔍 Verificando pedidos en las rutas:");
+      nuevasRutas.forEach(ruta => {
+        if (ruta.pedidos && ruta.pedidos.length > 0) {
+          console.log(`Camión ${ruta.id} tiene ${ruta.pedidos.length} pedidos:`, ruta.pedidos);
+          ruta.pedidos.forEach((pedido, index) => {
+            console.log(`  Pedido ${index + 1}:`, {
+              codigo: pedido.codigo,
+              coordenada: pedido.coordenada,
+              volumenGLPAsignado: pedido.volumenGLPAsignado,
+              estado: pedido.estado
+            });
+          });
+        } else {
+          console.log(`Camión ${ruta.id} no tiene pedidos asignados`);
+        }
+      });
+
       setRutasCamiones(nuevasRutas);
 
       const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
@@ -237,9 +255,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       // No necesitamos calcular distancia euclidiana ya que el camión se mueve nodo por nodo
       const distanciaRecorrida = 1; // 1km por paso/nodo en mapa reticular
 
-      // Obtener coordenadas siguientes para verificar entregas de pedidos
-      const coordSiguiente = parseCoord(ruta.ruta[siguientePaso]);
-
       // Adaptar el camión para usar las funciones de cálculo
       const camionAdaptado = adaptarCamionParaCalculos(camion);
       
@@ -249,34 +264,52 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       // Actualizar combustible actual (no puede ser menor que 0)
       const nuevoCombustible = Math.max(0, camion.combustibleActual - consumoCombustible);
       
-      // Verificar si hay pedidos para entregar en esta ubicación
-      const pedidosEnEstaUbicacion = ruta.pedidos.filter(pedido => 
-        pedido.coordenada.x === coordSiguiente.x && 
-        pedido.coordenada.y === coordSiguiente.y
-      );
+      // PRIMERO: Mover el camión a la nueva posición
+      const nuevaUbicacion = ruta.ruta[siguientePaso];
+      const coordNuevaUbicacion = parseCoord(nuevaUbicacion);
       
-      // Verificar si el camión está en una coordenada donde tiene que entregar pedidos
+      // SEGUNDO: Verificar si hay pedidos para entregar en la NUEVA ubicación (donde acaba de llegar)
+      // Usar la misma lógica que getPedidosPendientes() para determinar si el pedido debe entregarse
       let nuevoGLP = camion.capacidadActualGLP;
-      const estaEntregandoPedido = pedidosEnEstaUbicacion.length > 0;
+      const pedidosEntregadosAhora: Pedido[] = [];
       
-      // Reducir GLP si hay pedidos para entregar en esta ubicación
-      if (estaEntregandoPedido) {
-        console.log(`Camión ${camion.id} entregando ${pedidosEnEstaUbicacion.length} pedidos en (${coordSiguiente.x},${coordSiguiente.y})`);
-        for (const pedido of pedidosEnEstaUbicacion) {
+      ruta.pedidos.forEach(pedido => {
+        // Buscar el índice del nodo que corresponde a este pedido
+        const indicePedidoEnRuta = ruta.ruta.findIndex(nodo => {
+          const coordNodo = parseCoord(nodo);
+          return coordNodo.x === pedido.coordenada.x && coordNodo.y === pedido.coordenada.y;
+        });
+
+        // Si el camión llegó exactamente al nodo del pedido
+        if (indicePedidoEnRuta === siguientePaso) {
+          pedidosEntregadosAhora.push(pedido);
+        }
+      });
+      
+      // Log para debuggear los pedidos que se entregan
+      if (pedidosEntregadosAhora.length > 0) {
+        console.log(`� Camión ${camion.id} llegó a (${coordNuevaUbicacion.x},${coordNuevaUbicacion.y}) - Entregando ${pedidosEntregadosAhora.length} pedidos:`, pedidosEntregadosAhora);
+        console.log(`⛽ GLP antes de entrega: ${nuevoGLP.toFixed(2)}`);
+        
+        for (const pedido of pedidosEntregadosAhora) {
+          console.log(`📋 Pedido:`, pedido);
           if (pedido.volumenGLPAsignado) {
-            console.log(`Reduciendo ${pedido.volumenGLPAsignado} GLP del camión ${camion.id}`);
+            console.log(`⬇️ Reduciendo ${pedido.volumenGLPAsignado} GLP del camión ${camion.id}`);
             nuevoGLP -= pedido.volumenGLPAsignado;
+          } else {
+            console.log(`⚠️ Pedido sin volumenGLPAsignado:`, pedido);
           }
         }
         // Asegurar que no sea negativo
         nuevoGLP = Math.max(0, nuevoGLP);
+        console.log(`✅ GLP después de entrega: ${nuevoGLP.toFixed(2)}`);
       }
       
       // Crear nuevo estado del camión con valores actualizados
       const nuevoCamion = {
         ...camion,
         porcentaje: siguientePaso,
-        ubicacion: ruta.ruta[siguientePaso],
+        ubicacion: nuevaUbicacion,
         combustibleActual: nuevoCombustible,
         capacidadActualGLP: nuevoGLP
       };
@@ -293,8 +326,16 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       // Finalmente actualizar la distancia máxima basada en el combustible actual y peso combinado
       nuevoCamion.distanciaMaxima = calcularDistanciaMaxima(nuevoCamionAdaptado);
       
-      // // Log para depuración
-      // console.log(`Camión ${camion.id} - Combustible: ${nuevoCombustible.toFixed(2)}/${camion.combustibleMaximo} - GLP: ${nuevoGLP.toFixed(2)}/${camion.capacidadMaximaGLP} - Distancia máx: ${nuevoCamion.distanciaMaxima.toFixed(2)}`);
+      // Log para depuración - mostrar solo cuando hay cambios significativos
+      if (pedidosEntregadosAhora.length > 0 || nuevoCombustible !== camion.combustibleActual) {
+        console.log(`Camión ${camion.id} actualizado:`, {
+          combustible: `${nuevoCombustible.toFixed(2)}/${camion.combustibleMaximo}`,
+          glp: `${nuevoGLP.toFixed(2)}/${camion.capacidadMaximaGLP}`,
+          distanciaMax: nuevoCamion.distanciaMaxima.toFixed(2),
+          ubicacion: nuevoCamion.ubicacion,
+          porcentaje: nuevoCamion.porcentaje
+        });
+      }
       
       // Si el camión se quedó sin combustible, cambiar su estado
       if (nuevoCombustible <= 0) {

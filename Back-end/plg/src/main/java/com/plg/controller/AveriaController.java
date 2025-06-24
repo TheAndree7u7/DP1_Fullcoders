@@ -45,7 +45,6 @@ public class AveriaController {
         }
     }
 
-
     /**
      * Lista todas las averías activas.
      */
@@ -130,43 +129,36 @@ public class AveriaController {
 
         }
     }
-        /** 
-         * Lista averías por camión y tipo de incidente.
-         */
-        @GetMapping("/camion-tipo")
-        public ResponseEntity<?> listarPorCamionYTipo
-        (@RequestParam String codigoCamion, @RequestParam String tipoIncidente ) {
-        try {
-                return ResponseEntity.ok(
-                        averiaService.listarPorCamionYTipo(codigoCamion, tipoIncidente)
-                );
-            } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Error al filtrar averías por camión y tipo: " + e.getMessage());
-            }
-        }
 
-        /**
-         * Agrega una nueva avería y cambia el estado del camión a
-         * EN_MANTENIMIENTO_POR_AVERIA.
-         */
-        @PostMapping("/averiar-camion")
-        public ResponseEntity<?> averiarCamion
-        (@RequestBody
-
-        AveriaRequest request
-            
-        
-        
-        
-            ) {
+    /**
+     * Lista averías por camión y tipo de incidente.
+     */
+    @GetMapping("/camion-tipo")
+    public ResponseEntity<?> listarPorCamionYTipo(@RequestParam String codigoCamion, @RequestParam String tipoIncidente) {
         try {
-                Averia averia = averiaService.agregar(request);
-                camionService.cambiarEstado(request.getCodigoCamion(), EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA);
-                return ResponseEntity.status(HttpStatus.CREATED).body(averia);
-            } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Error al crear avería y cambiar estado: " + e.getMessage());
-            }
+            return ResponseEntity.ok(
+                    averiaService.listarPorCamionYTipo(codigoCamion, tipoIncidente)
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error al filtrar averías por camión y tipo: " + e.getMessage());
         }
     }
+
+    /**
+     * Agrega una nueva avería y cambia el estado del camión a
+     * EN_MANTENIMIENTO_POR_AVERIA.
+     */
+    @PostMapping("/averiar-camion")
+    public ResponseEntity<?> averiarCamion(@RequestBody AveriaRequest request
+    ) {
+        try {
+            Averia averia = averiaService.agregar(request);
+            camionService.cambiarEstado(request.getCodigoCamion(), EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA);
+            return ResponseEntity.status(HttpStatus.CREATED).body(averia);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error al crear avería y cambiar estado: " + e.getMessage());
+        }
+    }
+}
