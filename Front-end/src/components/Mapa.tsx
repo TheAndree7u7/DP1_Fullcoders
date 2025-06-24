@@ -6,6 +6,7 @@ import almacenIntermedioIcon from '../assets/almacen_intermedio.svg';
 import clienteIcon from '../assets/cliente.svg';
 import { averiarCamionTipo } from '../services/averiaApiService';
 import { toast, Bounce } from 'react-toastify';
+import { CAMION_COLORS, ESTADO_COLORS } from '../config/colors';
 
 interface CamionVisual {
   id: string;
@@ -29,13 +30,6 @@ const parseCoord = (s: string): Coordenada => {
   if (!match) throw new Error(`Coordenada inválida: ${s}`);
   return { x: parseInt(match[1]), y: parseInt(match[2]) };
 };
-
-const colors = [
-  '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6',
-  '#ec4899', '#22d3ee', '#a3e635', '#eab308', '#f43f5e',
-  '#06b6d4', '#84cc16', '#e879f9', '#4ade80', '#f97316',
-  '#c084fc', '#2dd4bf', '#fde047', '#facc15', '#7dd3fc'
-];
 
 const calcularRotacion = (prev: Coordenada, next: Coordenada): number => {
   const dx = next.x - prev.x;
@@ -111,7 +105,7 @@ const Mapa = () => {
       const ruta = info.ruta.map(parseCoord);
       return {
         id: info.id,
-        color: colors[idx % colors.length],
+        color: CAMION_COLORS[idx % CAMION_COLORS.length],
         ruta,
         posicion: ruta[0],
         rotacion: 0,
@@ -153,7 +147,7 @@ const Mapa = () => {
         const rutaRestante = rutaCoords.slice(idxRest);
         return {
           id: info.id,
-          color: colors[idx % colors.length],
+          color: CAMION_COLORS[idx % CAMION_COLORS.length],
           ruta: rutaRestante,
           posicion: currentPos,
           rotacion: rot
@@ -317,8 +311,10 @@ const Mapa = () => {
           .map(camion => {
              const estadoCamion = camiones.find(c => c.id === camion.id);
              const esAveriado = estadoCamion?.estado === 'Averiado';
+             const esEnMantenimiento = estadoCamion?.estado === 'En Mantenimiento';
              const { posicion, rotacion, color } = camion;
-             const colorFinal = esAveriado ? '#dc2626' : color; // Rojo para averiados
+             // Rojo para averiados, negro para mantenimiento, color original para otros estados
+             const colorFinal = esAveriado ? ESTADO_COLORS.AVERIADO : esEnMantenimiento ? ESTADO_COLORS.MANTENIMIENTO : color;
              const cx = posicion.x * CELL_SIZE;
              const cy = posicion.y * CELL_SIZE;
              return (

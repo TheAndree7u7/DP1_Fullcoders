@@ -8,8 +8,11 @@ import org.springframework.stereotype.Service;
 import com.plg.dto.request.AveriaRequest;
 import com.plg.entity.Averia;
 import com.plg.entity.Camion;
-import com.plg.entity.TipoIncidente;
-import com.plg.factory.CamionFactory;
+import com.plg.entity.EstadoCamion;
+import com.plg.entity.EstadoPedido;
+import com.plg.entity.Nodo;
+import com.plg.entity.Pedido;
+import com.plg.entity.TipoNodo;
 import com.plg.repository.AveriaRepository;
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidInputException;
 
@@ -20,9 +23,11 @@ import com.plg.utils.ExcepcionesPerzonalizadas.InvalidInputException;
 public class AveriaService {
 
     private final AveriaRepository averiaRepository;
+    private final CamionService camionService;
 
-    public AveriaService(AveriaRepository averiaRepository) {
+    public AveriaService(AveriaRepository averiaRepository, CamionService camionService) {
         this.averiaRepository = averiaRepository;
+        this.camionService = camionService;
     }
 
     /**
@@ -80,22 +85,24 @@ public class AveriaService {
             throw new InvalidInputException("El tipo de incidente es obligatorio");
         }
         try {
-            Camion camion = CamionFactory.getCamionPorCodigo(request.getCodigoCamion());
-            TipoIncidente tipoIncidente = request.getTipoIncidente();
             // Crear la avería solo con los campos requeridos
             Averia averia = request.toAveria();
             //!CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE INCIDENTE
             averia.calcularTurnoOcurrencia();
 
             averia.getTipoIncidente().initDefaultAverias();
+
             averia.setFechaHoraDisponible(averia.calcularFechaHoraDisponible());
             averia.setTiempoReparacionEstimado(averia.calcularTiempoInoperatividad());
-            //! CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE INCIDENTE
+            //! CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE INCIDENTE            //?--------------------------------------
+            //! Ahora se actualiza el estado del camión a INMOVILIZADO_POR_AVERIA
+            camionService.cambiarEstado(request.getCodigoCamion(), EstadoCamion.INMOVILIZADO_POR_AVERIA);
 
-            //?--------------------------------------
-            //! Ahora se actualiza el estado del camión
-            
-            //! Ahora se actualiza el estado del pedido
+            //! Si el tipo de incidente NO es TI1, cambiar el estado de los pedidos asociados a REGISTRADO
+            if (!"TI1".equals(averia.getTipoIncidente().getCodigo())) {
+                actualizarPedidosACamionAveriado(request.getCodigoCamion());
+            }
+
             return averiaRepository.save(averia);
         } catch (NoSuchElementException e) {
             throw new InvalidInputException("Camión no encontrado: " + request.getCodigoCamion());
@@ -131,5 +138,38 @@ public class AveriaService {
      */
     public List<String> listarCodigosCamionesAveriados() {
         return averiaRepository.findCodigosCamionesAveriados();
+    }
+
+    /**
+     * Actualiza el estado de los pedidos asignados a un camión a REGISTRADO.
+     * Esto se utiliza cuando un camión sufre una avería TI1 y los pedidos
+     * quedan "sueltos".
+     *
+     * @param codigoCamion Código del camión averiado
+     */
+    private void actualizarPedidosACamionAveriado(String codigoCamion) {
+        try {
+            // Obtener el camión por su código
+            Camion camion = camionService.listar().stream()
+                    .filter(c -> c.getCodigo().equals(codigoCamion))
+                    .findFirst()
+                    .orElse(null);
+
+            if (camion != null && camion.getGen() != null && camion.getGen().getRutaFinal() != null) {
+                // Buscar todos los pedidos en la ruta del camión y cambiar su estado a REGISTRADO
+                for (Nodo nodo : camion.getGen().getRutaFinal()) {
+                    if (nodo.getTipoNodo() == TipoNodo.PEDIDO) {
+                        Pedido pedido = (Pedido) nodo;
+                        // Solo actualizar si el pedido no está ya entregado
+                        if (pedido.getEstado() != EstadoPedido.ENTREGADO) {
+                            pedido.setEstado(EstadoPedido.REGISTRADO);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // En caso de error, registrar pero no fallar la creación de la avería
+            System.err.println("Error al actualizar pedidos del camión " + codigoCamion + ": " + e.getMessage());
+        }
     }
 }

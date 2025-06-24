@@ -1,28 +1,16 @@
 // components/CardCamion.tsx
 import { useSimulacion } from '../context/SimulacionContext';
 import Camion from '../assets/camion.svg';
-
-// Mismos colores que en Mapa.tsx para mantener consistencia
-const colors = [
-  '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6',
-  '#ec4899', '#22d3ee', '#a3e635', '#eab308', '#f43f5e',
-  '#06b6d4', '#84cc16', '#e879f9', '#4ade80', '#f97316',
-  '#c084fc', '#2dd4bf', '#fde047', '#facc15', '#7dd3fc'
-];
+import { getCamionColorByState } from '../config/colors';
 
 const CardsCamiones: React.FC = () => {
   const { camiones, rutasCamiones } = useSimulacion();
   
-  // Función para obtener el color asociado al camión en el mapa
-  const getCamionColor = (id: string): string => {
-    const index = rutasCamiones.findIndex(ruta => ruta.id === id);
-    return index >= 0 ? colors[index % colors.length] : '#3b82f6'; // Color default si no se encuentra
-  };
-
   return (
     <div className="max-h-96 overflow-y-auto pr-1 -mr-1 space-y-2">
       {camiones.map((camion) => {
-        const camionColor = getCamionColor(camion.id);
+        const index = rutasCamiones.findIndex(ruta => ruta.id === camion.id);
+        const camionColor = getCamionColorByState(camion.estado, index);
         
         return (
           <div key={camion.id} className="flex flex-col w-full rounded-2xl bg-[#FAFAFA]">

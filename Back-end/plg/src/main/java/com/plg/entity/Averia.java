@@ -26,7 +26,7 @@ public class Averia {
     private LocalDateTime fechaHoraReparacion;
     private LocalDateTime fechaHoraDisponible;
     private int turnoOcurrencia;
-    private double tiempoReparacionEstimado; 
+    private double tiempoReparacionEstimado;
     private Boolean estado; // true: activo, false: inactivo
     private Coordenada coordenada;
 
@@ -83,7 +83,7 @@ public class Averia {
         }
         return tiempoInoperatividad;
     }
- 
+
     //calcula la fecha y hora de disponibilidad
     public LocalDateTime calcularFechaHoraDisponible() {
         LocalDateTime fechaHoraDisponibleLocal = this.fechaHoraReporte;
@@ -114,5 +114,15 @@ public class Averia {
             fechaHoraDisponibleLocal = fechaHoraDisponibleLocal.plusHours((long) this.tipoIncidente.getHorasReparacionRuta());
         }
         return fechaHoraDisponibleLocal;
+    }
+
+    public LocalDateTime calcularFechaHoraFinEsperaEnRuta() {
+        LocalDateTime fechaHoraFinEspera = this.fechaHoraReporte;
+        if (this.tipoIncidente.isRequiereTraslado()) {
+            fechaHoraFinEspera = fechaHoraFinEspera.plusHours((long) this.tipoIncidente.getHorasEsperaEnRuta());
+        } else {
+            fechaHoraFinEspera = fechaHoraFinEspera.plusHours((long) this.tipoIncidente.getHorasReparacionRuta());
+        }
+        return fechaHoraFinEspera;
     }
 }
