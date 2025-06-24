@@ -5,7 +5,7 @@ import almacenCentralIcon from '../assets/almacen_central.svg';
 import almacenIntermedioIcon from '../assets/almacen_intermedio.svg';
 import clienteIcon from '../assets/cliente.svg';
 import { averiarCamionTipo } from '../services/averiaApiService';
-import type { AveriaResponse } from '../services/averiaApiService';
+import { toast, Bounce } from 'react-toastify';
 
 interface CamionVisual {
   id: string;
@@ -52,7 +52,7 @@ const Mapa = () => {
   const [running, setRunning] = useState(false);
   const [intervalo, setIntervalo] = useState(300);
   const intervalRef = useRef<number | null>(null);
-  const { camiones, rutasCamiones, almacenes, avanzarHora, cargando, bloqueos } = useSimulacion();
+  const { camiones, rutasCamiones, almacenes, avanzarHora, cargando, bloqueos, marcarCamionAveriado } = useSimulacion();
   // Estado para el tooltip (hover)
   const [tooltipCamion, setTooltipCamion] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{x: number, y: number} | null>(null);
@@ -168,10 +168,36 @@ const Mapa = () => {
     setAveriando(camionId + '-' + tipo);
     try {
       const fechaHoraReporte = new Date().toISOString();
-      const res: AveriaResponse = await averiarCamionTipo(camionId, tipo, fechaHoraReporte);
-      alert(`Camión averiado correctamente (Tipo ${tipo})\nID avería: ${res.id}\nTurno: ${res.turnoOcurrencia ?? '-'}\nDisponible: ${res.fechaHoraDisponible ?? '-'}\nTiempo reparación: ${res.tiempoReparacionEstimado ?? '-'}`);
+      await averiarCamionTipo(camionId, tipo, fechaHoraReporte);
+      
+      // Marcar el camión como averiado en el contexto
+      marcarCamionAveriado(camionId);
+      
+      // Mostrar toast de éxito
+      toast.error(`🚛💥 Camión ${camionId} averiado (Tipo ${tipo})`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+      
     } catch {
-      alert('Error al averiar el camión');
+      toast.error('❌ Error al averiar el camión', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
     } finally {
       setAveriando(null);
       setClickedCamion(null);
@@ -268,7 +294,12 @@ const Mapa = () => {
 
         {/* Rutas de camiones */}
         {camionesVisuales
-          .filter(camion => camiones.find(c => c.id === camion.id)?.estado !== 'Entregado' && camion.ruta.length > 1)
+          .filter(camion => {
+            const estadoCamion = camiones.find(c => c.id === camion.id);
+            return estadoCamion?.estado !== 'Entregado' && 
+                   estadoCamion?.estado !== 'Averiado' && 
+                   camion.ruta.length > 1;
+          })
           .map(camion => (
             <polyline
               key={`ruta-${camion.id}`}
@@ -284,7 +315,10 @@ const Mapa = () => {
         {camionesVisuales
           .filter(camion => camiones.find(c => c.id === camion.id)?.estado !== 'Entregado')
           .map(camion => {
+             const estadoCamion = camiones.find(c => c.id === camion.id);
+             const esAveriado = estadoCamion?.estado === 'Averiado';
              const { posicion, rotacion, color } = camion;
+             const colorFinal = esAveriado ? '#dc2626' : color; // Rojo para averiados
              const cx = posicion.x * CELL_SIZE;
              const cy = posicion.y * CELL_SIZE;
              return (
@@ -317,9 +351,14 @@ const Mapa = () => {
                    }
                  }}
                >
-                 <rect x={-6} y={-4} width={12} height={8} rx={2} fill={color} stroke="black" strokeWidth={0.5} />
+                 <rect x={-6} y={-4} width={12} height={8} rx={2} fill={colorFinal} stroke="black" strokeWidth={0.5} />
                  <circle cx={-4} cy={5} r={1.5} fill="black" />
                  <circle cx={4} cy={5} r={1.5} fill="black" />
+                 {esAveriado && (
+                   <text x={0} y={-8} textAnchor="middle" fontSize="8" fill="#dc2626" fontWeight="bold">
+                     💥
+                   </text>
+                 )}
                </g>
              );
           })}
@@ -374,6 +413,7 @@ const Mapa = () => {
           const camion = camiones.find(c => c.id === clickedCamion);
           const ruta = rutasCamiones.find(r => r.id === clickedCamion);
           const numPedidos = ruta?.pedidos?.length || 0;
+          const esAveriado = camion?.estado === 'Averiado';
           
           return (
             <div
@@ -406,29 +446,35 @@ const Mapa = () => {
                   Progreso: {camion.porcentaje}
                 </div>
               )}
-              <div className="flex flex-col gap-2">
-                <button
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-                  disabled={averiando === clickedCamion + '-1'}
-                  onClick={() => handleAveriar(clickedCamion, 1)}
-                >
-                  {averiando === clickedCamion + '-1' ? 'Averiando...' : 'Avería tipo 1'}
-                </button>
-                <button
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded"
-                  disabled={averiando === clickedCamion + '-2'}
-                  onClick={() => handleAveriar(clickedCamion, 2)}
-                >
-                  {averiando === clickedCamion + '-2' ? 'Averiando...' : 'Avería tipo 2'}
-                </button>
-                <button
-                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
-                  disabled={averiando === clickedCamion + '-3'}
-                  onClick={() => handleAveriar(clickedCamion, 3)}
-                >
-                  {averiando === clickedCamion + '-3' ? 'Averiando...' : 'Avería tipo 3'}
-                </button>
-              </div>
+              {esAveriado ? (
+                <div className="text-red-600 font-bold text-center py-2">
+                  🚛💥 CAMIÓN AVERIADO
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <button
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded disabled:opacity-50"
+                    disabled={averiando === clickedCamion + '-1'}
+                    onClick={() => handleAveriar(clickedCamion, 1)}
+                  >
+                    {averiando === clickedCamion + '-1' ? 'Averiando...' : 'Avería tipo 1'}
+                  </button>
+                  <button
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded disabled:opacity-50"
+                    disabled={averiando === clickedCamion + '-2'}
+                    onClick={() => handleAveriar(clickedCamion, 2)}
+                  >
+                    {averiando === clickedCamion + '-2' ? 'Averiando...' : 'Avería tipo 2'}
+                  </button>
+                  <button
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded disabled:opacity-50"
+                    disabled={averiando === clickedCamion + '-3'}
+                    onClick={() => handleAveriar(clickedCamion, 3)}
+                  >
+                    {averiando === clickedCamion + '-3' ? 'Averiando...' : 'Avería tipo 3'}
+                  </button>
+                </div>
+              )}
               <button
                 className="mt-2 text-gray-500 hover:text-black"
                 onClick={() => setClickedCamion(null)}

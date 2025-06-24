@@ -84,6 +84,7 @@ interface SimulacionContextType {
   reiniciar: () => void;
   cargando: boolean;
   bloqueos: Bloqueo[];
+  marcarCamionAveriado: (camionId: string) => void; // Nueva función para manejar averías
 }
 
 export interface Bloqueo {
@@ -219,6 +220,11 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const ruta = rutasCamiones.find(r => r.id === camion.id);
       if (!ruta) return camion;
 
+      // Si el camión está averiado, no avanza
+      if (camion.estado === 'Averiado') {
+        return camion;
+      }
+
       const siguientePaso = camion.porcentaje + INCREMENTO_PORCENTAJE;
       const rutaLength = ruta.ruta.length;
 
@@ -227,15 +233,12 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return { ...camion, estado: 'Entregado' as const, porcentaje: rutaLength - 1 };
       }
 
-      // Obtener coordenadas actuales y siguientes para calcular la distancia recorrida
-      const coordActual = parseCoord(camion.ubicacion);
+      // En un mapa reticular, cada paso entre nodos adyacentes es exactamente 1km
+      // No necesitamos calcular distancia euclidiana ya que el camión se mueve nodo por nodo
+      const distanciaRecorrida = 1; // 1km por paso/nodo en mapa reticular
+
+      // Obtener coordenadas siguientes para verificar entregas de pedidos
       const coordSiguiente = parseCoord(ruta.ruta[siguientePaso]);
-      
-      // Calcular distancia entre nodos (en km, asumiendo que cada unidad de coordenada es 1km)
-      const distanciaRecorrida = Math.sqrt(
-        Math.pow(coordSiguiente.x - coordActual.x, 2) + 
-        Math.pow(coordSiguiente.y - coordActual.y, 2)
-      );
 
       // Adaptar el camión para usar las funciones de cálculo
       const camionAdaptado = adaptarCamionParaCalculos(camion);
@@ -290,8 +293,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       // Finalmente actualizar la distancia máxima basada en el combustible actual y peso combinado
       nuevoCamion.distanciaMaxima = calcularDistanciaMaxima(nuevoCamionAdaptado);
       
-      // Log para depuración
-      console.log(`Camión ${camion.id} - Combustible: ${nuevoCombustible.toFixed(2)}/${camion.combustibleMaximo} - GLP: ${nuevoGLP.toFixed(2)}/${camion.capacidadMaximaGLP} - Distancia máx: ${nuevoCamion.distanciaMaxima.toFixed(2)}`);
+      // // Log para depuración
+      // console.log(`Camión ${camion.id} - Combustible: ${nuevoCombustible.toFixed(2)}/${camion.combustibleMaximo} - GLP: ${nuevoGLP.toFixed(2)}/${camion.capacidadMaximaGLP} - Distancia máx: ${nuevoCamion.distanciaMaxima.toFixed(2)}`);
       
       // Si el camión se quedó sin combustible, cambiar su estado
       if (nuevoCombustible <= 0) {
@@ -346,6 +349,21 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setEsperandoActualizacion(false);
   };
 
+  /**
+   * @function marcarCamionAveriado
+   * @description Marca un camión como averiado, deteniéndolo en su posición actual
+   * @param {string} camionId - El ID del camión a averiar
+   */
+  const marcarCamionAveriado = (camionId: string) => {
+    setCamiones(prev => 
+      prev.map(camion => 
+        camion.id === camionId 
+          ? { ...camion, estado: 'Averiado' as const }
+          : camion
+      )
+    );
+  };
+
   return (
     <SimulacionContext.Provider
       value={{ 
@@ -358,7 +376,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         avanzarHora, 
         reiniciar, 
         cargando, 
-        bloqueos 
+        bloqueos,
+        marcarCamionAveriado
       }}
     >
       {children}

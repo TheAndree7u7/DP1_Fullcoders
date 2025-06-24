@@ -19,7 +19,7 @@ export async function averiarCamionTipo(
   tipo: number,
   fechaHoraReporte: string
 ): Promise<AveriaResponse> {
-  const response = await fetch(`${API_CONFIG.BASE_URL}/api/averias/averiar-camion`, {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/averias/averiar-camion`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
