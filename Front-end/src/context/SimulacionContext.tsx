@@ -314,7 +314,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         capacidadActualGLP: nuevoGLP
       };
       
-      // SOLO actualizar peso de carga, peso combinado y distancia máxima cuando se entregan pedidos
+      // SOLO actualizar peso de carga y peso combinado cuando se entregan pedidos
       if (pedidosEntregadosAhora.length > 0) {
         // Adaptar el nuevo estado del camión para los cálculos
         const nuevoCamionAdaptado = adaptarCamionParaCalculos(nuevoCamion);
@@ -325,15 +325,15 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         // Actualizar el peso combinado basado en el nuevo peso de carga
         nuevoCamion.pesoCombinado = calcularPesoCombinado(nuevoCamionAdaptado);
         
-        // Actualizar la distancia máxima basada en el combustible actual y peso combinado
-        nuevoCamion.distanciaMaxima = calcularDistanciaMaxima(nuevoCamionAdaptado);
-        
         console.log(`📊 Camión ${camion.id} pesos actualizados:`, {
           pesoCarga: nuevoCamion.pesoCarga.toFixed(2),
-          pesoCombinado: nuevoCamion.pesoCombinado.toFixed(2),
-          distanciaMax: nuevoCamion.distanciaMaxima.toFixed(2)
+          pesoCombinado: nuevoCamion.pesoCombinado.toFixed(2)
         });
       }
+
+      // SIEMPRE actualizar la distancia máxima cuando cambie el combustible
+      const nuevoCamionAdaptado = adaptarCamionParaCalculos(nuevoCamion);
+      nuevoCamion.distanciaMaxima = calcularDistanciaMaxima(nuevoCamionAdaptado);
       
       // Log para depuración - mostrar solo cuando hay cambios significativos
       if (pedidosEntregadosAhora.length > 0 || nuevoCombustible !== camion.combustibleActual) {
