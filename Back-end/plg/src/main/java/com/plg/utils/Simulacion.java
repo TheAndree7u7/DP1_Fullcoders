@@ -145,14 +145,28 @@ public class Simulacion {
     private static List<Bloqueo> actualizarBloqueos(LocalDateTime fechaActual) {
         List<Bloqueo> bloqueos = DataLoader.bloqueos;
         List<Bloqueo> bloqueosActivos = new ArrayList<>();
+        System.out.println("\n=== ACTUALIZANDO BLOQUEOS ===");
+        System.out.println("Fecha actual: " + fechaActual);
+        System.out.println("Total de bloqueos definidos: " + bloqueos.size());
+        
         for (Bloqueo bloqueo : bloqueos) {
             if (bloqueo.getFechaInicio().isBefore(fechaActual) && bloqueo.getFechaFin().isAfter(fechaActual)) {
                 bloqueo.activarBloqueo();
                 bloqueosActivos.add(bloqueo);
+                System.out.println("Bloqueo ACTIVO:");
+                System.out.println("  Fecha inicio: " + bloqueo.getFechaInicio());
+                System.out.println("  Fecha fin: " + bloqueo.getFechaFin());
+                System.out.println("  Nodos bloqueados: " + bloqueo.getNodosBloqueados().size());
+                System.out.println("  Coordenadas bloqueadas: " + bloqueo.getNodosBloqueados().stream()
+                    .map(n -> n.getCoordenada().toString())
+                    .reduce((a, b) -> a + ", " + b).orElse(""));
+                System.out.println("-------------------------");
             } else {
                 bloqueo.desactivarBloqueo();
             }
         }
+        System.out.println("Total de bloqueos activos: " + bloqueosActivos.size());
+        System.out.println("=== FIN ACTUALIZACIÓN DE BLOQUEOS ===\n");
         return bloqueosActivos;
     }
 

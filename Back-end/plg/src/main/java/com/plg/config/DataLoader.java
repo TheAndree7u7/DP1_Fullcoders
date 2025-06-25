@@ -152,9 +152,19 @@ public class DataLoader {
 
     public static void initializeBloqueos() throws InvalidDataFormatException, IOException {
         List<String> lines = Herramientas.readAllLines(pathBloqueos);
+        System.out.println("\n=== CARGANDO BLOQUEOS ===");
+        System.out.println("Archivo: " + pathBloqueos);
+        System.out.println("Número de bloqueos encontrados: " + lines.size());
+        
         for (String line : lines) {
             Bloqueo bloqueo = new Bloqueo(line);
             bloqueos.add(bloqueo);
+            System.out.println("Bloqueo cargado:");
+            System.out.println("  Fecha inicio: " + bloqueo.getFechaInicio());
+            System.out.println("  Fecha fin: " + bloqueo.getFechaFin());
+            System.out.println("  Nodos bloqueados: " + bloqueo.getNodosBloqueados().size());
+            System.out.println("-------------------------");
         }
+        System.out.println("=== FIN CARGA DE BLOQUEOS ===\n");    
     }
 }
