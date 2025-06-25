@@ -92,20 +92,9 @@ public class Simulacion {
                     verificarYActualizarMantenimientos(camiones, fechaActual);
                 }
 
-                //!ACTULIZAR EL MANTENIMIENTO
-                //? ///////////////////////////////////
                 //! ACTUALIZAR CAMIONES EN AVERIA
-                //1. lista todas las averias no requieran traslado
-                //2. En esas averias si su fecha hora disponible es menor a la fecha actual sin contar los segundos
-                //3. Actualizar el estado del camión a disponible
-
-
-                //1.listar todas las averias que requieran traslado 
-                    //2. En esas averias si su fecha hora  fin espera en ruta es menor a la fecha actual sin contar los segundos
-                    //3. Actualizar el estado del camión a EN_MANTENIMIENTO_POR_AVERIA y cambiar su posicion listando los almacenes y  selecciona la posicion del almacen central para trasnportarse a este almacen
-
-                    //2. En esas averias si su fecha hora disponible es menor o igual sin contar los segundos a la fechaActual entonces modifica ese camion a Habilitado
-                //! ACTUALIZAR CAMIONES EN AVERIA
+                // Actualizar estados de camiones con averías según fechas reales de las averías
+                actualizarCamionesEnAveria(fechaActual);
                 if (!pedidosPorAtender.isEmpty()) {
 
                     List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
@@ -299,6 +288,145 @@ public class Simulacion {
 
     private static boolean pedidoConFechaMenorAFechaActual(Pedido pedido, LocalDateTime fechaActual) {
         return pedido.getFechaRegistro().isBefore(fechaActual) || pedido.getFechaRegistro().isEqual(fechaActual);
+    }
+
+    /**
+     * Actualiza los estados de camiones con averías activas usando el
+     * AveriaService. Sigue la lógica específica de los tipos de avería y sus
+     * fechas reales.
+     */
+    private static void actualizarCamionesEnAveria(LocalDateTime fechaActual) {
+        try {
+            // Crear instancias de los servicios necesarios
+            com.plg.repository.AveriaRepository averiaRepository = new com.plg.repository.AveriaRepository();
+            com.plg.repository.CamionRepository camionRepository = new com.plg.repository.CamionRepository();
+            com.plg.service.CamionService camionService = new com.plg.service.CamionService(camionRepository);
+            com.plg.service.AveriaService averiaService = new com.plg.service.AveriaService(averiaRepository, camionService);
+
+            // Obtener todas las averías activas
+            java.util.List<com.plg.entity.Averia> averiasActivas = averiaService.listarActivas();
+
+            // 1. Procesar averías que NO requieren traslado (TI1)
+            procesarAveriasNoRequierenTraslado(averiasActivas, fechaActual, camionService);
+
+            // 2. Procesar averías que requieren traslado (TI2, TI3)
+            procesarAveriasRequierenTraslado(averiasActivas, fechaActual, camionService);
+
+        } catch (Exception e) {
+            System.err.println("Error al actualizar camiones en avería: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 1. Lista todas las averías que NO requieren traslado 2. En esas averías
+     * si su fecha hora disponible es menor a la fecha actual sin contar los
+     * segundos 3. Actualizar el estado del camión a disponible
+     */
+    private static void procesarAveriasNoRequierenTraslado(java.util.List<com.plg.entity.Averia> averiasActivas,
+            LocalDateTime fechaActual,
+            com.plg.service.CamionService camionService) {
+        for (com.plg.entity.Averia averia : averiasActivas) {
+            if (averia.getTipoIncidente() != null && !averia.getTipoIncidente().isRequiereTraslado()) {
+                // Verificar si la fecha hora disponible es menor a la fecha actual (sin segundos)
+                if (averia.getFechaHoraDisponible() != null
+                        && esFechaAnteriorSinSegundos(averia.getFechaHoraDisponible(), fechaActual)) {
+
+                    String codigoCamion = averia.getCamion().getCodigo();
+                    // PRIMERO: Desactivar la avería poniendo su estado en false
+                    averia.setEstado(false);
+                    // SEGUNDO: Actualizar el estado del camión a disponible
+                    camionService.cambiarEstado(codigoCamion, com.plg.entity.EstadoCamion.DISPONIBLE);
+                    System.out.println("✅ Camión " + codigoCamion + " recuperado de avería TI1 - Estado: DISPONIBLE");
+                }
+            }
+        }
+    }
+
+    /**
+     * 1. Lista todas las averías que requieren traslado 2. En esas averías si
+     * su fecha hora fin espera en ruta es menor a la fecha actual sin contar
+     * los segundos 3. Actualizar el estado del camión a
+     * EN_MANTENIMIENTO_POR_AVERIA y cambiar su posición al almacén central 4.
+     * Si su fecha hora disponible es menor o igual a la fechaActual entonces
+     * modifica ese camión a Habilitado
+     */
+    private static void procesarAveriasRequierenTraslado(java.util.List<com.plg.entity.Averia> averiasActivas,
+            LocalDateTime fechaActual,
+            com.plg.service.CamionService camionService) {
+        for (com.plg.entity.Averia averia : averiasActivas) {
+            if (averia.getTipoIncidente() != null && averia.getTipoIncidente().isRequiereTraslado()) {
+                String codigoCamion = averia.getCamion().getCodigo();
+
+                // Fase 1: Verificar si debe trasladarse al taller
+                if (averia.getFechaHoraFinEsperaEnRuta() != null
+                        && esFechaAnteriorSinSegundos(averia.getFechaHoraFinEsperaEnRuta(), fechaActual)) {
+
+                    // Verificar si el camión aún está en el lugar de la avería
+                    com.plg.entity.Camion camion = buscarCamionPorCodigo(codigoCamion);
+                    if (camion != null && camion.getEstado() == com.plg.entity.EstadoCamion.INMOVILIZADO_POR_AVERIA) {
+                        // Actualizar estado a EN_MANTENIMIENTO_POR_AVERIA
+                        camionService.cambiarEstado(codigoCamion, com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA);
+
+                        // Cambiar posición al almacén central
+                        com.plg.entity.Coordenada coordenadaAlmacenCentral = obtenerCoordenadaAlmacenCentral();
+                        camionService.cambiarCoordenada(codigoCamion, coordenadaAlmacenCentral);
+
+                        System.out.println("🚛 Camión " + codigoCamion + " trasladado al taller - Estado: EN_MANTENIMIENTO_POR_AVERIA");
+                    }
+                }
+
+                // Fase 2: Verificar si debe volver a estar disponible
+                if (averia.getFechaHoraDisponible() != null
+                        && esFechaAnteriorOIgualSinSegundos(averia.getFechaHoraDisponible(), fechaActual)) {
+
+                    // PRIMERO: Desactivar la avería poniendo su estado en false
+                    averia.setEstado(false);
+                    // SEGUNDO: Modificar el camión a Habilitado (DISPONIBLE)
+                    camionService.cambiarEstado(codigoCamion, com.plg.entity.EstadoCamion.DISPONIBLE);
+                    System.out.println("✅ Camión " + codigoCamion + " recuperado de avería "
+                            + averia.getTipoIncidente().getCodigo() + " - Estado: DISPONIBLE");
+                }
+            }
+        }
+    }
+
+    /**
+     * Busca un camión por su código en la lista de camiones de DataLoader.
+     */
+    private static com.plg.entity.Camion buscarCamionPorCodigo(String codigoCamion) {
+        return DataLoader.camiones.stream()
+                .filter(c -> c.getCodigo().equals(codigoCamion))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Compara dos fechas ignorando los segundos - fecha1 < fecha2.
+     */
+    private static boolean esFechaAnteriorSinSegundos(LocalDateTime fecha1, LocalDateTime fecha2) {
+        LocalDateTime fecha1Truncada = fecha1.withSecond(0).withNano(0);
+        LocalDateTime fecha2Truncada = fecha2.withSecond(0).withNano(0);
+        return fecha1Truncada.isBefore(fecha2Truncada);
+    }
+
+    /**
+     * Compara dos fechas ignorando los segundos - fecha1 <= fecha2.
+     */
+    private static boolean esFechaAnteriorOIgualSinSegundos(LocalDateTime fecha1, LocalDateTime fecha2) {
+        LocalDateTime fecha1Truncada = fecha1.withSecond(0).withNano(0);
+        LocalDateTime fecha2Truncada = fecha2.withSecond(0).withNano(0);
+        return fecha1Truncada.isBefore(fecha2Truncada) || fecha1Truncada.isEqual(fecha2Truncada);
+    }
+
+    /**
+     * Obtiene la coordenada del almacén central.
+     */
+    private static com.plg.entity.Coordenada obtenerCoordenadaAlmacenCentral() {
+        return DataLoader.almacenes.stream()
+                .filter(almacen -> almacen.getTipo() == com.plg.entity.TipoAlmacen.CENTRAL)
+                .map(almacen -> almacen.getCoordenada())
+                .findFirst()
+                .orElse(new com.plg.entity.Coordenada(8, 12)); // Coordenada por defecto
     }
 
 }

@@ -27,7 +27,7 @@ public class Averia {
     private LocalDateTime fechaHoraFinEsperaEnRuta;
     private int turnoOcurrencia;
     private double tiempoReparacionEstimado;
-    private Boolean estado; // true: activo, false: inactivo
+    private Boolean estado = true; // true: activo, false: inactivo
     private Coordenada coordenada;
 
     public Averia(String line) throws InvalidDataFormatException {

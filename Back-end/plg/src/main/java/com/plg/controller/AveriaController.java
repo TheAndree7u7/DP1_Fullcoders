@@ -161,4 +161,21 @@ public class AveriaController {
                     .body("Error al crear avería y cambiar estado: " + e.getMessage());
         }
     }
+
+    /**
+     * Actualiza los estados de camiones con averías según las fechas de
+     * disponibilidad. Este endpoint permite forzar la actualización de estados
+     * de camiones averiados.
+     */
+    @PostMapping("/actualizar-estados")
+    public ResponseEntity<?> actualizarEstadosCamiones() {
+        try {
+            java.time.LocalDateTime fechaActual = java.time.LocalDateTime.now();
+            averiaService.actualizarEstadosCamionesAveriados(fechaActual);
+            return ResponseEntity.ok("Estados de camiones averiados actualizados correctamente");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al actualizar estados de camiones averiados: " + e.getMessage());
+        }
+    }
 }
