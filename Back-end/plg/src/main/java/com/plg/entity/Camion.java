@@ -108,9 +108,11 @@ public class Camion extends Nodo {
         int intermedio = Math.min(gen.getPosNodo(), gen.getRutaFinal().size() - 1);
 
         // System.out.println("intermedio = " + intermedio);
-        // Axtualiza la posición del camión en el mapa
-        Coordenada nuevaCoordenada = gen.getRutaFinal().get(intermedio).getCoordenada();
-        setCoordenada(nuevaCoordenada);
+        // Actualiza la posición del camión en el mapa solo si está disponible
+        if (this.estado == EstadoCamion.DISPONIBLE) {
+            Coordenada nuevaCoordenada = gen.getRutaFinal().get(intermedio).getCoordenada();
+            setCoordenada(nuevaCoordenada);
+        }
 
         // Actualizamos el estado de los pedidos
         for (int i = 0; i <= intermedio; i++) {

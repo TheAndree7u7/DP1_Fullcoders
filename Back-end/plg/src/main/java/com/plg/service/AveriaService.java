@@ -97,13 +97,13 @@ public class AveriaService {
             //! CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE INCIDENTE            //?--------------------------------------
             //! Ahora se actualiza el estado del camión a INMOVILIZADO_POR_AVERIA
             camionService.cambiarEstado(request.getCodigoCamion(), EstadoCamion.INMOVILIZADO_POR_AVERIA);
-            
+
             //! Cambiar la posición del camión con la coordenada del request
             if (request.getCoordenada() != null) {
                 camionService.cambiarCoordenada(request.getCodigoCamion(), request.getCoordenada());
             }
 
-             //! Si el tipo de incidente NO es TI1, cambiar el estado de los pedidos asociados a REGISTRADO
+            //! Si el tipo de incidente NO es TI1, cambiar el estado de los pedidos asociados a REGISTRADO
             if (!"TI1".equals(averia.getTipoIncidente().getCodigo())) {
                 actualizarPedidosACamionAveriado(request.getCodigoCamion());
             }

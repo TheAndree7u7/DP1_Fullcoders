@@ -126,6 +126,7 @@ public class CamionService {
 
     /**
      * Actualiza los datos principales de un camión por su código.
+     *
      * @param request DTO con los datos a actualizar
      * @return El camión actualizado
      */
@@ -170,7 +171,7 @@ public class CamionService {
 
             // Coordenadas
             if (camion.getCoordenada() != null) {
-                Map<String, Integer> coordenada = new HashMap<>(); 
+                Map<String, Integer> coordenada = new HashMap<>();
                 infoCamion.put("coordenada", coordenada);
             }
 
@@ -198,18 +199,18 @@ public class CamionService {
 
             resultado.add(infoCamion);
         }
-        
+
         // Ordenar primero por número de pedidos (de mayor a menor) y luego por combustible restante (de menor a mayor)
         resultado.sort((a, b) -> {
             // Primero comparar por número de pedidos (descendente)
             Long pedidosA = (Long) a.get("numeroPedidos");
             Long pedidosB = (Long) b.get("numeroPedidos");
             int comparePedidos = pedidosB.compareTo(pedidosA);
-            
+
             if (comparePedidos != 0) {
                 return comparePedidos;
             }
-            
+
             // Si tienen el mismo número de pedidos, comparar por combustible restante (ascendente)
             Double combustibleA = (Double) a.get("combustibleActual");
             Double combustibleB = (Double) b.get("combustibleActual");
