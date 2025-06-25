@@ -95,7 +95,16 @@ public class Simulacion {
                 //!ACTULIZAR EL MANTENIMIENTO
                 //? ///////////////////////////////////
                 //! ACTUALIZAR CAMIONES EN AVERIA
-                
+                //1. lista todas las averias no requieran traslado
+                //2. En esas averias si su fecha hora disponible es menor a la fecha actual sin contar los segundos
+                //3. Actualizar el estado del camión a disponible
+
+
+                //1.listar todas las averias que requieran traslado 
+                    //2. En esas averias si su fecha hora  fin espera en ruta es menor a la fecha actual sin contar los segundos
+                    //3. Actualizar el estado del camión a EN_MANTENIMIENTO_POR_AVERIA y cambiar su posicion listando los almacenes y  selecciona la posicion del almacen central para trasnportarse a este almacen
+
+                    //2. En esas averias si su fecha hora disponible es menor o igual sin contar los segundos a la fechaActual entonces modifica ese camion a Habilitado
                 //! ACTUALIZAR CAMIONES EN AVERIA
                 if (!pedidosPorAtender.isEmpty()) {
 
