@@ -91,7 +91,7 @@ public class AveriaService {
             averia.calcularTurnoOcurrencia();
 
             averia.getTipoIncidente().initDefaultAverias();
-
+            averia.setFechaHoraFinEsperaEnRuta(averia.calcularFechaHoraFinEsperaEnRuta());
             averia.setFechaHoraDisponible(averia.calcularFechaHoraDisponible());
             averia.setTiempoReparacionEstimado(averia.calcularTiempoInoperatividad());
             //! CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE INCIDENTE            //?--------------------------------------

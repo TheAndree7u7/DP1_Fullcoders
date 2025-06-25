@@ -31,48 +31,46 @@ public class Camion extends Nodo {
     private double pesoCombinado;          // Peso total (tara + carga)
 
     private EstadoCamion estado;
-    
+
     // Combustible
     private double combustibleMaximo;   // Capacidad del tanque en galones
     private double combustibleActual;        // Combustible actual en galones
     private double velocidadPromedio; // Velocidad promedio en km/h
 
     // Comsumo de combustible
-    private double distanciaMaxima;   
+    private double distanciaMaxima;
 
     // Gen
     @JsonIgnore
     private Gen gen;
-
+    @JsonIgnore
     private Camion camionCopia;
 
     public Camion(Coordenada coordenada, boolean bloqueado, double gScore, TipoNodo tipoNodo, double fScore) {
         super(coordenada, bloqueado, gScore, fScore, tipoNodo);
     }
 
-
     @Override
     public String toString() {
         return String.format(
-            "Camión %s [%s]%n" +
-            "  - Coordenada:    %s%n" +
-            "  - GLP (m3):       %.2f / %.2f%n" +
-            "  - Carga (t):      %.2f (tara) + %.2f (carga)%n" +
-            "  - Combustible:    %.2f / %.2f galones%n" +
-            "  - Distancia máx.: %.2f km%n",
-            codigo,
-            tipo,
-            getCoordenada() != null ? getCoordenada() : "N/A",
-            capacidadActualGLP,
-            capacidadMaximaGLP,
-            tara,
-            pesoCarga,
-            combustibleActual,
-            combustibleMaximo,
-            distanciaMaxima
+                "Camión %s [%s]%n"
+                + "  - Coordenada:    %s%n"
+                + "  - GLP (m3):       %.2f / %.2f%n"
+                + "  - Carga (t):      %.2f (tara) + %.2f (carga)%n"
+                + "  - Combustible:    %.2f / %.2f galones%n"
+                + "  - Distancia máx.: %.2f km%n",
+                codigo,
+                tipo,
+                getCoordenada() != null ? getCoordenada() : "N/A",
+                capacidadActualGLP,
+                capacidadMaximaGLP,
+                tara,
+                pesoCarga,
+                combustibleActual,
+                combustibleMaximo,
+                distanciaMaxima
         );
     }
-
 
     public double calcularDistanciaMaxima() {
         this.distanciaMaxima = (combustibleActual * 180) / (tara + pesoCarga);
@@ -81,10 +79,9 @@ public class Camion extends Nodo {
 
     public void actualizarCombustible(double distancia) {
 
-        double combustibleUsado = this.combustibleActual * distancia  / this.distanciaMaxima;
+        double combustibleUsado = this.combustibleActual * distancia / this.distanciaMaxima;
         this.combustibleActual -= combustibleUsado;
-    } 
-
+    }
 
     public void entregarVolumenGLP(double volumenGLP) {
         // double pesoGLPPedido = volumenGLP * 0.5;  
@@ -93,7 +90,7 @@ public class Camion extends Nodo {
     }
 
     public void actualizarEstado(int intervaloTiempo, Set<Pedido> pedidosPorAtender, Set<Pedido> pedidosPlanificados,
-     Set<Pedido> pedidosEntregados, LocalDateTime fechaActual) {
+            Set<Pedido> pedidosEntregados, LocalDateTime fechaActual) {
         if (this.gen == null) {
             // Primera vez que se llama no existen pedidos por atender
             return;
@@ -105,26 +102,22 @@ public class Camion extends Nodo {
         gen.setPosNodo(antiguo + cantNodos);
         int distanciaRecorrida = gen.getPosNodo() - antiguo;
         actualizarCombustible(distanciaRecorrida);
-        
-    
+
         // En el tiempo transcurrido donde se puede encontrar el camión
-
         // System.out.println("gen.nodos.size() = " + gen.getRutaFinal().size());
-
-        int intermedio = Math.min(gen.getPosNodo(), gen.getRutaFinal().size()-1);
+        int intermedio = Math.min(gen.getPosNodo(), gen.getRutaFinal().size() - 1);
 
         // System.out.println("intermedio = " + intermedio);
-
         // Axtualiza la posición del camión en el mapa
         Coordenada nuevaCoordenada = gen.getRutaFinal().get(intermedio).getCoordenada();
         setCoordenada(nuevaCoordenada);
 
         // Actualizamos el estado de los pedidos
-        for(int i=0; i<=intermedio; i++){
+        for (int i = 0; i <= intermedio; i++) {
             Nodo nodo = gen.getRutaFinal().get(i);
-            if(nodo.getTipoNodo() == TipoNodo.PEDIDO){
+            if (nodo.getTipoNodo() == TipoNodo.PEDIDO) {
                 Pedido pedido = (Pedido) nodo;
-                if (pedido.getEstado() == EstadoPedido.ENTREGADO){
+                if (pedido.getEstado() == EstadoPedido.ENTREGADO) {
                     continue;
                 }
                 pedidosEntregados.add(pedido);
@@ -136,11 +129,11 @@ public class Camion extends Nodo {
                 pedidosPlanificados.remove(nodo);
             }
         }
-        for (int i=intermedio+1; i<gen.getRutaFinal().size(); i++){
+        for (int i = intermedio + 1; i < gen.getRutaFinal().size(); i++) {
             Nodo nodo = gen.getRutaFinal().get(i);
-            if(nodo.getTipoNodo() == TipoNodo.PEDIDO){
+            if (nodo.getTipoNodo() == TipoNodo.PEDIDO) {
                 Pedido pedido = (Pedido) nodo;
-                if (pedido.getEstado() == EstadoPedido.ENTREGADO){
+                if (pedido.getEstado() == EstadoPedido.ENTREGADO) {
                     continue;
                 }
                 pedidosPlanificados.add((Pedido) nodo);
@@ -151,9 +144,9 @@ public class Camion extends Nodo {
 
         // Si ya regresé al almacén central, actualizo el combustible del camión
         // y la carga de GLP
-        if (gen.getRutaFinal().get(intermedio).getTipoNodo() == TipoNodo.ALMACEN){
+        if (gen.getRutaFinal().get(intermedio).getTipoNodo() == TipoNodo.ALMACEN) {
             Almacen almacen = (Almacen) gen.getRutaFinal().get(intermedio);
-            if (almacen.getTipo() == TipoAlmacen.CENTRAL){
+            if (almacen.getTipo() == TipoAlmacen.CENTRAL) {
                 this.combustibleActual = this.combustibleMaximo;
                 this.capacidadActualGLP = this.capacidadMaximaGLP;
             }
@@ -164,10 +157,9 @@ public class Camion extends Nodo {
             Mapa.getInstance().setNodo(pedido.getCoordenada(), new Nodo(pedido.getCoordenada(), false, 0, 0, TipoNodo.NORMAL));
         }
 
-
         // Calcular la distancia máxima que puede recorrer el camión
         calcularDistanciaMaxima();
-    }   
+    }
 
     @JsonIgnore
     public Camion getClone() {
@@ -191,7 +183,6 @@ public class Camion extends Nodo {
                 .tipoNodo(getTipoNodo())
                 .build();
     }
-
 
     public void guardarCopia() {
         this.camionCopia = getClone();

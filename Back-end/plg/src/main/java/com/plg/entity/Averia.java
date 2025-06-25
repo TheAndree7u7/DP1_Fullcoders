@@ -18,13 +18,13 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Averia {
 
-    @com.fasterxml.jackson.annotation.JsonIgnore
     private Camion camion;
 
     private TipoIncidente tipoIncidente; // TI1, TI2, TI3
     private LocalDateTime fechaHoraReporte;
     private LocalDateTime fechaHoraReparacion;
     private LocalDateTime fechaHoraDisponible;
+    private LocalDateTime fechaHoraFinEsperaEnRuta;
     private int turnoOcurrencia;
     private double tiempoReparacionEstimado;
     private Boolean estado; // true: activo, false: inactivo

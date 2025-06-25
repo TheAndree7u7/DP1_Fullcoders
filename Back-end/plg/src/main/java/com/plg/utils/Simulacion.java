@@ -92,7 +92,11 @@ public class Simulacion {
                     verificarYActualizarMantenimientos(camiones, fechaActual);
                 }
 
-                //!ACTULIZAR EL MANTENIMIENTO 
+                //!ACTULIZAR EL MANTENIMIENTO
+                //? ///////////////////////////////////
+                //! ACTUALIZAR CAMIONES EN AVERIA
+                
+                //! ACTUALIZAR CAMIONES EN AVERIA
                 if (!pedidosPorAtender.isEmpty()) {
 
                     List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);

@@ -2,15 +2,16 @@ package com.plg.dto.request;
 
 import java.time.LocalDateTime;
 
+import com.plg.entity.Averia;
+import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
 import com.plg.entity.TipoIncidente;
-import com.plg.entity.Averia;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import com.plg.entity.Camion;
 
 /**
  * DTO para la creación de una nueva avería.
@@ -31,6 +32,7 @@ public class AveriaRequest {
     private LocalDateTime fechaHoraDisponible;
     private int turnoOcurrencia;
     private double tiempoReparacionEstimado;
+    private LocalDateTime fechaHoraFinEsperaEnRuta;
     private Boolean estado; // true: activo, false: inactivo
 
     /**
@@ -48,10 +50,10 @@ public class AveriaRequest {
         this.fechaHoraReparacion = other.fechaHoraReparacion;
         this.fechaHoraDisponible = other.fechaHoraDisponible;
         this.fechaHoraReporte = other.fechaHoraReporte;
-        
+
         this.turnoOcurrencia = other.turnoOcurrencia;
         this.tiempoReparacionEstimado = other.tiempoReparacionEstimado;
-
+        this.fechaHoraFinEsperaEnRuta = other.fechaHoraFinEsperaEnRuta;
         this.estado = other.estado;
     }
 
@@ -67,6 +69,7 @@ public class AveriaRequest {
                 .fechaHoraDisponible(fechaHoraDisponible)
                 .turnoOcurrencia(turnoOcurrencia)
                 .tiempoReparacionEstimado(tiempoReparacionEstimado)
+                .fechaHoraFinEsperaEnRuta(fechaHoraFinEsperaEnRuta)
                 .estado(estado)
                 .build();
     }
