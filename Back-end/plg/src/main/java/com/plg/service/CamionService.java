@@ -109,6 +109,22 @@ public class CamionService {
     }
 
     /**
+     * Cambia la coordenada de un camión por su código.
+     *
+     * @param codigoCamion Código del camión
+     * @param nuevaCoordenada Nueva coordenada a asignar
+     * @return El camión actualizado
+     */
+    public Camion cambiarCoordenada(String codigoCamion, Coordenada nuevaCoordenada) {
+        Camion camion = camionRepository.findAll().stream()
+                .filter(c -> c.getCodigo().equals(codigoCamion))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Camión no encontrado: " + codigoCamion));
+        camion.setCoordenada(nuevaCoordenada);
+        return camion;
+    }
+
+    /**
      * Actualiza los datos principales de un camión por su código.
      * @param request DTO con los datos a actualizar
      * @return El camión actualizado
