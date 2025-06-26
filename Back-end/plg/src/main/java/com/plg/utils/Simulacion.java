@@ -16,13 +16,13 @@ import com.plg.entity.Almacen;
 import com.plg.entity.Bloqueo;
 import com.plg.entity.Camion;
 import com.plg.entity.Mapa;
+import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
 import com.plg.entity.TipoAlmacen;
 
 public class Simulacion {
 
     private static List<Pedido> pedidosSemanal;
-    private static Mapa mapa = Mapa.getInstance();
     private static LocalDateTime fechaActual;
     public static Set<Pedido> pedidosPorAtender = new LinkedHashSet<>();
     public static Set<Pedido> pedidosPlanificados = new LinkedHashSet<>();
@@ -78,32 +78,15 @@ public class Simulacion {
                 System.out.println("------------------------");
                 System.out.println("Tiempo actual: " + fechaActual);
 
-                //! ACTUALIZAR CAMIONES SEGUN SU MANTENIMIENTO 
-                //?SOLO SI LA FECHA ACTUAL ES EL INICIO DEL DÍA
-                // VERIFICAR MANTENIMIENTOS: Solo una vez al inicio del día (00:00)
-                // Actualiza TODOS los camiones según corresponda
-                if (fechaActual.getHour() == 0 && fechaActual.getMinute() == 0) {
-                    //Inicializar la lista de camuiones
-                    List<Camion> camiones = new ArrayList<>();
-                    //COLCAR UN LOG 
-                    System.out.println("🔧 Verificando mantenimientos programados para: " + fechaActual.toLocalDate());
-                    //OBTENER LOS CAMUIONES
-                    camiones = DataLoader.camiones;
-                    verificarYActualizarMantenimientos(camiones, fechaActual);
-                }
-
-                //! ACTUALIZAR CAMIONES EN AVERIA
-                // Actualizar estados de camiones con averías según fechas reales de las averías
-                actualizarCamionesEnAveria(fechaActual);
                 if (!pedidosPorAtender.isEmpty()) {
 
+                    
                     List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
                     try {
                         iniciar.acquire();
-                        AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
+                        AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(), pedidosEnviar);
                         algoritmoGenetico.ejecutarAlgoritmo();
-                        // SimulatedAnnealing simulatedAnnealing = new SimulatedAnnealing(mapa, pedidosEnviar);
-                        // simulatedAnnealing.ejecutarAlgoritmo();          
+    
                         IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(), pedidosEnviar, bloqueosActivos, fechaActual);
                         gaResultQueue.offer(mejorIndividuoDto);
                         continuar.acquire();
@@ -142,6 +125,8 @@ public class Simulacion {
     public static void actualizarEstadoGlobal(LocalDateTime fechaActual) {
         actualizarRepositorios(fechaActual);
         actualizarCamiones(fechaActual);
+        verificarYActualizarMantenimientos(DataLoader.camiones, fechaActual);
+        actualizarCamionesEnAveria(fechaActual);
     }
 
     private static List<Bloqueo> actualizarBloqueos(LocalDateTime fechaActual) {
@@ -155,6 +140,9 @@ public class Simulacion {
                 bloqueo.desactivarBloqueo();
             }
         }
+        Nodo nodo2 = Mapa.getInstance().getNodo(5, 5);
+        System.err.println(
+                "Verificando nodo bloqueado: " + nodo2.getCoordenada() + " - Bloqueado: " + nodo2.isBloqueado());
         return bloqueosActivos;
     }
 
