@@ -1,20 +1,6 @@
 import axios from 'axios';
 import { API_URLS } from '../config/api';
-
-export interface AlmacenBackend {
-  coordenada: { fila: number; columna: number };
-  nombre: string;
-  tipo: 'CENTRAL' | 'SECUNDARIO';
-  activo: boolean;
-}
-
-export interface Almacen {
-  id: string;
-  nombre: string;
-  tipo: 'CENTRAL' | 'INTERMEDIO';
-  coordenada: { x: number; y: number };
-  activo: boolean;
-}
+import type { AlmacenBackend, Almacen } from '../types';
 
 export const getAlmacenes = async (): Promise<Almacen[]> => {
   //console.log(`🌐 API: Haciendo petición a ${API_URLS.ALMACENES}`);

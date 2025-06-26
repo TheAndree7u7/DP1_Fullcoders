@@ -7,8 +7,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getMejorIndividuo } from '../services/simulacionApiService';
-import { getAlmacenes, type Almacen } from '../services/almacenApiService';
-import type { Pedido, Coordenada, Individuo, Gen, Nodo, Camion } from '../types';
+import { getAlmacenes } from '../services/almacenApiService';
+import type { Pedido, Coordenada, Individuo, Gen, Nodo, Camion, Almacen } from '../types';
 import { calcularPesoCarga, calcularPesoCombinado, calcularConsumoGalones, calcularDistanciaMaxima } from '../types';
 
 /**

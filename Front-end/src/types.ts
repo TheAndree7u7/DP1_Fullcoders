@@ -1,5 +1,21 @@
 // --- Tipos del backend ---
 
+// Interfaces de Almacén
+export interface AlmacenBackend {
+  coordenada: { fila: number; columna: number };
+  nombre: string;
+  tipo: 'CENTRAL' | 'SECUNDARIO';
+  activo: boolean;
+}
+
+export interface Almacen {
+  id: string;
+  nombre: string;
+  tipo: 'CENTRAL' | 'INTERMEDIO';
+  coordenada: { x: number; y: number };
+  activo: boolean;
+}
+
 export interface Camion {
   codigo: string;
   capacidadActualGLP: number;  // Can be decimal
