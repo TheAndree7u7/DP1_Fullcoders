@@ -7,6 +7,7 @@ import clienteIcon from '../assets/cliente.svg';
 import { averiarCamionTipo } from '../services/averiaApiService';
 import { toast, Bounce } from 'react-toastify';
 import { CAMION_COLORS, ESTADO_COLORS } from '../config/colors';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface CamionVisual {
   id: string;
@@ -54,6 +55,8 @@ const Mapa = () => {
   const [clickedCamion, setClickedCamion] = useState<string | null>(null);
   const [clickedPos, setClickedPos] = useState<{x: number, y: number} | null>(null);
   const [averiando, setAveriando] = useState<string | null>(null);
+  // Estado para la leyenda desplegable
+  const [leyendaVisible, setLeyendaVisible] = useState(false);
 
   // DEBUG: Verificar que almacenes llega al componente
   //console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
@@ -203,12 +206,87 @@ const Mapa = () => {
   }
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <svg
-        width={SVG_WIDTH}
-        height={SVG_HEIGHT}
-        className="border border-gray-500 bg-white rounded-xl"
-      >
+    <div className="flex items-start gap-3">
+      {/* Leyenda lateral compacta */}
+      <div className="bg-white rounded-lg shadow-md border border-gray-200 p-2 w-32">
+        <button
+          onClick={() => setLeyendaVisible(!leyendaVisible)}
+          className="flex items-center justify-between w-full text-left text-xs font-semibold text-gray-800 hover:text-gray-900 mb-2"
+        >
+          <span>LEYENDA</span>
+          {leyendaVisible ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+        </button>
+        
+        {leyendaVisible && (
+          <div className="space-y-1.5">
+            {/* Almacén Central */}
+            <div className="flex items-center gap-1.5">
+              <img src={almacenCentralIcon} alt="Almacén Central" className="w-4 h-4" />
+              <span className="text-xs text-gray-700">A. Central</span>
+            </div>
+            
+            {/* Almacén Intermedio */}
+            <div className="flex items-center gap-1.5">
+              <img src={almacenIntermedioIcon} alt="Almacén Intermedio" className="w-4 h-4" />
+              <span className="text-xs text-gray-700">A. Intermedio</span>
+            </div>
+            
+            {/* Cliente */}
+            <div className="flex items-center gap-1.5">
+              <img src={clienteIcon} alt="Cliente" className="w-4 h-4" />
+              <span className="text-xs text-gray-700">Cliente</span>
+            </div>
+            
+            {/* Camión */}
+            <div className="flex items-center gap-1.5">
+              <div className="w-4 h-3 bg-blue-500 rounded-sm border border-gray-400 relative">
+                <div className="absolute -bottom-0.5 left-0.5 w-0.5 h-0.5 bg-black rounded-full"></div>
+                <div className="absolute -bottom-0.5 right-0.5 w-0.5 h-0.5 bg-black rounded-full"></div>
+              </div>
+              <span className="text-xs text-gray-700">Camión</span>
+            </div>
+            
+            {/* Ruta */}
+            <div className="flex items-center gap-1.5">
+              <div className="w-4 h-0.5 border-t border-dashed border-blue-500"></div>
+              <span className="text-xs text-gray-700">Ruta</span>
+            </div>
+            
+            {/* Bloqueos */}
+            <div className="flex items-center gap-1.5">
+              <div className="w-4 h-0.5 bg-red-600 rounded-full"></div>
+              <span className="text-xs text-gray-700">Bloqueos</span>
+            </div>
+            
+            {/* Estados de camiones */}
+            <div className="pt-1 border-t border-gray-200">
+              <div className="text-xs font-medium text-gray-600 mb-1">Estados:</div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-blue-500 rounded-sm"></div>
+                  <span className="text-xs text-gray-700">Normal</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
+                  <span className="text-xs text-gray-700">Averiado</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-gray-800 rounded-sm"></div>
+                  <span className="text-xs text-gray-700">Mant.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Contenedor del mapa */}
+      <div className="flex flex-col items-center gap-2">
+        <svg
+          width={SVG_WIDTH}
+          height={SVG_HEIGHT}
+          className="border border-gray-500 bg-white rounded-xl"
+        >
         {/* Grid */}
         {[...Array(GRID_WIDTH + 1)].map((_, i) => (
           <line key={`v-${i}`} x1={i * CELL_SIZE} y1={0} x2={i * CELL_SIZE} y2={SVG_HEIGHT} stroke="#d1d5db" strokeWidth={1} />
@@ -501,6 +579,7 @@ const Mapa = () => {
           />
           ms
         </label>
+      </div>
       </div>
     </div>
   );
