@@ -50,7 +50,7 @@ public class Simulacion {
         LocalDateTime fechaFin = fechaActual.plusDays(7);
         pedidosSemanal = DataLoader.pedidos.stream()
                 .filter(pedido -> pedido.getFechaRegistro().isAfter(fechaActual)
-                && pedido.getFechaRegistro().isBefore(fechaFin))
+                        && pedido.getFechaRegistro().isBefore(fechaFin))
                 .collect(Collectors.toList());
         System.out.println("\n=== INICIO DE LA SIMULACIÓN ===");
         System.out.println("📊 Estadísticas iniciales:");
@@ -80,19 +80,17 @@ public class Simulacion {
 
                 if (!pedidosPorAtender.isEmpty()) {
 
-                    
                     List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
                     try {
                         iniciar.acquire();
                         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(), pedidosEnviar);
                         algoritmoGenetico.ejecutarAlgoritmo();
-    
-                        IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(), pedidosEnviar, bloqueosActivos, fechaActual);
+
+                        IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(),
+                                pedidosEnviar, bloqueosActivos, fechaActual);
                         gaResultQueue.offer(mejorIndividuoDto);
                         continuar.acquire();
-                        for(Bloqueo bloqueo : bloqueosActivos) {
-                            bloqueo.desactivarBloqueo();
-                        }
+
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         System.err.println("Error al esperar el disparador del algoritmo genético: " + e.getMessage());
@@ -101,6 +99,10 @@ public class Simulacion {
                 } else {
                     System.out.println("No hay pedidos por atender en este momento.");
                 }
+                for (Bloqueo bloqueo : bloqueosActivos) {
+                    bloqueo.desactivarBloqueo();
+                }
+
                 fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
                 if (fechaActual.isEqual(fechaLimite) || fechaActual.isAfter(fechaLimite)) {
                     break;
@@ -169,7 +171,8 @@ public class Simulacion {
      * ejecuta al inicio del día (00:00) y actualiza TODOS los camiones
      */
     private static void verificarYActualizarMantenimientos(List<Camion> camiones, LocalDateTime fechaActual) {
-        System.out.println("🔧 Verificando mantenimientos programados para: " + fechaActual.toLocalDate() + " - INICIO DEL DÍA");
+        System.out.println(
+                "🔧 Verificando mantenimientos programados para: " + fechaActual.toLocalDate() + " - INICIO DEL DÍA");
 
         if (camiones == null) {
             System.out.println("[LOG] La lista de camiones es NULL");
@@ -190,10 +193,13 @@ public class Simulacion {
             long mantenimientosCount = com.plg.config.DataLoader.mantenimientos.stream()
                     .filter(m -> m.getCamion() != null && m.getCamion().getCodigo().equals(camion.getCodigo()))
                     .count();
-            // System.out.println("[LOG] Camión " + camion.getCodigo() + " tiene " + mantenimientosCount + " mantenimientos registrados en DataLoader.mantenimientos");
+            // System.out.println("[LOG] Camión " + camion.getCodigo() + " tiene " +
+            // mantenimientosCount + " mantenimientos registrados en
+            // DataLoader.mantenimientos");
 
             boolean resultado = tieneMantenimientoProgramado(camion, dia, mes);
-            // System.out.println("[LOG] ¿Camión " + camion.getCodigo() + " tiene mantenimiento el " + dia + "/" + mes + "? " + resultado);
+            // System.out.println("[LOG] ¿Camión " + camion.getCodigo() + " tiene
+            // mantenimiento el " + dia + "/" + mes + "? " + resultado);
             if (resultado) {
                 camion.setEstado(com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO);
                 System.out.println("   • Camión " + camion.getCodigo() + " → EN MANTENIMIENTO");
@@ -219,26 +225,31 @@ public class Simulacion {
             // Buscar el primer mantenimiento del camión en los datos cargados
             return com.plg.config.DataLoader.mantenimientos.stream()
                     .filter(m -> m.getCamion() != null
-                    && m.getCamion().getCodigo().equals(camion.getCodigo()))
+                            && m.getCamion().getCodigo().equals(camion.getCodigo()))
                     .findFirst()
                     .map(primerMantenimiento -> {
                         // Verificar si el día coincide
                         if (primerMantenimiento.getDia() != dia) {
-                            // System.out.println("[LOG] Camión " + camion.getCodigo() + ": Día no coincide. Esperado: " + primerMantenimiento.getDia() + ", Recibido: " + dia);
+                            // System.out.println("[LOG] Camión " + camion.getCodigo() + ": Día no coincide.
+                            // Esperado: " + primerMantenimiento.getDia() + ", Recibido: " + dia);
                             return false;
                         }
                         int mesInicial = primerMantenimiento.getMes();
                         int diferenciaMeses = Math.abs(mes - mesInicial);
                         boolean ciclo = diferenciaMeses % 2 == 0;
-                        // System.out.println("[LOG] Camión " + camion.getCodigo() + ": Mes inicial: " + mesInicial + ", Mes consultado: " + mes + ", Diferencia: " + diferenciaMeses + ", ¿En ciclo?: " + ciclo);
+                        // System.out.println("[LOG] Camión " + camion.getCodigo() + ": Mes inicial: " +
+                        // mesInicial + ", Mes consultado: " + mes + ", Diferencia: " + diferenciaMeses
+                        // + ", ¿En ciclo?: " + ciclo);
                         return ciclo;
                     })
                     .orElseGet(() -> {
-                        // System.out.println("[LOG] Camión " + camion.getCodigo() + ": No se encontró mantenimiento base");
+                        // System.out.println("[LOG] Camión " + camion.getCodigo() + ": No se encontró
+                        // mantenimiento base");
                         return false;
                     });
         } catch (Exception e) {
-            System.err.println("Error verificando mantenimiento para " + (camion != null ? camion.getCodigo() : "null") + ": " + e.getMessage());
+            System.err.println("Error verificando mantenimiento para " + (camion != null ? camion.getCodigo() : "null")
+                    + ": " + e.getMessage());
             return false;
         }
     }
@@ -250,16 +261,16 @@ public class Simulacion {
         System.out.println("Cantidad de pedidos semanales: " + pedidosSemanal.size());
         System.out.println("Cantidad de almacenes: " + DataLoader.almacenes.size());
         System.out.println("Cantidad de camiones: " + DataLoader.camiones.size());
-        //! ACTUALIZAR CAMIONES SEGUN SU MANTENIMIENTO 
-        //?SOLO SI LA FECHA ACTUAL ES EL INICIO DEL DÍA
+        // ! ACTUALIZAR CAMIONES SEGUN SU MANTENIMIENTO
+        // ?SOLO SI LA FECHA ACTUAL ES EL INICIO DEL DÍA
         // VERIFICAR MANTENIMIENTOS: Solo una vez al inicio del día (00:00)
         // Actualiza TODOS los camiones según corresponda
         if (fechaActual.getHour() == 0 && fechaActual.getMinute() == 0) {
-            //Inicializar la lista de camuiones
+            // Inicializar la lista de camuiones
             List<Camion> camiones_en_mantenimiento = new ArrayList<>();
-            //COLCAR UN LOG 
+            // COLCAR UN LOG
             System.out.println("🔧 Verificando mantenimientos programados para: " + fechaActual.toLocalDate());
-            //OBTENER LOS CAMUIONES
+            // OBTENER LOS CAMUIONES
             if (DataLoader.camiones != null) {
                 camiones_en_mantenimiento = DataLoader.camiones;
             } else {
@@ -268,7 +279,7 @@ public class Simulacion {
             verificarYActualizarMantenimientos(camiones_en_mantenimiento, fechaActual);
         }
 
-        //!ACTULIZAR EL MANTENIMIENTO 
+        // !ACTULIZAR EL MANTENIMIENTO
     }
 
     private static boolean pedidoConFechaMenorAFechaActual(Pedido pedido, LocalDateTime fechaActual) {
@@ -286,7 +297,8 @@ public class Simulacion {
             com.plg.repository.AveriaRepository averiaRepository = new com.plg.repository.AveriaRepository();
             com.plg.repository.CamionRepository camionRepository = new com.plg.repository.CamionRepository();
             com.plg.service.CamionService camionService = new com.plg.service.CamionService(camionRepository);
-            com.plg.service.AveriaService averiaService = new com.plg.service.AveriaService(averiaRepository, camionService);
+            com.plg.service.AveriaService averiaService = new com.plg.service.AveriaService(averiaRepository,
+                    camionService);
 
             // Obtener todas las averías activas
             java.util.List<com.plg.entity.Averia> averiasActivas = averiaService.listarActivas();
@@ -312,7 +324,8 @@ public class Simulacion {
             com.plg.service.CamionService camionService) {
         for (com.plg.entity.Averia averia : averiasActivas) {
             if (averia.getTipoIncidente() != null && !averia.getTipoIncidente().isRequiereTraslado()) {
-                // Verificar si la fecha hora disponible es menor a la fecha actual (sin segundos)
+                // Verificar si la fecha hora disponible es menor a la fecha actual (sin
+                // segundos)
                 if (averia.getFechaHoraDisponible() != null
                         && esFechaAnteriorSinSegundos(averia.getFechaHoraDisponible(), fechaActual)) {
 
@@ -350,13 +363,15 @@ public class Simulacion {
                     com.plg.entity.Camion camion = buscarCamionPorCodigo(codigoCamion);
                     if (camion != null && camion.getEstado() == com.plg.entity.EstadoCamion.INMOVILIZADO_POR_AVERIA) {
                         // Actualizar estado a EN_MANTENIMIENTO_POR_AVERIA
-                        camionService.cambiarEstado(codigoCamion, com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA);
+                        camionService.cambiarEstado(codigoCamion,
+                                com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA);
 
                         // Cambiar posición al almacén central
                         com.plg.entity.Coordenada coordenadaAlmacenCentral = obtenerCoordenadaAlmacenCentral();
                         camionService.cambiarCoordenada(codigoCamion, coordenadaAlmacenCentral);
 
-                        System.out.println("🚛 Camión " + codigoCamion + " trasladado al taller - Estado: EN_MANTENIMIENTO_POR_AVERIA");
+                        System.out.println("🚛 Camión " + codigoCamion
+                                + " trasladado al taller - Estado: EN_MANTENIMIENTO_POR_AVERIA");
                     }
                 }
 
