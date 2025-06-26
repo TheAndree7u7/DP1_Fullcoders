@@ -8,6 +8,7 @@ import java.util.Random;
 import com.plg.config.DataLoader;
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
+import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
 
@@ -26,6 +27,8 @@ public class Individuo {
     private String descripcion;
     private List<Gen> cromosoma;
     private List<Pedido> pedidos; // Lista de pedidos
+    @Builder.Default
+    private double porcentajeAsignacionCercana = 0.9; // Porcentaje de camiones a usar para asignación por cercanía
 
     public Individuo(List<Pedido> pedidos) {
         this.pedidos = pedidos;
@@ -47,7 +50,6 @@ public class Individuo {
         if (camionesDisponibles.isEmpty()) {
             LoggerUtil.logError("⚠️  ADVERTENCIA: No hay camiones disponibles (todos en mantenimiento)");
             LoggerUtil.logWarning("Se usará la lista completa de camiones, incluyendo los que están en mantenimiento.");
-            // En caso de emergencia, usar todos los camiones
             camionesDisponibles = camiones;
         } else {
             LoggerUtil.log("🚛 Camiones disponibles para algoritmo: " + camionesDisponibles.size()
@@ -65,13 +67,31 @@ public class Individuo {
         List<Gen> genesMezclados = new ArrayList<>(cromosoma);
         Collections.shuffle(genesMezclados, new Random());
 
+        // NUEVO: Para cada pedido, selecciona un subconjunto random de genes y asigna al más cercano
         Random selectorDeGen = new Random();
         for (Nodo pedido : pedidosMezclados) {
-            Gen gen = genesMezclados.get(selectorDeGen.nextInt(genesMezclados.size()));
-            if (pedido instanceof Pedido) {
-                gen.getPedidos().add((Pedido) pedido);
+            if (!(pedido instanceof Pedido)) {
+                continue;
             }
-            gen.getNodos().add(pedido);
+            int cantidadCercanos = (int) Math.ceil(genesMezclados.size() * porcentajeAsignacionCercana);
+            // Seleccionar subconjunto random de genes
+            List<Gen> subconjuntoGenes = new ArrayList<>(genesMezclados);
+            Collections.shuffle(subconjuntoGenes, selectorDeGen);
+            subconjuntoGenes = subconjuntoGenes.subList(0, Math.max(1, cantidadCercanos));
+            double minDist = Double.POSITIVE_INFINITY;
+            Gen mejorGen = null;
+            for (Gen gen : subconjuntoGenes) {
+                Nodo nodoCamion = gen.getCamion();
+                double dist = Mapa.getInstance().calcularHeuristica(nodoCamion, pedido);
+                if (dist < minDist) {
+                    minDist = dist;
+                    mejorGen = gen;
+                }
+            }
+            if (mejorGen != null) {
+                mejorGen.getPedidos().add((Pedido) pedido);
+                mejorGen.getNodos().add(pedido);
+            }
         }
         for (Gen gen : cromosoma) {
             gen.getNodos().add(almacenCentral);

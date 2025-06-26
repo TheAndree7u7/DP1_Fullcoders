@@ -90,13 +90,15 @@ public class Simulacion {
                         IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(), pedidosEnviar, bloqueosActivos, fechaActual);
                         gaResultQueue.offer(mejorIndividuoDto);
                         continuar.acquire();
+                        for(Bloqueo bloqueo : bloqueosActivos) {
+                            bloqueo.desactivarBloqueo();
+                        }
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         System.err.println("Error al esperar el disparador del algoritmo genético: " + e.getMessage());
                         e.printStackTrace();
                     }
                 } else {
-
                     System.out.println("No hay pedidos por atender en este momento.");
                 }
                 fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
@@ -136,13 +138,8 @@ public class Simulacion {
             if (bloqueo.getFechaInicio().isBefore(fechaActual) && bloqueo.getFechaFin().isAfter(fechaActual)) {
                 bloqueo.activarBloqueo();
                 bloqueosActivos.add(bloqueo);
-            } else {
-                bloqueo.desactivarBloqueo();
             }
         }
-        Nodo nodo2 = Mapa.getInstance().getNodo(5, 5);
-        System.err.println(
-                "Verificando nodo bloqueado: " + nodo2.getCoordenada() + " - Bloqueado: " + nodo2.isBloqueado());
         return bloqueosActivos;
     }
 
