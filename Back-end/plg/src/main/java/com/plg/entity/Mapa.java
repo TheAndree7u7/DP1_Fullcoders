@@ -210,7 +210,8 @@ public class Mapa {
         return adyacentes;
     }
 
-    private double calcularHeuristica(Nodo a, Nodo b) {
+    // Cambiado a public para poder usarlo desde fuera
+    public double calcularHeuristica(Nodo a, Nodo b) {
         return Math.abs(a.getCoordenada().getColumna() - b.getCoordenada().getColumna()) +
                 Math.abs(a.getCoordenada().getFila() - b.getCoordenada().getFila());
     }
