@@ -15,10 +15,12 @@ import com.plg.dto.IndividuoDto;
 import com.plg.entity.Almacen;
 import com.plg.entity.Bloqueo;
 import com.plg.entity.Camion;
+import com.plg.entity.Coordenada;
 import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
 import com.plg.entity.TipoAlmacen;
+import com.plg.entity.TipoNodo;
 
 public class Simulacion {
 
@@ -73,14 +75,15 @@ public class Simulacion {
                 pedidosSemanal.remove(0);
                 pedidosPorAtender.add(pedido);
             } else {
+                List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
+                actualizarEstadoGlobal(fechaActual, pedidosEnviar);
                 List<Bloqueo> bloqueosActivos = actualizarBloqueos(fechaActual);
-                actualizarEstadoGlobal(fechaActual);
                 System.out.println("------------------------");
                 System.out.println("Tiempo actual: " + fechaActual);
 
                 if (!pedidosPorAtender.isEmpty()) {
 
-                    List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
+                    
                     try {
                         iniciar.acquire();
                         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(), pedidosEnviar);
@@ -126,11 +129,29 @@ public class Simulacion {
         return listaUnida;
     }
 
-    public static void actualizarEstadoGlobal(LocalDateTime fechaActual) {
+    public static void actualizarEstadoGlobal(LocalDateTime fechaActual, List<Pedido> pedidosEnviar) {
+        actualizarPedidos(pedidosEnviar);
         actualizarRepositorios(fechaActual);
         actualizarCamiones(fechaActual);
         verificarYActualizarMantenimientos(DataLoader.camiones, fechaActual);
         actualizarCamionesEnAveria(fechaActual);
+    }
+
+    private static void actualizarPedidos(List<Pedido> pedidos) {
+        // Borramos los pedidos del mapa
+        for (int i = 0; i < Mapa.getInstance().getFilas(); i++) {
+            for (int j = 0; j < Mapa.getInstance().getColumnas(); j++) {
+                Nodo nodo = Mapa.getInstance().getMatriz().get(i).get(j);
+                if (nodo instanceof Pedido) {
+                    Nodo nodoaux = Nodo.builder().coordenada(new Coordenada(i, j)).tipoNodo(TipoNodo.NORMAL).build();
+                    Mapa.getInstance().setNodo(nodo.getCoordenada(), nodoaux);
+                }
+            }
+        }
+        // Colocamos todos los nuevos pedidos en el mapa
+        for (Pedido pedido : pedidos) {
+            Mapa.getInstance().setNodo(pedido.getCoordenada(), pedido);
+        }
     }
 
     private static List<Bloqueo> actualizarBloqueos(LocalDateTime fechaActual) {
@@ -171,6 +192,10 @@ public class Simulacion {
      * ejecuta al inicio del día (00:00) y actualiza TODOS los camiones
      */
     private static void verificarYActualizarMantenimientos(List<Camion> camiones, LocalDateTime fechaActual) {
+
+        if (fechaActual.getHour() != 0 && fechaActual.getMinute() != 0) {
+            return; // Solo se ejecuta al inicio del día
+        }
         System.out.println(
                 "🔧 Verificando mantenimientos programados para: " + fechaActual.toLocalDate() + " - INICIO DEL DÍA");
 

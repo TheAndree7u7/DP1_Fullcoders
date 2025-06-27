@@ -90,14 +90,16 @@ public class Bloqueo {
     public void activarBloqueo() {
         this.activo = true;
         for (Nodo nodo : nodosBloqueados) {
-            nodo.setBloqueado(true);
+            Nodo nodoMapa = Mapa.getInstance().getNodo(nodo.getCoordenada());
+            nodoMapa.setBloqueado(true);
         }
     }
 
     public void desactivarBloqueo() {
         this.activo = false;
         for (Nodo nodo : nodosBloqueados) {
-            nodo.setBloqueado(false);
+            Nodo nodoMapa = Mapa.getInstance().getNodo(nodo.getCoordenada());
+            nodoMapa.setBloqueado(false);
         }
     }
 

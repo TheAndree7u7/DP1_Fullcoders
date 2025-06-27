@@ -1,6 +1,7 @@
 package com.plg.utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.plg.entity.Almacen;
@@ -36,58 +37,70 @@ public class Gen {
     public double calcularFitness() {
         this.rutaFinal.clear();
         double fitness = 0.0;
-
+        Nodo posicionActual = camion;
+        List<Nodo> rutaEntradaBloqueada = null;
         for (int i = 0; i < nodos.size(); i++) {
-            Nodo nodo1, nodo2;
-            if (i == 0) {
-                nodo1 = camion;
-                nodo2 = nodos.get(i);
-            } else {
-                nodo1 = nodos.get(i - 1);
-                nodo2 = nodos.get(i);
-            }
-            List<Nodo> rutaAstar = Mapa.getInstance().aStar(nodo1, nodo2);
-
+            Nodo destino = nodos.get(i);
+            List<Nodo> rutaAstar = Mapa.getInstance().aStar(posicionActual, destino);
             double distanciaCalculada = rutaAstar.size();
             double distanciaMaxima = camion.calcularDistanciaMaxima();
             if (distanciaMaxima < distanciaCalculada) {
                 fitness = Double.POSITIVE_INFINITY;
-                this.descripcion = descripcionDistanciaLejana(distanciaMaxima, distanciaCalculada, nodo1, nodo2);
+                this.descripcion = descripcionDistanciaLejana(distanciaMaxima, distanciaCalculada, posicionActual, destino);
                 break;
             }
-            if (nodo2 instanceof Pedido) {
-                Pedido pedido = (Pedido) nodo2;
-
-                // Si se trata de un pedido verificamos que lleguemos a tiempo 
+            if (destino instanceof Pedido) {
+                Pedido pedido = (Pedido) destino;
                 double tiempoEntregaLimite = pedido.getHorasLimite();
                 double tiempoLlegada = distanciaCalculada / camion.getVelocidadPromedio();
                 boolean tiempoMenorQueLimite = tiempoLlegada <= tiempoEntregaLimite;
-
-                // Verificamos que el camion tenga sufiente combustible
                 boolean volumenGLPAsignado = camion.getCapacidadActualGLP() >= pedido.getVolumenGLPAsignado();
-
                 if (tiempoMenorQueLimite && volumenGLPAsignado) {
-                    fitness += distanciaCalculada; // Aumentamos el fitness por la distancia recorrida
-                    // Combustible gastado
+                    fitness += distanciaCalculada;
                     camion.actualizarCombustible(distanciaCalculada);
-
-                    // Actualizamos el volumen de GLP del camion
                     camion.entregarVolumenGLP(pedido.getVolumenGLPAsignado());
-                    if (i > 0) {
+                    if (i > 0 && rutaAstar.size() > 1) {
                         rutaAstar.remove(0);
                     }
                     rutaFinal.addAll(rutaAstar);
+                    // Si el pedido está en un nodo bloqueado, guardar la ruta de entrada
+                    if (destino.isBloqueado()) {
+                        rutaEntradaBloqueada = new ArrayList<>(rutaAstar);
+                    } else {
+                        rutaEntradaBloqueada = null;
+                    }
+                    posicionActual = destino;
                 } else {
                     fitness = Double.POSITIVE_INFINITY;
                     this.descripcion = descripcionError(pedido, camion, tiempoEntregaLimite, tiempoLlegada, tiempoMenorQueLimite, volumenGLPAsignado);
                     break;
                 }
-            } else if (nodo2 instanceof Almacen || nodo2 instanceof Camion) {
-                recargarCamion(camion, nodo2);
-                if (i > 0) {
+            } else if (destino instanceof Almacen || destino instanceof Camion) {
+                recargarCamion(camion, destino);
+                if (i > 0 && rutaAstar.size() > 1) {
                     rutaAstar.remove(0);
                 }
                 rutaFinal.addAll(rutaAstar);
+                rutaEntradaBloqueada = null;
+                posicionActual = destino;
+            } else {
+                // Otro tipo de nodo
+                if (i > 0 && rutaAstar.size() > 1) {
+                    rutaAstar.remove(0);
+                }
+                rutaFinal.addAll(rutaAstar);
+                posicionActual = destino;
+            }
+            // Si el nodo anterior era bloqueado y hay que salir, regresar por la ruta invertida
+            if (rutaEntradaBloqueada != null && i + 1 < nodos.size()) {
+                // No incluir el nodo bloqueado al salir
+                List<Nodo> rutaSalida = new ArrayList<>(rutaEntradaBloqueada);
+                Collections.reverse(rutaSalida);
+                rutaSalida.remove(0); // Quitar el nodo bloqueado
+                rutaFinal.addAll(rutaSalida);
+                fitness += rutaSalida.size();
+                posicionActual = rutaSalida.get(rutaSalida.size() - 1); // Último nodo no bloqueado
+                rutaEntradaBloqueada = null;
             }
         }
         this.fitness = fitness;

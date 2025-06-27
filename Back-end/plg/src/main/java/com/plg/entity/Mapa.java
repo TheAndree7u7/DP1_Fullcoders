@@ -237,7 +237,8 @@ public class Mapa {
                 return reconstruirRuta(cameFrom, nodoActual);
             }
             for (Nodo vecino : getAdj(nodoActual.getCoordenada())) {
-                if (vecino.isBloqueado()) {
+                // Permitir llegar a un nodo bloqueado solo si es el destino
+                if (vecino.isBloqueado() && !vecino.equals(destino)) {
                     continue;
                 }
                 double tentativeGScore = nodoActual.getGScore() + 1;
