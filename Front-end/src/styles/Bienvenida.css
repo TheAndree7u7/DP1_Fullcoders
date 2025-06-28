@@ -1,0 +1,255 @@
+.bienvenida-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.bienvenida-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo {
+  height: 40px;
+  width: auto;
+}
+
+.titulo-sistema {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.usuario-info {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  backdrop-filter: blur(10px);
+}
+
+.usuario-nombre {
+  color: white;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Main Content */
+.bienvenida-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.bienvenida-content {
+  text-align: center;
+  max-width: 1200px;
+  width: 100%;
+}
+
+.titulo-principal {
+  color: white;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.subtitulo {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.descripcion {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  margin-bottom: 3rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Escenarios Grid */
+.escenarios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.escenario-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  cursor: pointer;
+  transform-origin: center;
+}
+
+.escenario-card.disponible:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+}
+
+.escenario-card.no-disponible {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.escenario-card.no-disponible:hover {
+  transform: none;
+}
+
+.card-header {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  padding: 1.5rem;
+  color: white;
+  text-align: center;
+}
+
+.card-titulo {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.card-imagen {
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+}
+
+.escenario-imagen {
+  max-width: 120px;
+  max-height: 120px;
+  width: auto;
+  height: auto;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  transition: transform 0.3s ease;
+}
+
+.escenario-card.disponible:hover .escenario-imagen {
+  transform: scale(1.1);
+}
+
+.overlay-no-disponible {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .bienvenida-header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .titulo-principal {
+    font-size: 2rem;
+  }
+
+  .escenarios-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 0 1rem;
+  }
+
+  .bienvenida-main {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .titulo-principal {
+    font-size: 1.75rem;
+  }
+
+  .subtitulo {
+    font-size: 1rem;
+  }
+
+  .card-imagen {
+    padding: 1.5rem;
+    min-height: 150px;
+  }
+
+  .escenario-imagen {
+    max-width: 80px;
+    max-height: 80px;
+  }
+}
+
+/* Animaciones de entrada */
+.escenario-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.escenario-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.escenario-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.escenario-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Accesibilidad */
+.escenario-card:focus {
+  outline: 3px solid #FFF;
+  outline-offset: 2px;
+}
+
+.escenario-card.disponible:focus {
+  transform: translateY(-4px);
+}

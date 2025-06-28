@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Mapa from "../components/Mapa";
 import Navbar from "../components/Navbar";
 import RightMenu from "../components/RightMenu";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ArrowLeft } from "lucide-react";
 import { useSimulacion } from "../context/SimulacionContext";
 
 // Constante que define cuánto tiempo (en segundos) representa cada nodo en la simulación
 const SEGUNDOS_POR_NODO = 36;
 
 const SimulacionSemanal: React.FC = () => {
+  const navigate = useNavigate();
   const [menuExpandido, setMenuExpandido] = useState(true);
   const { diaSimulacion, fechaHoraSimulacion, horaActual } = useSimulacion();
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
+
+  const handleVolverInicio = () => {
+    navigate('/');
+  };
 
   // Constante que indica cada cuántas horas se reciben datos del backend
   const HORAS_POR_ACTUALIZACION = 2;
@@ -75,7 +81,17 @@ const SimulacionSemanal: React.FC = () => {
     <div className="bg-[#F5F5F5] w-screen h-screen flex flex-col pt-16">
       <Navbar />
       <div className="bg-[#1E293B] text-white py-2 px-4 flex justify-between items-center">
-        <h1 className="font-bold">Ejecución Semanal {diaSimulacion && `- Día ${diaSimulacion}`}</h1>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleVolverInicio}
+            className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors duration-200 text-sm font-medium"
+            title="Volver al inicio"
+          >
+            <ArrowLeft size={16} />
+            Volver al inicio
+          </button>
+          <h1 className="font-bold">Ejecución Semanal {diaSimulacion && `- Día ${diaSimulacion}`}</h1>
+        </div>
         {tiempoSimulado && (
           <div className="text-sm flex items-center gap-4">
             <div>
