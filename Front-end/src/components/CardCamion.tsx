@@ -2,6 +2,7 @@
 import { useSimulacion } from '../context/SimulacionContext';
 import Camion from '../assets/camion.svg';
 import { getCamionColorByState } from '../config/colors';
+import React from 'react';
 
 const CardsCamiones: React.FC = () => {
   const { camiones, rutasCamiones } = useSimulacion();
@@ -57,4 +58,4 @@ const CardsCamiones: React.FC = () => {
   );
 };
 
-export default CardsCamiones;
+export default React.memo(CardsCamiones);

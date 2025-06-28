@@ -12,12 +12,37 @@ const SEGUNDOS_POR_NODO = 36;
 const SimulacionSemanal: React.FC = () => {
   const navigate = useNavigate();
   const [menuExpandido, setMenuExpandido] = useState(true);
-  const { diaSimulacion, fechaHoraSimulacion, horaActual } = useSimulacion();
+  const { diaSimulacion, fechaHoraSimulacion, horaActual, avanzarHora } = useSimulacion();
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
+  const [isRunning, setIsRunning] = useState<boolean>(true);
+  const [velocidad, setVelocidad] = useState<number>(300);
+  const [intervalId, setIntervalId] = useState<number | null>(null);
 
   const handleVolverInicio = () => {
     navigate('/');
   };
+  
+  // Función para iniciar o detener la simulación
+  useEffect(() => {
+    if (isRunning) {
+      // Iniciar la simulación
+      const interval = window.setInterval(() => {
+        avanzarHora();
+      }, velocidad);
+      setIntervalId(interval);
+    } else if (intervalId !== null) {
+      // Detener la simulación
+      window.clearInterval(intervalId);
+      setIntervalId(null);
+    }
+    
+    // Limpiar al desmontar
+    return () => {
+      if (intervalId !== null) {
+        window.clearInterval(intervalId);
+      }
+    };
+  }, [isRunning, velocidad, avanzarHora]);
 
   // Constante que indica cada cuántas horas se reciben datos del backend
   const HORAS_POR_ACTUALIZACION = 2;
@@ -114,8 +139,8 @@ const SimulacionSemanal: React.FC = () => {
         )}
       </div>
       <div className="flex flex-row flex-1 gap-4 px-4 pb-4 overflow-hidden relative">
-        {/* Mapa */}
-        <div className={`transition-all duration-300 ${menuExpandido ? "flex-[2]" : "flex-[1]"}`}>
+        {/* Mapa - Ahora ocupa más espacio */}
+        <div className={`transition-all duration-300 ${menuExpandido ? "flex-[3]" : "flex-[1]"}`}>
           <div className="bg-white p-4 rounded-xl overflow-auto w-full h-full">
             <Mapa />
           </div>
@@ -123,7 +148,14 @@ const SimulacionSemanal: React.FC = () => {
 
         {/* Menú derecho */}
         <div className={`transition-all duration-300 ${menuExpandido ? "flex-[1]" : "w-0 overflow-hidden"}`}>
-          <RightMenu expanded={menuExpandido} setExpanded={setMenuExpandido} />
+          <RightMenu 
+            expanded={menuExpandido} 
+            setExpanded={setMenuExpandido}
+            isRunning={isRunning}
+            setIsRunning={setIsRunning}
+            velocidad={velocidad}
+            setVelocidad={setVelocidad}
+          />
         </div>
 
         {/* Botón flotante para mostrar menú si está oculto */}

@@ -1,6 +1,7 @@
 // components/IndicadoresCamiones.tsx
 import { useSimulacion } from '../context/SimulacionContext';
 import { CircleDashed, Fuel, Wrench, CheckCircle2, AlertTriangle } from 'lucide-react';
+import React from 'react';
 
 /**
  * Componente que muestra indicadores resumen de los camiones
@@ -75,4 +76,4 @@ const IndicadoresCamiones: React.FC = () => {
   );
 };
 
-export default IndicadoresCamiones;
+export default React.memo(IndicadoresCamiones);

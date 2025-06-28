@@ -288,7 +288,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       
       // Log para debuggear los pedidos que se entregan
       if (pedidosEntregadosAhora.length > 0) {
-        console.log(`� Camión ${camion.id} llegó a (${coordNuevaUbicacion.x},${coordNuevaUbicacion.y}) - Entregando ${pedidosEntregadosAhora.length} pedidos:`, pedidosEntregadosAhora);
+        console.log(`🚚 Camión ${camion.id} llegó a (${coordNuevaUbicacion.x},${coordNuevaUbicacion.y}) - Entregando ${pedidosEntregadosAhora.length} pedidos:`, pedidosEntregadosAhora);
         console.log(`⛽ GLP antes de entrega: ${nuevoGLP.toFixed(2)}`);
         
         for (const pedido of pedidosEntregadosAhora) {
@@ -361,7 +361,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setEsperandoActualizacion(true);
       setCamiones(nuevosCamiones);
       setHoraActual(prev => prev + 1);
-      await cargarDatos(false);
     } else {
       setCamiones(nuevosCamiones);
       setHoraActual(prev => prev + 1);

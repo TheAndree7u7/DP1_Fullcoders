@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useSimulacion } from '../context/SimulacionContext';
 import type { Coordenada, Pedido } from '../types';
 import almacenCentralIcon from '../assets/almacen_central.svg';
@@ -43,123 +43,77 @@ const calcularRotacion = (prev: Coordenada, next: Coordenada): number => {
 };
 
 const Mapa = () => {
+  // TODOS los hooks deben ir aquí, ANTES de cualquier return condicional
   const [camionesVisuales, setCamionesVisuales] = useState<CamionVisual[]>([]);
-  const [running, setRunning] = useState(false);
-  const [intervalo, setIntervalo] = useState(300);
-  const intervalRef = useRef<number | null>(null);
-  const { camiones, rutasCamiones, almacenes, avanzarHora, cargando, bloqueos, marcarCamionAveriado } = useSimulacion();
-  // Estado para el tooltip (hover)
+  const { camiones, rutasCamiones, almacenes, cargando, bloqueos, marcarCamionAveriado } = useSimulacion();
+  const containerRef = useRef<HTMLDivElement>(null);
   const [tooltipCamion, setTooltipCamion] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{x: number, y: number} | null>(null);
-  // Estado para el modal fijo (click)
   const [clickedCamion, setClickedCamion] = useState<string | null>(null);
   const [clickedPos, setClickedPos] = useState<{x: number, y: number} | null>(null);
   const [averiando, setAveriando] = useState<string | null>(null);
-  // Estado para la leyenda desplegable
   const [leyendaVisible, setLeyendaVisible] = useState(false);
 
   // DEBUG: Verificar que almacenes llega al componente
   //console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
 
-  // Función para obtener los pedidos pendientes (no entregados)
-  const getPedidosPendientes = () => {
-    const pedidosPendientes: Pedido[] = [];
-    
+  // Memoizar camionesVisuales para evitar recrearlos en cada render
+  const camionesVisualesMemo = useMemo(() =>
+    rutasCamiones.map((info, idx) => {
+      const rutaCoords = info.ruta.map(parseCoord);
+      const estadoCamion = camiones.find(c => c.id === info.id);
+      const currentPos = estadoCamion ? parseCoord(estadoCamion.ubicacion) : rutaCoords[0];
+      let prevPos = rutaCoords[0];
+      if (estadoCamion && estadoCamion.porcentaje > 0) {
+        const prevIdx = Math.min(rutaCoords.length - 1, Math.floor(estadoCamion.porcentaje));
+        prevPos = rutaCoords[prevIdx];
+      }
+      const rot = calcularRotacion(prevPos, currentPos);
+      const porcentaje = estadoCamion ? estadoCamion.porcentaje : 0;
+      const idxRest = Math.ceil(porcentaje);
+      const rutaRestante = rutaCoords.slice(idxRest);
+      return {
+        id: info.id,
+        color: CAMION_COLORS[idx % CAMION_COLORS.length],
+        ruta: rutaRestante,
+        posicion: currentPos,
+        rotacion: rot
+      } as CamionVisual;
+    })
+  , [camiones, rutasCamiones]);
+
+  // useEffect para mantener proporción del mapa (aunque esté vacío)
+  useEffect(() => {
+    // Nada que hacer aquí ya que usamos CSS aspectRatio
+  }, []);
+
+  // Memoizar pedidosPendientes
+  const pedidosPendientes = useMemo(() => {
+    const pedidos: Pedido[] = [];
     rutasCamiones.forEach(ruta => {
       const camionActual = camiones.find(c => c.id === ruta.id);
       if (!camionActual) {
-        // Si no hay estado del camión, mostrar todos los pedidos
-        pedidosPendientes.push(...ruta.pedidos);
+        pedidos.push(...ruta.pedidos);
         return;
       }
-
-      // Obtener la posición actual del camión en la ruta
       const posicionActual = camionActual.porcentaje;
-      
-      // Si el camión está entregado, no mostrar ningún pedido de esta ruta
       if (camionActual.estado === 'Entregado') {
         return;
       }
-
-      // Para cada pedido de esta ruta, verificar si ya fue visitado
       ruta.pedidos.forEach(pedido => {
-        // Buscar el índice del nodo que corresponde a este pedido
         const indicePedidoEnRuta = ruta.ruta.findIndex(nodo => {
           const coordNodo = parseCoord(nodo);
           return coordNodo.x === pedido.coordenada.x && coordNodo.y === pedido.coordenada.y;
         });
-
-        // Si el pedido está en un nodo que aún no ha sido visitado, mostrarlo
         if (indicePedidoEnRuta === -1 || indicePedidoEnRuta > posicionActual) {
-          pedidosPendientes.push(pedido);
+          pedidos.push(pedido);
         }
       });
     });
-
-    return pedidosPendientes;
-  };
-
-  const pedidosPendientes = getPedidosPendientes();
+    return pedidos;
+  }, [camiones, rutasCamiones]);
   //console.log('👥 MAPA: Pedidos pendientes (clientes):', pedidosPendientes);
   //console.log('🚚 MAPA: Estado de camiones:', camiones);
-
-  useEffect(() => {
-    const iniciales = rutasCamiones.map((info, idx) => {
-      const ruta = info.ruta.map(parseCoord);
-      return {
-        id: info.id,
-        color: CAMION_COLORS[idx % CAMION_COLORS.length],
-        ruta,
-        posicion: ruta[0],
-        rotacion: 0,
-      };
-    });
-    setCamionesVisuales(iniciales);
-  }, [rutasCamiones]);
-
-  useEffect(() => {
-    if (running) {
-      intervalRef.current = window.setInterval(() => {
-        avanzarHora();
-      }, intervalo);
-    } else {
-      if (intervalRef.current) window.clearInterval(intervalRef.current);
-    }
-    return () => {
-      if (intervalRef.current) window.clearInterval(intervalRef.current);
-    };
-  }, [running, intervalo, avanzarHora]);
-
-  useEffect(() => {
-    // Rebuild visuals whenever routes or truck states change
-    setCamionesVisuales(() =>
-      rutasCamiones.map((info, idx) => {
-        const rutaCoords = info.ruta.map(parseCoord);
-        const estadoCamion = camiones.find(c => c.id === info.id);
-        // Determine current and previous positions
-        const currentPos = estadoCamion ? parseCoord(estadoCamion.ubicacion) : rutaCoords[0];
-        let prevPos = rutaCoords[0];
-        if (estadoCamion && estadoCamion.porcentaje > 0) {
-          const prevIdx = Math.min(rutaCoords.length - 1, Math.floor(estadoCamion.porcentaje));
-          prevPos = rutaCoords[prevIdx];
-        }
-        const rot = calcularRotacion(prevPos, currentPos);
-        // Compute remaining path
-        const porcentaje = estadoCamion ? estadoCamion.porcentaje : 0;
-        const idxRest = Math.ceil(porcentaje);
-        const rutaRestante = rutaCoords.slice(idxRest);
-        return {
-          id: info.id,
-          color: CAMION_COLORS[idx % CAMION_COLORS.length],
-          ruta: rutaRestante,
-          posicion: currentPos,
-          rotacion: rot
-        } as CamionVisual;
-      })
-    );
-  }, [camiones, rutasCamiones]);
-
-  // Eliminar función no usada
 
   const handleAveriar = async (camionId: string, tipo: number) => {
     setAveriando(camionId + '-' + tipo);
@@ -281,11 +235,16 @@ const Mapa = () => {
       </div>
 
       {/* Contenedor del mapa */}
-      <div className="flex flex-col items-center gap-2">
+      <div className="flex flex-col items-center gap-2" ref={containerRef}>
         <svg
           width={SVG_WIDTH}
           height={SVG_HEIGHT}
           className="border border-gray-500 bg-white rounded-xl"
+          style={{ 
+            aspectRatio: `${GRID_WIDTH}/${GRID_HEIGHT}`,
+            maxWidth: '100%',
+            maxHeight: '100%',
+          }}
         >
         {/* Grid */}
         {[...Array(GRID_WIDTH + 1)].map((_, i) => (
@@ -365,7 +324,7 @@ const Mapa = () => {
         })}
 
         {/* Rutas de camiones */}
-        {camionesVisuales
+        {camionesVisualesMemo
           .filter(camion => {
             const estadoCamion = camiones.find(c => c.id === camion.id);
             return estadoCamion?.estado !== 'Entregado' && 
@@ -384,7 +343,7 @@ const Mapa = () => {
           ))}
 
         {/* Camiones */}
-        {camionesVisuales
+        {camionesVisualesMemo
           .filter(camion => camiones.find(c => c.id === camion.id)?.estado !== 'Entregado')
           .map(camion => {
              const estadoCamion = camiones.find(c => c.id === camion.id);
@@ -560,26 +519,7 @@ const Mapa = () => {
         })()
       )}
 
-      <div className="flex items-center gap-4 mt-2">
-        <button
-          onClick={() => setRunning(prev => !prev)}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded"
-        >
-          {running ? 'Pausar' : 'Iniciar'}
-        </button>
-        <label className="flex items-center gap-1 text-sm">
-          Velocidad:
-          <input
-            type="number"
-            min={100}
-            step={100}
-            value={intervalo}
-            onChange={e => setIntervalo(parseInt(e.target.value))}
-            className="border rounded px-2 py-0.5 w-20"
-          />
-          ms
-        </label>
-      </div>
+      {/* Eliminamos los controles de simulación ya que ahora están en RightMenu */}
       </div>
     </div>
   );
