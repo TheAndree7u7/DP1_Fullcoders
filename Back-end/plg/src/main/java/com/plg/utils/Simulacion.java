@@ -54,14 +54,14 @@ public class Simulacion {
                 .filter(pedido -> pedido.getFechaRegistro().isAfter(fechaActual)
                         && pedido.getFechaRegistro().isBefore(fechaFin))
                 .collect(Collectors.toList());
-        System.out.println("\n=== INICIO DE LA SIMULACIÓN ===");
-        System.out.println("📊 Estadísticas iniciales:");
-        System.out.println("   • Total de pedidos en el sistema: " + DataLoader.pedidos.size());
-        System.out.println("   • Pedidos a procesar en esta semana: " + pedidosSemanal.size());
-        System.out.println("\n⏰ Configuración temporal:");
-        System.out.println("   • Fecha de inicio: " + fechaActual);
-        System.out.println("   • Fecha de finalización: " + fechaActual.plusDays(3));
-        System.out.println("\n=== INICIANDO PROCESO DE SIMULACIÓN ===\n");
+        
+        // Log de resumen importante
+        System.out.println("\n🚀 INICIO SIMULACIÓN");
+        System.out.printf("📅 Período: %s a %s%n", fechaActual.toLocalDate(), fechaActual.plusDays(3).toLocalDate());
+        System.out.printf("📦 Pedidos a procesar: %d de %d totales%n", pedidosSemanal.size(), DataLoader.pedidos.size());
+        System.out.printf("🚛 Camiones disponibles: %d%n", DataLoader.camiones.size());
+        System.out.printf("🏪 Almacenes: %d%n", DataLoader.almacenes.size());
+        System.out.println("==================================================");
     }
 
     public static void ejecutarSimulacion() {

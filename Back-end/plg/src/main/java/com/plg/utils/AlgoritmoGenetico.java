@@ -74,7 +74,11 @@ public class AlgoritmoGenetico {
         mejorIndividuo = poblacion.get(0);
         verificarMejorIndividuo(mejorIndividuo);
         actualizarParametrosGlobales(mejorIndividuo);
-        System.out.println("Fitness algoritmo genético: " + Parametros.contadorPrueba + " " + mejorIndividuo.getFitness());
+        
+        // Log de resumen importante
+        System.out.printf("📊 Algoritmo Genético completado - Fitness: %.2f, Camiones usados: %d%n", 
+                         mejorIndividuo.getFitness(), mejorIndividuo.getCromosoma().size());
+        
         for (Gen gen : mejorIndividuo.getCromosoma()) {
             Camion camion = gen.getCamion();
             camion.setGen(gen);

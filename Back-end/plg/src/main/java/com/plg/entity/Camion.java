@@ -76,13 +76,12 @@ public class Camion extends Nodo {
         double distanciaCalculada = (combustibleActual * 180) / (tara + pesoCarga);
         this.distanciaMaxima = distanciaCalculada;
         
-        // Log detallado para diagnóstico
-        System.out.printf("🔍 Cálculo distancia máxima para camión %s:%n", codigo);
-        System.out.printf("   - Combustible actual: %.2f galones%n", combustibleActual);
-        System.out.printf("   - Tara: %.2f toneladas%n", tara);
-        System.out.printf("   - Peso carga: %.2f toneladas%n", pesoCarga);
-        System.out.printf("   - Fórmula: (%.2f * 180) / (%.2f + %.2f) = %.2f km%n", 
-                         combustibleActual, tara, pesoCarga, distanciaCalculada);
+        // Solo log si hay un problema crítico (distancia muy baja)
+        if (distanciaCalculada < 10.0) {
+            System.out.printf("⚠️ ALERTA: Camión %s tiene autonomía muy baja: %.2f km%n", codigo, distanciaCalculada);
+            System.out.printf("   - Combustible: %.2f galones, Tara: %.2f t, Carga: %.2f t%n", 
+                             combustibleActual, tara, pesoCarga);
+        }
         
         return this.distanciaMaxima;
     }

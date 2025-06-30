@@ -51,9 +51,6 @@ public class Individuo {
             LoggerUtil.logError("⚠️  ADVERTENCIA: No hay camiones disponibles (todos en mantenimiento)");
             LoggerUtil.logWarning("Se usará la lista completa de camiones, incluyendo los que están en mantenimiento.");
             camionesDisponibles = camiones;
-        } else {
-            LoggerUtil.log("🚛 Camiones disponibles para algoritmo: " + camionesDisponibles.size()
-                    + " de " + camiones.size() + " totales");
         }
 
         cromosoma = new ArrayList<>();
