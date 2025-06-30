@@ -80,14 +80,19 @@ public class Individuo {
             for (Gen gen : subconjuntoGenes) {
                 Nodo nodoCamion = gen.getCamion();
                 double dist = Mapa.getInstance().calcularHeuristica(nodoCamion, pedido);
-                if (dist < minDist) {
+                double autonomia = gen.getCamion().calcularDistanciaMaxima();
+                if (dist < minDist && dist <= autonomia) {
                     minDist = dist;
                     mejorGen = gen;
                 }
             }
+            // Solo asignar si hay un camión con autonomía suficiente
             if (mejorGen != null) {
                 mejorGen.getPedidos().add((Pedido) pedido);
                 mejorGen.getNodos().add(pedido);
+            } else {
+                // Si ningún camión puede llegar, el pedido se ignora en esta generación
+                LoggerUtil.logWarning("⚠️ Pedido ignorado en esta generación por falta de autonomía suficiente");
             }
         }
         for (Gen gen : cromosoma) {
