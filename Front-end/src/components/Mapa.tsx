@@ -225,481 +225,490 @@ const Mapa = () => {
   }
 
   return (
-    <div className="flex items-start gap-3">
-      {/* Leyenda lateral compacta */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 p-2 w-32">
-        <button
-          onClick={() => setLeyendaVisible(!leyendaVisible)}
-          className="flex items-center justify-between w-full text-left text-xs font-semibold text-gray-800 hover:text-gray-900 mb-2"
-        >
-          <span>LEYENDA</span>
-          {leyendaVisible ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-        </button>
+    <div className="flex flex-col h-full w-full">
+      {/* Contenedor principal del mapa que ocupa todo el espacio disponible */}
+      <div className="flex-1 flex items-start gap-3 min-h-0">
+        {/* Leyenda lateral compacta */}
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-2 w-32 flex-shrink-0">
+          <button
+            onClick={() => setLeyendaVisible(!leyendaVisible)}
+            className="flex items-center justify-between w-full text-left text-xs font-semibold text-gray-800 hover:text-gray-900 mb-2"
+          >
+            <span>LEYENDA</span>
+            {leyendaVisible ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          </button>
 
-        {leyendaVisible && (
-          <div className="space-y-1.5">
-            {/* Almacén Central */}
-            <div className="flex items-center gap-1.5">
-              <img
-                src={almacenCentralIcon}
-                alt="Almacén Central"
-                className="w-4 h-4"
-              />
-              <span className="text-xs text-gray-700">A. Central</span>
-            </div>
-
-            {/* Almacén Intermedio */}
-            <div className="flex items-center gap-1.5">
-              <img
-                src={almacenIntermedioIcon}
-                alt="Almacén Intermedio"
-                className="w-4 h-4"
-              />
-              <span className="text-xs text-gray-700">A. Intermedio</span>
-            </div>
-
-            {/* Cliente */}
-            <div className="flex items-center gap-1.5">
-              <img src={clienteIcon} alt="Cliente" className="w-4 h-4" />
-              <span className="text-xs text-gray-700">Cliente</span>
-            </div>
-
-            {/* Camión */}
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-3 bg-blue-500 rounded-sm border border-gray-400 relative">
-                <div className="absolute -bottom-0.5 left-0.5 w-0.5 h-0.5 bg-black rounded-full"></div>
-                <div className="absolute -bottom-0.5 right-0.5 w-0.5 h-0.5 bg-black rounded-full"></div>
-              </div>
-              <span className="text-xs text-gray-700">Camión</span>
-            </div>
-
-            {/* Ruta */}
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-0.5 border-t border-dashed border-blue-500"></div>
-              <span className="text-xs text-gray-700">Ruta</span>
-            </div>
-
-            {/* Bloqueos */}
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-0.5 bg-red-600 rounded-full"></div>
-              <span className="text-xs text-gray-700">Bloqueos</span>
-            </div>
-
-            {/* Estados de camiones */}
-            <div className="pt-1 border-t border-gray-200">
-              <div className="text-xs font-medium text-gray-600 mb-1">
-                Estados:
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-blue-500 rounded-sm"></div>
-                  <span className="text-xs text-gray-700">Normal</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
-                  <span className="text-xs text-gray-700">Averiado</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-gray-800 rounded-sm"></div>
-                  <span className="text-xs text-gray-700">Mant.</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Contenedor del mapa */}
-      <div className="flex flex-col items-center gap-2">
-        <svg
-          width={SVG_WIDTH}
-          height={SVG_HEIGHT}
-          className="border border-gray-500 bg-white rounded-xl"
-        >
-          {/* Grid */}
-          {[...Array(GRID_WIDTH + 1)].map((_, i) => (
-            <line
-              key={`v-${i}`}
-              x1={i * CELL_SIZE}
-              y1={0}
-              x2={i * CELL_SIZE}
-              y2={SVG_HEIGHT}
-              stroke="#d1d5db"
-              strokeWidth={1}
-            />
-          ))}
-          {[...Array(GRID_HEIGHT + 1)].map((_, i) => (
-            <line
-              key={`h-${i}`}
-              x1={0}
-              y1={i * CELL_SIZE}
-              x2={SVG_WIDTH}
-              y2={i * CELL_SIZE}
-              stroke="#d1d5db"
-              strokeWidth={1}
-            />
-          ))}
-
-          {/* Bloqueos */}
-          {bloqueos &&
-            bloqueos.map((bloqueo, idx) => (
-              <polyline
-                key={`bloqueo-${idx}`}
-                fill="none"
-                stroke="#dc2626"
-                strokeWidth={BLOQUEO_STROKE_WIDTH}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                points={bloqueo.coordenadas
-                  .map(
-                    (coord) => `${coord.x * CELL_SIZE},${coord.y * CELL_SIZE}`
-                  )
-                  .join(" ")}
-              />
-            ))}
-
-          {/* Clientes/Pedidos */}
-          {pedidosPendientes.map((pedido) => {
-            //console.log('👤 MAPA: Renderizando cliente:', pedido.codigo, 'en posición:', pedido.coordenada);
-            return (
-              <g key={pedido.codigo}>
-                <image
-                  href={clienteIcon}
-                  x={pedido.coordenada.x * CELL_SIZE - 15}
-                  y={pedido.coordenada.y * CELL_SIZE - 15}
-                  width={30}
-                  height={30}
+          {leyendaVisible && (
+            <div className="space-y-1.5">
+              {/* Almacén Central */}
+              <div className="flex items-center gap-1.5">
+                <img
+                  src={almacenCentralIcon}
+                  alt="Almacén Central"
+                  className="w-4 h-4"
                 />
-                <text
-                  x={pedido.coordenada.x * CELL_SIZE}
-                  y={pedido.coordenada.y * CELL_SIZE + 25}
-                  textAnchor="middle"
-                  fontSize="10"
-                  fill="#dc2626"
-                  fontWeight="bold"
-                  stroke="#fff"
-                  strokeWidth="0.5"
-                >
-                  {pedido.codigo}
-                </text>
-              </g>
-            );
-          })}
+                <span className="text-xs text-gray-700">A. Central</span>
+              </div>
 
-          {/* Almacenes */}
-          {almacenes.map((almacen) => {
-            //console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
-            return (
-              <g key={almacen.id}>
-                <image
-                  href={
-                    almacen.tipo === "CENTRAL"
-                      ? almacenCentralIcon
-                      : almacenIntermedioIcon
-                  }
-                  x={almacen.coordenada.x * CELL_SIZE - 20}
-                  y={almacen.coordenada.y * CELL_SIZE - 20}
-                  width={40}
-                  height={40}
+              {/* Almacén Intermedio */}
+              <div className="flex items-center gap-1.5">
+                <img
+                  src={almacenIntermedioIcon}
+                  alt="Almacén Intermedio"
+                  className="w-4 h-4"
                 />
-                <text
-                  x={almacen.coordenada.x * CELL_SIZE}
-                  y={almacen.coordenada.y * CELL_SIZE + 30}
-                  textAnchor="middle"
-                  fontSize="12"
-                  fill={almacen.tipo === "CENTRAL" ? "#2563eb" : "#16a34a"}
-                  fontWeight="bold"
-                  stroke="#fff"
-                  strokeWidth="0.5"
-                >
-                  {almacen.nombre}
-                </text>
-              </g>
-            );
-          })}
+                <span className="text-xs text-gray-700">A. Intermedio</span>
+              </div>
 
-          {/* Rutas de camiones */}
-          {camionesVisuales
-            .filter((camion) => {
-              const estadoCamion = camiones.find((c) => c.id === camion.id);
-              return (
-                estadoCamion?.estado !== "Entregado" &&
-                estadoCamion?.estado !== "Averiado" &&
-                camion.ruta.length > 1
-              );
-            })
-            .map((camion) => (
-              <polyline
-                key={`ruta-${camion.id}`}
-                fill="none"
-                stroke={camion.color}
-                strokeWidth={2}
-                strokeDasharray="4 2"
-                points={camion.ruta
-                  .map(
-                    (p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`
-                  )
-                  .join(" ")}
-              />
-            ))}
+              {/* Cliente */}
+              <div className="flex items-center gap-1.5">
+                <img src={clienteIcon} alt="Cliente" className="w-4 h-4" />
+                <span className="text-xs text-gray-700">Cliente</span>
+              </div>
 
-          {/* Camiones */}
-          {camionesVisuales
-            .filter(
-              (camion) =>
-                camiones.find((c) => c.id === camion.id)?.estado !== "Entregado"
-            )
-            .map((camion) => {
-              const estadoCamion = camiones.find((c) => c.id === camion.id);
-              const esAveriado = estadoCamion?.estado === "Averiado";
-              const esEnMantenimiento =
-                estadoCamion?.estado === "En Mantenimiento";
-              const { posicion, rotacion, color } = camion;
-              // Rojo para averiados, negro para mantenimiento, color original para otros estados
-              const colorFinal = esAveriado
-                ? ESTADO_COLORS.AVERIADO
-                : esEnMantenimiento
-                ? ESTADO_COLORS.MANTENIMIENTO
-                : color;
-              const cx = posicion.x * CELL_SIZE;
-              const cy = posicion.y * CELL_SIZE;
-              return (
-                <g
-                  key={camion.id}
-                  transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
-                  style={{
-                    transition: "transform 0.8s linear",
-                    cursor: "pointer",
-                  }}
-                  onMouseEnter={(evt) => {
-                    // Solo mostrar tooltip si no hay modal activo
-                    if (!clickedCamion) {
-                      setTooltipCamion(camion.id);
-                      setTooltipPos({ x: evt.clientX, y: evt.clientY });
-                    }
-                  }}
-                  onMouseMove={(evt) => {
-                    if (!clickedCamion && tooltipCamion === camion.id) {
-                      setTooltipPos({ x: evt.clientX, y: evt.clientY });
-                    }
-                  }}
-                  onMouseLeave={() => {
-                    setTooltipCamion(null);
-                  }}
-                  onClick={(evt) => {
-                    // Solo abrir el modal si no hay otro modal ya abierto
-                    if (!clickedCamion) {
-                      setClickedCamion(camion.id);
-                      setClickedPos({ x: evt.clientX, y: evt.clientY });
-                      // Ocultar el tooltip de hover
-                      setTooltipCamion(null);
-                    }
-                  }}
-                >
-                  <rect
-                    x={-6}
-                    y={-4}
-                    width={12}
-                    height={8}
-                    rx={2}
-                    fill={colorFinal}
-                    stroke="black"
-                    strokeWidth={0.5}
+              {/* Camión */}
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-3 bg-blue-500 rounded-sm border border-gray-400 relative">
+                  <div className="absolute -bottom-0.5 left-0.5 w-0.5 h-0.5 bg-black rounded-full"></div>
+                  <div className="absolute -bottom-0.5 right-0.5 w-0.5 h-0.5 bg-black rounded-full"></div>
+                </div>
+                <span className="text-xs text-gray-700">Camión</span>
+              </div>
+
+              {/* Ruta */}
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-0.5 border-t border-dashed border-blue-500"></div>
+                <span className="text-xs text-gray-700">Ruta</span>
+              </div>
+
+              {/* Bloqueos */}
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-0.5 bg-red-600 rounded-full"></div>
+                <span className="text-xs text-gray-700">Bloqueos</span>
+              </div>
+
+              {/* Estados de camiones */}
+              <div className="pt-1 border-t border-gray-200">
+                <div className="text-xs font-medium text-gray-600 mb-1">
+                  Estados:
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-blue-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">Normal</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">Averiado</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-gray-800 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">Mant.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Contenedor del mapa que ocupa el resto del espacio */}
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* SVG del mapa que se adapta al contenedor */}
+          <div className="flex-1 flex items-center justify-center min-h-0">
+            <svg
+              width="100%"
+              height="100%"
+              viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+              preserveAspectRatio="xMidYMid meet"
+              className="border border-gray-500 bg-white rounded-xl max-w-full max-h-full"
+            >
+              {/* Grid */}
+              {[...Array(GRID_WIDTH + 1)].map((_, i) => (
+                <line
+                  key={`v-${i}`}
+                  x1={i * CELL_SIZE}
+                  y1={0}
+                  x2={i * CELL_SIZE}
+                  y2={SVG_HEIGHT}
+                  stroke="#d1d5db"
+                  strokeWidth={1}
+                />
+              ))}
+              {[...Array(GRID_HEIGHT + 1)].map((_, i) => (
+                <line
+                  key={`h-${i}`}
+                  x1={0}
+                  y1={i * CELL_SIZE}
+                  x2={SVG_WIDTH}
+                  y2={i * CELL_SIZE}
+                  stroke="#d1d5db"
+                  strokeWidth={1}
+                />
+              ))}
+
+              {/* Bloqueos */}
+              {bloqueos &&
+                bloqueos.map((bloqueo, idx) => (
+                  <polyline
+                    key={`bloqueo-${idx}`}
+                    fill="none"
+                    stroke="#dc2626"
+                    strokeWidth={BLOQUEO_STROKE_WIDTH}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    points={bloqueo.coordenadas
+                      .map(
+                        (coord) => `${coord.x * CELL_SIZE},${coord.y * CELL_SIZE}`
+                      )
+                      .join(" ")}
                   />
-                  <circle cx={-4} cy={5} r={1.5} fill="black" />
-                  <circle cx={4} cy={5} r={1.5} fill="black" />
-                  {esAveriado && (
+                ))}
+
+              {/* Clientes/Pedidos */}
+              {pedidosPendientes.map((pedido) => {
+                //console.log('👤 MAPA: Renderizando cliente:', pedido.codigo, 'en posición:', pedido.coordenada);
+                return (
+                  <g key={pedido.codigo}>
+                    <image
+                      href={clienteIcon}
+                      x={pedido.coordenada.x * CELL_SIZE - 15}
+                      y={pedido.coordenada.y * CELL_SIZE - 15}
+                      width={30}
+                      height={30}
+                    />
                     <text
-                      x={0}
-                      y={-8}
+                      x={pedido.coordenada.x * CELL_SIZE}
+                      y={pedido.coordenada.y * CELL_SIZE + 25}
                       textAnchor="middle"
-                      fontSize="8"
+                      fontSize="10"
                       fill="#dc2626"
                       fontWeight="bold"
+                      stroke="#fff"
+                      strokeWidth="0.5"
                     >
-                      💥
+                      {pedido.codigo}
                     </text>
-                  )}
-                </g>
-              );
-            })}
-        </svg>
+                  </g>
+                );
+              })}
 
-        {/* Tooltip para camión (hover) */}
-        {tooltipCamion &&
-          tooltipPos &&
-          (() => {
-            const camion = camiones.find((c) => c.id === tooltipCamion);
-            const ruta = rutasCamiones.find((r) => r.id === tooltipCamion);
-            const numPedidos = ruta?.pedidos?.length || 0;
-
-            return (
-              <div
-                style={{
-                  position: "fixed",
-                  left: tooltipPos.x + 10,
-                  top: tooltipPos.y + 10,
-                  background: "white",
-                  border: "1px solid #ccc",
-                  borderRadius: 8,
-                  padding: 12,
-                  zIndex: 1000,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                }}
-              >
-                <div className="mb-2 font-bold">Camión: {tooltipCamion}</div>
-                {camion && (
-                  <div className="text-xs mb-2">
-                    Estado: {camion.estado}
-                    <br />
-                    Pedidos asignados: {numPedidos}
-                    <br />
-                    Capacidad GLP: {camion.capacidadActualGLP.toFixed(2)} /{" "}
-                    {camion.capacidadMaximaGLP}
-                    <br />
-                    Combustible: {camion.combustibleActual.toFixed(2)} /{" "}
-                    {camion.combustibleMaximo}
-                    <br />
-                    Distancia máxima: {camion.distanciaMaxima.toFixed(2)} km
-                    <br />
-                    Peso carga: {camion.pesoCarga.toFixed(2)}
-                    <br />
-                    Peso combinado: {camion.pesoCombinado.toFixed(2)}
-                    <br />
-                    Tara: {camion.tara}
-                    <br />
-                    Tipo: {camion.tipo}
-                    <br />
-                    Velocidad: {camion.velocidadPromedio} km/h
-                    <br />
-                    Ubicación: {camion.ubicacion}
-                    <br />
-                    Progreso: {camion.porcentaje}
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-
-        {/* Modal para camión (click) */}
-        {clickedCamion &&
-          clickedPos &&
-          (() => {
-            const camion = camiones.find((c) => c.id === clickedCamion);
-            const ruta = rutasCamiones.find((r) => r.id === clickedCamion);
-            const numPedidos = ruta?.pedidos?.length || 0;
-            const esAveriado = camion?.estado === "Averiado";
-
-            return (
-              <div
-                style={{
-                  position: "fixed",
-                  left: clickedPos.x + 10,
-                  top: clickedPos.y + 10,
-                  background: "white",
-                  border: "1px solid #ccc",
-                  borderRadius: 8,
-                  padding: 12,
-                  zIndex: 1000,
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                }}
-              >
-                <div className="mb-2 font-bold">Camión: {clickedCamion}</div>
-                {camion && (
-                  <div className="text-xs mb-2">
-                    Estado: {camion.estado}
-                    <br />
-                    Pedidos asignados: {numPedidos}
-                    <br />
-                    Capacidad GLP: {camion.capacidadActualGLP.toFixed(2)} /{" "}
-                    {camion.capacidadMaximaGLP}
-                    <br />
-                    Combustible: {camion.combustibleActual.toFixed(2)} /{" "}
-                    {camion.combustibleMaximo}
-                    <br />
-                    Distancia máxima: {camion.distanciaMaxima.toFixed(2)} km
-                    <br />
-                    Peso carga: {camion.pesoCarga.toFixed(2)}
-                    <br />
-                    Peso combinado: {camion.pesoCombinado.toFixed(2)}
-                    <br />
-                    Tara: {camion.tara}
-                    <br />
-                    Tipo: {camion.tipo}
-                    <br />
-                    Velocidad: {camion.velocidadPromedio} km/h
-                    <br />
-                    Ubicación: {camion.ubicacion}
-                    <br />
-                    Progreso: {camion.porcentaje}
-                  </div>
-                )}
-                {esAveriado ? (
-                  <div className="text-red-600 font-bold text-center py-2">
-                    🚛💥 CAMIÓN AVERIADO
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    <button
-                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded disabled:opacity-50"
-                      disabled={averiando === clickedCamion + "-1"}
-                      onClick={() => handleAveriar(clickedCamion, 1)}
+              {/* Almacenes */}
+              {almacenes.map((almacen) => {
+                //console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
+                return (
+                  <g key={almacen.id}>
+                    <image
+                      href={
+                        almacen.tipo === "CENTRAL"
+                          ? almacenCentralIcon
+                          : almacenIntermedioIcon
+                      }
+                      x={almacen.coordenada.x * CELL_SIZE - 20}
+                      y={almacen.coordenada.y * CELL_SIZE - 20}
+                      width={40}
+                      height={40}
+                    />
+                    <text
+                      x={almacen.coordenada.x * CELL_SIZE}
+                      y={almacen.coordenada.y * CELL_SIZE + 30}
+                      textAnchor="middle"
+                      fontSize="12"
+                      fill={almacen.tipo === "CENTRAL" ? "#2563eb" : "#16a34a"}
+                      fontWeight="bold"
+                      stroke="#fff"
+                      strokeWidth="0.5"
                     >
-                      {averiando === clickedCamion + "-1"
-                        ? "Averiando..."
-                        : "Avería tipo 1"}
-                    </button>
-                    <button
-                      className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded disabled:opacity-50"
-                      disabled={averiando === clickedCamion + "-2"}
-                      onClick={() => handleAveriar(clickedCamion, 2)}
-                    >
-                      {averiando === clickedCamion + "-2"
-                        ? "Averiando..."
-                        : "Avería tipo 2"}
-                    </button>
-                    <button
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded disabled:opacity-50"
-                      disabled={averiando === clickedCamion + "-3"}
-                      onClick={() => handleAveriar(clickedCamion, 3)}
-                    >
-                      {averiando === clickedCamion + "-3"
-                        ? "Averiando..."
-                        : "Avería tipo 3"}
-                    </button>
-                  </div>
-                )}
-                <button
-                  className="mt-2 text-gray-500 hover:text-black"
-                  onClick={() => setClickedCamion(null)}
-                >
-                  Cerrar
-                </button>
-              </div>
-            );
-          })()}
+                      {almacen.nombre}
+                    </text>
+                  </g>
+                );
+              })}
 
-        <div className="flex items-center gap-4 mt-2">
-          <button
-            onClick={() => setRunning((prev) => !prev)}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded"
-          >
-            {running ? "Pausar" : "Iniciar"}
-          </button>
-          <label className="flex items-center gap-1 text-sm">
-            Velocidad:
-            <input
-              type="number"
-              min={100}
-              step={100}
-              value={intervalo}
-              onChange={(e) => setIntervalo(parseInt(e.target.value))}
-              className="border rounded px-2 py-0.5 w-20"
-            />
-            ms
-          </label>
+              {/* Rutas de camiones */}
+              {camionesVisuales
+                .filter((camion) => {
+                  const estadoCamion = camiones.find((c) => c.id === camion.id);
+                  return (
+                    estadoCamion?.estado !== "Entregado" &&
+                    estadoCamion?.estado !== "Averiado" &&
+                    camion.ruta.length > 1
+                  );
+                })
+                .map((camion) => (
+                  <polyline
+                    key={`ruta-${camion.id}`}
+                    fill="none"
+                    stroke={camion.color}
+                    strokeWidth={2}
+                    strokeDasharray="4 2"
+                    points={camion.ruta
+                      .map(
+                        (p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`
+                      )
+                      .join(" ")}
+                  />
+                ))}
+
+              {/* Camiones */}
+              {camionesVisuales
+                .filter(
+                  (camion) =>
+                    camiones.find((c) => c.id === camion.id)?.estado !== "Entregado"
+                )
+                .map((camion) => {
+                  const estadoCamion = camiones.find((c) => c.id === camion.id);
+                  const esAveriado = estadoCamion?.estado === "Averiado";
+                  const esEnMantenimiento =
+                    estadoCamion?.estado === "En Mantenimiento";
+                  const { posicion, rotacion, color } = camion;
+                  // Rojo para averiados, negro para mantenimiento, color original para otros estados
+                  const colorFinal = esAveriado
+                    ? ESTADO_COLORS.AVERIADO
+                    : esEnMantenimiento
+                    ? ESTADO_COLORS.MANTENIMIENTO
+                    : color;
+                  const cx = posicion.x * CELL_SIZE;
+                  const cy = posicion.y * CELL_SIZE;
+                  return (
+                    <g
+                      key={camion.id}
+                      transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
+                      style={{
+                        transition: "transform 0.8s linear",
+                        cursor: "pointer",
+                      }}
+                      onMouseEnter={(evt) => {
+                        // Solo mostrar tooltip si no hay modal activo
+                        if (!clickedCamion) {
+                          setTooltipCamion(camion.id);
+                          setTooltipPos({ x: evt.clientX, y: evt.clientY });
+                        }
+                      }}
+                      onMouseMove={(evt) => {
+                        if (!clickedCamion && tooltipCamion === camion.id) {
+                          setTooltipPos({ x: evt.clientX, y: evt.clientY });
+                        }
+                      }}
+                      onMouseLeave={() => {
+                        setTooltipCamion(null);
+                      }}
+                      onClick={(evt) => {
+                        // Solo abrir el modal si no hay otro modal ya abierto
+                        if (!clickedCamion) {
+                          setClickedCamion(camion.id);
+                          setClickedPos({ x: evt.clientX, y: evt.clientY });
+                          // Ocultar el tooltip de hover
+                          setTooltipCamion(null);
+                        }
+                      }}
+                    >
+                      <rect
+                        x={-6}
+                        y={-4}
+                        width={12}
+                        height={8}
+                        rx={2}
+                        fill={colorFinal}
+                        stroke="black"
+                        strokeWidth={0.5}
+                      />
+                      <circle cx={-4} cy={5} r={1.5} fill="black" />
+                      <circle cx={4} cy={5} r={1.5} fill="black" />
+                      {esAveriado && (
+                        <text
+                          x={0}
+                          y={-8}
+                          textAnchor="middle"
+                          fontSize="8"
+                          fill="#dc2626"
+                          fontWeight="bold"
+                        >
+                          💥
+                        </text>
+                      )}
+                    </g>
+                  );
+                })}
+            </svg>
+          </div>
+
+          {/* Controles en la parte inferior */}
+          <div className="flex items-center gap-4 mt-2 p-2 bg-gray-50 rounded-lg">
+            <button
+              onClick={() => setRunning((prev) => !prev)}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded"
+            >
+              {running ? "Pausar" : "Iniciar"}
+            </button>
+            <label className="flex items-center gap-1 text-sm">
+              Velocidad:
+              <input
+                type="number"
+                min={100}
+                step={100}
+                value={intervalo}
+                onChange={(e) => setIntervalo(parseInt(e.target.value))}
+                className="border rounded px-2 py-0.5 w-20"
+              />
+              ms
+            </label>
+          </div>
         </div>
       </div>
+
+      {/* Tooltip para camión (hover) */}
+      {tooltipCamion &&
+        tooltipPos &&
+        (() => {
+          const camion = camiones.find((c) => c.id === tooltipCamion);
+          const ruta = rutasCamiones.find((r) => r.id === tooltipCamion);
+          const numPedidos = ruta?.pedidos?.length || 0;
+
+          return (
+            <div
+              style={{
+                position: "fixed",
+                left: tooltipPos.x + 10,
+                top: tooltipPos.y + 10,
+                background: "white",
+                border: "1px solid #ccc",
+                borderRadius: 8,
+                padding: 12,
+                zIndex: 1000,
+                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+              }}
+            >
+              <div className="mb-2 font-bold">Camión: {tooltipCamion}</div>
+              {camion && (
+                <div className="text-xs mb-2">
+                  Estado: {camion.estado}
+                  <br />
+                  Pedidos asignados: {numPedidos}
+                  <br />
+                  Capacidad GLP: {camion.capacidadActualGLP.toFixed(2)} /{" "}
+                  {camion.capacidadMaximaGLP}
+                  <br />
+                  Combustible: {camion.combustibleActual.toFixed(2)} /{" "}
+                  {camion.combustibleMaximo}
+                  <br />
+                  Distancia máxima: {camion.distanciaMaxima.toFixed(2)} km
+                  <br />
+                  Peso carga: {camion.pesoCarga.toFixed(2)}
+                  <br />
+                  Peso combinado: {camion.pesoCombinado.toFixed(2)}
+                  <br />
+                  Tara: {camion.tara}
+                  <br />
+                  Tipo: {camion.tipo}
+                  <br />
+                  Velocidad: {camion.velocidadPromedio} km/h
+                  <br />
+                  Ubicación: {camion.ubicacion}
+                  <br />
+                  Progreso: {camion.porcentaje}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+      {/* Modal para camión (click) */}
+      {clickedCamion &&
+        clickedPos &&
+        (() => {
+          const camion = camiones.find((c) => c.id === clickedCamion);
+          const ruta = rutasCamiones.find((r) => r.id === clickedCamion);
+          const numPedidos = ruta?.pedidos?.length || 0;
+          const esAveriado = camion?.estado === "Averiado";
+
+          return (
+            <div
+              style={{
+                position: "fixed",
+                left: clickedPos.x + 10,
+                top: clickedPos.y + 10,
+                background: "white",
+                border: "1px solid #ccc",
+                borderRadius: 8,
+                padding: 12,
+                zIndex: 1000,
+                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+              }}
+            >
+              <div className="mb-2 font-bold">Camión: {clickedCamion}</div>
+              {camion && (
+                <div className="text-xs mb-2">
+                  Estado: {camion.estado}
+                  <br />
+                  Pedidos asignados: {numPedidos}
+                  <br />
+                  Capacidad GLP: {camion.capacidadActualGLP.toFixed(2)} /{" "}
+                  {camion.capacidadMaximaGLP}
+                  <br />
+                  Combustible: {camion.combustibleActual.toFixed(2)} /{" "}
+                  {camion.combustibleMaximo}
+                  <br />
+                  Distancia máxima: {camion.distanciaMaxima.toFixed(2)} km
+                  <br />
+                  Peso carga: {camion.pesoCarga.toFixed(2)}
+                  <br />
+                  Peso combinado: {camion.pesoCombinado.toFixed(2)}
+                  <br />
+                  Tara: {camion.tara}
+                  <br />
+                  Tipo: {camion.tipo}
+                  <br />
+                  Velocidad: {camion.velocidadPromedio} km/h
+                  <br />
+                  Ubicación: {camion.ubicacion}
+                  <br />
+                  Progreso: {camion.porcentaje}
+                </div>
+              )}
+              {esAveriado ? (
+                <div className="text-red-600 font-bold text-center py-2">
+                  🚛💥 CAMIÓN AVERIADO
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <button
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded disabled:opacity-50"
+                    disabled={averiando === clickedCamion + "-1"}
+                    onClick={() => handleAveriar(clickedCamion, 1)}
+                  >
+                    {averiando === clickedCamion + "-1"
+                      ? "Averiando..."
+                      : "Avería tipo 1"}
+                  </button>
+                  <button
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded disabled:opacity-50"
+                    disabled={averiando === clickedCamion + "-2"}
+                    onClick={() => handleAveriar(clickedCamion, 2)}
+                  >
+                    {averiando === clickedCamion + "-2"
+                      ? "Averiando..."
+                      : "Avería tipo 2"}
+                  </button>
+                  <button
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded disabled:opacity-50"
+                    disabled={averiando === clickedCamion + "-3"}
+                    onClick={() => handleAveriar(clickedCamion, 3)}
+                  >
+                    {averiando === clickedCamion + "-3"
+                      ? "Averiando..."
+                      : "Avería tipo 3"}
+                  </button>
+                </div>
+              )}
+              <button
+                className="mt-2 text-gray-500 hover:text-black"
+                onClick={() => setClickedCamion(null)}
+              >
+                Cerrar
+              </button>
+            </div>
+          );
+        })()}
     </div>
   );
 };

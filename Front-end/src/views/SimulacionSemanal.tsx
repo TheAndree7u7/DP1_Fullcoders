@@ -130,10 +130,10 @@ const SimulacionSemanal: React.FC = () => {
         {!menuExpandido && (
           <button
             onClick={() => setMenuExpandido(true)}
-            className="absolute right-2 top-2 z-10 bg-white rounded-full shadow p-1 hover:bg-gray-100 transition"
-            title="Mostrar menú"
+            className="absolute right-4 top-4 z-20 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg p-3 transition-all duration-200 transform hover:scale-110 border-2 border-white"
+            title="Mostrar menú lateral"
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft size={20} />
           </button>
         )}
       </div>
