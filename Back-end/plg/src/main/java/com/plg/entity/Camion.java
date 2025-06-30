@@ -73,7 +73,17 @@ public class Camion extends Nodo {
     }
 
     public double calcularDistanciaMaxima() {
-        this.distanciaMaxima = (combustibleActual * 180) / (tara + pesoCarga);
+        double distanciaCalculada = (combustibleActual * 180) / (tara + pesoCarga);
+        this.distanciaMaxima = distanciaCalculada;
+        
+        // Log detallado para diagnóstico
+        System.out.printf("🔍 Cálculo distancia máxima para camión %s:%n", codigo);
+        System.out.printf("   - Combustible actual: %.2f galones%n", combustibleActual);
+        System.out.printf("   - Tara: %.2f toneladas%n", tara);
+        System.out.printf("   - Peso carga: %.2f toneladas%n", pesoCarga);
+        System.out.printf("   - Fórmula: (%.2f * 180) / (%.2f + %.2f) = %.2f km%n", 
+                         combustibleActual, tara, pesoCarga, distanciaCalculada);
+        
         return this.distanciaMaxima;
     }
 
