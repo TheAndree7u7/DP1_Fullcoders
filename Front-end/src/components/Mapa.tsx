@@ -314,13 +314,19 @@ const Mapa = () => {
         {/* Contenedor del mapa que ocupa el resto del espacio */}
         <div className="flex-1 flex flex-col min-h-0">
           {/* SVG del mapa que se adapta al contenedor */}
-          <div className="flex-1 flex items-center justify-center min-h-0">
+          <div className="flex-1 flex items-center justify-center min-h-0 p-2">
             <svg
               width="100%"
               height="100%"
               viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
               preserveAspectRatio="xMidYMid meet"
-              className="border border-gray-500 bg-white rounded-xl max-w-full max-h-full"
+              className="border border-gray-500 bg-white rounded-xl"
+              style={{ 
+                minWidth: '800px', 
+                minHeight: '600px',
+                maxWidth: '100%', 
+                maxHeight: '100%' 
+              }}
             >
               {/* Grid */}
               {[...Array(GRID_WIDTH + 1)].map((_, i) => (
