@@ -44,6 +44,14 @@ public class AlgoritmoGenetico {
 
     public void ejecutarAlgoritmo() {
         List<Individuo> poblacion = inicializarPoblacion();
+        
+        // Verificar si tenemos individuos válidos para trabajar
+        if (poblacion.isEmpty()) {
+            System.out.println("❌ No se pudieron generar individuos válidos. Verificando estado de camiones...");
+            verificarEstadoCamiones();
+            return;
+        }
+        
         double mejorFitness = Double.MIN_VALUE;
         int generacionesSinMejora = 0;
 
@@ -107,10 +115,34 @@ public class AlgoritmoGenetico {
 
     private List<Individuo> inicializarPoblacion() {
         List<Individuo> poblacion = new ArrayList<>();
-        for (int i = 0; i < poblacionTamano; i++) {
+        int intentosMaximos = poblacionTamano * 3; // Permitir más intentos para generar individuos válidos
+        int intentos = 0;
+        int individuosValidos = 0;
+        
+        System.out.println("🔧 Generando población inicial de individuos válidos...");
+        
+        while (poblacion.size() < poblacionTamano && intentos < intentosMaximos) {
+            intentos++;
             Individuo individuo = new Individuo(pedidos);
-            poblacion.add(individuo);
+            
+            // Solo agregar individuos con fitness finito (válidos)
+            if (individuo.getFitness() != Double.POSITIVE_INFINITY) {
+                poblacion.add(individuo);
+                individuosValidos++;
+            }
         }
+        
+        // Log de resumen
+        System.out.printf("✅ Población inicial generada: %d individuos válidos de %d intentos%n", 
+                         individuosValidos, intentos);
+        
+        // Si no pudimos generar suficientes individuos válidos, reducir el tamaño de población
+        if (poblacion.size() < poblacionTamano) {
+            System.out.printf("⚠️ Solo se generaron %d individuos válidos de %d solicitados%n", 
+                             poblacion.size(), poblacionTamano);
+            poblacionTamano = poblacion.size();
+        }
+        
         return poblacion;
     }
 
@@ -247,5 +279,14 @@ public class AlgoritmoGenetico {
         Parametros.kilometrosRecorridos = individuo.getCromosoma().stream()
                 .mapToDouble(gen -> gen.getRutaFinal().size()).sum();
         Parametros.contadorPrueba++;
+    }
+    
+    private void verificarEstadoCamiones() {
+        System.out.println("🔍 Estado actual de los camiones:");
+        for (Camion camion : DataLoader.camiones) {
+            double autonomia = camion.calcularDistanciaMaxima();
+            System.out.printf("   - %s: %.2f galones, autonomía: %.2f km%n", 
+                             camion.getCodigo(), camion.getCombustibleActual(), autonomia);
+        }
     }
 }
