@@ -107,9 +107,13 @@ public class Gen {
                 List<Nodo> rutaSalida = new ArrayList<>(rutaEntradaBloqueada);
                 Collections.reverse(rutaSalida);
                 rutaSalida.remove(0); // Quitar el nodo bloqueado
-                rutaFinal.addAll(rutaSalida);
-                fitness += rutaSalida.size();
-                posicionActual = rutaSalida.get(rutaSalida.size() - 1); // Último nodo no bloqueado
+                
+                // Solo procesar si hay nodos en la ruta de salida
+                if (!rutaSalida.isEmpty()) {
+                    rutaFinal.addAll(rutaSalida);
+                    fitness += rutaSalida.size();
+                    posicionActual = rutaSalida.get(rutaSalida.size() - 1); // Último nodo no bloqueado
+                }
                 rutaEntradaBloqueada = null;
             }
         }
