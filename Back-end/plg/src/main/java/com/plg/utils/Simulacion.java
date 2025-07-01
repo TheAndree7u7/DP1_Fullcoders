@@ -105,6 +105,9 @@ public class Simulacion {
                             IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(),
                                     pedidosEnviar, bloqueosActivos, fechaActual);
                             
+                            // Aplicar el estado final de los camiones permanentemente
+                            aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
+                            
                             // Agregar al historial para el frontend
                             synchronized (historialSimulacion) {
                                 contadorPaquetes++;
@@ -244,6 +247,44 @@ public class Simulacion {
             this.paqueteActual = paqueteActual;
             this.enProceso = enProceso;
             this.tiempoActual = tiempoActual;
+        }
+    }
+
+    /**
+     * Aplica el estado final de los camiones después de una solución exitosa
+     * Esto mantiene la continuidad de posiciones entre paquetes
+     */
+    private static void aplicarEstadoFinalCamiones(Individuo mejorIndividuo) {
+        try {
+            for (Gen gen : mejorIndividuo.getCromosoma()) {
+                Camion camion = gen.getCamion();
+                
+                // Obtener la posición final del camión después de ejecutar su ruta
+                if (gen.getRutaFinal() != null && !gen.getRutaFinal().isEmpty()) {
+                    // La última posición de la ruta final es donde terminó el camión
+                    Nodo posicionFinal = gen.getRutaFinal().get(gen.getRutaFinal().size() - 1);
+                    
+                    // Actualizar la posición del camión en DataLoader.camiones
+                    for (Camion camionGlobal : DataLoader.camiones) {
+                        if (camionGlobal.getCodigo().equals(camion.getCodigo())) {
+                            Coordenada nuevaPosicion = posicionFinal.getCoordenada();
+                            camionGlobal.setCoordenada(nuevaPosicion);
+                            
+                            // También actualizar el estado de combustible y GLP
+                            camionGlobal.setCombustibleActual(camion.getCombustibleActual());
+                            camionGlobal.setCapacidadActualGLP(camion.getCapacidadActualGLP());
+                            
+                            System.out.println("🚛 POSICIÓN ACTUALIZADA: " + camion.getCodigo() + 
+                                             " → " + nuevaPosicion + 
+                                             " | Combustible: " + String.format("%.2f", camion.getCombustibleActual()));
+                            break;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Error aplicando estado final de camiones: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
