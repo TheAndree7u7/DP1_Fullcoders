@@ -39,6 +39,10 @@ public class Camion extends Nodo {
 
     // Comsumo de combustible
     private double distanciaMaxima;
+    
+    // Tiempo de parada para despacho (en minutos)
+    @lombok.Builder.Default
+    private int tiempoParadaRestante = 0;
 
     // Gen
     @JsonIgnore
@@ -96,6 +100,9 @@ public class Camion extends Nodo {
             return;
         }
 
+        // El tiempo de parada está representado en la rutaFinal como nodos duplicados
+        // No necesitamos lógica adicional aquí
+
         // Actualizar el nodo en el que se encuentra el camión
         int cantNodos = (int) (intervaloTiempo * velocidadPromedio / 60);
         int antiguo = gen.getPosNodo();
@@ -129,6 +136,8 @@ public class Camion extends Nodo {
                 pedido.setEstado(EstadoPedido.ENTREGADO);
                 pedidosPorAtender.remove(nodo);
                 pedidosPlanificados.remove(nodo);
+                
+                // El tiempo de parada ya está representado en la rutaFinal como nodos duplicados
             }
         }
         for (int i = intermedio + 1; i < gen.getRutaFinal().size(); i++) {
@@ -178,6 +187,7 @@ public class Camion extends Nodo {
                 .combustibleActual(this.combustibleActual)
                 .velocidadPromedio(this.velocidadPromedio)
                 .distanciaMaxima(this.distanciaMaxima)
+                .tiempoParadaRestante(this.tiempoParadaRestante)
                 .coordenada(getCoordenada())
                 .bloqueado(isBloqueado())
                 .gScore(getGScore())
@@ -204,6 +214,7 @@ public class Camion extends Nodo {
             this.combustibleActual = camionCopia.getCombustibleActual();
             this.velocidadPromedio = camionCopia.getVelocidadPromedio();
             this.distanciaMaxima = camionCopia.calcularDistanciaMaxima();
+            this.tiempoParadaRestante = camionCopia.getTiempoParadaRestante();
             setCoordenada(camionCopia.getCoordenada());
             setBloqueado(camionCopia.isBloqueado());
             setGScore(camionCopia.getGScore());
