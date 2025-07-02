@@ -35,6 +35,9 @@ const NODOS_PARA_ACTUALIZACION = 100;
 
 const INCREMENTO_PORCENTAJE = 1;
 
+// Configuración para logs de camiones
+const LOGS_CAMIONES_HABILITADOS = false; // Cambiar a false para desactivar logs de camiones
+
 /**
  * @interface CamionEstado
  * @description Representa el estado actual de un camión en la simulación
@@ -227,7 +230,9 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
             });
           });
         } else {
-          console.log(`Camión ${ruta.id} no tiene pedidos asignados`);
+          if (LOGS_CAMIONES_HABILITADOS) {
+            console.log(`Camión ${ruta.id} no tiene pedidos asignados`);
+          }
         }
       });
 
@@ -323,7 +328,9 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       }));
 
       setRutasCamiones(nuevasRutas);
-      console.log("📋 TRANSICIÓN: Rutas aplicadas desde solución precargada con", nuevasRutas.length, "camiones");
+      if (LOGS_CAMIONES_HABILITADOS) {
+        console.log("📋 TRANSICIÓN: Rutas aplicadas desde solución precargada con", nuevasRutas.length, "camiones");
+      }
 
       const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
         const anterior = camiones.find(c => c.id === ruta.id);
@@ -451,26 +458,36 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Log para debuggear los pedidos que se entregan
       if (pedidosEntregadosAhora.length > 0) {
-        console.log(
-          `� Camión ${camion.id} llegó a (${coordNuevaUbicacion.x},${coordNuevaUbicacion.y}) - Entregando ${pedidosEntregadosAhora.length} pedidos:`,
-          pedidosEntregadosAhora,
-        );
-        console.log(`⛽ GLP antes de entrega: ${nuevoGLP.toFixed(2)}`);
+        if (LOGS_CAMIONES_HABILITADOS) {
+          console.log(
+            `🚛 Camión ${camion.id} llegó a (${coordNuevaUbicacion.x},${coordNuevaUbicacion.y}) - Entregando ${pedidosEntregadosAhora.length} pedidos:`,
+            pedidosEntregadosAhora,
+          );
+          console.log(`⛽ GLP antes de entrega: ${nuevoGLP.toFixed(2)}`);
+        }
 
         for (const pedido of pedidosEntregadosAhora) {
-          console.log(`📋 Pedido:`, pedido);
+          if (LOGS_CAMIONES_HABILITADOS) {
+            console.log(`📋 Pedido:`, pedido);
+          }
           if (pedido.volumenGLPAsignado) {
-            console.log(
-              `⬇️ Reduciendo ${pedido.volumenGLPAsignado} GLP del camión ${camion.id}`,
-            );
+            if (LOGS_CAMIONES_HABILITADOS) {
+              console.log(
+                `⬇️ Reduciendo ${pedido.volumenGLPAsignado} GLP del camión ${camion.id}`,
+              );
+            }
             nuevoGLP -= pedido.volumenGLPAsignado;
           } else {
-            console.log(`⚠️ Pedido sin volumenGLPAsignado:`, pedido);
+            if (LOGS_CAMIONES_HABILITADOS) {
+              console.log(`⚠️ Pedido sin volumenGLPAsignado:`, pedido);
+            }
           }
         }
         // Asegurar que no sea negativo
         nuevoGLP = Math.max(0, nuevoGLP);
-        console.log(`✅ GLP después de entrega: ${nuevoGLP.toFixed(2)}`);
+        if (LOGS_CAMIONES_HABILITADOS) {
+          console.log(`✅ GLP después de entrega: ${nuevoGLP.toFixed(2)}`);
+        }
       }
 
       // Crear nuevo estado del camión con valores actualizados
@@ -493,10 +510,12 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         // Actualizar el peso combinado basado en el nuevo peso de carga
         nuevoCamion.pesoCombinado = calcularPesoCombinado(nuevoCamionAdaptado);
 
-        console.log(`📊 Camión ${camion.id} pesos actualizados:`, {
-          pesoCarga: nuevoCamion.pesoCarga.toFixed(2),
-          pesoCombinado: nuevoCamion.pesoCombinado.toFixed(2),
-        });
+        if (LOGS_CAMIONES_HABILITADOS) {
+          console.log(`📊 Camión ${camion.id} pesos actualizados:`, {
+            pesoCarga: nuevoCamion.pesoCarga.toFixed(2),
+            pesoCombinado: nuevoCamion.pesoCombinado.toFixed(2),
+          });
+        }
       }
 
       // SIEMPRE actualizar la distancia máxima cuando cambie el combustible
