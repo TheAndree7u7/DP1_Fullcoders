@@ -4,7 +4,11 @@
 
     <property name="CONSOLE_LOG_PATTERN"
               value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID}){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} : %m%n%wEx"/>
+    
+    <property name="FILE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
 
+    <!-- Appender para consola -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <withJansi>true</withJansi> <!-- ¡Esto es clave en Windows! -->
         <encoder>
@@ -12,9 +16,37 @@
         </encoder>
     </appender>
 
-    <logger name="com.plg" level="DEBUG"/>
+    <!-- Appender para archivo de simulación (ruta absoluta) -->
+    <appender name="SIMULACION_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>E:/PROYECTOS/DP1/DP1_2025/DP1_Fullcoders_PRUEBAS/Back-end/plg/logs/simulacion.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>E:/PROYECTOS/DP1/DP1_2025/DP1_Fullcoders_PRUEBAS/Back-end/plg/logs/simulacion.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
 
-    <root level="INFO">
+    <!-- Logger específico para la clase Simulacion -->
+    <logger name="com.plg.utils.Simulacion" level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="SIMULACION_FILE"/>
+    </logger>
+
+    <!-- Logger para TestLogger -->
+    <logger name="com.plg.utils.TestLogger" level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="SIMULACION_FILE"/>
+    </logger>
+
+    <!-- Logger general para el paquete com.plg -->
+    <logger name="com.plg" level="INFO"/>
+
+    <root level="WARN">
         <appender-ref ref="CONSOLE"/>
     </root>
 </configuration>

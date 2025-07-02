@@ -10,6 +10,9 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.SynchronousQueue;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.plg.config.DataLoader;
 import com.plg.dto.IndividuoDto;
 import com.plg.entity.Almacen;
@@ -24,6 +27,8 @@ import com.plg.entity.TipoNodo;
 
 public class Simulacion {
 
+    private static final Logger logger = LoggerFactory.getLogger(Simulacion.class);
+    
     private static List<Pedido> pedidosSemanal;
     private static LocalDateTime fechaActual;
     public static Set<Pedido> pedidosPorAtender = new LinkedHashSet<>();
@@ -38,6 +43,9 @@ public class Simulacion {
     public static Semaphore continuar = new Semaphore(0);
 
     public static void configurarSimulacion(LocalDateTime startDate) {
+        // Prueba de logging al inicio
+        logger.info("=== INICIANDO CONFIGURACIÓN DE SIMULACIÓN ===");
+        
         fechaActual = startDate;
         DataLoader.initializeAlmacenes();
         DataLoader.initializeCamiones();
@@ -56,12 +64,12 @@ public class Simulacion {
                 .collect(Collectors.toList());
         
         // Log de resumen importante
-        System.out.println("\n🚀 INICIO SIMULACIÓN");
-        System.out.printf("📅 Período: %s a %s%n", fechaActual.toLocalDate(), fechaActual.plusDays(3).toLocalDate());
-        System.out.printf("📦 Pedidos a procesar: %d de %d totales%n", pedidosSemanal.size(), DataLoader.pedidos.size());
-        System.out.printf("🚛 Camiones disponibles: %d%n", DataLoader.camiones.size());
-        System.out.printf("🏪 Almacenes: %d%n", DataLoader.almacenes.size());
-        System.out.println("==================================================");
+        logger.info("🚀 INICIO SIMULACIÓN");
+        logger.info("📅 Período: {} a {}", fechaActual.toLocalDate(), fechaActual.plusDays(3).toLocalDate());
+        logger.info("📦 Pedidos a procesar: {} de {} totales", pedidosSemanal.size(), DataLoader.pedidos.size());
+        logger.info("🚛 Camiones disponibles: {}", DataLoader.camiones.size());
+        logger.info("🏪 Almacenes: {}", DataLoader.almacenes.size());
+        logger.info("==================================================");
     }
 
     public static void ejecutarSimulacion() {
@@ -78,8 +86,8 @@ public class Simulacion {
                 List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
                 actualizarEstadoGlobal(fechaActual, pedidosEnviar);
                 List<Bloqueo> bloqueosActivos = actualizarBloqueos(fechaActual);
-                System.out.println("------------------------");
-                System.out.println("Tiempo actual: " + fechaActual);
+                logger.info("------------------------");
+                logger.info("Tiempo actual: {}", fechaActual);
 
                 if (!pedidosPorAtender.isEmpty()) {
 
@@ -100,7 +108,7 @@ public class Simulacion {
                         e.printStackTrace();
                     }
                 } else {
-                    System.out.println("No hay pedidos por atender en este momento.");
+                    logger.info("No hay pedidos por atender en este momento.");
                 }
                 for (Bloqueo bloqueo : bloqueosActivos) {
                     bloqueo.desactivarBloqueo();
@@ -112,10 +120,10 @@ public class Simulacion {
                 }
             }
         }
-        System.out.println("-------------------------");
-        System.out.println("Reporte de la simulación");
-        System.out.println("Kilometros recorridos: " + Parametros.kilometrosRecorridos);
-        System.out.println("Fitness global: " + Parametros.fitnessGlobal);
+        logger.info("-------------------------");
+        logger.info("Reporte de la simulación");
+        logger.info("Kilometros recorridos: {}", Parametros.kilometrosRecorridos);
+        logger.info("Fitness global: {}", Parametros.fitnessGlobal);
 
     }
 
@@ -196,22 +204,21 @@ public class Simulacion {
         if (fechaActual.getHour() != 0 && fechaActual.getMinute() != 0) {
             return; // Solo se ejecuta al inicio del día
         }
-        System.out.println(
-                "🔧 Verificando mantenimientos programados para: " + fechaActual.toLocalDate() + " - INICIO DEL DÍA");
+        logger.info("🔧 Verificando mantenimientos programados para: {} - INICIO DEL DÍA", fechaActual.toLocalDate());
 
         if (camiones == null) {
-            System.out.println("[LOG] La lista de camiones es NULL");
+            logger.warn("[LOG] La lista de camiones es NULL");
             return;
         }
         if (camiones.isEmpty()) {
-            System.out.println("[LOG] La lista de camiones está VACÍA");
+            logger.warn("[LOG] La lista de camiones está VACÍA");
         }
         int dia = fechaActual.getDayOfMonth();
         int mes = fechaActual.getMonthValue();
 
         for (Camion camion : camiones) {
             if (camion == null) {
-                System.out.println("[LOG] Camión NULL encontrado en la lista");
+                logger.warn("[LOG] Camión NULL encontrado en la lista");
                 continue;
             }
             // Log de mantenimientos asociados a este camión
@@ -227,11 +234,11 @@ public class Simulacion {
             // mantenimiento el " + dia + "/" + mes + "? " + resultado);
             if (resultado) {
                 camion.setEstado(com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO);
-                System.out.println("   • Camión " + camion.getCodigo() + " → EN MANTENIMIENTO");
+                logger.info("   • Camión {} → EN MANTENIMIENTO", camion.getCodigo());
             } else {
                 if (camion.getEstado() == com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO) {
                     camion.setEstado(com.plg.entity.EstadoCamion.DISPONIBLE);
-                    System.out.println("   • Camión " + camion.getCodigo() + " → DISPONIBLE (fin mantenimiento)");
+                    logger.info("   • Camión {} → DISPONIBLE (fin mantenimiento)", camion.getCodigo());
                 }
             }
         }
@@ -273,8 +280,8 @@ public class Simulacion {
                         return false;
                     });
         } catch (Exception e) {
-            System.err.println("Error verificando mantenimiento para " + (camion != null ? camion.getCodigo() : "null")
-                    + ": " + e.getMessage());
+            logger.error("Error verificando mantenimiento para {}: {}", 
+                (camion != null ? camion.getCodigo() : "null"), e.getMessage());
             return false;
         }
     }
@@ -335,7 +342,7 @@ public class Simulacion {
             procesarAveriasRequierenTraslado(averiasActivas, fechaActual, camionService);
 
         } catch (Exception e) {
-            System.err.println("Error al actualizar camiones en avería: " + e.getMessage());
+            logger.error("Error al actualizar camiones en avería: {}", e.getMessage());
         }
     }
 
@@ -359,7 +366,7 @@ public class Simulacion {
                     averia.setEstado(false);
                     // SEGUNDO: Actualizar el estado del camión a disponible
                     camionService.cambiarEstado(codigoCamion, com.plg.entity.EstadoCamion.DISPONIBLE);
-                    System.out.println("✅ Camión " + codigoCamion + " recuperado de avería TI1 - Estado: DISPONIBLE");
+                    logger.info("✅ Camión {} recuperado de avería TI1 - Estado: DISPONIBLE", codigoCamion);
                 }
             }
         }
@@ -395,8 +402,7 @@ public class Simulacion {
                         com.plg.entity.Coordenada coordenadaAlmacenCentral = obtenerCoordenadaAlmacenCentral();
                         camionService.cambiarCoordenada(codigoCamion, coordenadaAlmacenCentral);
 
-                        System.out.println("🚛 Camión " + codigoCamion
-                                + " trasladado al taller - Estado: EN_MANTENIMIENTO_POR_AVERIA");
+                        logger.info("🚛 Camión {} trasladado al taller - Estado: EN_MANTENIMIENTO_POR_AVERIA", codigoCamion);
                     }
                 }
 
@@ -408,8 +414,8 @@ public class Simulacion {
                     averia.setEstado(false);
                     // SEGUNDO: Modificar el camión a Habilitado (DISPONIBLE)
                     camionService.cambiarEstado(codigoCamion, com.plg.entity.EstadoCamion.DISPONIBLE);
-                    System.out.println("✅ Camión " + codigoCamion + " recuperado de avería "
-                            + averia.getTipoIncidente().getCodigo() + " - Estado: DISPONIBLE");
+                    logger.info("✅ Camión {} recuperado de avería {} - Estado: DISPONIBLE", 
+                        codigoCamion, averia.getTipoIncidente().getCodigo());
                 }
             }
         }
