@@ -112,6 +112,15 @@ export interface Bloqueo {
   coordenadas: Coordenada[];
 }
 
+/**
+ * @interface IndividuoConBloqueos
+ * @description Extensión de Individuo que incluye bloqueos y fecha de simulación
+ */
+export interface IndividuoConBloqueos extends Individuo {
+  bloqueos?: Bloqueo[];
+  fechaHoraSimulacion?: string;
+}
+
 // Creación del contexto con valor inicial undefined
 const SimulacionContext = createContext<SimulacionContextType | undefined>(
   undefined,
@@ -139,7 +148,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [solicitudAnticipadaEnviada, setSolicitudAnticipadaEnviada] =
     useState<boolean>(false);
   const [proximaSolucionCargada, setProximaSolucionCargada] =
-    useState<any>(null);
+    useState<IndividuoConBloqueos | null>(null);
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
   const [fechaHoraSimulacion, setFechaHoraSimulacion] = useState<string | null>(
     null,
@@ -308,7 +317,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * @function aplicarSolucionPrecargada
    * @description Aplica una solución previamente cargada para transición suave
    */
-  const aplicarSolucionPrecargada = async (data: any) => {
+  const aplicarSolucionPrecargada = async (data: IndividuoConBloqueos) => {
     try {
       console.log("⚡ TRANSICIÓN: Aplicando solución precargada...");
       

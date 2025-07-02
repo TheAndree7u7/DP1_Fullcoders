@@ -276,7 +276,9 @@ public class Simulacion {
                             
                             System.out.println("🚛 POSICIÓN ACTUALIZADA: " + camion.getCodigo() + 
                                              " → " + nuevaPosicion + 
-                                             " | Combustible: " + String.format("%.2f", camion.getCombustibleActual()));
+                                             " | Combustible: " + String.format("%.2f", camion.getCombustibleActual()) +
+                                             " | GLP: " + String.format("%.2f", camion.getCapacidadActualGLP()) +
+                                             " | Distancia Máx: " + String.format("%.2f", camion.getDistanciaMaxima()));
                             break;
                         }
                     }

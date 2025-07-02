@@ -28,4 +28,13 @@ Los siguientes logs de camiones están controlados por esta variable:
 - **Para desactivar logs**: `LOGS_CAMIONES_HABILITADOS = false`
 
 ## Nota
-Esta configuración solo afecta a los logs específicos de camiones. Otros logs del sistema (como logs de transición, errores, etc.) no se ven afectados por esta variable. 
+Esta configuración solo afecta a los logs específicos de camiones del frontend. Los logs del backend (como el log de posición actualizada de camiones) no se ven afectados por esta variable.
+
+### Logs del Backend
+En el archivo `Back-end/plg/src/main/java/com/plg/utils/Simulacion.java`, línea 277-280, existe un log que muestra:
+- 🚛 Posición actualizada del camión
+- Combustible actual
+- GLP actual
+- Distancia máxima
+
+Este log del backend no está controlado por la variable `LOGS_CAMIONES_HABILITADOS` del frontend. 
