@@ -24,6 +24,7 @@ import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
 import com.plg.entity.TipoAlmacen;
 import com.plg.entity.TipoNodo;
+import com.plg.utils.Gen;
 
 public class Simulacion {
 
@@ -97,14 +98,21 @@ public class Simulacion {
                         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(), pedidosEnviar);
                         algoritmoGenetico.ejecutarAlgoritmo();
 
-                        IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(),
+                        Individuo mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
+                        
+                        // Validar y mostrar información de la ruta del mejor individuo
+                        if (mejorIndividuo != null) {
+                            validarYMostrarRutaTodosLosCamiones(mejorIndividuo);
+                        }
+
+                        IndividuoDto mejorIndividuoDto = new IndividuoDto(mejorIndividuo,
                                 pedidosEnviar, bloqueosActivos, fechaActual);
                         gaResultQueue.offer(mejorIndividuoDto);
                         continuar.acquire();
 
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
-                        System.err.println("Error al esperar el disparador del algoritmo genético: " + e.getMessage());
+                        logger.error("Error al esperar el disparador del algoritmo genético: {}", e.getMessage());
                         e.printStackTrace();
                     }
                 } else {
@@ -458,6 +466,302 @@ public class Simulacion {
                 .map(almacen -> almacen.getCoordenada())
                 .findFirst()
                 .orElse(new com.plg.entity.Coordenada(8, 12)); // Coordenada por defecto
+    }
+
+    /**
+     * Valida y muestra información detallada de la ruta de TODOS los camiones del individuo
+     */
+    private static void validarYMostrarRutaTodosLosCamiones(Individuo individuo) {
+        if (individuo == null || individuo.getCromosoma() == null || individuo.getCromosoma().isEmpty()) {
+            logger.warn("Individuo o cromosoma es null/vacío");
+            return;
+        }
+
+        logger.info("=== VALIDACIÓN DE RUTAS DE TODOS LOS CAMIONES ===");
+        logger.info("📊 Total de camiones en el individuo: {}", individuo.getCromosoma().size());
+        
+        for (int i = 0; i < individuo.getCromosoma().size(); i++) {
+            Gen gen = individuo.getCromosoma().get(i);
+            if (gen == null || gen.getNodos() == null || gen.getNodos().isEmpty()) {
+                logger.warn("Gen {} o nodos es null/vacío", i);
+                continue;
+            }
+
+            List<Nodo> ruta = gen.getNodos();
+            Camion camion = gen.getCamion();
+            
+            if (camion == null) {
+                logger.warn("Camión del gen {} es null", i);
+                continue;
+            }
+
+            logger.info("--- CAMIÓN {} ---", i + 1);
+            logger.info("🚛 Camión ID: {}", camion.getCodigo());
+            logger.info("⛽ Combustible actual: {}/{}", camion.getCombustibleActual(), camion.getCombustibleMaximo());
+            logger.info("📦 GLP actual: {}/{}", camion.getCapacidadActualGLP(), camion.getCapacidadMaximaGLP());
+            logger.info("🛣️ Distancia máxima: {} km", camion.getDistanciaMaxima());
+            // Filtrar nodos especiales (ALMACEN, INTERMEDIO, PEDIDO)
+            List<Nodo> nodosEspeciales = ruta.stream()
+                    .filter(nodo -> {
+                        return nodo instanceof Almacen || 
+                               nodo instanceof Pedido || 
+                               (nodo.getTipoNodo() == TipoNodo.INTERMEDIO);
+                    })
+                    .collect(Collectors.toList());
+
+            logger.info("🎯 Nodos especiales encontrados: {}", nodosEspeciales.size());
+
+            // Contar nodos por tipo
+            long nodosAlmacen = ruta.stream().filter(nodo -> nodo instanceof Almacen).count();
+            long nodosPedido = ruta.stream().filter(nodo -> nodo instanceof Pedido).count();
+            long nodosIntermedio = ruta.stream().filter(nodo -> nodo.getTipoNodo() == TipoNodo.INTERMEDIO).count();
+            long nodosNormal = ruta.stream().filter(nodo -> nodo.getTipoNodo() == TipoNodo.NORMAL).count();
+            long nodosCamionAveriado = ruta.stream().filter(nodo -> nodo.getTipoNodo() == TipoNodo.CAMION_AVERIADO).count();
+            long nodosCamion = ruta.stream().filter(nodo -> nodo instanceof Camion).count();
+
+            logger.info("📊 Distribución de nodos por tipo:");
+            logger.info("   🏪 Almacenes: {}", nodosAlmacen);
+            logger.info("   📦 Pedidos: {}", nodosPedido);
+            logger.info("   🔄 Intermedios: {}", nodosIntermedio);
+            logger.info("   🛣️ Normales: {}", nodosNormal);
+            logger.info("   🚛 Camiones: {}", nodosCamion);
+            logger.info("   ⚠️ Camiones averiados: {}", nodosCamionAveriado);
+
+            // Log opcional para depuración - mostrar toda la secuencia de nodos
+            if (ruta.size() <= 20) { // Solo mostrar si la ruta no es muy larga
+                logger.info("🔍 Secuencia completa de nodos en la ruta:");
+                for (int j = 0; j < ruta.size(); j++) {
+                    Nodo nodo = ruta.get(j);
+                    logger.info("   {}. {} en {}", j + 1, obtenerTipoNodo(nodo), nodo.getCoordenada());
+                }
+            } else {
+                logger.info("🔍 Ruta muy larga ({} nodos), omitiendo secuencia completa", ruta.size());
+            }
+
+            // Mostrar información de nodos especiales
+            if (!nodosEspeciales.isEmpty()) {
+                Nodo nodoInicialEspecial = nodosEspeciales.get(0);
+                Nodo nodoFinalEspecial = nodosEspeciales.get(nodosEspeciales.size() - 1);
+                
+                logger.info("📍 Nodo inicial especial: {} en {}", 
+                    obtenerTipoNodo(nodoInicialEspecial), nodoInicialEspecial.getCoordenada());
+                logger.info("🎯 Nodo final especial: {} en {}", 
+                    obtenerTipoNodo(nodoFinalEspecial), nodoFinalEspecial.getCoordenada());
+                
+                // Calcular nodos recorridos entre nodos especiales
+                int indiceInicial = ruta.indexOf(nodoInicialEspecial);
+                int indiceFinal = ruta.indexOf(nodoFinalEspecial);
+                int nodosRecorridosEntreEspeciales = indiceFinal - indiceInicial + 1; // +1 para incluir ambos extremos
+                
+                logger.info("📊 Total de nodos en ruta: {}", ruta.size());
+                logger.info("🎯 Nodos especiales (ALMACEN, PEDIDO, INTERMEDIO): {}", nodosEspeciales.size());
+                logger.info("🛤️ Nodos de paso (NORMAL, CAMION_AVERIADO, CAMION): {}", ruta.size() - nodosEspeciales.size());
+                logger.info("🛤️ Nodos recorridos entre primer y último nodo especial: {}", nodosRecorridosEntreEspeciales);
+                logger.info("🛤️ Nodos recorridos entre inicial y final de ruta: {}", ruta.size() - 1);
+            } else {
+                logger.info("📍 Nodo inicial: {}", ruta.get(0).getCoordenada());
+                logger.info("🎯 Nodo final: {}", ruta.get(ruta.size() - 1).getCoordenada());
+                logger.info("📊 Total de nodos en ruta: {}", ruta.size());
+                logger.info("🛤️ Nodos recorridos entre inicial y final: {}", ruta.size() - 1);
+            }
+
+            // Mostrar secuencia de nodos especiales con información de distancia
+            if (!nodosEspeciales.isEmpty()) {
+                logger.info("🔄 Secuencia de nodos especiales:");
+                for (int j = 0; j < nodosEspeciales.size(); j++) {
+                    Nodo nodo = nodosEspeciales.get(j);
+                    int posicionEnRuta = ruta.indexOf(nodo);
+                    logger.info("   {}. {} en {} (posición {} en ruta)", 
+                        j + 1, obtenerTipoNodo(nodo), nodo.getCoordenada(), posicionEnRuta + 1);
+                }
+                
+                // Mostrar distancias entre nodos especiales consecutivos
+                if (nodosEspeciales.size() > 1) {
+                    logger.info("📏 Distancias entre nodos especiales consecutivos:");
+                    for (int j = 0; j < nodosEspeciales.size() - 1; j++) {
+                        Nodo nodoActual = nodosEspeciales.get(j);
+                        Nodo nodoSiguiente = nodosEspeciales.get(j + 1);
+                        double distancia = calcularDistanciaEntreNodos(nodoActual, nodoSiguiente);
+                        logger.info("   {} → {}: {:.2f} km", 
+                            obtenerTipoNodo(nodoActual), obtenerTipoNodo(nodoSiguiente), distancia);
+                    }
+                }
+            }
+
+            // Validar ruta por fases
+            boolean rutaValida = validarRutaPorFases(nodosEspeciales, camion);
+            
+            if (rutaValida) {
+                logger.info("✅ RUTA VÁLIDA - El camión {} puede completar la ruta", camion.getCodigo());
+            } else {
+                logger.warn("❌ RUTA INVÁLIDA - El camión {} NO puede completar la ruta", camion.getCodigo());
+            }
+            
+            logger.info("--- FIN CAMIÓN {} ---", i + 1);
+        }
+        
+        logger.info("=== FIN VALIDACIÓN DE TODOS LOS CAMIONES ===");
+    }
+
+    /**
+     * Valida y muestra información detallada de la ruta del camión (método original para un solo camión)
+     */
+    private static void validarYMostrarRutaCamion(Individuo individuo) {
+        if (individuo == null || individuo.getCromosoma() == null || individuo.getCromosoma().isEmpty()) {
+            logger.warn("Individuo o cromosoma es null/vacío");
+            return;
+        }
+
+        // Tomar el primer gen del cromosoma para análisis
+        Gen primerGen = individuo.getCromosoma().get(0);
+        if (primerGen == null || primerGen.getNodos() == null || primerGen.getNodos().isEmpty()) {
+            logger.warn("Primer gen o nodos es null/vacío");
+            return;
+        }
+
+        List<Nodo> ruta = primerGen.getNodos();
+        Camion camion = primerGen.getCamion();
+        
+        if (camion == null) {
+            logger.warn("Camión del gen es null");
+            return;
+        }
+
+        logger.info("=== VALIDACIÓN DE RUTA DEL CAMIÓN ===");
+        logger.info("🚛 Camión ID: {}", camion.getCodigo());
+        logger.info("⛽ Combustible actual: {}/{}", camion.getCombustibleActual(), camion.getCombustibleMaximo());
+        logger.info("📦 GLP actual: {}/{}", camion.getCapacidadActualGLP(), camion.getCapacidadMaximaGLP());
+        logger.info("🛣️ Distancia máxima: {} km", camion.getDistanciaMaxima());
+        logger.info("📍 Nodo inicial: {}", ruta.get(0).getCoordenada());
+        logger.info("🎯 Nodo final: {}", ruta.get(ruta.size() - 1).getCoordenada());
+        logger.info("📊 Total de nodos en ruta: {}", ruta.size());
+        logger.info("🛤️ Nodos recorridos entre inicial y final: {}", ruta.size() - 1);
+
+        // Filtrar nodos especiales (ALMACEN, INTERMEDIO, PEDIDO)
+        List<Nodo> nodosEspeciales = ruta.stream()
+                .filter(nodo -> {
+                    return nodo instanceof Almacen || 
+                           nodo instanceof Pedido || 
+                           (nodo.getTipoNodo() == TipoNodo.INTERMEDIO);
+                })
+                .collect(Collectors.toList());
+
+        logger.info("🎯 Nodos especiales encontrados: {}", nodosEspeciales.size());
+
+        // Validar ruta por fases
+        boolean rutaValida = validarRutaPorFases(nodosEspeciales, camion);
+        
+        if (rutaValida) {
+            logger.info("✅ RUTA VÁLIDA - El camión puede completar la ruta");
+        } else {
+            logger.warn("❌ RUTA INVÁLIDA - El camión NO puede completar la ruta");
+        }
+        
+        logger.info("=== FIN VALIDACIÓN ===");
+    }
+
+    /**
+     * Valida la ruta por fases, verificando que el camión pueda llegar a cada nodo especial
+     */
+    private static boolean validarRutaPorFases(List<Nodo> nodosEspeciales, Camion camion) {
+        if (nodosEspeciales.size() < 2) {
+            logger.info("Ruta muy corta, no requiere validación por fases");
+            return true;
+        }
+
+        double combustibleActual = camion.getCombustibleActual();
+        double capacidadGLPActual = camion.getCapacidadActualGLP();
+        final double TOLERANCIA = 0.05;
+
+        for (int i = 0; i < nodosEspeciales.size() - 1; i++) {
+            Nodo nodoActual = nodosEspeciales.get(i);
+            Nodo nodoSiguiente = nodosEspeciales.get(i + 1);
+            
+            // Calcular distancia entre nodos especiales
+            double distancia = calcularDistanciaEntreNodos(nodoActual, nodoSiguiente);
+            
+            // Calcular distancia máxima disponible
+            double distanciaMaxima = camion.getDistanciaMaxima();
+            
+            // Verificar si puede llegar al siguiente nodo especial
+            boolean puedeLlegar = (distanciaMaxima - distancia) >= -TOLERANCIA;
+            
+            logger.info("Fase {}: {} → {} (Distancia: {:.2f} km, Máxima: {:.2f} km, Puede llegar: {})", 
+                i + 1, 
+                obtenerTipoNodo(nodoActual),
+                obtenerTipoNodo(nodoSiguiente),
+                distancia,
+                distanciaMaxima,
+                puedeLlegar ? "✅" : "❌"
+            );
+            
+            if (!puedeLlegar) {
+                logger.warn("❌ Fase {} falló: Distancia insuficiente", i + 1);
+                return false;
+            }
+            
+            // Simular recarga/descarga en nodo especial
+            actualizarEstadoCamionEnNodoEspecial(camion, nodoSiguiente);
+        }
+        
+        return true;
+    }
+
+    /**
+     * Calcula la distancia entre dos nodos usando la fórmula euclidiana
+     */
+    private static double calcularDistanciaEntreNodos(Nodo nodo1, Nodo nodo2) {
+        Coordenada coord1 = nodo1.getCoordenada();
+        Coordenada coord2 = nodo2.getCoordenada();
+        
+        int deltaX = coord1.getFila() - coord2.getFila();
+        int deltaY = coord1.getColumna() - coord2.getColumna();
+        
+        return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    }
+
+    /**
+     * Obtiene el tipo de nodo como string para logging
+     */
+    private static String obtenerTipoNodo(Nodo nodo) {
+        if (nodo instanceof Almacen) {
+            Almacen almacen = (Almacen) nodo;
+            return "ALMACEN_" + almacen.getTipo().name();
+        } else if (nodo instanceof Pedido) {
+            return "PEDIDO";
+        } else if (nodo.getTipoNodo() == TipoNodo.INTERMEDIO) {
+            return "INTERMEDIO";
+        } else {
+            return "NORMAL";
+        }
+    }
+
+    /**
+     * Simula la actualización del estado del camión al llegar a un nodo especial
+     */
+    private static void actualizarEstadoCamionEnNodoEspecial(Camion camion, Nodo nodo) {
+        if (nodo instanceof Almacen) {
+            Almacen almacen = (Almacen) nodo;
+            if (almacen.getTipo() == TipoAlmacen.CENTRAL) {
+                // Recarga completa en almacén central
+                camion.setCapacidadActualGLP(camion.getCapacidadMaximaGLP());
+                camion.setCombustibleActual(camion.getCombustibleMaximo());
+                logger.info("🔄 Recarga completa en almacén central");
+            } else if (almacen.getTipo() == TipoAlmacen.SECUNDARIO) {
+                // Recarga parcial en almacén secundario
+                double recargaGLP = Math.min(almacen.getCapacidadActualGLP(), 
+                    camion.getCapacidadMaximaGLP() - camion.getCapacidadActualGLP());
+                camion.setCapacidadActualGLP(camion.getCapacidadActualGLP() + recargaGLP);
+                logger.info("🔄 Recarga parcial en almacén secundario: +{:.2f} GLP", recargaGLP);
+            }
+        } else if (nodo instanceof Pedido) {
+            Pedido pedido = (Pedido) nodo;
+            // Descarga GLP en pedido
+            double descargaGLP = Math.min(camion.getCapacidadActualGLP(), pedido.getVolumenGLPAsignado());
+            camion.setCapacidadActualGLP(camion.getCapacidadActualGLP() - descargaGLP);
+            logger.info("📦 Descarga en pedido: -{:.2f} GLP", descargaGLP);
+        }
+        // Los nodos intermedios no modifican el estado del camión
     }
 
 }
