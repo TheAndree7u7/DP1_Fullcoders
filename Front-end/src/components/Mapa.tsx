@@ -55,7 +55,7 @@ const Mapa = () => {
   const [running, setRunning] = useState(false);
   const [intervalo, setIntervalo] = useState(300);
   const intervalRef = useRef<number | null>(null);
-  const { camiones, rutasCamiones, almacenes, avanzarHora, cargando, bloqueos, marcarCamionAveriado } = useSimulacion();
+  const { camiones, rutasCamiones, almacenes, avanzarHora, cargando, bloqueos, marcarCamionAveriado, actualizarAlmacenes } = useSimulacion();
   // Estado para el tooltip (hover)
   const [tooltipCamion, setTooltipCamion] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{x: number, y: number} | null>(null);
@@ -65,6 +65,9 @@ const Mapa = () => {
   const [averiando, setAveriando] = useState<string | null>(null);
   // Estado para la leyenda desplegable
   const [leyendaVisible, setLeyendaVisible] = useState(false);
+  // Estados para el modal de almacenes
+  const [clickedAlmacen, setClickedAlmacen] = useState<string | null>(null);
+  const [clickedAlmacenPos, setClickedAlmacenPos] = useState<{x: number, y: number} | null>(null);
 
   // DEBUG: Verificar que almacenes llega al componente
   //console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
@@ -313,7 +316,27 @@ const Mapa = () => {
               style={{ maxWidth: '100%', height: 'auto' }}
               viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
               preserveAspectRatio="xMidYMid meet"
+              onClick={(evt) => {
+                // Cerrar modales si se hace click en un área vacía del mapa
+                if (evt.target === evt.currentTarget) {
+                  setClickedCamion(null);
+                  setClickedAlmacen(null);
+                }
+              }}
             >
+            {/* Fondo invisible para capturar clicks */}
+            <rect 
+              x={0} 
+              y={0} 
+              width={SVG_WIDTH} 
+              height={SVG_HEIGHT} 
+              fill="transparent"
+              onClick={() => {
+                setClickedCamion(null);
+                setClickedAlmacen(null);
+              }}
+            />
+            
             {/* Grid */}
             {[...Array(GRID_WIDTH + 1)].map((_, i) => (
               <line key={`v-${i}`} x1={i * CELL_SIZE} y1={0} x2={i * CELL_SIZE} y2={SVG_HEIGHT} stroke="#d1d5db" strokeWidth={1} />
@@ -367,13 +390,21 @@ const Mapa = () => {
             {almacenes.map(almacen => {
               //console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
               return (
-                <g key={almacen.id}>
+                <g key={almacen.id} style={{ cursor: 'pointer' }}>
                   <image
                     href={almacen.tipo === 'CENTRAL' ? almacenCentralIcon : almacenIntermedioIcon}
                     x={almacen.coordenada.x * CELL_SIZE - 20}
                     y={almacen.coordenada.y * CELL_SIZE - 20}
                     width={40}
                     height={40}
+                    onClick={evt => {
+                      if (!clickedAlmacen) {
+                        setClickedAlmacen(almacen.id);
+                        setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
+                        // Actualizar información de almacenes para tener datos frescos
+                        actualizarAlmacenes();
+                      }
+                    }}
                   />
                   <text
                     x={almacen.coordenada.x * CELL_SIZE}
@@ -384,6 +415,14 @@ const Mapa = () => {
                     fontWeight="bold"
                     stroke="#fff"
                     strokeWidth="0.5"
+                    onClick={evt => {
+                      if (!clickedAlmacen) {
+                        setClickedAlmacen(almacen.id);
+                        setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
+                        // Actualizar información de almacenes para tener datos frescos
+                        actualizarAlmacenes();
+                      }
+                    }}
                   >
                     {almacen.nombre}
                   </text>
@@ -605,6 +644,111 @@ const Mapa = () => {
               >
                 Cerrar
               </button>
+            </div>
+          );
+        })()
+      )}
+
+      {/* Modal para almacén (click) */}
+      {clickedAlmacen && clickedAlmacenPos && (
+        (() => {
+          const almacen = almacenes.find(a => a.id === clickedAlmacen);
+          
+          if (!almacen) return null;
+
+          const porcentajeGLP = almacen.capacidadMaximaGLP > 0 
+            ? (almacen.capacidadActualGLP / almacen.capacidadMaximaGLP) * 100 
+            : 0;
+
+          // Calcular posición del modal para que se vea completo
+          const modalWidth = 280;
+          const modalHeight = 180;
+          const viewportWidth = window.innerWidth;
+          const viewportHeight = window.innerHeight;
+          
+          let modalLeft = clickedAlmacenPos.x + 10;
+          let modalTop = clickedAlmacenPos.y + 10;
+          
+          // Ajustar horizontalmente si se sale de la pantalla
+          if (modalLeft + modalWidth > viewportWidth) {
+            modalLeft = clickedAlmacenPos.x - modalWidth - 10;
+          }
+          
+          // Ajustar verticalmente si se sale de la pantalla
+          if (modalTop + modalHeight > viewportHeight) {
+            modalTop = clickedAlmacenPos.y - modalHeight - 10;
+            // Si aún se sale por arriba, centrarlo verticalmente respecto al click
+            if (modalTop < 0) {
+              modalTop = Math.max(10, clickedAlmacenPos.y - modalHeight / 2);
+            }
+          }
+
+          return (
+            <div
+              className="fixed bg-white border border-gray-300 rounded-lg shadow-lg z-50 overflow-hidden"
+              style={{
+                left: modalLeft,
+                top: modalTop,
+                width: modalWidth,
+                maxHeight: modalHeight
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="p-3 bg-blue-600 text-white">
+                <div className="font-bold text-sm">{almacen.nombre}</div>
+                <div className="text-xs opacity-90">
+                  {almacen.tipo === 'CENTRAL' ? 'Almacén Central' : 'Almacén Secundario'} • ({almacen.coordenada.x}, {almacen.coordenada.y})
+                </div>
+              </div>
+              
+              {/* Content */}
+              <div className="p-3">
+                {/* Estado */}
+                <div className="mb-3 text-center">
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                    almacen.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  }`}>
+                    {almacen.activo ? '🟢 Activo' : '🔴 Inactivo'}
+                  </span>
+                </div>
+                
+                {/* GLP Info */}
+                <div className="mb-3">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs font-medium text-gray-700">Gas Licuado (GLP)</span>
+                    <span className="text-xs font-bold text-blue-600">{porcentajeGLP.toFixed(1)}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                    <div 
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(100, Math.max(0, porcentajeGLP))}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-xs text-gray-600 text-center">
+                    {almacen.capacidadActualGLP.toFixed(1)} / {almacen.capacidadMaximaGLP.toFixed(1)} m³
+                  </div>
+                </div>
+
+                {/* Info adicional para almacenes secundarios */}
+                {almacen.tipo === 'INTERMEDIO' && (
+                  <div className="mb-3 p-2 bg-green-50 rounded text-center">
+                    <div className="text-xs text-green-700">
+                      🔄 Recarga automática a las 00:00
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-2 bg-gray-50 border-t">
+                <button
+                  className="w-full bg-gray-500 hover:bg-gray-600 text-white py-1 px-3 rounded text-xs transition-colors"
+                  onClick={() => setClickedAlmacen(null)}
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
           );
         })()

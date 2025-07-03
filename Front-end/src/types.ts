@@ -6,6 +6,11 @@ export interface AlmacenBackend {
   nombre: string;
   tipo: 'CENTRAL' | 'SECUNDARIO';
   activo: boolean;
+  capacidadActualGLP: number;
+  capacidadMaximaGLP: number;
+  capacidadCombustible: number;
+  capacidadMaximaCombustible: number;
+  esCentral: boolean;
 }
 
 export interface Almacen {
@@ -14,6 +19,11 @@ export interface Almacen {
   tipo: 'CENTRAL' | 'INTERMEDIO';
   coordenada: { x: number; y: number };
   activo: boolean;
+  capacidadActualGLP: number;
+  capacidadMaximaGLP: number;
+  capacidadCombustible: number;
+  capacidadMaximaCombustible: number;
+  esCentral: boolean;
 }
 
 export interface Camion {

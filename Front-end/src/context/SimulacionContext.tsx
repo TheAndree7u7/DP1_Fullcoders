@@ -103,6 +103,7 @@ interface SimulacionContextType {
   cargando: boolean;
   bloqueos: Bloqueo[];
   marcarCamionAveriado: (camionId: string) => void; // Nueva función para manejar averías
+  actualizarAlmacenes: () => Promise<void>; // Nueva función para actualizar almacenes
 }
 
 export interface Bloqueo {
@@ -150,6 +151,18 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     cargarDatos(true);
   }, []);
 
+  // Función para actualizar almacenes (útil para refrescar capacidades)
+  const actualizarAlmacenes = async () => {
+    try {
+      console.log("🔄 ALMACENES: Actualizando información de almacenes...");
+      const data = await getAlmacenes();
+      setAlmacenes(data);
+      console.log("✅ ALMACENES: Información actualizada");
+    } catch (error) {
+      console.error("❌ ALMACENES: Error al actualizar almacenes:", error);
+    }
+  };
+
   /**
    * @function cargarAlmacenes
    * @description Carga los datos de almacenes desde el backend
@@ -179,6 +192,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       );
       type IndividuoConBloqueos = Individuo & {
         bloqueos?: Bloqueo[];
+        almacenes?: Almacen[];
         fechaHoraSimulacion?: string;
       };
       const data = (await getMejorIndividuo()) as IndividuoConBloqueos;
@@ -271,6 +285,12 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       } else {
         setBloqueos([]);
       }
+
+      // Actualizar almacenes si vienen en la respuesta
+      if (data.almacenes && data.almacenes.length > 0) {
+        console.log("🏪 CONTEXTO: Actualizando almacenes desde simulación:", data.almacenes);
+        setAlmacenes(data.almacenes);
+      }
       if (esInicial) setHoraActual(HORA_PRIMERA_ACTUALIZACION);
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
       setEsperandoActualizacion(false);
@@ -290,7 +310,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const cargarSolucionAnticipada = async () => {
     try {
       console.log("🚀 ANTICIPADA: Cargando solución anticipada en background...");
-      type IndividuoConBloqueos = Individuo & { bloqueos?: Bloqueo[], fechaHoraSimulacion?: string };
+      type IndividuoConBloqueos = Individuo & { bloqueos?: Bloqueo[], almacenes?: Almacen[], fechaHoraSimulacion?: string };
       const data = await getMejorIndividuo() as IndividuoConBloqueos;
       console.log("✨ ANTICIPADA: Solución anticipada cargada y lista:", data);
       setProximaSolucionCargada(data);
@@ -354,6 +374,12 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         setBloqueos(data.bloqueos);
       } else {
         setBloqueos([]);
+      }
+
+      // Actualizar almacenes si vienen en la respuesta
+      if (data.almacenes && data.almacenes.length > 0) {
+        console.log("🏪 TRANSICIÓN: Actualizando almacenes desde solución precargada:", data.almacenes);
+        setAlmacenes(data.almacenes);
       }
       
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
@@ -610,6 +636,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         cargando,
         bloqueos,
         marcarCamionAveriado,
+        actualizarAlmacenes,
       }}
     >
       {children}

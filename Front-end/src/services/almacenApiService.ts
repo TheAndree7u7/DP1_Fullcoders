@@ -12,6 +12,12 @@ export const getAlmacenes = async (): Promise<Almacen[]> => {
     tipo: (a.tipo === 'CENTRAL' ? 'CENTRAL' : 'INTERMEDIO') as 'CENTRAL' | 'INTERMEDIO',
     coordenada: { x: a.coordenada.columna, y: a.coordenada.fila },
     activo: a.activo,
+    // Agregar información de capacidades
+    capacidadActualGLP: a.capacidadActualGLP || 0,
+    capacidadMaximaGLP: a.capacidadMaximaGLP || 0,
+    capacidadCombustible: a.capacidadCombustible || 0,
+    capacidadMaximaCombustible: a.capacidadMaximaCombustible || 0,
+    esCentral: a.esCentral || false,
   }));
   //console.log('🔄 API: Almacenes transformados:', almacenesTransformados);
   return almacenesTransformados;
