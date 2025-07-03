@@ -206,237 +206,245 @@ const Mapa = () => {
   }
 
   return (
-    <div className="flex items-start gap-3">
-      {/* Leyenda lateral compacta */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 p-2 w-32">
-        <button
-          onClick={() => setLeyendaVisible(!leyendaVisible)}
-          className="flex items-center justify-between w-full text-left text-xs font-semibold text-gray-800 hover:text-gray-900 mb-2"
-        >
-          <span>LEYENDA</span>
-          {leyendaVisible ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-        </button>
-        
-        {leyendaVisible && (
-          <div className="space-y-1.5">
-            {/* Almacén Central */}
-            <div className="flex items-center gap-1.5">
-              <img src={almacenCentralIcon} alt="Almacén Central" className="w-4 h-4" />
-              <span className="text-xs text-gray-700">A. Central</span>
-            </div>
-            
-            {/* Almacén Intermedio */}
-            <div className="flex items-center gap-1.5">
-              <img src={almacenIntermedioIcon} alt="Almacén Intermedio" className="w-4 h-4" />
-              <span className="text-xs text-gray-700">A. Intermedio</span>
-            </div>
-            
-            {/* Cliente */}
-            <div className="flex items-center gap-1.5">
-              <img src={clienteIcon} alt="Cliente" className="w-4 h-4" />
-              <span className="text-xs text-gray-700">Cliente</span>
-            </div>
-            
-            {/* Camión */}
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-3 bg-blue-500 rounded-sm border border-gray-400 relative">
-                <div className="absolute -bottom-0.5 left-0.5 w-0.5 h-0.5 bg-black rounded-full"></div>
-                <div className="absolute -bottom-0.5 right-0.5 w-0.5 h-0.5 bg-black rounded-full"></div>
+    <div className="w-full h-full flex flex-col">
+      <div className="flex items-start gap-3 flex-1">
+        {/* Leyenda lateral compacta */}
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-2 w-32 flex-shrink-0">
+          <button
+            onClick={() => setLeyendaVisible(!leyendaVisible)}
+            className="flex items-center justify-between w-full text-left text-xs font-semibold text-gray-800 hover:text-gray-900 mb-2"
+          >
+            <span>LEYENDA</span>
+            {leyendaVisible ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          </button>
+          
+          {leyendaVisible && (
+            <div className="space-y-1.5">
+              {/* Almacén Central */}
+              <div className="flex items-center gap-1.5">
+                <img src={almacenCentralIcon} alt="Almacén Central" className="w-4 h-4" />
+                <span className="text-xs text-gray-700">A. Central</span>
               </div>
-              <span className="text-xs text-gray-700">Camión</span>
+              
+              {/* Almacén Intermedio */}
+              <div className="flex items-center gap-1.5">
+                <img src={almacenIntermedioIcon} alt="Almacén Intermedio" className="w-4 h-4" />
+                <span className="text-xs text-gray-700">A. Intermedio</span>
+              </div>
+              
+              {/* Cliente */}
+              <div className="flex items-center gap-1.5">
+                <img src={clienteIcon} alt="Cliente" className="w-4 h-4" />
+                <span className="text-xs text-gray-700">Cliente</span>
+              </div>
+              
+              {/* Camión */}
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-3 bg-blue-500 rounded-sm border border-gray-400 relative">
+                  <div className="absolute -bottom-0.5 left-0.5 w-0.5 h-0.5 bg-black rounded-full"></div>
+                  <div className="absolute -bottom-0.5 right-0.5 w-0.5 h-0.5 bg-black rounded-full"></div>
+                </div>
+                <span className="text-xs text-gray-700">Camión</span>
+              </div>
+              
+              {/* Ruta */}
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-0.5 border-t border-dashed border-blue-500"></div>
+                <span className="text-xs text-gray-700">Ruta</span>
+              </div>
+              
+              {/* Bloqueos */}
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-0.5 bg-red-600 rounded-full"></div>
+                <span className="text-xs text-gray-700">Bloqueos</span>
+              </div>
+              
+              {/* Estados de camiones */}
+              <div className="pt-1 border-t border-gray-200">
+                <div className="text-xs font-medium text-gray-600 mb-1">Estados:</div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-blue-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">Normal</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">Averiado</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-gray-800 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">Mant.</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            
-            {/* Ruta */}
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-0.5 border-t border-dashed border-blue-500"></div>
-              <span className="text-xs text-gray-700">Ruta</span>
-            </div>
-            
+          )}
+        </div>
+
+        {/* Contenedor del mapa */}
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="w-full max-w-full overflow-auto">
+            <svg
+              width={SVG_WIDTH}
+              height={SVG_HEIGHT}
+              className="border border-gray-500 bg-white rounded-xl mx-auto"
+              style={{ maxWidth: '100%', height: 'auto' }}
+              viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+              preserveAspectRatio="xMidYMid meet"
+            >
+            {/* Grid */}
+            {[...Array(GRID_WIDTH + 1)].map((_, i) => (
+              <line key={`v-${i}`} x1={i * CELL_SIZE} y1={0} x2={i * CELL_SIZE} y2={SVG_HEIGHT} stroke="#d1d5db" strokeWidth={1} />
+            ))}
+            {[...Array(GRID_HEIGHT + 1)].map((_, i) => (
+              <line key={`h-${i}`} x1={0} y1={i * CELL_SIZE} x2={SVG_WIDTH} y2={i * CELL_SIZE} stroke="#d1d5db" strokeWidth={1} />
+            ))}
+
             {/* Bloqueos */}
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-0.5 bg-red-600 rounded-full"></div>
-              <span className="text-xs text-gray-700">Bloqueos</span>
-            </div>
-            
-            {/* Estados de camiones */}
-            <div className="pt-1 border-t border-gray-200">
-              <div className="text-xs font-medium text-gray-600 mb-1">Estados:</div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-blue-500 rounded-sm"></div>
-                  <span className="text-xs text-gray-700">Normal</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
-                  <span className="text-xs text-gray-700">Averiado</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-gray-800 rounded-sm"></div>
-                  <span className="text-xs text-gray-700">Mant.</span>
-                </div>
-              </div>
-            </div>
+            {bloqueos && bloqueos.map((bloqueo, idx) => (
+              <polyline
+                key={`bloqueo-${idx}`}
+                fill="none"
+                stroke="#dc2626"
+                strokeWidth={BLOQUEO_STROKE_WIDTH}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                points={bloqueo.coordenadas.map(coord => `${coord.x * CELL_SIZE},${coord.y * CELL_SIZE}`).join(' ')}
+              />
+            ))}
+
+            {/* Clientes/Pedidos */}
+            {pedidosPendientes.map(pedido => {
+              //console.log('👤 MAPA: Renderizando cliente:', pedido.codigo, 'en posición:', pedido.coordenada);
+              return (
+                <g key={pedido.codigo}>
+                  <image
+                    href={clienteIcon}
+                    x={pedido.coordenada.x * CELL_SIZE - 15}
+                    y={pedido.coordenada.y * CELL_SIZE - 15}
+                    width={30}
+                    height={30}
+                  />
+                  <text
+                    x={pedido.coordenada.x * CELL_SIZE}
+                    y={pedido.coordenada.y * CELL_SIZE + 25}
+                    textAnchor="middle"
+                    fontSize="10"
+                    fill="#dc2626"
+                    fontWeight="bold"
+                    stroke="#fff"
+                    strokeWidth="0.5"
+                  >
+                    {pedido.codigo}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Almacenes */}
+            {almacenes.map(almacen => {
+              //console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
+              return (
+                <g key={almacen.id}>
+                  <image
+                    href={almacen.tipo === 'CENTRAL' ? almacenCentralIcon : almacenIntermedioIcon}
+                    x={almacen.coordenada.x * CELL_SIZE - 20}
+                    y={almacen.coordenada.y * CELL_SIZE - 20}
+                    width={40}
+                    height={40}
+                  />
+                  <text
+                    x={almacen.coordenada.x * CELL_SIZE}
+                    y={almacen.coordenada.y * CELL_SIZE + 30}
+                    textAnchor="middle"
+                    fontSize="12"
+                    fill={almacen.tipo === 'CENTRAL' ? '#2563eb' : '#16a34a'}
+                    fontWeight="bold"
+                    stroke="#fff"
+                    strokeWidth="0.5"
+                  >
+                    {almacen.nombre}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Rutas de camiones */}
+            {camionesVisuales
+              .filter(camion => {
+                const estadoCamion = camiones.find(c => c.id === camion.id);
+                return estadoCamion?.estado !== 'Entregado' && 
+                       estadoCamion?.estado !== 'Averiado' && 
+                       camion.ruta.length > 1;
+              })
+              .map(camion => (
+                <polyline
+                  key={`ruta-${camion.id}`}
+                  fill="none"
+                  stroke={camion.color}
+                  strokeWidth={2}
+                  strokeDasharray="4 2"
+                  points={camion.ruta.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
+                />
+              ))}
+
+            {/* Camiones */}
+            {camionesVisuales
+              .filter(camion => camiones.find(c => c.id === camion.id)?.estado !== 'Entregado')
+              .map(camion => {
+                 const estadoCamion = camiones.find(c => c.id === camion.id);
+                 const esAveriado = estadoCamion?.estado === 'Averiado';
+                 const esEnMantenimiento = estadoCamion?.estado === 'En Mantenimiento';
+                 const { posicion, rotacion, color } = camion;
+                 // Rojo para averiados, negro para mantenimiento, color original para otros estados
+                 const colorFinal = esAveriado ? ESTADO_COLORS.AVERIADO : esEnMantenimiento ? ESTADO_COLORS.MANTENIMIENTO : color;
+                 const cx = posicion.x * CELL_SIZE;
+                 const cy = posicion.y * CELL_SIZE;
+                 return (
+                   <g
+                     key={camion.id}
+                     transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
+                     style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}
+                     onMouseEnter={evt => {
+                       // Solo mostrar tooltip si no hay modal activo
+                       if (!clickedCamion) {
+                         setTooltipCamion(camion.id);
+                         setTooltipPos({ x: evt.clientX, y: evt.clientY });
+                       }
+                     }}
+                     onMouseMove={evt => {
+                       if (!clickedCamion && tooltipCamion === camion.id) {
+                         setTooltipPos({ x: evt.clientX, y: evt.clientY });
+                       }
+                     }}
+                     onMouseLeave={() => {
+                       setTooltipCamion(null);
+                     }}
+                     onClick={evt => {
+                       // Solo abrir el modal si no hay otro modal ya abierto
+                       if (!clickedCamion) {
+                         setClickedCamion(camion.id);
+                         setClickedPos({ x: evt.clientX, y: evt.clientY });
+                         // Ocultar el tooltip de hover
+                         setTooltipCamion(null);
+                       }
+                     }}
+                   >
+                     <rect x={-6} y={-4} width={12} height={8} rx={2} fill={colorFinal} stroke="black" strokeWidth={0.5} />
+                     <circle cx={-4} cy={5} r={1.5} fill="black" />
+                     <circle cx={4} cy={5} r={1.5} fill="black" />
+                     {esAveriado && (
+                       <text x={0} y={-8} textAnchor="middle" fontSize="8" fill="#dc2626" fontWeight="bold">
+                         💥
+                       </text>
+                     )}
+                   </g>
+                 );
+              })}
+          </svg>
           </div>
-        )}
+        </div>
       </div>
-
-      {/* Contenedor del mapa */}
-      <div className="flex flex-col items-center gap-2">
-        <svg
-          width={SVG_WIDTH}
-          height={SVG_HEIGHT}
-          className="border border-gray-500 bg-white rounded-xl"
-        >
-        {/* Grid */}
-        {[...Array(GRID_WIDTH + 1)].map((_, i) => (
-          <line key={`v-${i}`} x1={i * CELL_SIZE} y1={0} x2={i * CELL_SIZE} y2={SVG_HEIGHT} stroke="#d1d5db" strokeWidth={1} />
-        ))}
-        {[...Array(GRID_HEIGHT + 1)].map((_, i) => (
-          <line key={`h-${i}`} x1={0} y1={i * CELL_SIZE} x2={SVG_WIDTH} y2={i * CELL_SIZE} stroke="#d1d5db" strokeWidth={1} />
-        ))}
-
-        {/* Bloqueos */}
-        {bloqueos && bloqueos.map((bloqueo, idx) => (
-          <polyline
-            key={`bloqueo-${idx}`}
-            fill="none"
-            stroke="#dc2626"
-            strokeWidth={BLOQUEO_STROKE_WIDTH}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            points={bloqueo.coordenadas.map(coord => `${coord.x * CELL_SIZE},${coord.y * CELL_SIZE}`).join(' ')}
-          />
-        ))}
-
-        {/* Clientes/Pedidos */}
-        {pedidosPendientes.map(pedido => {
-          //console.log('👤 MAPA: Renderizando cliente:', pedido.codigo, 'en posición:', pedido.coordenada);
-          return (
-            <g key={pedido.codigo}>
-              <image
-                href={clienteIcon}
-                x={pedido.coordenada.x * CELL_SIZE - 15}
-                y={pedido.coordenada.y * CELL_SIZE - 15}
-                width={30}
-                height={30}
-              />
-              <text
-                x={pedido.coordenada.x * CELL_SIZE}
-                y={pedido.coordenada.y * CELL_SIZE + 25}
-                textAnchor="middle"
-                fontSize="10"
-                fill="#dc2626"
-                fontWeight="bold"
-                stroke="#fff"
-                strokeWidth="0.5"
-              >
-                {pedido.codigo}
-              </text>
-            </g>
-          );
-        })}
-
-        {/* Almacenes */}
-        {almacenes.map(almacen => {
-          //console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
-          return (
-            <g key={almacen.id}>
-              <image
-                href={almacen.tipo === 'CENTRAL' ? almacenCentralIcon : almacenIntermedioIcon}
-                x={almacen.coordenada.x * CELL_SIZE - 20}
-                y={almacen.coordenada.y * CELL_SIZE - 20}
-                width={40}
-                height={40}
-              />
-              <text
-                x={almacen.coordenada.x * CELL_SIZE}
-                y={almacen.coordenada.y * CELL_SIZE + 30}
-                textAnchor="middle"
-                fontSize="12"
-                fill={almacen.tipo === 'CENTRAL' ? '#2563eb' : '#16a34a'}
-                fontWeight="bold"
-                stroke="#fff"
-                strokeWidth="0.5"
-              >
-                {almacen.nombre}
-              </text>
-            </g>
-          );
-        })}
-
-        {/* Rutas de camiones */}
-        {camionesVisuales
-          .filter(camion => {
-            const estadoCamion = camiones.find(c => c.id === camion.id);
-            return estadoCamion?.estado !== 'Entregado' && 
-                   estadoCamion?.estado !== 'Averiado' && 
-                   camion.ruta.length > 1;
-          })
-          .map(camion => (
-            <polyline
-              key={`ruta-${camion.id}`}
-              fill="none"
-              stroke={camion.color}
-              strokeWidth={2}
-              strokeDasharray="4 2"
-              points={camion.ruta.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
-            />
-          ))}
-
-        {/* Camiones */}
-        {camionesVisuales
-          .filter(camion => camiones.find(c => c.id === camion.id)?.estado !== 'Entregado')
-          .map(camion => {
-             const estadoCamion = camiones.find(c => c.id === camion.id);
-             const esAveriado = estadoCamion?.estado === 'Averiado';
-             const esEnMantenimiento = estadoCamion?.estado === 'En Mantenimiento';
-             const { posicion, rotacion, color } = camion;
-             // Rojo para averiados, negro para mantenimiento, color original para otros estados
-             const colorFinal = esAveriado ? ESTADO_COLORS.AVERIADO : esEnMantenimiento ? ESTADO_COLORS.MANTENIMIENTO : color;
-             const cx = posicion.x * CELL_SIZE;
-             const cy = posicion.y * CELL_SIZE;
-             return (
-               <g
-                 key={camion.id}
-                 transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
-                 style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}
-                 onMouseEnter={evt => {
-                   // Solo mostrar tooltip si no hay modal activo
-                   if (!clickedCamion) {
-                     setTooltipCamion(camion.id);
-                     setTooltipPos({ x: evt.clientX, y: evt.clientY });
-                   }
-                 }}
-                 onMouseMove={evt => {
-                   if (!clickedCamion && tooltipCamion === camion.id) {
-                     setTooltipPos({ x: evt.clientX, y: evt.clientY });
-                   }
-                 }}
-                 onMouseLeave={() => {
-                   setTooltipCamion(null);
-                 }}
-                 onClick={evt => {
-                   // Solo abrir el modal si no hay otro modal ya abierto
-                   if (!clickedCamion) {
-                     setClickedCamion(camion.id);
-                     setClickedPos({ x: evt.clientX, y: evt.clientY });
-                     // Ocultar el tooltip de hover
-                     setTooltipCamion(null);
-                   }
-                 }}
-               >
-                 <rect x={-6} y={-4} width={12} height={8} rx={2} fill={colorFinal} stroke="black" strokeWidth={0.5} />
-                 <circle cx={-4} cy={5} r={1.5} fill="black" />
-                 <circle cx={4} cy={5} r={1.5} fill="black" />
-                 {esAveriado && (
-                   <text x={0} y={-8} textAnchor="middle" fontSize="8" fill="#dc2626" fontWeight="bold">
-                     💥
-                   </text>
-                 )}
-               </g>
-             );
-          })}
-      </svg>
 
       {/* Tooltip para camión (hover) */}
       {tooltipCamion && tooltipPos && (
@@ -560,7 +568,8 @@ const Mapa = () => {
         })()
       )}
 
-      <div className="flex items-center gap-4 mt-2">
+      {/* Controles del mapa */}
+      <div className="flex items-center gap-4 mt-2 justify-center">
         <button
           onClick={() => setRunning(prev => !prev)}
           className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded"
@@ -579,7 +588,6 @@ const Mapa = () => {
           />
           ms
         </label>
-      </div>
       </div>
     </div>
   );
