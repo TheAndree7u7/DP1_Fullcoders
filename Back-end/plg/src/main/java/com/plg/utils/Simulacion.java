@@ -24,6 +24,9 @@ import com.plg.entity.TipoNodo;
 import com.plg.utils.simulacion.ConfiguracionSimulacion;
 import com.plg.utils.simulacion.MantenimientoManager;
 import com.plg.utils.simulacion.AveriasManager;
+import com.plg.utils.simulacion.UtilesSimulacion;
+import com.plg.utils.simulacion.CamionStateApplier;
+import com.plg.utils.simulacion.IndividuoFactory;
 
 public class Simulacion {
 
@@ -81,11 +84,11 @@ public class Simulacion {
             while (!pedidosSemanal.isEmpty() && (fechaActual.isBefore(fechaLimite) || fechaActual.isEqual(fechaLimite))) {
             Pedido pedido = pedidosSemanal.get(0);
             // Voy agregando pedidos a la lista de pedidos
-            if (pedidoConFechaMenorAFechaActual(pedido, fechaActual)) {
+            if (UtilesSimulacion.pedidoConFechaMenorAFechaActual(pedido, fechaActual)) {
                 pedidosSemanal.remove(0);
                 pedidosPorAtender.add(pedido);
             } else {
-                List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
+                List<Pedido> pedidosEnviar = UtilesSimulacion.unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
                 actualizarEstadoGlobal(fechaActual, pedidosEnviar);
                 List<Bloqueo> bloqueosActivos = actualizarBloqueos(fechaActual);
                 System.out.println("------------------------");
@@ -103,7 +106,7 @@ public class Simulacion {
                                     pedidosEnviar, bloqueosActivos, fechaActual);
                             
                             // Aplicar el estado final de los camiones permanentemente
-                            aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
+                            CamionStateApplier.aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
                             
                             // Agregar al historial para el frontend
                             synchronized (historialSimulacion) {
@@ -146,7 +149,7 @@ public class Simulacion {
                     if (modoStandalone) {
                         try {
                             // Crear un individuo vacío con rutas de retorno al almacén
-                            Individuo individuoVacio = crearIndividuoVacio();
+                            Individuo individuoVacio = IndividuoFactory.crearIndividuoVacio();
                             
                             IndividuoDto paqueteVacio = new IndividuoDto(individuoVacio,
                                     new ArrayList<>(), bloqueosActivos, fechaActual);
@@ -271,51 +274,6 @@ public class Simulacion {
         }
     }
 
-    /**
-     * Aplica el estado final de los camiones después de una solución exitosa
-     * Esto mantiene la continuidad de posiciones entre paquetes
-     */
-    private static void aplicarEstadoFinalCamiones(Individuo mejorIndividuo) {
-        try {
-            for (Gen gen : mejorIndividuo.getCromosoma()) {
-                Camion camion = gen.getCamion();
-                
-                // Obtener la posición final del camión después de ejecutar su ruta
-                if (gen.getRutaFinal() != null && !gen.getRutaFinal().isEmpty()) {
-                    // La última posición de la ruta final es donde terminó el camión
-                    Nodo posicionFinal = gen.getRutaFinal().get(gen.getRutaFinal().size() - 1);
-                    
-                    // Actualizar la posición del camión en DataLoader.camiones
-                    for (Camion camionGlobal : DataLoader.camiones) {
-                        if (camionGlobal.getCodigo().equals(camion.getCodigo())) {
-                            Coordenada nuevaPosicion = posicionFinal.getCoordenada();
-                            camionGlobal.setCoordenada(nuevaPosicion);
-                            
-                            // También actualizar el estado de combustible y GLP
-                            camionGlobal.setCombustibleActual(camion.getCombustibleActual());
-                            camionGlobal.setCapacidadActualGLP(camion.getCapacidadActualGLP());
-                            
-                            break;
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("❌ Error aplicando estado final de camiones: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    public static List<Pedido> unirPedidosSinRepetidos(Set<Pedido> set1, Set<Pedido> set2) {
-        List<Pedido> listaUnida = new ArrayList<>(set1);
-        for (Pedido pedido : set2) {
-            if (!listaUnida.contains(pedido)) {
-                listaUnida.add(pedido);
-            }
-        }
-        return listaUnida;
-    }
-
     public static void actualizarEstadoGlobal(LocalDateTime fechaActual, List<Pedido> pedidosEnviar) {
         actualizarPedidos(pedidosEnviar);
         actualizarRepositorios(fechaActual);
@@ -372,43 +330,6 @@ public class Simulacion {
             camion.actualizarEstado(Parametros.intervaloTiempo, pedidosPorAtender, pedidosPlanificados,
                     pedidosEntregados, fechaActual);
         }
-    }
-
-    /**
-     * Crea un individuo vacío que representa el estado de los camiones cuando no hay pedidos por atender.
-     * Cada camión se mantiene en su posición actual sin realizar entregas.
-     */
-    private static Individuo crearIndividuoVacio() {
-        List<Pedido> pedidosVacios = new ArrayList<>();
-        Individuo individuoVacio = new Individuo(pedidosVacios);
-        
-        // Crear cromosoma con cada camión en su posición actual
-        List<Gen> cromosoma = new ArrayList<>();
-        for (Camion camion : DataLoader.camiones) {
-            // Verificar que el camión esté disponible
-            if (camion.getEstado() == com.plg.entity.EstadoCamion.DISPONIBLE) {
-                Gen gen = new Gen(camion, new ArrayList<>());
-                
-                // Crear ruta que solo contiene la posición actual del camión
-                List<Nodo> rutaActual = new ArrayList<>();
-                rutaActual.add(camion); // El camión mismo es un nodo
-                
-                gen.setRutaFinal(rutaActual);
-                gen.setPedidos(new ArrayList<>());
-                gen.setFitness(0.0); // Sin recorrido, fitness = 0
-                
-                cromosoma.add(gen);
-            }
-        }
-        
-        individuoVacio.setCromosoma(cromosoma);
-        individuoVacio.setFitness(0.0);
-        
-        return individuoVacio;
-    }
-
-    private static boolean pedidoConFechaMenorAFechaActual(Pedido pedido, LocalDateTime fechaActual) {
-        return pedido.getFechaRegistro().isBefore(fechaActual) || pedido.getFechaRegistro().isEqual(fechaActual);
     }
 
 }
