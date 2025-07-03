@@ -27,6 +27,7 @@ import com.plg.utils.simulacion.AveriasManager;
 import com.plg.utils.simulacion.UtilesSimulacion;
 import com.plg.utils.simulacion.CamionStateApplier;
 import com.plg.utils.simulacion.IndividuoFactory;
+import com.plg.utils.simulacion.GestorHistorialSimulacion;
 
 public class Simulacion {
 
@@ -38,6 +39,7 @@ public class Simulacion {
     public static Individuo mejorIndividuo = null;
     
     // Queue de paquetes generados para el frontend
+    // Administrado por GestorHistorialSimulacion
     public static List<IndividuoDto> historialSimulacion = new ArrayList<>();
     private static int indiceActualFrontend = 0;
     private static boolean simulacionEnProceso = false;
@@ -75,7 +77,7 @@ public class Simulacion {
 
     public static void ejecutarSimulacion() {
         try {
-            simulacionEnProceso = true;
+            GestorHistorialSimulacion.setEnProceso(true);
             ConfiguracionSimulacion.imprimirDatosSimulacion();
             LocalDateTime fechaLimite = Parametros.fecha_inicial.plusDays(7);
             System.out.println("🚀 Iniciando simulación hasta: " + fechaLimite);
@@ -109,16 +111,7 @@ public class Simulacion {
                             CamionStateApplier.aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
                             
                             // Agregar al historial para el frontend
-                            synchronized (historialSimulacion) {
-                                contadorPaquetes++;
-                                historialSimulacion.add(mejorIndividuoDto);
-                                System.out.println("📦 PAQUETE CONSTRUIDO #" + contadorPaquetes + 
-                                                 " | Tiempo: " + fechaActual + 
-                                                 " | Pedidos: " + pedidosEnviar.size() + 
-                                                 " | Fitness: " + algoritmoGenetico.getMejorIndividuo().getFitness());
-                            }
-                            
-                            gaResultQueue.offer(mejorIndividuoDto);
+                            GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
                         } catch (Exception e) {
                             System.err.println("❌ Error en algoritmo genético en tiempo " + fechaActual + ": " + e.getMessage());
                             e.printStackTrace();
@@ -155,14 +148,7 @@ public class Simulacion {
                                     new ArrayList<>(), bloqueosActivos, fechaActual);
                             
                             // Agregar al historial para el frontend
-                            synchronized (historialSimulacion) {
-                                contadorPaquetes++;
-                                historialSimulacion.add(paqueteVacio);
-                                System.out.println("📦 PAQUETE VACÍO CONSTRUIDO #" + contadorPaquetes + 
-                                                 " | Tiempo: " + fechaActual + 
-                                                 " | Sin pedidos activos");
-                            }
-                            
+                            GestorHistorialSimulacion.agregarPaquete(paqueteVacio);
                         } catch (Exception e) {
                             System.err.println("❌ Error creando paquete vacío en tiempo " + fechaActual + ": " + e.getMessage());
                             e.printStackTrace();
@@ -196,8 +182,8 @@ public class Simulacion {
         System.out.println("Pedidos entregados: " + pedidosEntregados.size());
         System.out.println("Pedidos pendientes: " + pedidosPorAtender.size());
         
-        simulacionEnProceso = false;
-        System.out.println("✅ Simulación completada. Total de paquetes generados: " + historialSimulacion.size());
+        GestorHistorialSimulacion.setEnProceso(false);
+        System.out.println("✅ Simulación completada. Total de paquetes generados: " + GestorHistorialSimulacion.getTotalPaquetes());
         
         } catch (Exception e) {
             System.err.println("💥 ERROR CRÍTICO EN LA SIMULACIÓN:");
@@ -218,45 +204,26 @@ public class Simulacion {
      * Cada llamada devuelve el siguiente paso en secuencia
      */
     public static IndividuoDto obtenerSiguientePaquete() {
-        synchronized (historialSimulacion) {
-            if (indiceActualFrontend < historialSimulacion.size()) {
-                IndividuoDto paquete = historialSimulacion.get(indiceActualFrontend);
-                int numeroPaquete = indiceActualFrontend + 1; // +1 porque el índice empieza en 0
-                indiceActualFrontend++;
-                
-                System.out.println("🔥 PAQUETE CONSUMIDO #" + numeroPaquete + 
-                                 " | Tiempo: " + paquete.getFechaHoraSimulacion() + 
-                                 " | Total disponibles: " + historialSimulacion.size());
-                
-                return paquete;
-            }
-            return null; // No hay más paquetes disponibles aún
-        }
+        return GestorHistorialSimulacion.obtenerSiguientePaquete();
     }
     
     /**
      * Reinicia la reproducción desde el inicio para el frontend
      */
     public static void reiniciarReproduccion() {
-        synchronized (historialSimulacion) {
-            int paquetesDisponibles = historialSimulacion.size();
-            indiceActualFrontend = 0;
-            System.out.println("🔄 REPRODUCCIÓN REINICIADA | Volviendo al paquete #1 | Total disponibles: " + paquetesDisponibles);
-        }
+        GestorHistorialSimulacion.reiniciarReproduccion();
     }
     
     /**
      * Obtiene información del estado actual de la simulación
      */
     public static SimulacionInfo obtenerInfoSimulacion() {
-        synchronized (historialSimulacion) {
-            return new SimulacionInfo(
-                historialSimulacion.size(),
-                indiceActualFrontend,
-                simulacionEnProceso,
-                fechaActual
-            );
-        }
+        return new SimulacionInfo(
+            GestorHistorialSimulacion.getTotalPaquetes(),
+            GestorHistorialSimulacion.getPaqueteActual(),
+            GestorHistorialSimulacion.isEnProceso(),
+            fechaActual
+        );
     }
     
     // Clase auxiliar para información de la simulación
