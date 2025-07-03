@@ -16,6 +16,8 @@ import com.plg.entity.EstadoCamion;
 import com.plg.service.AveriaService;
 import com.plg.service.CamionService;
 
+import java.time.LocalDateTime;
+
 /**
  * Controlador REST para averías.
  */
@@ -176,6 +178,71 @@ public class AveriaController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al actualizar estados de camiones averiados: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Registra una avería y fuerza el recálculo de la simulación desde el pedido más antiguo
+     * hasta el siguiente intervalo de tiempo
+     */
+    @PostMapping("/averia-con-recalculo")
+    public ResponseEntity<?> averiaConRecalculo(@RequestBody AveriaRequest request) {
+        try {
+            System.out.println("🚨 AVERÍA CON RECÁLCULO: Iniciando proceso...");
+
+            // ACTUALIZAR POSICIONES DE CAMIONES SI SE ENVÍAN
+            if (request.getPosicionesCamiones() != null) {
+                for (AveriaRequest.PosicionCamionDTO pos : request.getPosicionesCamiones()) {
+                    com.plg.entity.Camion camion = com.plg.utils.Simulacion.buscarCamionPorCodigo(pos.getId());
+                    if (camion != null) {
+                        // Parsear la coordenada tipo "(x,y)"
+                        String[] partes = pos.getUbicacion().replace("(", "").replace(")", "").split(",");
+                        int x = Integer.parseInt(partes[0].trim());
+                        int y = Integer.parseInt(partes[1].trim());
+                        camion.setCoordenada(new com.plg.entity.Coordenada(x, y));
+                    }
+                }
+            }
+
+            // 1. Registrar la avería
+            Averia averia = averiaService.agregar(request);
+            camionService.cambiarEstado(request.getCodigoCamion(), EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA);
+            
+            // 2. Obtener la fecha actual de la simulación
+            LocalDateTime fechaActual = com.plg.utils.Simulacion.obtenerFechaActual();
+            System.out.println("📅 Fecha actual de simulación: " + fechaActual);
+            
+            // 3. Calcular el rango de recálculo
+            LocalDateTime fechaInicioRecalculo = com.plg.utils.Simulacion.obtenerFechaPedidoMasAntiguo();
+            LocalDateTime fechaFinRecalculo = fechaActual.plusMinutes(com.plg.utils.Parametros.intervaloTiempo * 2); // 2 intervalos hacia adelante
+            
+            System.out.println("🔄 Rango de recálculo: " + fechaInicioRecalculo + " → " + fechaFinRecalculo);
+            
+            // 4. Forzar el recálculo de la simulación
+            com.plg.utils.Simulacion.simulacionInterrumpida = true;
+            boolean recalculado = com.plg.utils.Simulacion.recalcularSimulacionPorAveria(
+                fechaInicioRecalculo, 
+                fechaFinRecalculo, 
+                request.getCodigoCamion()
+            );
+            com.plg.utils.Simulacion.simulacionInterrumpida = false;
+            
+            if (recalculado) {
+                return ResponseEntity.ok(java.util.Map.of(
+                    "mensaje", "Avería registrada y simulación recalculada exitosamente",
+                    "averia", averia,
+                    "fechaInicioRecalculo", fechaInicioRecalculo,
+                    "fechaFinRecalculo", fechaFinRecalculo,
+                    "camionAveriado", request.getCodigoCamion()
+                ));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al recalcular la simulación");
+            }
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Error al procesar avería con recálculo: " + e.getMessage());
         }
     }
 }

@@ -3,10 +3,12 @@ package com.plg.entity;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 import com.plg.utils.Gen;
 import com.plg.utils.Individuo;
@@ -217,10 +219,16 @@ public class Mapa {
     }
 
     public List<Nodo> aStar(Nodo nodo1, Nodo nodo2) {
+        // Límites de seguridad para evitar ciclos infinitos
+        final int MAX_ITERACIONES = filas * columnas * 2; // Máximo 2 veces el tamaño del mapa
+        final int MAX_RUTA_LENGTH = filas * columnas; // Máximo tamaño del mapa
+        
         Nodo inicio = getNodo(nodo1.getCoordenada());
         Nodo destino = getNodo(nodo2.getCoordenada());
         PriorityQueue<Nodo> openSet = new PriorityQueue<>((a, b) -> Double.compare(a.getFScore(), b.getFScore()));
         Map<Nodo, Nodo> cameFrom = new LinkedHashMap<>();
+        Set<Nodo> closedSet = new HashSet<>(); // Para evitar revisitar nodos
+        
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
                 Nodo nodo = getNodo(i, j);
@@ -231,12 +239,30 @@ public class Mapa {
         inicio.setGScore(0);
         inicio.setFScore(calcularHeuristica(inicio, destino));
         openSet.add(inicio);
+        int iteraciones = 0;
+        
         while (!openSet.isEmpty()) {
+            iteraciones++;
+            if (iteraciones > MAX_ITERACIONES) {
+                System.err.println("⚠️ A*: Límite de iteraciones alcanzado (" + MAX_ITERACIONES + "). Ruta no encontrada.");
+                return Collections.emptyList();
+            }
+            
             Nodo nodoActual = openSet.poll();
+            closedSet.add(nodoActual);
+            
             if (nodoActual.equals(destino)) {
-                return reconstruirRuta(cameFrom, nodoActual);
+                List<Nodo> ruta = reconstruirRuta(cameFrom, nodoActual);
+                if (ruta.size() > MAX_RUTA_LENGTH) {
+                    System.err.println("⚠️ A*: Ruta demasiado larga (" + ruta.size() + " > " + MAX_RUTA_LENGTH + "). Ruta truncada.");
+                    return ruta.subList(0, Math.min(ruta.size(), MAX_RUTA_LENGTH));
+                }
+                return ruta;
             }
             for (Nodo vecino : getAdj(nodoActual.getCoordenada())) {
+                if (closedSet.contains(vecino)) {
+                    continue; // Ya procesado
+                }
                 // Permitir llegar a un nodo bloqueado solo si es el destino
                 if (vecino.isBloqueado() && !vecino.equals(destino)) {
                     continue;
@@ -252,6 +278,7 @@ public class Mapa {
                 }
             }
         }
+        System.err.println("⚠️ A*: No se encontró ruta entre " + nodo1.getCoordenada() + " y " + nodo2.getCoordenada());
         return Collections.emptyList();
     }
 

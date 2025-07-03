@@ -81,6 +81,12 @@ public class AveriaService {
      * @throws InvalidInputException si los datos son inválidos
      */
     public Averia agregar(AveriaRequest request) throws InvalidInputException {
+        // --- NUEVO: Actualizar posiciones de camiones si se envían ---
+        if (request.getPosicionesCamiones() != null) {
+            for (AveriaRequest.PosicionCamionDTO pos : request.getPosicionesCamiones()) {
+                camionService.cambiarCoordenada(pos.getId(), parsearCoordenada(pos.getUbicacion()));
+            }
+        }
         // Validaciones
         if (request.getCodigoCamion() == null || request.getCodigoCamion().trim().isEmpty()) {
             throw new InvalidInputException("El código del camión es obligatorio");
@@ -120,6 +126,14 @@ public class AveriaService {
         } catch (Exception e) {
             throw new InvalidInputException("Error al crear la avería: " + e.getMessage());
         }
+    }
+
+    // Utilidad para parsear "(x,y)" a Coordenada
+    private com.plg.entity.Coordenada parsearCoordenada(String ubicacion) {
+        String[] partes = ubicacion.replace("(", "").replace(")", "").split(",");
+        int x = Integer.parseInt(partes[0].trim());
+        int y = Integer.parseInt(partes[1].trim());
+        return new com.plg.entity.Coordenada(x, y);
     }
 
     /**

@@ -16,6 +16,7 @@ import com.plg.entity.Almacen;
 import com.plg.entity.Bloqueo;
 import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
+import com.plg.entity.EstadoCamion;
 import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
@@ -45,6 +46,14 @@ public class Simulacion {
     public static BlockingQueue<IndividuoDto> gaResultQueue = new SynchronousQueue<>();
     public static Semaphore iniciar = new Semaphore(0);
     public static Semaphore continuar = new Semaphore(0);
+
+    // Variables para controlar el estado post-avería
+    private static boolean recalculandoPorAveria = false;
+    private static LocalDateTime fechaInicioRecalculo = null;
+    private static LocalDateTime fechaFinRecalculo = null;
+    private static String camionAveriado = null;
+
+    public static volatile boolean simulacionInterrumpida = false;
 
     public static void configurarSimulacion(LocalDateTime startDate) {
         fechaActual = startDate;
@@ -81,107 +90,102 @@ public class Simulacion {
             System.out.println("🚀 Iniciando simulación hasta: " + fechaLimite);
             System.out.println("📦 Pedidos semanales iniciales: " + pedidosSemanal.size());
             
-            while (!pedidosSemanal.isEmpty() && (fechaActual.isBefore(fechaLimite) || fechaActual.isEqual(fechaLimite))) {
-            Pedido pedido = pedidosSemanal.get(0);
-            // Voy agregando pedidos a la lista de pedidos
-            if (pedidoConFechaMenorAFechaActual(pedido, fechaActual)) {
-                pedidosSemanal.remove(0);
-                pedidosPorAtender.add(pedido);
-            } else {
-                List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
-                actualizarEstadoGlobal(fechaActual, pedidosEnviar);
-                List<Bloqueo> bloqueosActivos = actualizarBloqueos(fechaActual);
-                System.out.println("------------------------");
-                System.out.println("Tiempo actual: " + fechaActual);
+            while (!pedidosSemanal.isEmpty() && (fechaActual.isBefore(fechaLimite) || fechaActual.isEqual(fechaLimite)) && !simulacionInterrumpida) {
+                Pedido pedido = pedidosSemanal.get(0);
+                // Voy agregando pedidos a la lista de pedidos
+                if (pedidoConFechaMenorAFechaActual(pedido, fechaActual)) {
+                    pedidosSemanal.remove(0);
+                    pedidosPorAtender.add(pedido);
+                } else {
+                    List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
+                    actualizarEstadoGlobal(fechaActual, pedidosEnviar);
+                    List<Bloqueo> bloqueosActivos = actualizarBloqueos(fechaActual);
+                    System.out.println("------------------------");
+                    System.out.println("Tiempo actual: " + fechaActual);
 
-                if (!pedidosPorAtender.isEmpty()) {
-                    
-                    if (modoStandalone) {
-                        // Modo standalone: ejecutar sin esperar semáforos
-                        try {
-                            AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(), pedidosEnviar);
-                            algoritmoGenetico.ejecutarAlgoritmo();
+                    if (!pedidosPorAtender.isEmpty()) {
+                        
+                        if (modoStandalone) {
+                            // Modo standalone: ejecutar sin esperar semáforos
+                            try {
+                                AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(), pedidosEnviar);
+                                algoritmoGenetico.ejecutarAlgoritmo();
 
-                            IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(),
-                                    pedidosEnviar, bloqueosActivos, fechaActual);
-                            
-                            // Aplicar el estado final de los camiones permanentemente
-                            aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
-                            
-                            // Agregar al historial para el frontend
-                            synchronized (historialSimulacion) {
-                                contadorPaquetes++;
-                                historialSimulacion.add(mejorIndividuoDto);
-                                System.out.println("📦 PAQUETE CONSTRUIDO #" + contadorPaquetes + 
-                                                 " | Tiempo: " + fechaActual + 
-                                                 " | Pedidos: " + pedidosEnviar.size() + 
-                                                 " | Fitness: " + algoritmoGenetico.getMejorIndividuo().getFitness());
+                                IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(),
+                                        pedidosEnviar, bloqueosActivos, fechaActual);
+                                
+                                // Aplicar el estado final de los camiones permanentemente
+                                aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
+                                
+                                // Agregar al historial para el frontend
+                                synchronized (historialSimulacion) {
+                                    contadorPaquetes++;
+                                    historialSimulacion.add(mejorIndividuoDto);
+                                    System.out.println("📦 PAQUETE CONSTRUIDO #" + contadorPaquetes + 
+                                                     " | Tiempo: " + fechaActual + 
+                                                     " | Pedidos: " + pedidosEnviar.size() + 
+                                                     " | Fitness: " + algoritmoGenetico.getMejorIndividuo().getFitness());
+                                }
+                                
+                                gaResultQueue.offer(mejorIndividuoDto);
+                            } catch (Exception e) {
+                                System.err.println("❌ Error en algoritmo genético en tiempo " + fechaActual + ": " + e.getMessage());
+                                e.printStackTrace();
+                                // Continuar con la simulación en lugar de terminar
                             }
-                            
-                            gaResultQueue.offer(mejorIndividuoDto);
-                        } catch (Exception e) {
-                            System.err.println("❌ Error en algoritmo genético en tiempo " + fechaActual + ": " + e.getMessage());
-                            e.printStackTrace();
-                            // Continuar con la simulación en lugar de terminar
+                        } else {
+                            // Modo web interactivo: esperar semáforos
+                            try {
+                                iniciar.acquire();
+                                AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(), pedidosEnviar);
+                                algoritmoGenetico.ejecutarAlgoritmo();
+
+                                IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(),
+                                        pedidosEnviar, bloqueosActivos, fechaActual);
+                                gaResultQueue.offer(mejorIndividuoDto);
+                                continuar.acquire();
+
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                                System.err.println("Error al esperar el disparador del algoritmo genético: " + e.getMessage());
+                                e.printStackTrace();
+                            }
                         }
                     } else {
-                        // Modo web interactivo: esperar semáforos
-                        try {
-                            iniciar.acquire();
-                            AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(), pedidosEnviar);
-                            algoritmoGenetico.ejecutarAlgoritmo();
-
-                            IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(),
-                                    pedidosEnviar, bloqueosActivos, fechaActual);
-                            gaResultQueue.offer(mejorIndividuoDto);
-                            continuar.acquire();
-
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                            System.err.println("Error al esperar el disparador del algoritmo genético: " + e.getMessage());
-                            e.printStackTrace();
-                        }
+                        System.out.println("No hay pedidos por atender en este momento.");
                     }
-                } else {
-                    System.out.println("No hay pedidos por atender en este momento.");
-                }
-                for (Bloqueo bloqueo : bloqueosActivos) {
-                    bloqueo.desactivarBloqueo();
-                }
+                    for (Bloqueo bloqueo : bloqueosActivos) {
+                        bloqueo.desactivarBloqueo();
+                    }
 
-                fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
-                System.out.println("📊 Estado: Pedidos semanales restantes: " + pedidosSemanal.size() + 
-                                 ", Por atender: " + pedidosPorAtender.size() + 
-                                 ", Planificados: " + pedidosPlanificados.size());
+                    fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
+                    System.out.println("📊 Estado: Pedidos semanales restantes: " + pedidosSemanal.size() + 
+                                     ", Por atender: " + pedidosPorAtender.size() + 
+                                     ", Planificados: " + pedidosPlanificados.size());
+                }
             }
-        }
-        
-        // Explicar por qué terminó la simulación
-        if (pedidosSemanal.isEmpty()) {
-            System.out.println("✅ Simulación terminada: Todos los pedidos semanales han sido procesados");
-        } else if (fechaActual.isAfter(fechaLimite)) {
-            System.out.println("⏰ Simulación terminada: Se alcanzó el límite de tiempo (" + fechaLimite + ")");
-            System.out.println("📦 Pedidos semanales no procesados: " + pedidosSemanal.size());
-        }
-        
-        System.out.println("-------------------------");
-        System.out.println("Reporte de la simulación");
-        System.out.println("Fecha final: " + fechaActual);
-        System.out.println("Kilometros recorridos: " + Parametros.kilometrosRecorridos);
-        System.out.println("Fitness global: " + Parametros.fitnessGlobal);
-        System.out.println("Pedidos entregados: " + pedidosEntregados.size());
-        System.out.println("Pedidos pendientes: " + pedidosPorAtender.size());
-        
-        simulacionEnProceso = false;
-        System.out.println("✅ Simulación completada. Total de paquetes generados: " + historialSimulacion.size());
-        
+            // Explicar por qué terminó la simulación
+            if (pedidosSemanal.isEmpty()) {
+                System.out.println("✅ Simulación terminada: Todos los pedidos semanales han sido procesados");
+            } else if (fechaActual.isAfter(fechaLimite)) {
+                System.out.println("⏰ Simulación terminada: Se alcanzó el límite de tiempo (" + fechaLimite + ")");
+                System.out.println("📦 Pedidos semanales no procesados: " + pedidosSemanal.size());
+            }
+            System.out.println("-------------------------");
+            System.out.println("Reporte de la simulación");
+            System.out.println("Fecha final: " + fechaActual);
+            System.out.println("Kilometros recorridos: " + Parametros.kilometrosRecorridos);
+            System.out.println("Fitness global: " + Parametros.fitnessGlobal);
+            System.out.println("Pedidos entregados: " + pedidosEntregados.size());
+            System.out.println("Pedidos pendientes: " + pedidosPorAtender.size());
+            simulacionEnProceso = false;
+            System.out.println("✅ Simulación completada. Total de paquetes generados: " + historialSimulacion.size());
         } catch (Exception e) {
             System.err.println("💥 ERROR CRÍTICO EN LA SIMULACIÓN:");
             System.err.println("Tiempo actual cuando ocurrió el error: " + fechaActual);
             System.err.println("Mensaje de error: " + e.getMessage());
             System.err.println("Tipo de excepción: " + e.getClass().getSimpleName());
             e.printStackTrace();
-            
             System.err.println("\n📊 Estado al momento del error:");
             System.err.println("   • Pedidos semanales restantes: " + (pedidosSemanal != null ? pedidosSemanal.size() : "null"));
             System.err.println("   • Pedidos por atender: " + (pedidosPorAtender != null ? pedidosPorAtender.size() : "null"));
@@ -191,18 +195,21 @@ public class Simulacion {
 
     /**
      * Obtiene el siguiente paquete de la simulación para el frontend
-     * Cada llamada devuelve el siguiente paso en secuencia
+     * Maneja tanto paquetes de recálculo como de continuación normal
      */
     public static IndividuoDto obtenerSiguientePaquete() {
         synchronized (historialSimulacion) {
             if (indiceActualFrontend < historialSimulacion.size()) {
                 IndividuoDto paquete = historialSimulacion.get(indiceActualFrontend);
-                int numeroPaquete = indiceActualFrontend + 1; // +1 porque el índice empieza en 0
+                int numeroPaquete = indiceActualFrontend + 1;
                 indiceActualFrontend++;
+                
+                String tipoPaquete = recalculandoPorAveria ? "[POST-AVERÍA]" : "[CONTINUACIÓN NORMAL]";
                 
                 System.out.println("🔥 PAQUETE CONSUMIDO #" + numeroPaquete + 
                                  " | Tiempo: " + paquete.getFechaHoraSimulacion() + 
-                                 " | Total disponibles: " + historialSimulacion.size());
+                                 " | Total disponibles: " + historialSimulacion.size() +
+                                 " | " + tipoPaquete);
                 
                 return paquete;
             }
@@ -235,6 +242,359 @@ public class Simulacion {
         }
     }
     
+    /**
+     * Obtiene la fecha actual de la simulación
+     */
+    public static LocalDateTime obtenerFechaActual() {
+        return fechaActual;
+    }
+
+    /**
+     * Obtiene la fecha del pedido más antiguo sin despachar
+     */
+    public static LocalDateTime obtenerFechaPedidoMasAntiguo() {
+        LocalDateTime fechaMasAntigua = fechaActual;
+        
+        // Buscar en pedidos por atender
+        for (Pedido pedido : pedidosPorAtender) {
+            if (pedido.getFechaRegistro().isBefore(fechaMasAntigua)) {
+                fechaMasAntigua = pedido.getFechaRegistro();
+            }
+        }
+        
+        // Buscar en pedidos planificados
+        for (Pedido pedido : pedidosPlanificados) {
+            if (pedido.getFechaRegistro().isBefore(fechaMasAntigua)) {
+                fechaMasAntigua = pedido.getFechaRegistro();
+            }
+        }
+        
+        // Buscar en pedidos semanales si los otros están vacíos
+        if (pedidosPorAtender.isEmpty() && pedidosPlanificados.isEmpty() && pedidosSemanal != null) {
+            for (Pedido pedido : pedidosSemanal) {
+                if (pedido.getFechaRegistro().isBefore(fechaMasAntigua)) {
+                    fechaMasAntigua = pedido.getFechaRegistro();
+                }
+            }
+        }
+        
+        // Si aún no encontramos nada, buscar en todos los pedidos del sistema
+        if (fechaMasAntigua.equals(fechaActual) && DataLoader.pedidos != null) {
+            for (Pedido pedido : DataLoader.pedidos) {
+                if (pedido.getFechaRegistro().isBefore(fechaMasAntigua)) {
+                    fechaMasAntigua = pedido.getFechaRegistro();
+                }
+            }
+        }
+        
+        System.out.println("📅 Fecha del pedido más antiguo encontrada: " + fechaMasAntigua);
+        return fechaMasAntigua;
+    }
+
+    /**
+     * Descarta todas las simulaciones anticipadas y genera nueva simulación
+     * desde la fecha especificada hasta la fecha límite
+     */
+    public static boolean recalcularSimulacionPorAveria(
+        LocalDateTime fechaInicio, 
+        LocalDateTime fechaFin, 
+        String codigoCamionAveriado
+    ) {
+        try {
+            System.out.println("🚨 RECÁLCULO POR AVERÍA: Iniciando...");
+            System.out.println("🔄 Rango: " + fechaInicio + " → " + fechaFin);
+            System.out.println("🚛 Camión averiado: " + codigoCamionAveriado);
+            
+            // 1. Activar modo de recálculo
+            recalculandoPorAveria = true;
+            fechaInicioRecalculo = fechaInicio;
+            fechaFinRecalculo = fechaFin;
+            camionAveriado = codigoCamionAveriado;
+            
+            // 2. Limpiar historial de simulaciones anticipadas
+            synchronized (historialSimulacion) {
+                historialSimulacion.clear();
+                indiceActualFrontend = 0;
+                contadorPaquetes = 0;
+                System.out.println("🗑️ Historial de simulaciones anticipadas descartado");
+            }
+            
+            // 3. Restaurar estado de pedidos al momento de la avería
+            restaurarEstadoPedidos(fechaInicio);
+            
+            // 4. Marcar camión como averiado en el estado global
+            marcarCamionAveriado(codigoCamionAveriado);
+            
+            // 5. Generar nueva simulación desde fechaInicio hasta fechaFin
+            generarNuevaSimulacion(fechaInicio, fechaFin);
+            
+            // 6. Verificar que se generó al menos un paquete para el frontend
+            synchronized (historialSimulacion) {
+                if (historialSimulacion.isEmpty()) {
+                    System.out.println("⚠️ RECÁLCULO: No se generaron paquetes, creando paquete vacío para continuar...");
+                    // Crear un paquete vacío para que el frontend pueda continuar
+                    IndividuoDto paqueteVacio = new IndividuoDto(
+                        null, // Sin individuo
+                        new ArrayList<>(), // Sin pedidos
+                        new ArrayList<>(), // Sin bloqueos
+                        fechaActual
+                    );
+                    contadorPaquetes++;
+                    historialSimulacion.add(paqueteVacio);
+                    System.out.println("📦 PAQUETE VACÍO #" + contadorPaquetes + 
+                                     " | Tiempo: " + fechaActual + 
+                                     " | [POST-AVERÍA - VACÍO]");
+                }
+            }
+            
+            // 7. Desactivar modo de recálculo y continuar normalmente
+            recalculandoPorAveria = false;
+            fechaInicioRecalculo = null;
+            fechaFinRecalculo = null;
+            camionAveriado = null;
+            
+            System.out.println("✅ RECÁLCULO COMPLETADO: Nueva simulación generada y modo normal restaurado");
+            return true;
+            
+        } catch (Exception e) {
+            System.err.println("❌ ERROR EN RECÁLCULO: " + e.getMessage());
+            System.err.println("❌ Tipo de excepción: " + e.getClass().getSimpleName());
+            System.err.println("❌ Stack trace completo:");
+            e.printStackTrace();
+            
+            // Restaurar estado en caso de error
+            recalculandoPorAveria = false;
+            fechaInicioRecalculo = null;
+            fechaFinRecalculo = null;
+            camionAveriado = null;
+            
+            return false;
+        }
+    }
+
+    /**
+     * Restaura el estado de pedidos al momento especificado
+     */
+    private static void restaurarEstadoPedidos(LocalDateTime fechaRestauracion) {
+        System.out.println("🔄 Restaurando estado de pedidos a: " + fechaRestauracion);
+        
+        // Limpiar estados actuales
+        pedidosPorAtender.clear();
+        pedidosPlanificados.clear();
+        pedidosEntregados.clear();
+        
+        // Si pedidosSemanal está vacío, intentar recargar desde DataLoader
+        if (pedidosSemanal == null || pedidosSemanal.isEmpty()) {
+            System.out.println("⚠️ pedidosSemanal está vacío, recargando desde DataLoader...");
+            try {
+                // Verificar si DataLoader.pedidos ya está cargado
+                if (DataLoader.pedidos == null || DataLoader.pedidos.isEmpty()) {
+                    DataLoader.initializePedidos();
+                }
+                
+                if (DataLoader.pedidos != null && !DataLoader.pedidos.isEmpty()) {
+                    LocalDateTime fechaFin = fechaActual.plusDays(7);
+                    pedidosSemanal = DataLoader.pedidos.stream()
+                        .filter(pedido -> pedido.getFechaRegistro().isAfter(fechaActual.minusDays(1))
+                                && pedido.getFechaRegistro().isBefore(fechaFin))
+                        .collect(Collectors.toList());
+                    System.out.println("📦 Pedidos recargados: " + pedidosSemanal.size());
+                } else {
+                    System.err.println("❌ No se pudieron cargar pedidos desde DataLoader");
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Error recargando pedidos: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+        
+        // Restaurar pedidos según la fecha
+        if (pedidosSemanal != null) {
+            for (Pedido pedido : pedidosSemanal) {
+                if (pedido.getFechaRegistro().isBefore(fechaRestauracion) || 
+                    pedido.getFechaRegistro().isEqual(fechaRestauracion)) {
+                    
+                    if (pedido.getEstado() == com.plg.entity.EstadoPedido.ENTREGADO) {
+                        pedidosEntregados.add(pedido);
+                    } else if (pedido.getEstado() == com.plg.entity.EstadoPedido.PLANIFICADO) {
+                        pedidosPlanificados.add(pedido);
+                    } else {
+                        pedidosPorAtender.add(pedido);
+                    }
+                }
+            }
+        }
+        
+        System.out.println("📊 Estado restaurado: " + 
+                          pedidosPorAtender.size() + " por atender, " +
+                          pedidosPlanificados.size() + " planificados, " +
+                          pedidosEntregados.size() + " entregados");
+    }
+
+    /**
+     * Marca un camión como averiado en el estado global
+     */
+    private static void marcarCamionAveriado(String codigoCamion) {
+        for (Camion camion : DataLoader.camiones) {
+            if (camion.getCodigo().equals(codigoCamion)) {
+                camion.setEstado(EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA);
+                System.out.println("🚨 Camión " + codigoCamion + " marcado como averiado");
+                break;
+            }
+        }
+    }
+
+    /**
+     * Genera nueva simulación desde fechaInicio hasta fechaFin
+     * y continúa con el flujo normal después
+     */
+    private static void generarNuevaSimulacion(LocalDateTime fechaInicio, LocalDateTime fechaFin) {
+        System.out.println("🚀 Generando nueva simulación...");
+        
+        // Configurar fecha actual para el recálculo
+        LocalDateTime fechaOriginal = fechaActual;
+        fechaActual = fechaInicio;
+        
+        try {
+            // Ejecutar simulación solo para el rango especificado
+            while (fechaActual.isBefore(fechaFin) && !pedidosPorAtender.isEmpty()) {
+                
+                // Procesar pedidos que lleguen en este momento
+                procesarPedidosEnMomento();
+                
+                // Generar solución si hay pedidos por atender
+                if (!pedidosPorAtender.isEmpty()) {
+                    List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
+                    List<Bloqueo> bloqueosActivos = actualizarBloqueos(fechaActual);
+                    
+                    AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(), pedidosEnviar);
+                    algoritmoGenetico.ejecutarAlgoritmo();
+                    
+                    IndividuoDto mejorIndividuoDto = new IndividuoDto(
+                        algoritmoGenetico.getMejorIndividuo(),
+                        pedidosEnviar, 
+                        bloqueosActivos, 
+                        fechaActual
+                    );
+                    
+                    // Agregar al nuevo historial
+                    synchronized (historialSimulacion) {
+                        contadorPaquetes++;
+                        historialSimulacion.add(mejorIndividuoDto);
+                        System.out.println("📦 NUEVO PAQUETE #" + contadorPaquetes + 
+                                         " | Tiempo: " + fechaActual + 
+                                         " | Pedidos: " + pedidosEnviar.size() +
+                                         " | [POST-AVERÍA]");
+                    }
+                    
+                    aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
+                }
+                
+                // Avanzar al siguiente intervalo
+                fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
+            }
+            
+            // IMPORTANTE: Continuar con la simulación normal desde fechaFin
+            System.out.println("🔄 Continuando simulación normal desde: " + fechaFin);
+            continuarSimulacionNormal(fechaFin);
+            
+        } finally {
+            // Restaurar fecha original solo si no estamos en modo recálculo
+            if (!recalculandoPorAveria) {
+                fechaActual = fechaOriginal;
+            }
+        }
+    }
+
+    /**
+     * Continúa la simulación normal desde la fecha especificada
+     * Genera paquetes anticipados como antes
+     */
+    private static void continuarSimulacionNormal(LocalDateTime fechaContinuacion) {
+        System.out.println("🔄 CONTINUACIÓN NORMAL: Generando paquetes anticipados desde " + fechaContinuacion);
+        
+        fechaActual = fechaContinuacion;
+        
+        // Continuar generando paquetes como en el flujo normal
+        while ((!pedidosSemanal.isEmpty() || !pedidosPorAtender.isEmpty()) && fechaActual.isBefore(Parametros.fecha_inicial.plusDays(7))) {
+            
+            // Si hay pedidos semanales, procesarlos primero
+            if (!pedidosSemanal.isEmpty()) {
+                Pedido pedido = pedidosSemanal.get(0);
+                
+                if (pedidoConFechaMenorAFechaActual(pedido, fechaActual)) {
+                    pedidosSemanal.remove(0);
+                    pedidosPorAtender.add(pedido);
+                    continue; // Continuar con el siguiente pedido
+                }
+            }
+            
+            // Si llegamos aquí, procesar los pedidos por atender
+            if (!pedidosPorAtender.isEmpty()) {
+                List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
+                actualizarEstadoGlobal(fechaActual, pedidosEnviar);
+                List<Bloqueo> bloqueosActivos = actualizarBloqueos(fechaActual);
+                
+                try {
+                    AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(), pedidosEnviar);
+                    algoritmoGenetico.ejecutarAlgoritmo();
+
+                    IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(),
+                            pedidosEnviar, bloqueosActivos, fechaActual);
+                    
+                    aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
+                    
+                    // Agregar al historial para el frontend (continuación normal)
+                    synchronized (historialSimulacion) {
+                        contadorPaquetes++;
+                        historialSimulacion.add(mejorIndividuoDto);
+                        System.out.println("📦 PAQUETE CONTINUACIÓN #" + contadorPaquetes + 
+                                         " | Tiempo: " + fechaActual + 
+                                         " | Pedidos: " + pedidosEnviar.size() + 
+                                         " | Fitness: " + algoritmoGenetico.getMejorIndividuo().getFitness() +
+                                         " | [CONTINUACIÓN NORMAL]");
+                    }
+                    
+                } catch (Exception e) {
+                    System.err.println("❌ Error en algoritmo genético en tiempo " + fechaActual + ": " + e.getMessage());
+                    e.printStackTrace();
+                }
+                
+                for (Bloqueo bloqueo : bloqueosActivos) {
+                    bloqueo.desactivarBloqueo();
+                }
+            }
+            
+            // Si no hay pedidos por atender ni semanales, salir del bucle
+            if (pedidosPorAtender.isEmpty() && pedidosSemanal.isEmpty()) {
+                break;
+            }
+
+            fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
+        }
+        
+        System.out.println("✅ CONTINUACIÓN NORMAL: Simulación completada hasta el final");
+    }
+
+    /**
+     * Procesa pedidos que llegan en el momento actual
+     */
+    private static void procesarPedidosEnMomento() {
+        List<Pedido> pedidosParaProcesar = new ArrayList<>();
+        
+        for (Pedido pedido : pedidosSemanal) {
+            if (pedidoConFechaMenorAFechaActual(pedido, fechaActual)) {
+                pedidosParaProcesar.add(pedido);
+            }
+        }
+        
+        // Remover de pedidosSemanal y agregar a pedidosPorAtender
+        for (Pedido pedido : pedidosParaProcesar) {
+            pedidosSemanal.remove(pedido);
+            pedidosPorAtender.add(pedido);
+        }
+    }
+
     // Clase auxiliar para información de la simulación
     public static class SimulacionInfo {
         public final int totalPaquetes;
@@ -589,11 +949,13 @@ public class Simulacion {
     /**
      * Busca un camión por su código en la lista de camiones de DataLoader.
      */
-    private static com.plg.entity.Camion buscarCamionPorCodigo(String codigoCamion) {
-        return DataLoader.camiones.stream()
-                .filter(c -> c.getCodigo().equals(codigoCamion))
-                .findFirst()
-                .orElse(null);
+    public static com.plg.entity.Camion buscarCamionPorCodigo(String codigoCamion) {
+        for (com.plg.entity.Camion camion : com.plg.config.DataLoader.camiones) {
+            if (camion.getCodigo().equals(codigoCamion)) {
+                return camion;
+            }
+        }
+        return null;
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.plg.dto.request;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.plg.entity.Averia;
 import com.plg.entity.Camion;
@@ -35,6 +36,8 @@ public class AveriaRequest {
     private LocalDateTime fechaHoraFinEsperaEnRuta;
     private Boolean estado; // true: activo, false: inactivo
 
+    private List<PosicionCamionDTO> posicionesCamiones;
+
     /**
      * Constructor copia que crea una nueva instancia de AveriaRequest copiando
      * los valores de otra instancia.
@@ -55,6 +58,8 @@ public class AveriaRequest {
         this.tiempoReparacionEstimado = other.tiempoReparacionEstimado;
         this.fechaHoraFinEsperaEnRuta = other.fechaHoraFinEsperaEnRuta;
         this.estado = other.estado;
+
+        this.posicionesCamiones = other.posicionesCamiones;
     }
 
     //Contructor que pasa los campos 
@@ -72,6 +77,21 @@ public class AveriaRequest {
                 .fechaHoraFinEsperaEnRuta(fechaHoraFinEsperaEnRuta)
                 .estado(estado)
                 .build();
+    }
+
+    public List<PosicionCamionDTO> getPosicionesCamiones() {
+        return posicionesCamiones;
+    }
+
+    public void setPosicionesCamiones(List<PosicionCamionDTO> posicionesCamiones) {
+        this.posicionesCamiones = posicionesCamiones;
+    }
+
+    // DTO interno para posición de camión
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
+    public static class PosicionCamionDTO {
+        private String id;
+        private String ubicacion; // formato "(x,y)"
     }
 
 }

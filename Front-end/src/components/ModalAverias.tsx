@@ -1,62 +1,128 @@
-const ModalAverias = () => {
+import React, { useState } from 'react';
+import { useSimulacion } from '../context/SimulacionContext';
+
+interface ModalAveriasProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const ModalAverias: React.FC<ModalAveriasProps> = ({ isOpen, onClose }) => {
+  const { camiones, registrarAveriaConRecalculo } = useSimulacion();
+  const [camionSeleccionado, setCamionSeleccionado] = useState('');
+  const [tipoIncidente, setTipoIncidente] = useState('');
+  const [cargando, setCargando] = useState(false);
+
+  const tiposIncidente = [
+    { value: 'TI1', label: 'Avería Mecánica' },
+    { value: 'TI2', label: 'Avería Eléctrica' },
+    { value: 'TI3', label: 'Avería de Combustible' },
+    // { value: 'TI4', label: 'Avería de Neumáticos' },
+    // { value: 'TI5', label: 'Avería de Sistema de Frenos' },
+  ];
+
+  const camionesDisponibles = camiones.filter(camion => 
+    camion.estado !== 'Averiado' && camion.estado !== 'En Mantenimiento'
+  );
+
+  const handleRegistrarAveria = async () => {
+    if (!camionSeleccionado || !tipoIncidente) {
+      alert('Por favor selecciona un camión y tipo de incidente');
+      return;
+    }
+
+    try {
+      setCargando(true);
+      
+      // Usar la nueva función que incluye recálculo
+      await registrarAveriaConRecalculo(camionSeleccionado, tipoIncidente);
+      
+      // Cerrar modal y mostrar mensaje de éxito
+      onClose();
+      alert("Avería registrada y simulación recalculada exitosamente");
+      
+      // Limpiar formulario
+      setCamionSeleccionado('');
+      setTipoIncidente('');
+      
+    } catch (error) {
+      console.error("Error al registrar avería:", error);
+      alert("Error al registrar avería: " + (error as Error).message);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
   return (
-    <div className="flex w-full max-w-2xl flex-col border-2 rounded-2xl p-6 bg-white shadow-lg">
-      <div className="text-2xl font-bold mb-8 text-gray-800">
-        Registrar Avería
-      </div>
-
-      <div className="mb-6">
-        <label htmlFor="codigoCamion" className="mb-2 text-lg font-medium text-gray-700 block">
-          Código de Camión
-        </label>
-        <div className="relative flex items-center border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500">
-          <span className="absolute left-3 text-gray-500">
-            {/* SVG para el ícono de búsqueda */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </span>
-          <input
-            type="text"
-            id="codigoCamion"
-            className="pl-10 pr-3 py-2 w-full rounded-md focus:outline-none"
-            placeholder="TA01"
-          />
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-96 max-w-md">
+        <h2 className="text-xl font-bold mb-4 text-red-600">
+          🚨 Registrar Avería con Recálculo
+        </h2>
+        
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2">
+            Camión:
+          </label>
+          <select
+            value={camionSeleccionado}
+            onChange={(e) => setCamionSeleccionado(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-md"
+            disabled={cargando}
+          >
+            <option value="">Selecciona un camión</option>
+            {camionesDisponibles.map((camion) => (
+              <option key={camion.id} value={camion.id}>
+                {camion.id} - {camion.tipo} ({camion.estado})
+              </option>
+            ))}
+          </select>
         </div>
-      </div>
 
-      <div className="mb-8">
-        <label htmlFor="tipoIncidente" className="mb-2 text-lg font-medium text-gray-700 block">
-          Tipo de Incidente :
-        </label>
-        <input
-          type="number"
-          id="tipoIncidente"
-          className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-32" // Ancho reducido
-          placeholder="3"
-          min="1" // Puedes ajustar el valor mínimo si es necesario
-        />
-      </div>
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2">
+            Tipo de Incidente:
+          </label>
+          <select
+            value={tipoIncidente}
+            onChange={(e) => setTipoIncidente(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded-md"
+            disabled={cargando}
+          >
+            <option value="">Selecciona tipo de incidente</option>
+            {tiposIncidente.map((tipo) => (
+              <option key={tipo.value} value={tipo.value}>
+                {tipo.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      {/* Botones de acción */}
-      <div className="flex justify-between items-center mt-auto"> {/* mt-auto para empujar hacia abajo */}
-        <button className="px-6 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-200 shadow-md">
-          Cancelar
-        </button>
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 shadow-md">
-          Guardar
-        </button>
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+          <p className="text-sm text-yellow-800">
+            ⚠️ <strong>Importante:</strong> Al registrar esta avería, se descartarán 
+            todas las simulaciones anticipadas y se generará una nueva simulación 
+            optimizada que considere el estado del camión averiado.
+          </p>
+        </div>
+
+        <div className="flex justify-end space-x-2">
+          <button
+            onClick={onClose}
+            disabled={cargando}
+            className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleRegistrarAveria}
+            disabled={cargando || !camionSeleccionado || !tipoIncidente}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {cargando ? 'Procesando...' : 'Registrar Avería'}
+          </button>
+        </div>
       </div>
     </div>
   );

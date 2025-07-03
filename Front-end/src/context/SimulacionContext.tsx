@@ -8,6 +8,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { getMejorIndividuo } from "../services/simulacionApiService";
 import { getAlmacenes } from "../services/almacenApiService";
+import { registrarAveriaConRecalculo as registrarAveriaBackend } from "../services/averiaApiService";
+import { API_URLS } from "../config/api";
 import type {
   Pedido,
   Coordenada,
@@ -106,6 +108,9 @@ interface SimulacionContextType {
   cargando: boolean;
   bloqueos: Bloqueo[];
   marcarCamionAveriado: (camionId: string) => void; // Nueva función para manejar averías
+  registrarAveriaConRecalculo: (camionId: string, tipoIncidente: string) => Promise<void>; // Nueva función para recálculo
+  limpiarSolucionesAnticipadas: () => void;
+  procesandoAveria: boolean;
 }
 
 export interface Bloqueo {
@@ -154,6 +159,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     null,
   );
   const [diaSimulacion, setDiaSimulacion] = useState<number | null>(null);
+  const [procesandoAveria, setProcesandoAveria] = useState(false);
 
   // Cargar almacenes al inicio
   useEffect(() => {
@@ -302,6 +308,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * @description Carga anticipadamente la siguiente solución para transición suave
    */
   const cargarSolucionAnticipada = async () => {
+    if (procesandoAveria) return;
     try {
       console.log("🚀 ANTICIPADA: Cargando solución anticipada en background...");
       type IndividuoConBloqueos = Individuo & { bloqueos?: Bloqueo[], fechaHoraSimulacion?: string };
@@ -318,6 +325,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * @description Aplica una solución previamente cargada para transición suave
    */
   const aplicarSolucionPrecargada = async (data: IndividuoConBloqueos) => {
+    if (procesandoAveria) return;
     try {
       console.log("⚡ TRANSICIÓN: Aplicando solución precargada...");
       
@@ -388,7 +396,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * y recargando datos del backend cuando sea necesario
    */
   const avanzarHora = async () => {
-    if (esperandoActualizacion) return;
+    if (esperandoActualizacion || procesandoAveria) return;
 
     // Verificar si necesitamos solicitar anticipadamente la próxima solución
     const nodosTres4 = Math.floor(NODOS_PARA_ACTUALIZACION * 0.75);
@@ -561,9 +569,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setEsperandoActualizacion(true);
       setCamiones(nuevosCamiones);
       setHoraActual((prev) => prev + 1);
-      
       // Si ya tenemos la solución anticipada cargada, usarla directamente
-      if (proximaSolucionCargada) {
+      if (proximaSolucionCargada && !procesandoAveria) {
         console.log("⚡ TRANSICIÓN: Usando solución anticipada precargada para transición suave");
         await aplicarSolucionPrecargada(proximaSolucionCargada);
       } else {
@@ -624,6 +631,74 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     );
   };
 
+  /**
+   * @function registrarAveriaConRecalculo
+   * @description Registra una avería y descarta simulaciones anticipadas
+   */
+  const registrarAveriaConRecalculo = async (camionId: string, tipoIncidente: string) => {
+    try {
+      setProcesandoAveria(true);
+      setProximaSolucionCargada(null);
+      console.log("🚨 CONTEXTO: Registrando avería con recálculo para camión", camionId);
+      marcarCamionAveriado(camionId);
+      limpiarSolucionesAnticipadas();
+      // Construir lista de posiciones actuales de todos los camiones
+      const posicionesCamiones = camiones.map(c => ({ 
+        id: c.id, 
+        ubicacion: c.ubicacion 
+      }));
+      console.log("📍 CONTEXTO: Enviando posiciones de", posicionesCamiones.length, "camiones al backend");
+      const resultado = await registrarAveriaBackend({
+        codigoCamion: camionId,
+        tipoIncidente: tipoIncidente,
+        descripcion: `Avería registrada desde frontend - ${new Date().toISOString()}`,
+        posicionesCamiones: posicionesCamiones
+      });
+      console.log("✅ CONTEXTO: Recálculo completado:", resultado);
+      
+      // CONSUMO INMEDIATO: Cargar y aplicar el primer paquete del recálculo
+      console.log("⚡ CONTEXTO: Consumiendo inmediatamente el primer paquete del recálculo...");
+      
+      // PRIMERO: Reiniciar el índice de paquetes en el backend para obtener el primer paquete del recálculo
+      try {
+        const reiniciarResponse = await fetch(`${API_URLS.SIMULACION_BASE}/reiniciar`);
+        if (reiniciarResponse.ok) {
+          console.log("🔄 CONTEXTO: Índice de paquetes reiniciado en el backend");
+        }
+      } catch (error) {
+        console.warn("⚠️ CONTEXTO: No se pudo reiniciar el índice de paquetes:", error);
+      }
+      
+      // SEGUNDO: Cargar el primer paquete del recálculo
+      await cargarDatos(true);
+      
+      // Aplicar inmediatamente el primer paquete para continuar la simulación
+      if (rutasCamiones.length > 0) {
+        console.log("🚀 CONTEXTO: Aplicando primer paquete del recálculo para continuar simulación");
+        // Resetear el contador de nodos para que la simulación continúe inmediatamente
+        setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
+        setEsperandoActualizacion(false);
+        setSolicitudAnticipadaEnviada(false);
+      } else {
+        console.log("⚠️ CONTEXTO: No hay paquetes disponibles después del recálculo");
+        setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
+        setEsperandoActualizacion(false);
+        setSolicitudAnticipadaEnviada(false);
+      }
+    } catch (error) {
+      console.error("❌ CONTEXTO: Error en recálculo por avería:", error);
+      throw error;
+    } finally {
+      setProcesandoAveria(false);
+    }
+  };
+
+  const limpiarSolucionesAnticipadas = () => {
+    setProximaSolucionCargada(null);
+    setSolicitudAnticipadaEnviada(false);
+    setEsperandoActualizacion(false);
+  };
+
   return (
     <SimulacionContext.Provider
       value={{
@@ -638,6 +713,9 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         cargando,
         bloqueos,
         marcarCamionAveriado,
+        registrarAveriaConRecalculo,
+        limpiarSolucionesAnticipadas,
+        procesandoAveria,
       }}
     >
       {children}

@@ -36,8 +36,10 @@ public class AlgoritmoGenetico {
     public AlgoritmoGenetico(Mapa mapa, List<Pedido> pedidos) {
         this.mapa = mapa;
         this.pedidos = pedidos;
-        generaciones = 50;
-        poblacionTamano = 200;
+        // Reducir población para evitar problemas de memoria
+        poblacionTamano = Math.min(50, pedidos.size() * 2); // Máximo 50 o 2x pedidos
+        generaciones = Math.min(10, pedidos.size()); // Máximo 10 generaciones o número de pedidos
+        System.out.println("🧬 AG: Configuración optimizada - Población: " + poblacionTamano + ", Generaciones: " + generaciones);
         
 
     }

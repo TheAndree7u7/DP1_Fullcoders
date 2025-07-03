@@ -4,7 +4,6 @@ import type { Coordenada, Pedido } from '../types';
 import almacenCentralIcon from '../assets/almacen_central.svg';
 import almacenIntermedioIcon from '../assets/almacen_intermedio.svg';
 import clienteIcon from '../assets/cliente.svg';
-import { averiarCamionTipo } from '../services/averiaApiService';
 import { toast, Bounce } from 'react-toastify';
 import { CAMION_COLORS, ESTADO_COLORS } from '../config/colors';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -47,7 +46,7 @@ const Mapa = () => {
   const [running, setRunning] = useState(false);
   const [intervalo, setIntervalo] = useState(300);
   const intervalRef = useRef<number | null>(null);
-  const { camiones, rutasCamiones, almacenes, avanzarHora, cargando, bloqueos, marcarCamionAveriado } = useSimulacion();
+  const { camiones, rutasCamiones, almacenes, avanzarHora, cargando, bloqueos, procesandoAveria, registrarAveriaConRecalculo } = useSimulacion();
   // Estado para el tooltip (hover)
   const [tooltipCamion, setTooltipCamion] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{x: number, y: number} | null>(null);
@@ -118,7 +117,7 @@ const Mapa = () => {
   }, [rutasCamiones]);
 
   useEffect(() => {
-    if (running) {
+    if (running && !procesandoAveria) {
       intervalRef.current = window.setInterval(() => {
         avanzarHora();
       }, intervalo);
@@ -128,7 +127,7 @@ const Mapa = () => {
     return () => {
       if (intervalRef.current) window.clearInterval(intervalRef.current);
     };
-  }, [running, intervalo, avanzarHora]);
+  }, [running, procesandoAveria, intervalo, avanzarHora]);
 
   useEffect(() => {
     // Rebuild visuals whenever routes or truck states change
@@ -164,14 +163,9 @@ const Mapa = () => {
   const handleAveriar = async (camionId: string, tipo: number) => {
     setAveriando(camionId + '-' + tipo);
     try {
-      const fechaHoraReporte = new Date().toISOString();
-      await averiarCamionTipo(camionId, tipo, fechaHoraReporte);
-      
-      // Marcar el camión como averiado en el contexto
-      marcarCamionAveriado(camionId);
-      
-      // Mostrar toast de éxito
-      toast.error(`🚛💥 Camión ${camionId} averiado (Tipo ${tipo})`, {
+      const tipoIncidente = `TI${tipo}`;
+      await registrarAveriaConRecalculo(camionId, tipoIncidente);
+      toast.success(`🚨 Camión ${camionId} averiado y simulación recalculada`, {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -182,9 +176,8 @@ const Mapa = () => {
         theme: "light",
         transition: Bounce,
       });
-      
-    } catch {
-      toast.error('❌ Error al averiar el camión', {
+    } catch (error) {
+      toast.error(`❌ Error al registrar avería: ${(error as Error).message}`, {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -528,21 +521,21 @@ const Mapa = () => {
                 <div className="flex flex-col gap-2">
                   <button
                     className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded disabled:opacity-50"
-                    disabled={averiando === clickedCamion + '-1'}
+                    disabled={averiando === clickedCamion + '-1' || procesandoAveria}
                     onClick={() => handleAveriar(clickedCamion, 1)}
                   >
                     {averiando === clickedCamion + '-1' ? 'Averiando...' : 'Avería tipo 1'}
                   </button>
                   <button
                     className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded disabled:opacity-50"
-                    disabled={averiando === clickedCamion + '-2'}
+                    disabled={averiando === clickedCamion + '-2' || procesandoAveria}
                     onClick={() => handleAveriar(clickedCamion, 2)}
                   >
                     {averiando === clickedCamion + '-2' ? 'Averiando...' : 'Avería tipo 2'}
                   </button>
                   <button
                     className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded disabled:opacity-50"
-                    disabled={averiando === clickedCamion + '-3'}
+                    disabled={averiando === clickedCamion + '-3' || procesandoAveria}
                     onClick={() => handleAveriar(clickedCamion, 3)}
                   >
                     {averiando === clickedCamion + '-3' ? 'Averiando...' : 'Avería tipo 3'}
@@ -564,6 +557,7 @@ const Mapa = () => {
         <button
           onClick={() => setRunning(prev => !prev)}
           className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded"
+          disabled={procesandoAveria}
         >
           {running ? 'Pausar' : 'Iniciar'}
         </button>
