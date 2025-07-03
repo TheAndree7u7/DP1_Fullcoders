@@ -274,9 +274,6 @@ public class Simulacion {
                             camionGlobal.setCombustibleActual(camion.getCombustibleActual());
                             camionGlobal.setCapacidadActualGLP(camion.getCapacidadActualGLP());
                             
-                            System.out.println("🚛 POSICIÓN ACTUALIZADA: " + camion.getCodigo() + 
-                                             " → " + nuevaPosicion + 
-                                             " | Combustible: " + String.format("%.2f", camion.getCombustibleActual()));
                             break;
                         }
                     }

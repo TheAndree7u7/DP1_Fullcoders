@@ -31,7 +31,7 @@ public class AlgoritmoGenetico {
     private Mapa mapa;
     private List<Pedido> pedidos;
     private Individuo mejorIndividuo;
-    private final Random random = new Random();
+    private final Random random = new Random(Parametros.semillaAleatoria);
 
     public AlgoritmoGenetico(Mapa mapa, List<Pedido> pedidos) {
         this.mapa = mapa;
