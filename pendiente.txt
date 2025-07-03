@@ -1,0 +1,2 @@
+Falta que cuando llegue un paquete sin rutas, el anterior paquete sepa que debe
+terminar su recorrido solo en el visualizador
