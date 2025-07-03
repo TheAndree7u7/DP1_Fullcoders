@@ -1,1 +1,20 @@
 @import "tailwindcss";
+
+/* Estilos personalizados para el scrollbar de la línea de tiempo */
+.timeline-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.timeline-scroll::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+.timeline-scroll::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.timeline-scroll::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}

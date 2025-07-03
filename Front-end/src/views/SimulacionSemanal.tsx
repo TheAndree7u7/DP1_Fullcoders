@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import Mapa from "../components/Mapa";
 import Navbar from "../components/Navbar";
 import RightMenu from "../components/RightMenu";
-import { ChevronLeft } from "lucide-react";
+import BottomMenu from "../components/BottomMenu";
+import { ChevronLeft, ChevronUp } from "lucide-react";
 import { useSimulacion } from "../context/SimulacionContext";
 
 // Constante que define cuánto tiempo (en segundos) representa cada nodo en la simulación
@@ -10,6 +11,7 @@ const SEGUNDOS_POR_NODO = 36;
 
 const SimulacionSemanal: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
+  const [bottomMenuExpandido, setBottomMenuExpandido] = useState(false);
   const { diaSimulacion, fechaHoraSimulacion, horaActual } = useSimulacion();
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
 
@@ -97,7 +99,9 @@ const SimulacionSemanal: React.FC = () => {
           </div>
         )}
       </div>
-      <div className="flex flex-row flex-1 gap-4 px-4 pb-4 overflow-hidden relative">
+      
+      {/* Contenido principal */}
+      <div className="flex flex-row flex-1 gap-4 px-4 overflow-hidden relative">
         {/* Mapa */}
         <div className={`transition-all duration-300 ${menuExpandido ? "flex-[2]" : "flex-[1]"}`}>
           <div className="bg-white p-4 rounded-xl overflow-auto w-full h-full">
@@ -120,6 +124,22 @@ const SimulacionSemanal: React.FC = () => {
             <ChevronLeft size={16} />
           </button>
         )}
+      </div>
+
+      {/* Botón flotante para mostrar menú inferior */}
+      {!bottomMenuExpandido && (
+        <button
+          onClick={() => setBottomMenuExpandido(true)}
+          className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-20 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg p-3 transition-all duration-200"
+          title="Mostrar ruta del camión"
+        >
+          <ChevronUp size={20} />
+        </button>
+      )}
+
+      {/* Menú inferior */}
+      <div className="fixed bottom-0 left-0 right-0 z-30">
+        <BottomMenu expanded={bottomMenuExpandido} setExpanded={setBottomMenuExpandido} />
       </div>
     </div>
   );
