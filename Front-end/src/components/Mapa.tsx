@@ -55,7 +55,7 @@ const Mapa = () => {
   const [running, setRunning] = useState(false);
   const [intervalo, setIntervalo] = useState(300);
   const intervalRef = useRef<number | null>(null);
-  const { camiones, rutasCamiones, almacenes, avanzarHora, cargando, bloqueos, marcarCamionAveriado, actualizarAlmacenes } = useSimulacion();
+  const { camiones, rutasCamiones, almacenes, avanzarHora, cargando, bloqueos, marcarCamionAveriado, actualizarAlmacenes, iniciarContadorTiempo } = useSimulacion();
   // Estado para el tooltip (hover)
   const [tooltipCamion, setTooltipCamion] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{x: number, y: number} | null>(null);
@@ -757,7 +757,13 @@ const Mapa = () => {
       {/* Controles del mapa */}
       <div className="flex items-center gap-4 mt-2 justify-center">
         <button
-          onClick={() => setRunning(prev => !prev)}
+          onClick={() => {
+            if (!running) {
+              // Solo iniciar el contador cuando se presiona "Iniciar" por primera vez
+              iniciarContadorTiempo();
+            }
+            setRunning(prev => !prev);
+          }}
           className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded"
         >
           {running ? 'Pausar' : 'Iniciar'}

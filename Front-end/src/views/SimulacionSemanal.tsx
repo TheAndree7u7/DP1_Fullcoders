@@ -83,7 +83,7 @@ const SimulacionSemanal: React.FC = () => {
               <span className="font-bold text-blue-300">{fechaSimulada}</span>
             </div>
             <div>
-              <span className="mr-2">Hora en tiempo real:</span>
+              <span className="mr-2">Hora de la simulacion:</span>
               <span className="font-bold text-blue-300">{horaRealSimulada}</span>
             </div>
             <div>

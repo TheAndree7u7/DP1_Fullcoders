@@ -98,8 +98,10 @@ interface SimulacionContextType {
   almacenes: Almacen[];
   fechaHoraSimulacion: string | null; // Fecha y hora de la simulación del backend
   diaSimulacion: number | null; // Día extraído de fechaHoraSimulacion
+  tiempoRealSimulacion: string; // Tiempo real transcurrido desde el inicio de la simulación
   avanzarHora: () => void;
   reiniciar: () => void;
+  iniciarContadorTiempo: () => void; // Nueva función para iniciar el contador manualmente
   cargando: boolean;
   bloqueos: Bloqueo[];
   marcarCamionAveriado: (camionId: string) => void; // Nueva función para manejar averías
@@ -150,6 +152,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     null,
   );
   const [diaSimulacion, setDiaSimulacion] = useState<number | null>(null);
+  const [tiempoRealSimulacion, setTiempoRealSimulacion] = useState<string>("00:00:00");
+  const [inicioSimulacion, setInicioSimulacion] = useState<Date | null>(null);
 
   // Cargar almacenes al inicio
   useEffect(() => {
@@ -157,6 +161,25 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     cargarAlmacenes();
     cargarDatos(true);
   }, []);
+
+  // Contador de tiempo real de la simulación
+  useEffect(() => {
+    if (!inicioSimulacion) return;
+
+    const interval = setInterval(() => {
+      const ahora = new Date();
+      const diferencia = ahora.getTime() - inicioSimulacion.getTime();
+      const segundos = Math.floor(diferencia / 1000);
+      const horas = Math.floor(segundos / 3600);
+      const minutos = Math.floor((segundos % 3600) / 60);
+      const segs = segundos % 60;
+      
+      const tiempoFormateado = `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segs.toString().padStart(2, '0')}`;
+      setTiempoRealSimulacion(tiempoFormateado);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [inicioSimulacion]);
 
   // Función para actualizar almacenes (útil para refrescar capacidades)
   const actualizarAlmacenes = async () => {
@@ -192,7 +215,9 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * @param {boolean} esInicial - Indica si es la carga inicial
    */
   const cargarDatos = async (esInicial: boolean = false) => {
-    if (esInicial) setCargando(true);
+    if (esInicial) {
+      setCargando(true);
+    }
     try {
       console.log(
         "🔄 SOLICITUD: Iniciando solicitud de nueva solución al servidor...",
@@ -606,6 +631,21 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     setEsperandoActualizacion(false);
     setSolicitudAnticipadaEnviada(false);
     setProximaSolucionCargada(null);
+    
+    // Reiniciar el contador de tiempo real
+    setInicioSimulacion(new Date());
+    setTiempoRealSimulacion("00:00:00");
+    console.log("⏱️ CONTADOR: Reiniciando contador de tiempo real de simulación...");
+  };
+
+  /**
+   * @function iniciarContadorTiempo
+   * @description Inicia el contador de tiempo real de la simulación
+   */
+  const iniciarContadorTiempo = () => {
+    setInicioSimulacion(new Date());
+    setTiempoRealSimulacion("00:00:00");
+    console.log("⏱️ CONTADOR: Iniciando contador de tiempo real de simulación...");
   };
 
   /**
@@ -632,8 +672,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         almacenes,
         fechaHoraSimulacion,
         diaSimulacion,
+        tiempoRealSimulacion,
         avanzarHora,
         reiniciar,
+        iniciarContadorTiempo,
         cargando,
         bloqueos,
         marcarCamionAveriado,

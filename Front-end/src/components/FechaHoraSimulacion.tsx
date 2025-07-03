@@ -145,7 +145,7 @@ const FechaHoraSimulacion: React.FC = () => {
             <span style={styles.destacado}>{diaSimulado}</span>
           </div>
           <div>
-            <span style={styles.etiqueta}>Hora en tiempo real: </span>
+            <span style={styles.etiqueta}>Hora de la simulacion: </span>
             <span style={styles.destacado}>{horaSimulada}</span>
           </div>
         </div>
