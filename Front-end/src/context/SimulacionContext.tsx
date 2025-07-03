@@ -99,6 +99,8 @@ interface SimulacionContextType {
   fechaHoraSimulacion: string | null; // Fecha y hora de la simulación del backend
   diaSimulacion: number | null; // Día extraído de fechaHoraSimulacion
   tiempoRealSimulacion: string; // Tiempo real transcurrido desde el inicio de la simulación
+  simulacionActiva: boolean; // Indica si la simulación está activa (contador funcionando)
+  horaSimulacion: string; // Hora actual dentro de la simulación (HH:MM:SS)
   avanzarHora: () => void;
   reiniciar: () => void;
   iniciarContadorTiempo: () => void; // Nueva función para iniciar el contador manualmente
@@ -154,6 +156,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [diaSimulacion, setDiaSimulacion] = useState<number | null>(null);
   const [tiempoRealSimulacion, setTiempoRealSimulacion] = useState<string>("00:00:00");
   const [inicioSimulacion, setInicioSimulacion] = useState<Date | null>(null);
+  const [simulacionActiva, setSimulacionActiva] = useState<boolean>(false);
+  const [horaSimulacion, setHoraSimulacion] = useState<string>("00:00:00");
 
   // Cargar almacenes al inicio
   useEffect(() => {
@@ -166,6 +170,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (!inicioSimulacion) return;
 
+    console.log("⏱️ CONTADOR: Iniciando useEffect del contador con fecha:", inicioSimulacion);
+
     const interval = setInterval(() => {
       const ahora = new Date();
       const diferencia = ahora.getTime() - inicioSimulacion.getTime();
@@ -176,10 +182,47 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       
       const tiempoFormateado = `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segs.toString().padStart(2, '0')}`;
       setTiempoRealSimulacion(tiempoFormateado);
+      
+      // Log cada 10 segundos para debuggear
+      if (segundos % 10 === 0) {
+        console.log("⏱️ CONTADOR: Tiempo transcurrido:", tiempoFormateado);
+      }
     }, 1000);
 
     return () => clearInterval(interval);
   }, [inicioSimulacion]);
+
+  // Calcular la hora de simulación basado en fechaHoraSimulacion y horaActual
+  useEffect(() => {
+    if (fechaHoraSimulacion && horaActual >= 0) {
+      const fechaBase = new Date(fechaHoraSimulacion);
+      
+      // Número total de nodos para una actualización completa (cada 2 horas)
+      const NODOS_POR_ACTUALIZACION = 100;
+      const HORAS_POR_ACTUALIZACION = 2;
+      
+      // Calculamos qué nodo estamos dentro del ciclo actual (0-99)
+      const nodoEnCicloActual = horaActual % NODOS_POR_ACTUALIZACION;
+      
+      // Calculamos el avance por nodo (segundos totales de 2 horas divididos por nodos totales)
+      const segundosPorNodo = (HORAS_POR_ACTUALIZACION * 60 * 60) / NODOS_POR_ACTUALIZACION;
+      
+      // Calculamos segundos adicionales solo para el incremento local dentro del ciclo actual
+      const segundosAdicionales = nodoEnCicloActual * segundosPorNodo;
+      
+      // Crea nueva fecha sumando los segundos
+      const nuevaFecha = new Date(fechaBase.getTime() + segundosAdicionales * 1000);
+      
+      // Formatear solo la hora
+      const horaFormateada = nuevaFecha.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      
+      setHoraSimulacion(horaFormateada);
+    }
+  }, [horaActual, fechaHoraSimulacion]);
 
   // Función para actualizar almacenes (útil para refrescar capacidades)
   const actualizarAlmacenes = async () => {
@@ -633,8 +676,9 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     setProximaSolucionCargada(null);
     
     // Reiniciar el contador de tiempo real
-    setInicioSimulacion(new Date());
+    setInicioSimulacion(null);
     setTiempoRealSimulacion("00:00:00");
+    setSimulacionActiva(false);
     console.log("⏱️ CONTADOR: Reiniciando contador de tiempo real de simulación...");
   };
 
@@ -645,6 +689,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const iniciarContadorTiempo = () => {
     setInicioSimulacion(new Date());
     setTiempoRealSimulacion("00:00:00");
+    setSimulacionActiva(true);
     console.log("⏱️ CONTADOR: Iniciando contador de tiempo real de simulación...");
   };
 
@@ -673,6 +718,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         fechaHoraSimulacion,
         diaSimulacion,
         tiempoRealSimulacion,
+        simulacionActiva,
+        horaSimulacion,
         avanzarHora,
         reiniciar,
         iniciarContadorTiempo,

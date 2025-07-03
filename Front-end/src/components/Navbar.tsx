@@ -7,7 +7,7 @@ import { useSimulacion } from "../context/SimulacionContext";
 const Navbar: React.FC = () => {
   const [, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { tiempoRealSimulacion, diaSimulacion } = useSimulacion();
+  const { tiempoRealSimulacion, diaSimulacion, horaSimulacion } = useSimulacion();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -28,7 +28,9 @@ const Navbar: React.FC = () => {
       <div className="flex items-center space-x-8">
         <img src={logo} alt="logo" className="w-[24px] h-[24p]" />
         <div className="font-bold text-[14px] text-[#1890FF]">GLPSoft</div>
-        <div className="text-black font-bold text-xl">Ejecución semanal</div>
+        <div className="text-black font-bold text-xl">
+          Ejecución Semanal {diaSimulacion && `- Día ${diaSimulacion}`} {horaSimulacion && `(${horaSimulacion})`}
+        </div>
       </div>
       
       <div className="flex items-center space-x-4">
