@@ -32,14 +32,22 @@ const parseCoord = (s: string): Coordenada => {
   return { x: parseInt(match[1]), y: parseInt(match[2]) };
 };
 
-const calcularRotacion = (prev: Coordenada, next: Coordenada): number => {
-  const dx = next.x - prev.x;
-  const dy = next.y - prev.y;
-  if (dx === 1) return 0;
-  if (dx === -1) return 180;
-  if (dy === 1) return 90;
-  if (dy === -1) return 270;
-  return 0;
+const calcularRotacion = (from: Coordenada, to: Coordenada): number => {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  
+  // Si no hay movimiento, mantener la rotación actual (hacia la derecha por defecto)
+  if (dx === 0 && dy === 0) return 0;
+  
+  // Determinar la dirección basada en el movimiento
+  // En SVG, y+ es hacia abajo, y- es hacia arriba
+  if (Math.abs(dx) > Math.abs(dy)) {
+    // Movimiento principalmente horizontal
+    return dx > 0 ? 0 : 180; // Derecha : Izquierda
+  } else {
+    // Movimiento principalmente vertical  
+    return dy > 0 ? 90 : 270; // Abajo : Arriba
+  }
 };
 
 const Mapa = () => {
@@ -136,14 +144,24 @@ const Mapa = () => {
       rutasCamiones.map((info, idx) => {
         const rutaCoords = info.ruta.map(parseCoord);
         const estadoCamion = camiones.find(c => c.id === info.id);
-        // Determine current and previous positions
+        // Determine current position and direction
         const currentPos = estadoCamion ? parseCoord(estadoCamion.ubicacion) : rutaCoords[0];
-        let prevPos = rutaCoords[0];
-        if (estadoCamion && estadoCamion.porcentaje > 0) {
-          const prevIdx = Math.min(rutaCoords.length - 1, Math.floor(estadoCamion.porcentaje));
-          prevPos = rutaCoords[prevIdx];
+        let rotacion = 0;
+        
+        if (estadoCamion && rutaCoords.length > 1) {
+          const porcentaje = estadoCamion.porcentaje;
+          const currentIdx = Math.floor(porcentaje);
+          
+          // Si hay un siguiente nodo en la ruta, calcular dirección hacia él
+          if (currentIdx + 1 < rutaCoords.length) {
+            const nextPos = rutaCoords[currentIdx + 1];
+            rotacion = calcularRotacion(currentPos, nextPos);
+          } else if (currentIdx > 0) {
+            // Si estamos en el último nodo, usar la dirección del último movimiento
+            const prevPos = rutaCoords[currentIdx - 1];
+            rotacion = calcularRotacion(prevPos, currentPos);
+          }
         }
-        const rot = calcularRotacion(prevPos, currentPos);
         // Compute remaining path
         const porcentaje = estadoCamion ? estadoCamion.porcentaje : 0;
         const idxRest = Math.ceil(porcentaje);
@@ -153,7 +171,7 @@ const Mapa = () => {
           color: CAMION_COLORS[idx % CAMION_COLORS.length],
           ruta: rutaRestante,
           posicion: currentPos,
-          rotacion: rot
+          rotacion: rotacion
         } as CamionVisual;
       })
     );
@@ -240,10 +258,14 @@ const Mapa = () => {
               
               {/* Camión */}
               <div className="flex items-center gap-1.5">
-                <div className="w-4 h-3 bg-blue-500 rounded-sm border border-gray-400 relative">
-                  <div className="absolute -bottom-0.5 left-0.5 w-0.5 h-0.5 bg-black rounded-full"></div>
-                  <div className="absolute -bottom-0.5 right-0.5 w-0.5 h-0.5 bg-black rounded-full"></div>
-                </div>
+                <svg width="16" height="12" viewBox="0 0 16 12" className="border border-gray-300 rounded">
+                  <rect x="2" y="4" width="10" height="4" rx="0.5" fill="#3b82f6" stroke="black" strokeWidth="0.3" />
+                  <rect x="10" y="5" width="3" height="2" rx="0.3" fill="#3b82f6" stroke="black" strokeWidth="0.3" />
+                  <circle cx="4" cy="9" r="1" fill="black" />
+                  <circle cx="8" cy="9" r="1" fill="black" />
+                  <circle cx="11" cy="9" r="1" fill="black" />
+                  <polygon points="13,6 12,5.5 12,6.5" fill="white" stroke="black" strokeWidth="0.2" />
+                </svg>
                 <span className="text-xs text-gray-700">Camión</span>
               </div>
               
@@ -430,11 +452,31 @@ const Mapa = () => {
                        }
                      }}
                    >
-                     <rect x={-6} y={-4} width={12} height={8} rx={2} fill={colorFinal} stroke="black" strokeWidth={0.5} />
-                     <circle cx={-4} cy={5} r={1.5} fill="black" />
-                     <circle cx={4} cy={5} r={1.5} fill="black" />
+                     {/* Cuerpo principal del camión */}
+                     <rect x={-8} y={-3} width={16} height={6} rx={1} fill={colorFinal} stroke="black" strokeWidth={0.5} />
+                     
+                     {/* Cabina del camión (frente) */}
+                     <rect x={6} y={-2} width={4} height={4} rx={0.5} fill={colorFinal} stroke="black" strokeWidth={0.5} />
+                     
+                     {/* Ruedas */}
+                     <circle cx={-5} cy={4} r={1.5} fill="black" />
+                     <circle cx={2} cy={4} r={1.5} fill="black" />
+                     <circle cx={7} cy={4} r={1.5} fill="black" />
+                     
+                     {/* Indicador de dirección (flecha) */}
+                     <polygon 
+                       points="10,0 8,-1.5 8,1.5" 
+                       fill="white" 
+                       stroke="black" 
+                       strokeWidth={0.3}
+                     />
+                     
+                     {/* Líneas de detalle del camión */}
+                     <line x1={-6} y1={-1} x2={4} y2={-1} stroke="black" strokeWidth={0.3} opacity={0.6} />
+                     <line x1={-6} y1={1} x2={4} y2={1} stroke="black" strokeWidth={0.3} opacity={0.6} />
+                     
                      {esAveriado && (
-                       <text x={0} y={-8} textAnchor="middle" fontSize="8" fill="#dc2626" fontWeight="bold">
+                       <text x={0} y={-10} textAnchor="middle" fontSize="8" fill="#dc2626" fontWeight="bold">
                          💥
                        </text>
                      )}
