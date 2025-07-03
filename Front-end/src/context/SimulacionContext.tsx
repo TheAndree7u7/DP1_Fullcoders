@@ -110,6 +110,13 @@ export interface Bloqueo {
   coordenadas: Coordenada[];
 }
 
+// Tipo para la solución precargada
+type IndividuoConBloqueos = Individuo & {
+  bloqueos?: Bloqueo[];
+  almacenes?: Almacen[];
+  fechaHoraSimulacion?: string;
+};
+
 // Creación del contexto con valor inicial undefined
 const SimulacionContext = createContext<SimulacionContextType | undefined>(
   undefined,
@@ -137,7 +144,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [solicitudAnticipadaEnviada, setSolicitudAnticipadaEnviada] =
     useState<boolean>(false);
   const [proximaSolucionCargada, setProximaSolucionCargada] =
-    useState<any>(null);
+    useState<IndividuoConBloqueos | null>(null);
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
   const [fechaHoraSimulacion, setFechaHoraSimulacion] = useState<string | null>(
     null,
@@ -190,11 +197,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log(
         "🔄 SOLICITUD: Iniciando solicitud de nueva solución al servidor...",
       );
-      type IndividuoConBloqueos = Individuo & {
-        bloqueos?: Bloqueo[];
-        almacenes?: Almacen[];
-        fechaHoraSimulacion?: string;
-      };
       const data = (await getMejorIndividuo()) as IndividuoConBloqueos;
       console.log(
         "✅ RESPUESTA: Datos de nueva solución recibidos del servidor:",
@@ -310,7 +312,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const cargarSolucionAnticipada = async () => {
     try {
       console.log("🚀 ANTICIPADA: Cargando solución anticipada en background...");
-      type IndividuoConBloqueos = Individuo & { bloqueos?: Bloqueo[], almacenes?: Almacen[], fechaHoraSimulacion?: string };
       const data = await getMejorIndividuo() as IndividuoConBloqueos;
       console.log("✨ ANTICIPADA: Solución anticipada cargada y lista:", data);
       setProximaSolucionCargada(data);
@@ -323,7 +324,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * @function aplicarSolucionPrecargada
    * @description Aplica una solución previamente cargada para transición suave
    */
-  const aplicarSolucionPrecargada = async (data: any) => {
+  const aplicarSolucionPrecargada = async (data: IndividuoConBloqueos) => {
     try {
       console.log("⚡ TRANSICIÓN: Aplicando solución precargada...");
       
