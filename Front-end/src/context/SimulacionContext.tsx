@@ -5,11 +5,24 @@
  * el estado de los camiones y sus rutas, y la sincronización con el backend.
  */
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { getMejorIndividuo } from '../services/simulacionApiService';
-import { getAlmacenes } from '../services/almacenApiService';
-import type { Pedido, Coordenada, Individuo, Gen, Nodo, Camion, Almacen } from '../types';
-import { calcularPesoCarga, calcularPesoCombinado, calcularConsumoGalones, calcularDistanciaMaxima } from '../types';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { getMejorIndividuo } from "../services/simulacionApiService";
+import { getAlmacenes } from "../services/almacenApiService";
+import type {
+  Pedido,
+  Coordenada,
+  Individuo,
+  Gen,
+  Nodo,
+  Camion,
+  Almacen,
+} from "../types";
+import {
+  calcularPesoCarga,
+  calcularPesoCombinado,
+  calcularConsumoGalones,
+  calcularDistanciaMaxima,
+} from "../types";
 
 /**
  * Constantes de configuración de la simulación
@@ -17,8 +30,8 @@ import { calcularPesoCarga, calcularPesoCombinado, calcularConsumoGalones, calcu
 const HORA_INICIAL = 0;
 const HORA_PRIMERA_ACTUALIZACION = 1;
 const NODOS_PARA_ACTUALIZACION = 100;
-//aca 100 nodos significan 2h de tiempo entonces cada nodo 
-// representa 1.2 minutos de tiempo real, lo que es un valor razonable para simular el avance 
+//aca 100 nodos significan 2h de tiempo entonces cada nodo
+// representa 1.2 minutos de tiempo real, lo que es un valor razonable para simular el avance
 
 const INCREMENTO_PORCENTAJE = 1;
 
@@ -34,12 +47,17 @@ export interface CamionEstado {
   id: string;
   ubicacion: string; // "(x,y)"
   porcentaje: number;
-  estado: 'En Camino' | 'Entregado' | 'Averiado' | 'En Mantenimiento' | 'Disponible';
+  estado:
+    | "En Camino"
+    | "Entregado"
+    | "Averiado"
+    | "En Mantenimiento"
+    | "Disponible";
   capacidadActualGLP: number;
-  capacidadMaximaGLP: number;  
+  capacidadMaximaGLP: number;
   combustibleActual: number;
   combustibleMaximo: number;
-  distanciaMaxima: number; 
+  distanciaMaxima: number;
   pesoCarga: number;
   pesoCombinado: number;
   tara: number;
@@ -92,7 +110,9 @@ export interface Bloqueo {
 }
 
 // Creación del contexto con valor inicial undefined
-const SimulacionContext = createContext<SimulacionContextType | undefined>(undefined);
+const SimulacionContext = createContext<SimulacionContextType | undefined>(
+  undefined,
+);
 
 /**
  * @component SimulacionProvider
@@ -100,22 +120,32 @@ const SimulacionContext = createContext<SimulacionContextType | undefined>(undef
  * @param {Object} props - Propiedades del componente
  * @param {React.ReactNode} props.children - Componentes hijos que tendrán acceso al contexto
  */
-export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   // Estados del contexto
   const [horaActual, setHoraActual] = useState<number>(HORA_INICIAL);
   const [camiones, setCamiones] = useState<CamionEstado[]>([]);
   const [rutasCamiones, setRutasCamiones] = useState<RutaCamion[]>([]);
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [cargando, setCargando] = useState<boolean>(true);
-  const [nodosRestantesAntesDeActualizar, setNodosRestantesAntesDeActualizar] = useState<number>(NODOS_PARA_ACTUALIZACION);
-  const [esperandoActualizacion, setEsperandoActualizacion] = useState<boolean>(false);
+  const [nodosRestantesAntesDeActualizar, setNodosRestantesAntesDeActualizar] =
+    useState<number>(NODOS_PARA_ACTUALIZACION);
+  const [esperandoActualizacion, setEsperandoActualizacion] =
+    useState<boolean>(false);
+  const [solicitudAnticipadaEnviada, setSolicitudAnticipadaEnviada] =
+    useState<boolean>(false);
+  const [proximaSolucionCargada, setProximaSolucionCargada] =
+    useState<any>(null);
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
-  const [fechaHoraSimulacion, setFechaHoraSimulacion] = useState<string | null>(null);
+  const [fechaHoraSimulacion, setFechaHoraSimulacion] = useState<string | null>(
+    null,
+  );
   const [diaSimulacion, setDiaSimulacion] = useState<number | null>(null);
 
   // Cargar almacenes al inicio
   useEffect(() => {
-    console.log('🚀 CONTEXTO: Montando contexto y cargando almacenes...');
+    console.log("🚀 CONTEXTO: Montando contexto y cargando almacenes...");
     cargarAlmacenes();
     cargarDatos(true);
   }, []);
@@ -132,7 +162,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       setAlmacenes(data);
       //console.log('💾 ALMACENES: Estado actualizado con', data.length, 'almacenes');
     } catch (error) {
-      console.error('❌ ALMACENES: Error al cargar almacenes:', error);
+      console.error("❌ ALMACENES: Error al cargar almacenes:", error);
     }
   };
 
@@ -144,15 +174,142 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const cargarDatos = async (esInicial: boolean = false) => {
     if (esInicial) setCargando(true);
     try {
-      console.log("Iniciando solicitud al servidor...");
-      type IndividuoConBloqueos = Individuo & { bloqueos?: Bloqueo[], fechaHoraSimulacion?: string };
-      const data = await getMejorIndividuo() as IndividuoConBloqueos;
-      console.log("Datos recibidos:", data);
+      console.log(
+        "🔄 SOLICITUD: Iniciando solicitud de nueva solución al servidor...",
+      );
+      type IndividuoConBloqueos = Individuo & {
+        bloqueos?: Bloqueo[];
+        fechaHoraSimulacion?: string;
+      };
+      const data = (await getMejorIndividuo()) as IndividuoConBloqueos;
+      console.log(
+        "✅ RESPUESTA: Datos de nueva solución recibidos del servidor:",
+        data,
+      );
 
       // Actualizar fecha y hora de la simulación
       if (data.fechaHoraSimulacion) {
         setFechaHoraSimulacion(data.fechaHoraSimulacion);
         // Extraer el día de la fecha
+        const fecha = new Date(data.fechaHoraSimulacion);
+        setDiaSimulacion(fecha.getDate());
+        console.log(
+          "Fecha de simulación actualizada:",
+          data.fechaHoraSimulacion,
+          "Día:",
+          fecha.getDate(),
+        );
+      }
+
+      const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => ({
+        id: gen.camion.codigo,
+        ruta: gen.nodos.map(
+          (n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`,
+        ),
+        puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
+        pedidos: gen.pedidos,
+      }));
+
+      // Log para verificar los pedidos que llegan del backend
+      console.log("🔍 Verificando pedidos en las rutas:");
+      nuevasRutas.forEach((ruta) => {
+        if (ruta.pedidos && ruta.pedidos.length > 0) {
+          console.log(
+            `Camión ${ruta.id} tiene ${ruta.pedidos.length} pedidos:`,
+            ruta.pedidos,
+          );
+          ruta.pedidos.forEach((pedido, index) => {
+            console.log(`  Pedido ${index + 1}:`, {
+              codigo: pedido.codigo,
+              coordenada: pedido.coordenada,
+              volumenGLPAsignado: pedido.volumenGLPAsignado,
+              estado: pedido.estado,
+            });
+          });
+        } else {
+          console.log(`Camión ${ruta.id} no tiene pedidos asignados`);
+        }
+      });
+
+      setRutasCamiones(nuevasRutas);
+      console.log(
+        "📋 ACTUALIZACIÓN: Rutas de camiones actualizadas en el mapa con",
+        nuevasRutas.length,
+        "camiones",
+      );
+
+      const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
+        const anterior = camiones.find((c) => c.id === ruta.id);
+        // Buscar el gen correspondiente para obtener los datos completos del camión
+        const gen = data.cromosoma.find(
+          (g: Gen) => g.camion.codigo === ruta.id,
+        );
+        const camion = gen?.camion;
+        const ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
+        return {
+          id: ruta.id,
+          ubicacion,
+          porcentaje: 0,
+          estado: camion?.estado === "DISPONIBLE" ? "Disponible" : "En Camino",
+          capacidadActualGLP: camion?.capacidadActualGLP ?? 0,
+          capacidadMaximaGLP: camion?.capacidadMaximaGLP ?? 0,
+          combustibleActual: camion?.combustibleActual ?? 0,
+          combustibleMaximo: camion?.combustibleMaximo ?? 0,
+          distanciaMaxima: camion?.distanciaMaxima ?? 0,
+          pesoCarga: camion?.pesoCarga ?? 0,
+          pesoCombinado: camion?.pesoCombinado ?? 0,
+          tara: camion?.tara ?? 0,
+          tipo: camion?.tipo ?? "",
+          velocidadPromedio: camion?.velocidadPromedio ?? 0,
+        };
+      });
+
+      setCamiones(nuevosCamiones);
+      // Extraer bloqueos si existen
+      if (data.bloqueos) {
+        setBloqueos(data.bloqueos);
+      } else {
+        setBloqueos([]);
+      }
+      if (esInicial) setHoraActual(HORA_PRIMERA_ACTUALIZACION);
+      setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
+      setEsperandoActualizacion(false);
+      setSolicitudAnticipadaEnviada(false);
+      setProximaSolucionCargada(null);
+    } catch (error) {
+      console.error("Error al cargar datos de simulación:", error);
+    } finally {
+      if (esInicial) setCargando(false);
+    }
+  };
+
+  /**
+   * @function cargarSolucionAnticipada
+   * @description Carga anticipadamente la siguiente solución para transición suave
+   */
+  const cargarSolucionAnticipada = async () => {
+    try {
+      console.log("🚀 ANTICIPADA: Cargando solución anticipada en background...");
+      type IndividuoConBloqueos = Individuo & { bloqueos?: Bloqueo[], fechaHoraSimulacion?: string };
+      const data = await getMejorIndividuo() as IndividuoConBloqueos;
+      console.log("✨ ANTICIPADA: Solución anticipada cargada y lista:", data);
+      setProximaSolucionCargada(data);
+    } catch (error) {
+      console.error("⚠️ ANTICIPADA: Error al cargar solución anticipada:", error);
+    }
+  };
+
+  /**
+   * @function aplicarSolucionPrecargada
+   * @description Aplica una solución previamente cargada para transición suave
+   */
+  const aplicarSolucionPrecargada = async (data: any) => {
+    try {
+      console.log("⚡ TRANSICIÓN: Aplicando solución precargada...");
+      
+      // Actualizar fecha y hora de la simulación
+      if (data.fechaHoraSimulacion) {
+        setFechaHoraSimulacion(data.fechaHoraSimulacion);
         const fecha = new Date(data.fechaHoraSimulacion);
         setDiaSimulacion(fecha.getDate());
         console.log("Fecha de simulación actualizada:", data.fechaHoraSimulacion, "Día:", fecha.getDate());
@@ -165,29 +322,11 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         pedidos: gen.pedidos,
       }));
 
-      // Log para verificar los pedidos que llegan del backend
-      console.log("🔍 Verificando pedidos en las rutas:");
-      nuevasRutas.forEach(ruta => {
-        if (ruta.pedidos && ruta.pedidos.length > 0) {
-          console.log(`Camión ${ruta.id} tiene ${ruta.pedidos.length} pedidos:`, ruta.pedidos);
-          ruta.pedidos.forEach((pedido, index) => {
-            console.log(`  Pedido ${index + 1}:`, {
-              codigo: pedido.codigo,
-              coordenada: pedido.coordenada,
-              volumenGLPAsignado: pedido.volumenGLPAsignado,
-              estado: pedido.estado
-            });
-          });
-        } else {
-          console.log(`Camión ${ruta.id} no tiene pedidos asignados`);
-        }
-      });
-
       setRutasCamiones(nuevasRutas);
+      console.log("📋 TRANSICIÓN: Rutas aplicadas desde solución precargada con", nuevasRutas.length, "camiones");
 
       const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
         const anterior = camiones.find(c => c.id === ruta.id);
-        // Buscar el gen correspondiente para obtener los datos completos del camión
         const gen = data.cromosoma.find((g: Gen) => g.camion.codigo === ruta.id);
         const camion = gen?.camion;
         const ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
@@ -210,19 +349,20 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       });
 
       setCamiones(nuevosCamiones);
-      // Extraer bloqueos si existen
+      
       if (data.bloqueos) {
         setBloqueos(data.bloqueos);
       } else {
         setBloqueos([]);
       }
-      if (esInicial) setHoraActual(HORA_PRIMERA_ACTUALIZACION);
+      
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
       setEsperandoActualizacion(false);
+      setSolicitudAnticipadaEnviada(false);
+      setProximaSolucionCargada(null);
+      
     } catch (error) {
-      console.error("Error al cargar datos de simulación:", error);
-    } finally {
-      if (esInicial) setCargando(false);
+      console.error("❌ TRANSICIÓN: Error al aplicar solución precargada:", error);
     }
   };
 
@@ -234,12 +374,22 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const avanzarHora = async () => {
     if (esperandoActualizacion) return;
 
+    // Verificar si necesitamos solicitar anticipadamente la próxima solución
+    const nodosTres4 = Math.floor(NODOS_PARA_ACTUALIZACION * 0.75);
+    const nodosRestantes = nodosRestantesAntesDeActualizar - 1;
+    
+    if (nodosRestantes === nodosTres4 && !solicitudAnticipadaEnviada) {
+      console.log("📅 ANTICIPADA: Llegamos a 3/4 del ciclo (nodo", NODOS_PARA_ACTUALIZACION - nodosRestantes, "de", NODOS_PARA_ACTUALIZACION, ") - Solicitando próxima solución...");
+      setSolicitudAnticipadaEnviada(true);
+      cargarSolucionAnticipada();
+    }
+
     const nuevosCamiones = camiones.map((camion) => {
-      const ruta = rutasCamiones.find(r => r.id === camion.id);
+      const ruta = rutasCamiones.find((r) => r.id === camion.id);
       if (!ruta) return camion;
 
       // Si el camión está averiado, no avanza
-      if (camion.estado === 'Averiado') {
+      if (camion.estado === "Averiado") {
         return camion;
       }
 
@@ -248,7 +398,11 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       // Si llegó al final de la ruta
       if (siguientePaso >= rutaLength) {
-        return { ...camion, estado: 'Entregado' as const, porcentaje: rutaLength - 1 };
+        return {
+          ...camion,
+          estado: "Entregado" as const,
+          porcentaje: rutaLength - 1,
+        };
       }
 
       // En un mapa reticular, cada paso entre nodos adyacentes es exactamente 1km
@@ -257,27 +411,36 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       // Adaptar el camión para usar las funciones de cálculo
       const camionAdaptado = adaptarCamionParaCalculos(camion);
-      
+
       // Calcular consumo de combustible usando la función de utilidad
-      const consumoCombustible = calcularConsumoGalones(camionAdaptado, distanciaRecorrida);
-      
+      const consumoCombustible = calcularConsumoGalones(
+        camionAdaptado,
+        distanciaRecorrida,
+      );
+
       // Actualizar combustible actual (no puede ser menor que 0)
-      const nuevoCombustible = Math.max(0, camion.combustibleActual - consumoCombustible);
-      
+      const nuevoCombustible = Math.max(
+        0,
+        camion.combustibleActual - consumoCombustible,
+      );
+
       // PRIMERO: Mover el camión a la nueva posición
       const nuevaUbicacion = ruta.ruta[siguientePaso];
       const coordNuevaUbicacion = parseCoord(nuevaUbicacion);
-      
+
       // SEGUNDO: Verificar si hay pedidos para entregar en la NUEVA ubicación (donde acaba de llegar)
       // Usar la misma lógica que getPedidosPendientes() para determinar si el pedido debe entregarse
       let nuevoGLP = camion.capacidadActualGLP;
       const pedidosEntregadosAhora: Pedido[] = [];
-      
-      ruta.pedidos.forEach(pedido => {
+
+      ruta.pedidos.forEach((pedido) => {
         // Buscar el índice del nodo que corresponde a este pedido
-        const indicePedidoEnRuta = ruta.ruta.findIndex(nodo => {
+        const indicePedidoEnRuta = ruta.ruta.findIndex((nodo) => {
           const coordNodo = parseCoord(nodo);
-          return coordNodo.x === pedido.coordenada.x && coordNodo.y === pedido.coordenada.y;
+          return (
+            coordNodo.x === pedido.coordenada.x &&
+            coordNodo.y === pedido.coordenada.y
+          );
         });
 
         // Si el camión llegó exactamente al nodo del pedido
@@ -285,16 +448,21 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           pedidosEntregadosAhora.push(pedido);
         }
       });
-      
+
       // Log para debuggear los pedidos que se entregan
       if (pedidosEntregadosAhora.length > 0) {
-        console.log(`� Camión ${camion.id} llegó a (${coordNuevaUbicacion.x},${coordNuevaUbicacion.y}) - Entregando ${pedidosEntregadosAhora.length} pedidos:`, pedidosEntregadosAhora);
+        console.log(
+          `� Camión ${camion.id} llegó a (${coordNuevaUbicacion.x},${coordNuevaUbicacion.y}) - Entregando ${pedidosEntregadosAhora.length} pedidos:`,
+          pedidosEntregadosAhora,
+        );
         console.log(`⛽ GLP antes de entrega: ${nuevoGLP.toFixed(2)}`);
-        
+
         for (const pedido of pedidosEntregadosAhora) {
           console.log(`📋 Pedido:`, pedido);
           if (pedido.volumenGLPAsignado) {
-            console.log(`⬇️ Reduciendo ${pedido.volumenGLPAsignado} GLP del camión ${camion.id}`);
+            console.log(
+              `⬇️ Reduciendo ${pedido.volumenGLPAsignado} GLP del camión ${camion.id}`,
+            );
             nuevoGLP -= pedido.volumenGLPAsignado;
           } else {
             console.log(`⚠️ Pedido sin volumenGLPAsignado:`, pedido);
@@ -304,39 +472,43 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         nuevoGLP = Math.max(0, nuevoGLP);
         console.log(`✅ GLP después de entrega: ${nuevoGLP.toFixed(2)}`);
       }
-      
+
       // Crear nuevo estado del camión con valores actualizados
       const nuevoCamion = {
         ...camion,
         porcentaje: siguientePaso,
         ubicacion: nuevaUbicacion,
         combustibleActual: nuevoCombustible,
-        capacidadActualGLP: nuevoGLP
+        capacidadActualGLP: nuevoGLP,
       };
-      
+
       // SOLO actualizar peso de carga y peso combinado cuando se entregan pedidos
       if (pedidosEntregadosAhora.length > 0) {
         // Adaptar el nuevo estado del camión para los cálculos
         const nuevoCamionAdaptado = adaptarCamionParaCalculos(nuevoCamion);
-        
+
         // Actualizar el peso de carga basado en la nueva cantidad de GLP
         nuevoCamion.pesoCarga = calcularPesoCarga(nuevoCamionAdaptado);
-        
+
         // Actualizar el peso combinado basado en el nuevo peso de carga
         nuevoCamion.pesoCombinado = calcularPesoCombinado(nuevoCamionAdaptado);
-        
+
         console.log(`📊 Camión ${camion.id} pesos actualizados:`, {
           pesoCarga: nuevoCamion.pesoCarga.toFixed(2),
-          pesoCombinado: nuevoCamion.pesoCombinado.toFixed(2)
+          pesoCombinado: nuevoCamion.pesoCombinado.toFixed(2),
         });
       }
 
       // SIEMPRE actualizar la distancia máxima cuando cambie el combustible
       const nuevoCamionAdaptado = adaptarCamionParaCalculos(nuevoCamion);
-      nuevoCamion.distanciaMaxima = calcularDistanciaMaxima(nuevoCamionAdaptado);
-      
+      nuevoCamion.distanciaMaxima =
+        calcularDistanciaMaxima(nuevoCamionAdaptado);
+
       // Log para depuración - mostrar solo cuando hay cambios significativos
-      if (pedidosEntregadosAhora.length > 0 || nuevoCombustible !== camion.combustibleActual) {
+      if (
+        pedidosEntregadosAhora.length > 0 ||
+        nuevoCombustible !== camion.combustibleActual
+      ) {
         // console.log(`Camión ${camion.id} actualizado:`, {
         //   combustible: `${nuevoCombustible.toFixed(2)}/${camion.combustibleMaximo}`,
         //   glp: `${nuevoGLP.toFixed(2)}/${camion.capacidadMaximaGLP}`,
@@ -345,12 +517,12 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         //   porcentaje: nuevoCamion.porcentaje
         // });
       }
-      
+
       // Si el camión se quedó sin combustible, cambiar su estado
       if (nuevoCombustible <= 0) {
-        nuevoCamion.estado = 'Averiado';
+        nuevoCamion.estado = "Averiado";
       }
-      
+
       return nuevoCamion;
     });
 
@@ -360,11 +532,19 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (quedan <= 0) {
       setEsperandoActualizacion(true);
       setCamiones(nuevosCamiones);
-      setHoraActual(prev => prev + 1);
-      await cargarDatos(false);
+      setHoraActual((prev) => prev + 1);
+      
+      // Si ya tenemos la solución anticipada cargada, usarla directamente
+      if (proximaSolucionCargada) {
+        console.log("⚡ TRANSICIÓN: Usando solución anticipada precargada para transición suave");
+        await aplicarSolucionPrecargada(proximaSolucionCargada);
+      } else {
+        console.log("🔄 TRANSICIÓN: Solución anticipada no disponible, cargando en tiempo real...");
+        await cargarDatos(false);
+      }
     } else {
       setCamiones(nuevosCamiones);
-      setHoraActual(prev => prev + 1);
+      setHoraActual((prev) => prev + 1);
     }
   };
 
@@ -375,12 +555,12 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const reiniciar = () => {
     const nuevosCamiones: CamionEstado[] = rutasCamiones.map((ruta) => {
       // Aquí intentamos mantener los datos previos del camión si existen
-      const anterior = camiones.find(c => c.id === ruta.id);
+      const anterior = camiones.find((c) => c.id === ruta.id);
       return {
         id: ruta.id,
         ubicacion: ruta.ruta[0],
         porcentaje: 0,
-        estado: anterior?.estado ?? 'En Camino',
+        estado: anterior?.estado ?? "En Camino",
         capacidadActualGLP: anterior?.capacidadActualGLP ?? 0,
         capacidadMaximaGLP: anterior?.capacidadMaximaGLP ?? 0,
         combustibleActual: anterior?.combustibleActual ?? 0,
@@ -389,7 +569,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         pesoCarga: anterior?.pesoCarga ?? 0,
         pesoCombinado: anterior?.pesoCombinado ?? 0,
         tara: anterior?.tara ?? 0,
-        tipo: anterior?.tipo ?? '',
+        tipo: anterior?.tipo ?? "",
         velocidadPromedio: anterior?.velocidadPromedio ?? 0,
       };
     });
@@ -397,6 +577,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setHoraActual(HORA_PRIMERA_ACTUALIZACION);
     setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
     setEsperandoActualizacion(false);
+    setSolicitudAnticipadaEnviada(false);
+    setProximaSolucionCargada(null);
   };
 
   /**
@@ -405,29 +587,29 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
    * @param {string} camionId - El ID del camión a averiar
    */
   const marcarCamionAveriado = (camionId: string) => {
-    setCamiones(prev => 
-      prev.map(camion => 
-        camion.id === camionId 
-          ? { ...camion, estado: 'Averiado' as const }
-          : camion
-      )
+    setCamiones((prev) =>
+      prev.map((camion) =>
+        camion.id === camionId
+          ? { ...camion, estado: "Averiado" as const }
+          : camion,
+      ),
     );
   };
 
   return (
     <SimulacionContext.Provider
-      value={{ 
-        horaActual, 
-        camiones, 
-        rutasCamiones, 
-        almacenes, 
+      value={{
+        horaActual,
+        camiones,
+        rutasCamiones,
+        almacenes,
         fechaHoraSimulacion,
         diaSimulacion,
-        avanzarHora, 
-        reiniciar, 
-        cargando, 
+        avanzarHora,
+        reiniciar,
+        cargando,
         bloqueos,
-        marcarCamionAveriado
+        marcarCamionAveriado,
       }}
     >
       {children}
@@ -443,7 +625,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
  */
 export const useSimulacion = (): SimulacionContextType => {
   const context = useContext(SimulacionContext);
-  if (!context) throw new Error('useSimulacion debe usarse dentro de SimulacionProvider');
+  if (!context)
+    throw new Error("useSimulacion debe usarse dentro de SimulacionProvider");
   return context;
 };
 
@@ -473,6 +656,6 @@ const adaptarCamionParaCalculos = (camion: CamionEstado): Camion => {
     pesoCombinado: camion.pesoCombinado,
     tara: camion.tara,
     tipo: camion.tipo,
-    velocidadPromedio: camion.velocidadPromedio
+    velocidadPromedio: camion.velocidadPromedio,
   };
 };

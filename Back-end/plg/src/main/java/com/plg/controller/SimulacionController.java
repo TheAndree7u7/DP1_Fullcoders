@@ -17,16 +17,48 @@ public class SimulacionController {
 
     @GetMapping("/mejor")
     public IndividuoDto obtenerMejorIndividuo() {
-        IndividuoDto mejorIndividuoDto = null;
-        try {
-            Simulacion.iniciar.release();
-            mejorIndividuoDto = Simulacion.gaResultQueue.poll(5, java.util.concurrent.TimeUnit.SECONDS);
-            Simulacion.continuar.release(); 
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/mejor");
         
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Error al obtener el mejor individuo", e);
+        // Obtener el siguiente paquete en secuencia
+        IndividuoDto siguientePaquete = Simulacion.obtenerSiguientePaquete();
+        
+        if (siguientePaquete == null) {
+            System.out.println("⏳ No hay paquetes disponibles, esperando...");
+            // Si no hay más paquetes, esperar un poco por si se está generando uno nuevo
+            try {
+                Thread.sleep(100); // Espera breve
+                siguientePaquete = Simulacion.obtenerSiguientePaquete();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            
+            if (siguientePaquete == null) {
+                System.out.println("❌ ENDPOINT RESPUESTA: null (sin paquetes disponibles)");
+            }
         }
-        return mejorIndividuoDto;
+        
+        if (siguientePaquete != null) {
+            System.out.println("✅ ENDPOINT RESPUESTA: Paquete enviado al frontend");
+        }
+        
+        return siguientePaquete;
+    }
+    
+    @GetMapping("/reiniciar")
+    public String reiniciarSimulacion() {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/reiniciar");
+        Simulacion.reiniciarReproduccion();
+        System.out.println("✅ ENDPOINT RESPUESTA: Simulación reiniciada");
+        return "Simulación reiniciada desde el inicio";
+    }
+    
+    @GetMapping("/info")
+    public Simulacion.SimulacionInfo obtenerInfoSimulacion() {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/info");
+        Simulacion.SimulacionInfo info = Simulacion.obtenerInfoSimulacion();
+        System.out.println("✅ ENDPOINT RESPUESTA: Total=" + info.totalPaquetes + 
+                          ", Actual=" + info.paqueteActual + 
+                          ", EnProceso=" + info.enProceso);
+        return info;
     }
 }

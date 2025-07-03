@@ -52,7 +52,7 @@ public class Gen {
             if (destino instanceof Pedido) {
                 Pedido pedido = (Pedido) destino;
                 double tiempoEntregaLimite = pedido.getHorasLimite();
-                double tiempoLlegada = distanciaCalculada / camion.getVelocidadPromedio();
+                double tiempoLlegada = distanciaCalculada / camion.getVelocidadPromedio() + 0.25; // +15 minutos (0.25 horas) de tiempo de despacho
                 boolean tiempoMenorQueLimite = tiempoLlegada <= tiempoEntregaLimite;
                 boolean volumenGLPAsignado = camion.getCapacidadActualGLP() >= pedido.getVolumenGLPAsignado();
                 if (tiempoMenorQueLimite && volumenGLPAsignado) {
@@ -63,6 +63,16 @@ public class Gen {
                         rutaAstar.remove(0);
                     }
                     rutaFinal.addAll(rutaAstar);
+                    
+                    // Agregar tiempo de parada de 15 minutos (repetir el nodo del pedido)
+                    // Como la velocidad promedio es 50 km/h y cada nodo representa 1km,
+                    // en 15 minutos (0.25 horas) el camión recorrería 50 * 0.25 = 12.5 nodos
+                    // Aproximamos a 13 nodos adicionales para representar la parada
+                    int nodosParada = (int) Math.ceil(camion.getVelocidadPromedio() * 0.25); // 15 minutos en nodos
+                    for (int j = 0; j < nodosParada; j++) {
+                        rutaFinal.add(destino); // Repetir el nodo del pedido
+                    }
+                    
                     // Si el pedido está en un nodo bloqueado, guardar la ruta de entrada
                     if (destino.isBloqueado()) {
                         rutaEntradaBloqueada = new ArrayList<>(rutaAstar);
@@ -97,9 +107,13 @@ public class Gen {
                 List<Nodo> rutaSalida = new ArrayList<>(rutaEntradaBloqueada);
                 Collections.reverse(rutaSalida);
                 rutaSalida.remove(0); // Quitar el nodo bloqueado
-                rutaFinal.addAll(rutaSalida);
-                fitness += rutaSalida.size();
-                posicionActual = rutaSalida.get(rutaSalida.size() - 1); // Último nodo no bloqueado
+                
+                // Solo procesar si hay nodos en la ruta de salida
+                if (!rutaSalida.isEmpty()) {
+                    rutaFinal.addAll(rutaSalida);
+                    fitness += rutaSalida.size();
+                    posicionActual = rutaSalida.get(rutaSalida.size() - 1); // Último nodo no bloqueado
+                }
                 rutaEntradaBloqueada = null;
             }
         }

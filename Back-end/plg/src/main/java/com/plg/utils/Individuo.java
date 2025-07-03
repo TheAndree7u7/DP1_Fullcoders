@@ -63,12 +63,12 @@ public class Individuo {
         Almacen almacenCentral = almacenes.get(0);
         List<Nodo> pedidosMezclados = new ArrayList<>();
         pedidosMezclados.addAll(pedidos);
-        Collections.shuffle(pedidosMezclados, new Random());
+        Collections.shuffle(pedidosMezclados, new Random(Parametros.semillaAleatoria));
         List<Gen> genesMezclados = new ArrayList<>(cromosoma);
-        Collections.shuffle(genesMezclados, new Random());
+        Collections.shuffle(genesMezclados, new Random(Parametros.semillaAleatoria + 1));
 
         // NUEVO: Para cada pedido, selecciona un subconjunto random de genes y asigna al más cercano
-        Random selectorDeGen = new Random();
+        Random selectorDeGen = new Random(Parametros.semillaAleatoria + 2);
         for (Nodo pedido : pedidosMezclados) {
             if (!(pedido instanceof Pedido)) {
                 continue;
@@ -154,7 +154,7 @@ public class Individuo {
     }
 
     public void mutar() {
-        Random rnd = new Random();
+        Random rnd = new Random(Parametros.semillaAleatoria + 3);
         int g1 = rnd.nextInt(cromosoma.size());
         int g2 = rnd.nextInt(cromosoma.size());
         while (g2 == g1) {

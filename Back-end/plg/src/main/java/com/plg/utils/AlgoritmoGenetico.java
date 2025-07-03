@@ -31,7 +31,7 @@ public class AlgoritmoGenetico {
     private Mapa mapa;
     private List<Pedido> pedidos;
     private Individuo mejorIndividuo;
-    private final Random random = new Random();
+    private final Random random = new Random(Parametros.semillaAleatoria);
 
     public AlgoritmoGenetico(Mapa mapa, List<Pedido> pedidos) {
         this.mapa = mapa;
@@ -234,7 +234,7 @@ public class AlgoritmoGenetico {
     public void verificarMejorIndividuo(Individuo individuo) {
         if (individuo.getFitness() == Double.POSITIVE_INFINITY) {
             LoggerUtil.logError("⚠️ Fitness infinito detectado. Detalles del individuo:\n" + individuo.getDescripcion());
-            System.exit(0);
+            throw new RuntimeException("Fitness infinito detectado en algoritmo genético: " + individuo.getDescripcion());
         }
     }
 

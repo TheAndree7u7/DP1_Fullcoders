@@ -28,7 +28,7 @@ public class SimulatedAnnealing {
     private Individuo currentSolution;
     private Individuo bestSolution;
 
-    private final Random random = new Random();
+    private final Random random = new Random(Parametros.semillaAleatoria);
 
     public SimulatedAnnealing(Mapa mapa, List<Pedido> pedidos) {
         this.mapa = mapa;
