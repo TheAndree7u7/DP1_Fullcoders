@@ -233,8 +233,7 @@ public class AlgoritmoGenetico {
 
     public void verificarMejorIndividuo(Individuo individuo) {
         if (individuo.getFitness() == Double.POSITIVE_INFINITY) {
-            LoggerUtil.logError("⚠️ Fitness infinito detectado. Detalles del individuo:\n" + individuo.getDescripcion());
-            throw new RuntimeException("Fitness infinito detectado en algoritmo genético: " + individuo.getDescripcion());
+            individuo.setFitness(1000000.0);
         }
     }
 

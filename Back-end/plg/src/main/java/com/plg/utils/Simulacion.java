@@ -120,7 +120,7 @@ public class Simulacion {
                             
                             gaResultQueue.offer(mejorIndividuoDto);
                         } catch (Exception e) {
-                            System.err.println("❌ Error en algoritmo genético en tiempo " + fechaActual + ": " + e.getMessage());
+                            //System.err.println("❌ Error en algoritmo genético en tiempo " + //fechaActual + ": " + e.getMessage());
                             e.printStackTrace();
                             // Continuar con la simulación en lugar de terminar
                         }

@@ -120,7 +120,8 @@ public class Individuo {
         for (Gen gen : cromosoma) {
             double fitnessGen = gen.calcularFitness();
             if (fitnessGen == Double.POSITIVE_INFINITY) {
-                this.descripcion = gen.getDescripcion(); // Guardar la descripción del error
+                //this.descripcion = gen.getDescripcion(); // Guardar la descripción del error
+                
                 return Double.POSITIVE_INFINITY; // Si algún gen tiene fitness máximo, el individuo es inválido
             }
             fitness += fitnessGen; // Sumar el fitness de cada gen

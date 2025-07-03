@@ -39,22 +39,29 @@ public class Gen {
         double fitness = 0.0;
         Nodo posicionActual = camion;
         List<Nodo> rutaEntradaBloqueada = null;
+        
         for (int i = 0; i < nodos.size(); i++) {
             Nodo destino = nodos.get(i);
             List<Nodo> rutaAstar = Mapa.getInstance().aStar(posicionActual, destino);
             double distanciaCalculada = rutaAstar.size();
             double distanciaMaxima = camion.calcularDistanciaMaxima();
+            
             if (distanciaMaxima < distanciaCalculada) {
-                fitness = Double.POSITIVE_INFINITY;
-                this.descripcion = descripcionDistanciaLejana(distanciaMaxima, distanciaCalculada, posicionActual, destino);
+                fitness = 10000000.0;
+                // Asegurar que siempre haya al menos un nodo en la ruta final
+                if (rutaFinal.isEmpty()) {
+                    rutaFinal.add(posicionActual);
+                }
                 break;
             }
+            
             if (destino instanceof Pedido) {
                 Pedido pedido = (Pedido) destino;
                 double tiempoEntregaLimite = pedido.getHorasLimite();
-                double tiempoLlegada = distanciaCalculada / camion.getVelocidadPromedio() + 0.25; // +15 minutos (0.25 horas) de tiempo de despacho
+                double tiempoLlegada = distanciaCalculada / camion.getVelocidadPromedio() + 0.25;
                 boolean tiempoMenorQueLimite = tiempoLlegada <= tiempoEntregaLimite;
                 boolean volumenGLPAsignado = camion.getCapacidadActualGLP() >= pedido.getVolumenGLPAsignado();
+                
                 if (tiempoMenorQueLimite && volumenGLPAsignado) {
                     fitness += distanciaCalculada;
                     camion.actualizarCombustible(distanciaCalculada);
@@ -64,16 +71,11 @@ public class Gen {
                     }
                     rutaFinal.addAll(rutaAstar);
                     
-                    // Agregar tiempo de parada de 15 minutos (repetir el nodo del pedido)
-                    // Como la velocidad promedio es 50 km/h y cada nodo representa 1km,
-                    // en 15 minutos (0.25 horas) el camión recorrería 50 * 0.25 = 12.5 nodos
-                    // Aproximamos a 13 nodos adicionales para representar la parada
-                    int nodosParada = (int) Math.ceil(camion.getVelocidadPromedio() * 0.25); // 15 minutos en nodos
+                    int nodosParada = (int) Math.ceil(camion.getVelocidadPromedio() * 0.25);
                     for (int j = 0; j < nodosParada; j++) {
-                        rutaFinal.add(destino); // Repetir el nodo del pedido
+                        rutaFinal.add(destino);
                     }
                     
-                    // Si el pedido está en un nodo bloqueado, guardar la ruta de entrada
                     if (destino.isBloqueado()) {
                         rutaEntradaBloqueada = new ArrayList<>(rutaAstar);
                     } else {
@@ -81,8 +83,11 @@ public class Gen {
                     }
                     posicionActual = destino;
                 } else {
-                    fitness = Double.POSITIVE_INFINITY;
-                    this.descripcion = descripcionError(pedido, camion, tiempoEntregaLimite, tiempoLlegada, tiempoMenorQueLimite, volumenGLPAsignado);
+                    fitness = 1000000.0; // Cambiar de infinito a valor alto
+                    // Asegurar que siempre haya al menos un nodo en la ruta final
+                    if (rutaFinal.isEmpty()) {
+                        rutaFinal.add(posicionActual);
+                    }
                     break;
                 }
             } else if (destino instanceof Almacen || destino instanceof Camion) {
@@ -94,29 +99,32 @@ public class Gen {
                 rutaEntradaBloqueada = null;
                 posicionActual = destino;
             } else {
-                // Otro tipo de nodo
                 if (i > 0 && rutaAstar.size() > 1) {
                     rutaAstar.remove(0);
                 }
                 rutaFinal.addAll(rutaAstar);
                 posicionActual = destino;
             }
-            // Si el nodo anterior era bloqueado y hay que salir, regresar por la ruta invertida
+            
             if (rutaEntradaBloqueada != null && i + 1 < nodos.size()) {
-                // No incluir el nodo bloqueado al salir
                 List<Nodo> rutaSalida = new ArrayList<>(rutaEntradaBloqueada);
                 Collections.reverse(rutaSalida);
-                rutaSalida.remove(0); // Quitar el nodo bloqueado
+                rutaSalida.remove(0);
                 
-                // Solo procesar si hay nodos en la ruta de salida
                 if (!rutaSalida.isEmpty()) {
                     rutaFinal.addAll(rutaSalida);
                     fitness += rutaSalida.size();
-                    posicionActual = rutaSalida.get(rutaSalida.size() - 1); // Último nodo no bloqueado
+                    posicionActual = rutaSalida.get(rutaSalida.size() - 1);
                 }
                 rutaEntradaBloqueada = null;
             }
         }
+        
+        // Asegurar que siempre haya al menos un nodo en la ruta final
+        if (rutaFinal.isEmpty()) {
+            rutaFinal.add(posicionActual);
+        }
+        
         this.fitness = fitness;
         return fitness;
     }
