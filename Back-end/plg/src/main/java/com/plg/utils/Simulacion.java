@@ -144,6 +144,30 @@ public class Simulacion {
                     }
                 } else {
                     System.out.println("No hay pedidos por atender en este momento.");
+                    
+                    // Crear paquete vacío para las horas sin pedidos
+                    if (modoStandalone) {
+                        try {
+                            // Crear un individuo vacío con rutas de retorno al almacén
+                            Individuo individuoVacio = crearIndividuoVacio();
+                            
+                            IndividuoDto paqueteVacio = new IndividuoDto(individuoVacio,
+                                    new ArrayList<>(), bloqueosActivos, fechaActual);
+                            
+                            // Agregar al historial para el frontend
+                            synchronized (historialSimulacion) {
+                                contadorPaquetes++;
+                                historialSimulacion.add(paqueteVacio);
+                                System.out.println("📦 PAQUETE VACÍO CONSTRUIDO #" + contadorPaquetes + 
+                                                 " | Tiempo: " + fechaActual + 
+                                                 " | Sin pedidos activos");
+                            }
+                            
+                        } catch (Exception e) {
+                            System.err.println("❌ Error creando paquete vacío en tiempo " + fechaActual + ": " + e.getMessage());
+                            e.printStackTrace();
+                        }
+                    }
                 }
                 for (Bloqueo bloqueo : bloqueosActivos) {
                     bloqueo.desactivarBloqueo();
@@ -618,6 +642,39 @@ public class Simulacion {
                 .map(almacen -> almacen.getCoordenada())
                 .findFirst()
                 .orElse(new com.plg.entity.Coordenada(8, 12)); // Coordenada por defecto
+    }
+
+    /**
+     * Crea un individuo vacío que representa el estado de los camiones cuando no hay pedidos por atender.
+     * Cada camión se mantiene en su posición actual sin realizar entregas.
+     */
+    private static Individuo crearIndividuoVacio() {
+        List<Pedido> pedidosVacios = new ArrayList<>();
+        Individuo individuoVacio = new Individuo(pedidosVacios);
+        
+        // Crear cromosoma con cada camión en su posición actual
+        List<Gen> cromosoma = new ArrayList<>();
+        for (Camion camion : DataLoader.camiones) {
+            // Verificar que el camión esté disponible
+            if (camion.getEstado() == com.plg.entity.EstadoCamion.DISPONIBLE) {
+                Gen gen = new Gen(camion, new ArrayList<>());
+                
+                // Crear ruta que solo contiene la posición actual del camión
+                List<Nodo> rutaActual = new ArrayList<>();
+                rutaActual.add(camion); // El camión mismo es un nodo
+                
+                gen.setRutaFinal(rutaActual);
+                gen.setPedidos(new ArrayList<>());
+                gen.setFitness(0.0); // Sin recorrido, fitness = 0
+                
+                cromosoma.add(gen);
+            }
+        }
+        
+        individuoVacio.setCromosoma(cromosoma);
+        individuoVacio.setFitness(0.0);
+        
+        return individuoVacio;
     }
 
 }
