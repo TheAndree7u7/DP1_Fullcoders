@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Mapa from "../components/Mapa";
 import Navbar from "../components/Navbar";
+import BloqueosTable from "../components/BloqueosTable";
 import RightMenu from "../components/RightMenu";
 import BottomMenu from "../components/BottomMenu";
 import { ChevronLeft, ChevronUp } from "lucide-react";
@@ -14,6 +15,8 @@ const SimulacionSemanal: React.FC = () => {
   const [bottomMenuExpandido, setBottomMenuExpandido] = useState(false);
   const { diaSimulacion, fechaHoraSimulacion, horaActual } = useSimulacion();
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
+  // Estado para alternar paneles
+  const [panel, setPanel] = useState<'camiones' | 'bloqueos'>('camiones');
 
   // Constante que indica cada cuántas horas se reciben datos del backend
   const HORAS_POR_ACTUALIZACION = 2;
@@ -73,6 +76,20 @@ const SimulacionSemanal: React.FC = () => {
       second: '2-digit'
     }) : '';
 
+  // Efecto para escuchar clicks en los botones de la navbar
+  useEffect(() => {
+    const btnCamiones = document.getElementById('btn-panel-camiones');
+    const btnBloqueos = document.getElementById('btn-panel-bloqueos');
+    if (btnCamiones && btnBloqueos) {
+      btnCamiones.onclick = () => setPanel('camiones');
+      btnBloqueos.onclick = () => setPanel('bloqueos');
+    }
+    return () => {
+      if (btnCamiones) btnCamiones.onclick = null;
+      if (btnBloqueos) btnBloqueos.onclick = null;
+    };
+  }, []);
+
   return (
     <div className="bg-[#F5F5F5] w-screen h-screen flex flex-col pt-16">
       <Navbar />
@@ -102,27 +119,34 @@ const SimulacionSemanal: React.FC = () => {
       
       {/* Contenido principal - ahora con altura dinámica */}
       <div className={`flex flex-row flex-1 gap-4 px-4 overflow-hidden relative transition-all duration-300 ${bottomMenuExpandido ? 'pb-4' : ''}`}>
-        {/* Mapa */}
-        <div className={`transition-all duration-300 ${menuExpandido ? "flex-[2]" : "flex-[1]"}`}>
-          <div className="bg-white p-4 rounded-xl overflow-auto w-full h-full">
-            <Mapa />
+        {panel === 'camiones' ? (
+          <>
+            {/* Mapa */}
+            <div className={`transition-all duration-300 ${menuExpandido ? "flex-[2]" : "flex-[1]"}`}>
+              <div className="bg-white p-4 rounded-xl overflow-auto w-full h-full">
+                <Mapa />
+              </div>
+            </div>
+            {/* Menú derecho */}
+            <div className={`transition-all duration-300 ${menuExpandido ? "flex-[1]" : "w-0 overflow-hidden"}`}>
+              <RightMenu expanded={menuExpandido} setExpanded={setMenuExpandido} />
+            </div>
+            {/* Botón flotante para mostrar menú si está oculto */}
+            {!menuExpandido && (
+              <button
+                onClick={() => setMenuExpandido(true)}
+                className="absolute right-2 top-2 z-10 bg-white rounded-full shadow p-1 hover:bg-gray-100 transition"
+                title="Mostrar menú"
+              >
+                <ChevronLeft size={16} />
+              </button>
+            )}
+          </>
+        ) : (
+          <div className="w-full flex flex-col items-center justify-start pt-8">
+            <div className="text-xl font-bold mb-4">Bloqueos activos</div>
+            <BloqueosTable />
           </div>
-        </div>
-
-        {/* Menú derecho */}
-        <div className={`transition-all duration-300 ${menuExpandido ? "flex-[1]" : "w-0 overflow-hidden"}`}>
-          <RightMenu expanded={menuExpandido} setExpanded={setMenuExpandido} />
-        </div>
-
-        {/* Botón flotante para mostrar menú si está oculto */}
-        {!menuExpandido && (
-          <button
-            onClick={() => setMenuExpandido(true)}
-            className="absolute right-2 top-2 z-10 bg-white rounded-full shadow p-1 hover:bg-gray-100 transition"
-            title="Mostrar menú"
-          >
-            <ChevronLeft size={16} />
-          </button>
         )}
       </div>
 

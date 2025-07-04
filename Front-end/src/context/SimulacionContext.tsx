@@ -10,12 +10,12 @@ import { getMejorIndividuo } from "../services/simulacionApiService";
 import { getAlmacenes } from "../services/almacenApiService";
 import type {
   Pedido,
-  Coordenada,
   Individuo,
   Gen,
   Nodo,
   Camion,
   Almacen,
+  Coordenada,
 } from "../types";
 import {
   calcularPesoCarga,
@@ -110,8 +110,17 @@ interface SimulacionContextType {
   actualizarAlmacenes: () => Promise<void>; // Nueva función para actualizar almacenes
 }
 
+/**
+ * @interface Bloqueo
+ * @description Representa un bloqueo en la simulación
+ * @property {Coordenada[]} coordenadas - Lista de nodos bloqueados
+ * @property {string} fechaInicio - Fecha y hora de inicio del bloqueo (ISO)
+ * @property {string} fechaFin - Fecha y hora de fin del bloqueo (ISO)
+ */
 export interface Bloqueo {
   coordenadas: Coordenada[];
+  fechaInicio: string; // ISO string
+  fechaFin: string;    // ISO string
 }
 
 // Tipo para la solución precargada
