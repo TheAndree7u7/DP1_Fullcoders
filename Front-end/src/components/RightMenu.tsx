@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Search } from 'lucide-react';
 import { useSimulacion } from '../context/SimulacionContext';
 import MetricasRendimiento from './MetricasRendimiento';
 import CardsCamiones from './CardCamion';
@@ -10,43 +10,104 @@ import TablaPedidos from './TablaPedidos';
 // Tabla simple de datos de camiones usando el contexto
 function DatosCamionesTable() {
   const { camiones } = useSimulacion();
+  const [busquedaCamion, setBusquedaCamion] = React.useState<string>('');
+
+  // Filtrar camiones por búsqueda
+  const camionesFiltrados = React.useMemo(() => {
+    if (busquedaCamion.trim() === '') return camiones;
+    
+    const terminoBusqueda = busquedaCamion.toLowerCase().trim();
+    return camiones.filter(camion => 
+      camion.id.toLowerCase().includes(terminoBusqueda) ||
+      camion.ubicacion.toLowerCase().includes(terminoBusqueda) ||
+      camion.estado.toLowerCase().includes(terminoBusqueda) ||
+      camion.capacidadActualGLP.toString().includes(terminoBusqueda) ||
+      camion.combustibleActual.toString().includes(terminoBusqueda) ||
+      camion.combustibleMaximo.toString().includes(terminoBusqueda)
+    );
+  }, [camiones, busquedaCamion]);
+
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <div className="text-lg font-bold text-black mb-3 flex items-center gap-2">
         Datos de los camiones
       </div>
+      
+      {/* Campo de búsqueda */}
+      <div className="mb-3">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Buscar camiones:
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Buscar por ID, ubicación, estado, capacidad o combustible..."
+            value={busquedaCamion}
+            onChange={(e) => setBusquedaCamion(e.target.value)}
+            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+      </div>
+
       <div className="flex-1 min-h-0 overflow-y-auto rounded-lg shadow border border-gray-200 bg-white">
         <table className="min-w-full table-auto text-sm bg-white">
           <thead>
             <tr className="border-b border-gray-200">
               <th className="px-4 py-2 text-left font-semibold text-black">ID</th>
               <th className="px-4 py-2 text-left font-semibold text-black">GLP Actual</th>
+              <th className="px-4 py-2 text-left font-semibold text-black">Combustible</th>
               <th className="px-4 py-2 text-left font-semibold text-black">Ubicación</th>
               <th className="px-4 py-2 text-left font-semibold text-black">Estado</th>
             </tr>
           </thead>
-          <tbody>
-            {camiones.map((camion) => (
-              <tr key={camion.id} className={
-                `border-b last:border-b-0 bg-white hover:bg-gray-100 transition-colors`
-              }>
-                <td className="px-4 py-2 text-gray-800 font-mono font-semibold">{camion.id}</td>
-                <td className="px-4 py-2 text-blue-700 font-bold">{camion.capacidadActualGLP}</td>
-                <td className="px-4 py-2 text-gray-600">{camion.ubicacion}</td>
-                <td className={
-                  `px-4 py-2 font-semibold ` +
-                  (camion.estado === 'Averiado' ? 'text-red-600' :
-                  camion.estado === 'En Mantenimiento' ? 'text-yellow-600' :
-                  camion.estado === 'Entregado' ? 'text-emerald-600' :
-                  camion.estado === 'Disponible' ? 'text-blue-600' :
-                  'text-gray-700')
-                }>
-                  {camion.estado}
+                      <tbody>
+            {camionesFiltrados.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                  {busquedaCamion.trim() === '' ? 'No hay camiones disponibles' : 'No se encontraron camiones que coincidan con la búsqueda'}
                 </td>
               </tr>
-            ))}
-          </tbody>
+            ) : (
+              camionesFiltrados.map((camion) => (
+                <tr key={camion.id} className={
+                  `border-b last:border-b-0 bg-white hover:bg-gray-100 transition-colors`
+                }>
+                  <td className="px-4 py-2 text-gray-800 font-mono font-semibold">{camion.id}</td>
+                  <td className="px-4 py-2 text-blue-700 font-bold">{camion.capacidadActualGLP.toFixed(2)}</td>
+                  <td className="px-4 py-2 text-green-700 font-bold">
+                    {camion.combustibleActual.toFixed(2)} / {camion.combustibleMaximo}
+                  </td>
+                  <td className="px-4 py-2 text-gray-600">{camion.ubicacion}</td>
+                  <td className={
+                    `px-4 py-2 font-semibold ` +
+                    (camion.estado === 'Averiado' ? 'text-red-600' :
+                    camion.estado === 'En Mantenimiento' ? 'text-yellow-600' :
+                    camion.estado === 'Entregado' ? 'text-emerald-600' :
+                    camion.estado === 'Disponible' ? 'text-blue-600' :
+                    'text-gray-700')
+                  }>
+                    {camion.estado}
+                  </td>
+                </tr>
+              ))
+            )}
+            </tbody>
         </table>
+      </div>
+      
+      {/* Resumen */}
+      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+        <div className="flex justify-between items-center text-sm">
+          <span className="font-medium text-gray-700">
+            Total de camiones: <span className="font-bold text-blue-600">{camiones.length}</span>
+          </span>
+          <span className="font-medium text-gray-700">
+            Mostrando: <span className="font-bold text-purple-600">{camionesFiltrados.length}</span>
+          </span>
+        </div>
       </div>
     </div>
   );

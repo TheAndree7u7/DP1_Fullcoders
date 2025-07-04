@@ -1,7 +1,7 @@
 // components/TablaPedidos.tsx
 import React, { useState } from "react";
 import { useSimulacion } from "../context/SimulacionContext";
-import { Package, MapPin, Truck } from "lucide-react";
+import { Package, MapPin, Truck, Search } from "lucide-react";
 import type { Pedido } from "../types";
 
 // Función para obtener el color según el estado del pedido
@@ -43,6 +43,7 @@ const getIconByEstado = (estado: string) => {
 const TablaPedidos: React.FC = () => {
   const { rutasCamiones, camiones } = useSimulacion();
   const [filtroEstado, setFiltroEstado] = useState<string>('TODOS');
+  const [busqueda, setBusqueda] = useState<string>('');
 
   // Extraer todos los pedidos de las rutas de camiones
   const todosPedidos = React.useMemo(() => {
@@ -76,11 +77,29 @@ const TablaPedidos: React.FC = () => {
     return pedidos;
   }, [rutasCamiones, camiones]);
 
-     // Filtrar pedidos según el estado seleccionado
+     // Filtrar pedidos según el estado seleccionado y la búsqueda
    const pedidosFiltrados = React.useMemo(() => {
-     if (filtroEstado === 'TODOS') return todosPedidos;
-     return todosPedidos.filter(pedido => (pedido.estado || 'PENDIENTE') === filtroEstado);
-   }, [todosPedidos, filtroEstado]);
+     let pedidosFiltrados = todosPedidos;
+     
+     // Filtrar por estado
+     if (filtroEstado !== 'TODOS') {
+       pedidosFiltrados = pedidosFiltrados.filter(pedido => (pedido.estado || 'PENDIENTE') === filtroEstado);
+     }
+     
+     // Filtrar por búsqueda
+     if (busqueda.trim() !== '') {
+       const terminoBusqueda = busqueda.toLowerCase().trim();
+       pedidosFiltrados = pedidosFiltrados.filter(pedido => 
+         pedido.codigo.toLowerCase().includes(terminoBusqueda) ||
+         `${pedido.coordenada.x},${pedido.coordenada.y}`.includes(terminoBusqueda) ||
+         `(${pedido.coordenada.x},${pedido.coordenada.y})`.includes(terminoBusqueda) ||
+         pedido.camionId.toLowerCase().includes(terminoBusqueda) ||
+         (pedido.estado || 'PENDIENTE').toLowerCase().includes(terminoBusqueda)
+       );
+     }
+     
+     return pedidosFiltrados;
+   }, [todosPedidos, filtroEstado, busqueda]);
 
    // Obtener estados únicos para el filtro
    const estadosDisponibles = React.useMemo(() => {
@@ -95,24 +114,46 @@ const TablaPedidos: React.FC = () => {
         Lista de Pedidos
       </div>
 
-      {/* Filtros */}
-      <div className="mb-3">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Filtrar por estado:
-        </label>
-        <select
-          value={filtroEstado}
-          onChange={(e) => setFiltroEstado(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-                     <option value="TODOS">Todos los estados ({todosPedidos.length})</option>
-           {estadosDisponibles.map(estado => (
-             <option key={estado} value={estado}>
-               {estado} ({todosPedidos.filter(p => (p.estado || 'PENDIENTE') === estado).length})
-             </option>
-           ))}
-        </select>
-      </div>
+             {/* Filtros */}
+       <div className="mb-3 space-y-3">
+         {/* Campo de búsqueda */}
+         <div>
+           <label className="block text-sm font-medium text-gray-700 mb-2">
+             Buscar pedidos:
+           </label>
+           <div className="relative">
+             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+               <Search className="h-4 w-4 text-gray-400" />
+             </div>
+             <input
+               type="text"
+               placeholder="Buscar por código, ubicación, camión o estado..."
+               value={busqueda}
+               onChange={(e) => setBusqueda(e.target.value)}
+               className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+             />
+           </div>
+         </div>
+
+         {/* Filtro por estado */}
+         <div>
+           <label className="block text-sm font-medium text-gray-700 mb-2">
+             Filtrar por estado:
+           </label>
+           <select
+             value={filtroEstado}
+             onChange={(e) => setFiltroEstado(e.target.value)}
+             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+           >
+             <option value="TODOS">Todos los estados ({todosPedidos.length})</option>
+             {estadosDisponibles.map(estado => (
+               <option key={estado} value={estado}>
+                 {estado} ({todosPedidos.filter(p => (p.estado || 'PENDIENTE') === estado).length})
+               </option>
+             ))}
+           </select>
+         </div>
+       </div>
 
       {/* Tabla de pedidos */}
       <div className="flex-1 min-h-0 overflow-y-auto rounded-lg shadow border border-gray-200 bg-white">
