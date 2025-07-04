@@ -14,10 +14,8 @@ import type {
 
 // Importaciones de archivos refactorizados
 import {
-  HORA_INICIAL_SIMULACION,
   HORA_PRIMERA_ACTUALIZACION_DATOS,
   NODOS_REQUERIDOS_ANTES_ACTUALIZACION,
-  PROPORCION_SOLICITUD_ANTICIPADA,
 } from "./simulacion/constantes-configuracion-simulacion";
 
 import {
@@ -26,14 +24,11 @@ import {
   cargarYProcesarDatosCompletos,
   procesarDatosSolucionParaSimulacion,
   type IndividuoConDatosComplementarios,
+  type ResultadoCargaDatos,
 } from "./simulacion/servicios-carga-datos-simulacion";
 
 import {
-  parseCoordenadasDeCadena,
   calcularHoraSimulacionDesdeFechaBase,
-  extraerDiaDeFecha,
-  crearControladorTiempo,
-  type ControladorTiempoSimulacion,
 } from "./simulacion/utilidades-calculo-simulacion";
 
 import {
@@ -47,7 +42,9 @@ import {
   determinarSiDebeActualizarDatos,
   crearEstadoControlSimulacionInicial,
   reiniciarEstadoControlSimulacion,
+  crearControladorTiempo,
   type EstadoControlSimulacion,
+  type ControladorTiempoSimulacion,
 } from "./simulacion/controladores-tiempo-simulacion";
 
 /**
@@ -282,7 +279,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * @function aplicarDatosSimulacionAlEstado
    * @description Aplica los datos de simulación procesados al estado del contexto
    */
-  const aplicarDatosSimulacionAlEstado = (datosSimulacion: any) => {
+  const aplicarDatosSimulacionAlEstado = (datosSimulacion: ResultadoCargaDatos) => {
     setRutasAsignadasACamiones(datosSimulacion.rutasActualizadas);
     setListaCamionesActual(datosSimulacion.camionesActualizados);
     setBloqueosActivos(datosSimulacion.bloqueosActualizados);
