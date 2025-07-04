@@ -19,9 +19,16 @@ import java.util.NoSuchElementException;
 public class DataLoader {
 
     private static String pathAverias = "data/averias/averias.v1.txt";
-    private static String pathPedidos = "data/pedidos/ventas" + Parametros.anho + Parametros.mes + ".txt";
     private static String pathMantenimientos = "data/mantenimientos/mantpreventivo.txt";
-    private static String pathBloqueos = "data/bloqueos/" + Parametros.anho + Parametros.mes + ".bloqueos.txt";
+    
+    // Métodos para generar paths dinámicamente basándose en parámetros actuales
+    private static String getPathPedidos() {
+        return "data/pedidos/ventas" + Parametros.anho + Parametros.mes + ".txt";
+    }
+    
+    private static String getPathBloqueos() {
+        return "data/bloqueos/" + Parametros.anho + Parametros.mes + ".bloqueos.txt";
+    }
 
     private static Coordenada coordenadaCentral = new Coordenada(8, 12);
 
@@ -68,7 +75,7 @@ public class DataLoader {
     }
 
     public static List<Pedido> initializePedidos() throws InvalidDataFormatException, IOException {
-        List<String> lines = Herramientas.readAllLines(pathPedidos);
+        List<String> lines = Herramientas.readAllLines(getPathPedidos());
         for (String line : lines) {
             PedidoFactory.crearPedido(line);
         }
@@ -151,7 +158,7 @@ public class DataLoader {
     }
 
     public static void initializeBloqueos() throws InvalidDataFormatException, IOException {
-        List<String> lines = Herramientas.readAllLines(pathBloqueos);
+        List<String> lines = Herramientas.readAllLines(getPathBloqueos());
         for (String line : lines) {
             Bloqueo bloqueo = new Bloqueo(line);
             bloqueos.add(bloqueo);

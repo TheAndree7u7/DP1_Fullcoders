@@ -51,6 +51,15 @@ public class GestorHistorialSimulacion {
         System.out.println("🔄 REPRODUCCIÓN REINICIADA | Volviendo al paquete #1 | Total disponibles: " + total);
     }
 
+    public static synchronized void limpiarHistorialCompleto() {
+        int paquetesEliminados = historialSimulacion.size();
+        historialSimulacion.clear();
+        indiceActualFrontend = 0;
+        contadorPaquetes = 0;
+        simulacionEnProceso = false;
+        System.out.println("🧹 HISTORIAL LIMPIADO COMPLETAMENTE | Paquetes eliminados: " + paquetesEliminados + " | Estado reiniciado");
+    }
+
     /* ------------------------------ GETTERS -------------------------------- */
 
     public static synchronized int getTotalPaquetes() {

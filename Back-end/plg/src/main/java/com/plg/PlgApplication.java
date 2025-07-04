@@ -1,26 +1,15 @@
 package com.plg;
 
-import java.time.LocalDateTime;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import com.plg.utils.Parametros;
-import com.plg.utils.Simulacion;
-
 @SpringBootApplication
-public class PlgApplication implements CommandLineRunner {
+public class PlgApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(PlgApplication.class, args);
     }
 
-    @Override
-    public void run(String... args) throws Exception {
-        // Vamos a probar simular con los datos de enero 2025
-        LocalDateTime fechaActual = Parametros.fecha_inicial;
-        Simulacion.configurarSimulacion(fechaActual);
-        Simulacion.ejecutarSimulacion();
-        System.out.println("Simulación iniciada. Puedes consultar el estado de la simulación en /api/simulacion/mejor");
-    }
+    // REMOVIDO: CommandLineRunner que ejecutaba automáticamente la simulación
+    // Ahora la simulación solo se ejecuta cuando el frontend llama a /api/simulacion/iniciar
 }

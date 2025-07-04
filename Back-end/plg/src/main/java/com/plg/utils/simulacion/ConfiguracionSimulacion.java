@@ -24,7 +24,14 @@ public class ConfiguracionSimulacion {
         // 1. Registrar la fecha actual global en la clase Simulacion
         Simulacion.setFechaActual(startDate);
 
-        // 2. Inicializar datos
+        // 2. Actualizar parámetros globales antes de cargar pedidos
+        actualizarParametrosGlobales(startDate);
+
+        // 3. Limpiar datos anteriores
+        DataLoader.pedidos.clear();
+        com.plg.factory.PedidoFactory.pedidos.clear();
+        
+        // 4. Inicializar datos
         DataLoader.initializeAlmacenes();
         DataLoader.initializeCamiones();
         try {
@@ -36,15 +43,16 @@ public class ConfiguracionSimulacion {
             e.printStackTrace();
         }
 
-        // 3. Filtrar los pedidos que se atenderán en la semana [startDate, startDate+7)
+        // 5. Filtrar los pedidos que se atenderán en la semana [startDate, startDate+7)
         LocalDateTime fechaFin = startDate.plusDays(7);
         List<Pedido> pedidosSemanal = DataLoader.pedidos.stream()
-                .filter(p -> p.getFechaRegistro().isAfter(startDate) && p.getFechaRegistro().isBefore(fechaFin))
+                .filter(p -> p.getFechaRegistro() != null)
+                .filter(p -> !p.getFechaRegistro().isBefore(startDate) && p.getFechaRegistro().isBefore(fechaFin))
                 .collect(Collectors.toList());
 
         Simulacion.setPedidosSemanal(pedidosSemanal);
 
-        // 4. Logs de inicio
+        // 6. Logs de inicio
         System.out.println("\n=== INICIO DE LA SIMULACIÓN ===");
         System.out.println("📊 Estadísticas iniciales:");
         System.out.println("   • Total de pedidos en el sistema: " + DataLoader.pedidos.size());
@@ -56,6 +64,25 @@ public class ConfiguracionSimulacion {
     }
 
     /**
+     * Actualiza los parámetros globales basándose en la fecha de inicio seleccionada.
+     * Esto asegura que los pedidos se carguen con las fechas correctas.
+     */
+    private static void actualizarParametrosGlobales(LocalDateTime fechaInicio) {
+        // Extraer año, mes y día de la fecha de inicio
+        Parametros.anho = String.valueOf(fechaInicio.getYear());
+        Parametros.mes = String.format("%02d", fechaInicio.getMonthValue());
+        Parametros.dia = String.format("%02d", fechaInicio.getDayOfMonth());
+        
+        // Actualizar fecha_inicial en Parametros
+        Parametros.fecha_inicial = fechaInicio;
+        
+        System.out.println("📅 Parámetros actualizados:");
+        System.out.println("   • Año: " + Parametros.anho);
+        System.out.println("   • Mes: " + Parametros.mes);
+        System.out.println("   • Día: " + Parametros.dia);
+    }
+
+    /**
      * Imprime un resumen actualizado de las métricas principales de la simulación.
      */
     public static void imprimirDatosSimulacion() {
@@ -63,7 +90,7 @@ public class ConfiguracionSimulacion {
         LocalDateTime fechaActual = Simulacion.getFechaActual();
 
         System.out.println("Datos de la simulación:");
-        System.out.println("Fecha inicial: " + Parametros.fecha_inicial);
+        System.out.println("Fecha inicial (enviada por frontend): " + fechaActual);
         System.out.println("Intervalo de tiempo: " + Parametros.intervaloTiempo + " minutos");
         System.out.println("Cantidad de pedidos semanales: " + pedidosSemanal.size());
         System.out.println("Cantidad de almacenes: " + DataLoader.almacenes.size());
