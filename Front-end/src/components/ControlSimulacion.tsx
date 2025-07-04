@@ -17,7 +17,7 @@ const ControlSimulacion: React.FC = () => {
   const [mensaje, setMensaje] = useState<string>('');
   const [tipoMensaje, setTipoMensaje] = useState<'success' | 'error' | 'info'>('info');
   const [infoSimulacion, setInfoSimulacion] = useState<InfoSimulacion | null>(null);
-  const { reiniciar, limpiarEstadoParaNuevaSimulacion } = useSimulacion();
+  const { reiniciar, limpiarEstadoParaNuevaSimulacion, iniciarPollingPrimerPaquete } = useSimulacion();
 
   // Establecer fecha por defecto (hoy)
   useEffect(() => {
@@ -68,8 +68,9 @@ const ControlSimulacion: React.FC = () => {
       
       console.log("🚀 FRONTEND: Simulación iniciada en backend, esperando que genere paquetes...");
       
-      // El sistema de polling normal del contexto se encargará de obtener los paquetes
-      // conforme el backend los vaya generando
+      // Iniciar el polling para obtener el primer paquete automáticamente
+      iniciarPollingPrimerPaquete();
+      console.log("🔄 FRONTEND: Polling iniciado para obtener primer paquete automáticamente");
       
       // Actualizar información después de unos segundos para dar tiempo al backend
       setTimeout(async () => {

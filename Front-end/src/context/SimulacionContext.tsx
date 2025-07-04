@@ -106,6 +106,7 @@ interface SimulacionContextType {
   iniciarContadorTiempo: () => void; // Nueva función para iniciar el contador manualmente
   reiniciarYEmpezarNuevo: () => Promise<void>; // Nueva función para reiniciar y empezar con nuevos paquetes
   limpiarEstadoParaNuevaSimulacion: () => void; // Limpia estado pero no carga datos
+  iniciarPollingPrimerPaquete: () => void; // Inicia el polling para obtener el primer paquete
   cargando: boolean;
   bloqueos: Bloqueo[];
   marcarCamionAveriado: (camionId: string) => void; // Nueva función para manejar averías
@@ -169,6 +170,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [inicioSimulacion, setInicioSimulacion] = useState<Date | null>(null);
   const [simulacionActiva, setSimulacionActiva] = useState<boolean>(false);
   const [horaSimulacion, setHoraSimulacion] = useState<string>("00:00:00");
+  const [pollingActivo, setPollingActivo] = useState<boolean>(false);
 
   // Cargar almacenes al inicio
   useEffect(() => {
@@ -234,6 +236,40 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setHoraSimulacion(horaFormateada);
     }
   }, [horaActual, fechaHoraSimulacion]);
+
+  // Polling automático para obtener el primer paquete después de iniciar la simulación
+  useEffect(() => {
+    if (!pollingActivo) return;
+
+    console.log("🔄 POLLING: Iniciando polling automático para obtener primer paquete...");
+    
+    const interval = setInterval(async () => {
+      try {
+        console.log("🔍 POLLING: Buscando nuevos paquetes...");
+        const data = (await getMejorIndividuo()) as IndividuoConBloqueos;
+        
+        // Verificar si hay datos válidos (paquete disponible)
+        if (data && data.cromosoma && data.cromosoma.length > 0) {
+          console.log("✅ POLLING: Primer paquete encontrado, desactivando polling...");
+          setPollingActivo(false);
+          
+          // Aplicar el primer paquete
+          await aplicarSolucionPrecargada(data);
+          
+          console.log("🎉 POLLING: Primer paquete aplicado exitosamente al mapa");
+        } else {
+          console.log("⏳ POLLING: No hay paquetes disponibles aún, continuando...");
+        }
+      } catch (error) {
+        console.log("⚠️ POLLING: Error al buscar paquetes (normal si no hay paquetes):", error);
+      }
+    }, 2000); // Verificar cada 2 segundos
+
+    return () => {
+      console.log("🛑 POLLING: Limpiando interval de polling");
+      clearInterval(interval);
+    };
+  }, [pollingActivo]);
 
   // Función para actualizar almacenes (útil para refrescar capacidades)
   const actualizarAlmacenes = async () => {
@@ -718,6 +754,15 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   /**
+   * @function iniciarPollingPrimerPaquete
+   * @description Inicia el polling para obtener el primer paquete disponible
+   */
+  const iniciarPollingPrimerPaquete = () => {
+    console.log("🚀 POLLING: Activando polling para obtener primer paquete...");
+    setPollingActivo(true);
+  };
+
+  /**
    * @function reiniciarYEmpezarNuevo
    * @description Reinicia completamente la simulación y empieza a cargar nuevos paquetes
    */
@@ -819,6 +864,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         iniciarContadorTiempo,
         reiniciarYEmpezarNuevo,
         limpiarEstadoParaNuevaSimulacion,
+        iniciarPollingPrimerPaquete,
         cargando,
         bloqueos,
         marcarCamionAveriado,
