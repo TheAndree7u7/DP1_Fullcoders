@@ -56,17 +56,17 @@ const ControlSimulacion: React.FC = () => {
     try {
       const fechaHoraISO = `${fechaInicio}T${horaInicio}:00`;
       
-      // Primero limpiar el estado para la nueva simulación
-      limpiarEstadoParaNuevaSimulacion();
-      console.log("🧹 FRONTEND: Estado limpiado para nueva simulación");
-      
-      // Luego iniciar la simulación en el backend
+      // Primero iniciar la simulación en el backend
       const respuesta = await iniciarSimulacion(fechaHoraISO);
       
       setMensaje(respuesta);
       setTipoMensaje('success');
       
-      console.log("🚀 FRONTEND: Simulación iniciada en backend, esperando que genere paquetes...");
+      console.log("🚀 FRONTEND: Simulación iniciada en backend, limpiando estado...");
+      
+      // Limpiar el estado y cargar nuevos datos
+      await limpiarEstadoParaNuevaSimulacion();
+      console.log("🧹 FRONTEND: Estado limpiado y datos cargados para nueva simulación");
       
       // Iniciar el polling para obtener el primer paquete automáticamente
       iniciarPollingPrimerPaquete();
@@ -102,10 +102,7 @@ const ControlSimulacion: React.FC = () => {
       setMensaje('Simulación reiniciada exitosamente');
       setTipoMensaje('success');
       
-      console.log("🔄 FRONTEND: Simulación reiniciada, iniciando polling para obtener primer paquete automáticamente");
-      
-      // Iniciar el polling para obtener el primer paquete automáticamente después de reiniciar
-      iniciarPollingPrimerPaquete();
+      console.log("🔄 FRONTEND: Simulación reiniciada completamente");
       
       // Actualizar información después de unos segundos para dar tiempo al backend
       setTimeout(async () => {

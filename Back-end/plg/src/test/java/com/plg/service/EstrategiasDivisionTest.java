@@ -59,64 +59,64 @@ public class EstrategiasDivisionTest {
     }
 
     private List<Double> estrategiaGreedy(double volumen, List<Double> capacidades) {
-        return java.util.ArrayList<Double>() {{
-            double restante = volumen;
-            int i = 0;
-            while (restante > 0 && i < capacidades.size()) {
-                double asignado = Math.min(restante, capacidades.get(i));
-                add(asignado);
-                restante -= asignado;
-                i++;
-                if (i >= capacidades.size() && restante > 0) i = 0; // Ciclar
-            }
-        }};
+        List<Double> resultado = new java.util.ArrayList<>();
+        double restante = volumen;
+        int i = 0;
+        while (restante > 0 && i < capacidades.size()) {
+            double asignado = Math.min(restante, capacidades.get(i));
+            resultado.add(asignado);
+            restante -= asignado;
+            i++;
+            if (i >= capacidades.size() && restante > 0) i = 0; // Ciclar
+        }
+        return resultado;
     }
 
     private List<Double> estrategiaBalanceada(double volumen, List<Double> capacidades) {
-        return java.util.ArrayList<Double>() {{
-            double restante = volumen;
-            // Alternar entre tipos de camiones
-            int[] indices = {0, 10, 14}; // TD, TC, TB
-            int tipoActual = 0;
-            
-            while (restante > 0) {
-                boolean asignado = false;
-                for (int i = 0; i < 3 && restante > 0; i++) {
-                    int indice = indices[i];
-                    if (indice < capacidades.size()) {
-                        double capacidad = capacidades.get(indice);
-                        double asignacion = Math.min(restante, capacidad);
-                        add(asignacion);
-                        restante -= asignacion;
-                        indices[i]++;
-                        asignado = true;
-                    }
+        List<Double> resultado = new java.util.ArrayList<>();
+        double restante = volumen;
+        // Alternar entre tipos de camiones
+        int[] indices = {0, 10, 14}; // TD, TC, TB
+        int tipoActual = 0;
+        
+        while (restante > 0) {
+            boolean asignado = false;
+            for (int i = 0; i < 3 && restante > 0; i++) {
+                int indice = indices[i];
+                if (indice < capacidades.size()) {
+                    double capacidad = capacidades.get(indice);
+                    double asignacion = Math.min(restante, capacidad);
+                    resultado.add(asignacion);
+                    restante -= asignacion;
+                    indices[i]++;
+                    asignado = true;
                 }
-                if (!asignado) break;
             }
-        }};
+            if (!asignado) break;
+        }
+        return resultado;
     }
 
     private List<Double> estrategiaMinima(double volumen, List<Double> capacidades) {
-        return java.util.ArrayList<Double>() {{
-            double restante = volumen;
-            // Usar solo camiones más grandes hasta que no sea eficiente
-            while (restante > 0) {
-                if (restante >= 250) {
-                    add(250.0);
-                    restante -= 250;
-                } else if (restante >= 200) {
-                    add(200.0);
-                    restante -= 200;
-                } else if (restante >= 150) {
-                    add(150.0);
-                    restante -= 150;
-                } else if (restante > 0) {
-                    add(restante);
-                    restante = 0;
-                }
+        List<Double> resultado = new java.util.ArrayList<>();
+        double restante = volumen;
+        // Usar solo camiones más grandes hasta que no sea eficiente
+        while (restante > 0) {
+            if (restante >= 250) {
+                resultado.add(250.0);
+                restante -= 250;
+            } else if (restante >= 200) {
+                resultado.add(200.0);
+                restante -= 200;
+            } else if (restante >= 150) {
+                resultado.add(150.0);
+                restante -= 150;
+            } else if (restante > 0) {
+                resultado.add(restante);
+                restante = 0;
             }
-        }};
+        }
+        return resultado;
     }
 
     private String formatearDivision(List<Double> division) {

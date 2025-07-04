@@ -172,6 +172,43 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [horaSimulacion, setHoraSimulacion] = useState<string>("00:00:00");
   const [pollingActivo, setPollingActivo] = useState<boolean>(false);
 
+  // Efecto de polling activo para obtener datos
+  useEffect(() => {
+    let intervalId: number;
+
+    if (pollingActivo) {
+      console.log("🔄 POLLING: Iniciando polling activo para obtener datos...");
+      
+      intervalId = setInterval(async () => {
+        try {
+          // Asegurar que los almacenes estén cargados antes del primer paquete
+          if (almacenes.length === 0) {
+            console.log("🏪 POLLING: Cargando almacenes antes del primer paquete...");
+            try {
+              await cargarAlmacenes(false); // No silencioso para debug
+            } catch (error) {
+              console.log("⚠️ POLLING: Error al cargar almacenes:", error);
+            }
+          }
+          
+          await cargarDatos(false);
+          console.log("✅ POLLING: Datos cargados exitosamente");
+          // Si se cargaron datos exitosamente, detener el polling
+          setPollingActivo(false);
+        } catch (error) {
+          console.log("⏳ POLLING: Esperando que el backend genere paquetes...", error);
+          // Continuar el polling si no hay datos disponibles
+        }
+      }, 2000); // Cada 2 segundos
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [pollingActivo, almacenes.length]);
+
   // Cargar almacenes al inicio con reintentos
   useEffect(() => {
     console.log("🚀 CONTEXTO: Montando contexto...");
@@ -465,11 +502,22 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         setBloqueos([]);
       }
 
-      // Actualizar almacenes si vienen en la respuesta
+      // Gestionar almacenes: priorizar los que vienen del backend, sino mantener los actuales o cargar nuevos
       if (data.almacenes && data.almacenes.length > 0) {
         console.log("🏪 CONTEXTO: Actualizando almacenes desde simulación:", data.almacenes);
         setAlmacenes(data.almacenes);
+      } else if (almacenes.length === 0) {
+        // Si no vienen almacenes en la respuesta y no tenemos almacenes cargados, cargarlos
+        console.log("🏪 CONTEXTO: No hay almacenes en la simulación, cargando desde API...");
+        try {
+          await cargarAlmacenes(false);
+        } catch (error) {
+          console.log("⚠️ CONTEXTO: Error al cargar almacenes desde API:", error);
+        }
+      } else {
+        console.log("🏪 CONTEXTO: Manteniendo almacenes existentes (" + almacenes.length + " items)");
       }
+      
       if (esInicial) setHoraActual(HORA_PRIMERA_ACTUALIZACION);
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
       setEsperandoActualizacion(false);
@@ -477,6 +525,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setProximaSolucionCargada(null);
     } catch (error) {
       console.error("Error al cargar datos de simulación:", error);
+      throw error; // Re-lanzar para que el caller pueda manejar el error
     } finally {
       if (esInicial) setCargando(false);
     }
@@ -656,7 +705,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Log para debuggear los pedidos que se entregan
       if (pedidosEntregadosAhora.length > 0) {
         console.log(
-          `� Camión ${camion.id} llegó a (${coordNuevaUbicacion.x},${coordNuevaUbicacion.y}) - Entregando ${pedidosEntregadosAhora.length} pedidos:`,
+          `🚚 Camión ${camion.id} llegó a (${coordNuevaUbicacion.x},${coordNuevaUbicacion.y}) - Entregando ${pedidosEntregadosAhora.length} pedidos:`,
           pedidosEntregadosAhora,
         );
         console.log(`⛽ GLP antes de entrega: ${nuevoGLP.toFixed(2)}`);
@@ -764,41 +813,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       await reiniciarSimulacion();
       console.log("✅ REINICIO: Paquetes del backend reiniciados exitosamente");
       
-      // Luego reiniciar el estado local
-      const nuevosCamiones: CamionEstado[] = rutasCamiones.map((ruta) => {
-        // Aquí intentamos mantener los datos previos del camión si existen
-        const anterior = camiones.find((c) => c.id === ruta.id);
-        return {
-          id: ruta.id,
-          ubicacion: ruta.ruta[0],
-          porcentaje: 0,
-          estado: anterior?.estado ?? "En Camino",
-          capacidadActualGLP: anterior?.capacidadActualGLP ?? 0,
-          capacidadMaximaGLP: anterior?.capacidadMaximaGLP ?? 0,
-          combustibleActual: anterior?.combustibleActual ?? 0,
-          combustibleMaximo: anterior?.combustibleMaximo ?? 0,
-          distanciaMaxima: anterior?.distanciaMaxima ?? 0,
-          pesoCarga: anterior?.pesoCarga ?? 0,
-          pesoCombinado: anterior?.pesoCombinado ?? 0,
-          tara: anterior?.tara ?? 0,
-          tipo: anterior?.tipo ?? "",
-          velocidadPromedio: anterior?.velocidadPromedio ?? 0,
-        };
-      });
-      setCamiones(nuevosCamiones);
-      setHoraActual(HORA_PRIMERA_ACTUALIZACION);
-      setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
-      setEsperandoActualizacion(false);
-      setSolicitudAnticipadaEnviada(false);
-      setProximaSolucionCargada(null);
-      
-      // Reiniciar el contador de tiempo real
-      setInicioSimulacion(null);
-      setTiempoRealSimulacion("00:00:00");
-      setSimulacionActiva(false);
-      
-      // Detener cualquier polling activo
-      setPollingActivo(false);
+      // Limpiar estado y cargar nuevos datos
+      await limpiarEstadoParaNuevaSimulacion();
       
       console.log("🔄 REINICIO: Reinicio completo finalizado - estado local y backend limpiados");
     } catch (error) {
@@ -839,27 +855,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       await reiniciarSimulacion();
       console.log("✅ NUEVO INICIO: Paquetes del backend reiniciados exitosamente");
       
-      // Limpiar completamente el estado local
-      setCamiones([]);
-      setRutasCamiones([]);
-      setBloqueos([]);
-      setFechaHoraSimulacion(null);
-      setDiaSimulacion(null);
-      setHoraActual(HORA_INICIAL);
-      setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
-      setEsperandoActualizacion(false);
-      setSolicitudAnticipadaEnviada(false);
-      setProximaSolucionCargada(null);
-      
-      // Reiniciar el contador de tiempo real
-      setInicioSimulacion(new Date());
-      setTiempoRealSimulacion("00:00:00");
-      setSimulacionActiva(true);
-      
-      console.log("🔄 NUEVO INICIO: Estado local limpiado, cargando nuevos datos...");
-      
-      // Cargar los nuevos datos iniciales
-      await cargarDatos(true);
+      // Limpiar completamente el estado local y cargar nuevos datos
+      await limpiarEstadoParaNuevaSimulacion();
       
       console.log("🎉 NUEVO INICIO: Simulación reiniciada y nuevos datos cargados exitosamente");
     } catch (error) {
@@ -885,19 +882,19 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
   /**
    * @function limpiarEstadoParaNuevaSimulacion
-   * @description Limpia el estado para una nueva simulación pero no carga datos inmediatamente
+   * @description Limpia el estado para una nueva simulación y carga los primeros datos
    */
-  const limpiarEstadoParaNuevaSimulacion = () => {
+  const limpiarEstadoParaNuevaSimulacion = async () => {
     console.log("🧹 LIMPIEZA: Limpiando estado para nueva simulación...");
     
-    // Limpiar datos de simulación anterior
+    // Limpiar datos de simulación anterior (pero NO los almacenes)
     setCamiones([]);
     setRutasCamiones([]);
     setBloqueos([]);
     setFechaHoraSimulacion(null);
     setDiaSimulacion(null);
     
-    // Resetear contadores pero no cargar datos
+    // Resetear contadores
     setHoraActual(HORA_INICIAL);
     setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
     setEsperandoActualizacion(false);
@@ -912,7 +909,28 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     // Detener cualquier polling anterior
     setPollingActivo(false);
     
-    console.log("✅ LIMPIEZA: Estado limpio, listo para recibir nuevos paquetes");
+    console.log("✅ LIMPIEZA: Estado limpio, cargando almacenes y datos...");
+    
+    // Asegurar que los almacenes estén cargados SIEMPRE
+    try {
+      if (almacenes.length === 0) {
+        console.log("🏪 LIMPIEZA: Cargando almacenes...");
+        await cargarAlmacenes(false);
+        console.log("✅ LIMPIEZA: Almacenes cargados exitosamente");
+      }
+    } catch (error) {
+      console.log("⚠️ LIMPIEZA: Error al cargar almacenes:", error);
+    }
+    
+    // Intentar cargar los primeros datos de simulación
+    try {
+      await cargarDatos(true);
+      console.log("✅ LIMPIEZA: Primeros datos de simulación cargados exitosamente");
+    } catch (error) {
+      console.log("⚠️ LIMPIEZA: No hay datos de simulación iniciales disponibles aún, iniciando polling...", error);
+      // Si no hay datos iniciales, activar el polling
+      setPollingActivo(true);
+    }
   };
 
   return (
