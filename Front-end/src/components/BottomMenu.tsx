@@ -6,6 +6,7 @@ import type { Coordenada } from '../types';
 interface BottomMenuProps {
   expanded: boolean;
   setExpanded: (value: boolean) => void;
+  camionSeleccionadoExterno?: string | null;
 }
 
 interface NodoRuta {
@@ -22,12 +23,19 @@ interface NodoRuta {
   };
 }
 
-const BottomMenu: React.FC<BottomMenuProps> = ({ expanded, setExpanded }) => {
+const BottomMenu: React.FC<BottomMenuProps> = ({ expanded, setExpanded, camionSeleccionadoExterno }) => {
   const { rutasCamiones, camiones } = useSimulacion();
   const [camionSeleccionado, setCamionSeleccionado] = useState<string | null>(null);
   const [seguimientoAutomatico, setSeguimientoAutomatico] = useState<boolean>(false);
   const [scrollAutomatico, setScrollAutomatico] = useState<boolean>(false);
   const timelineRef = React.useRef<HTMLDivElement>(null);
+
+  // Efecto para manejar la selección externa de camión
+  useEffect(() => {
+    if (camionSeleccionadoExterno) {
+      setCamionSeleccionado(camionSeleccionadoExterno);
+    }
+  }, [camionSeleccionadoExterno]);
 
   // Función para parsear coordenadas
   const parseCoord = (s: string): Coordenada => {

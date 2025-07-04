@@ -639,6 +639,17 @@ const Mapa = () => {
                 </div>
               )}
               <button
+                className="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded w-full"
+                onClick={() => {
+                  // Aquí se activa el menú inferior para mostrar la ruta
+                  const event = new CustomEvent('mostrarRutaCamion', { detail: { camionId: clickedCamion } });
+                  window.dispatchEvent(event);
+                  setClickedCamion(null);
+                }}
+              >
+                📍 Mostrar ruta del camión
+              </button>
+              <button
                 className="mt-2 text-gray-500 hover:text-black"
                 onClick={() => setClickedCamion(null)}
               >

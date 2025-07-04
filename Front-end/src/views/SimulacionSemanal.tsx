@@ -17,6 +17,8 @@ const SimulacionSemanal: React.FC = () => {
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
   // Estado para alternar paneles
   const [panel, setPanel] = useState<'camiones' | 'bloqueos'>('camiones');
+  // Estado para el camión seleccionado desde el modal del mapa
+  const [camionSeleccionadoExterno, setCamionSeleccionadoExterno] = useState<string | null>(null);
 
   // Constante que indica cada cuántas horas se reciben datos del backend
   const HORAS_POR_ACTUALIZACION = 2;
@@ -89,6 +91,30 @@ const SimulacionSemanal: React.FC = () => {
       if (btnBloqueos) btnBloqueos.onclick = null;
     };
   }, []);
+
+  // Efecto para escuchar el evento de mostrar ruta del camión desde el modal del mapa
+  useEffect(() => {
+    const handleMostrarRutaCamion = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const camionId = customEvent.detail.camionId;
+      if (camionId) {
+        setCamionSeleccionadoExterno(camionId);
+        setBottomMenuExpandido(true);
+      }
+    };
+
+    window.addEventListener('mostrarRutaCamion', handleMostrarRutaCamion);
+    return () => {
+      window.removeEventListener('mostrarRutaCamion', handleMostrarRutaCamion);
+    };
+  }, []);
+
+  // Resetear el camión seleccionado externo cuando se cierre el menú inferior
+  useEffect(() => {
+    if (!bottomMenuExpandido) {
+      setCamionSeleccionadoExterno(null);
+    }
+  }, [bottomMenuExpandido]);
 
   return (
     <div className="bg-[#F5F5F5] w-screen h-screen flex flex-col pt-16">
@@ -163,7 +189,7 @@ const SimulacionSemanal: React.FC = () => {
 
       {/* Menú inferior - ahora empuja el contenido hacia arriba */}
       <div className={`transition-all duration-300 ${bottomMenuExpandido ? 'flex-shrink-0' : 'h-0 overflow-hidden'}`}>
-        <BottomMenu expanded={bottomMenuExpandido} setExpanded={setBottomMenuExpandido} />
+        <BottomMenu expanded={bottomMenuExpandido} setExpanded={setBottomMenuExpandido} camionSeleccionadoExterno={camionSeleccionadoExterno} />
       </div>
     </div>
   );
