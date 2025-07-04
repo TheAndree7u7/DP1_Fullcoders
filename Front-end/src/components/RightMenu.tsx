@@ -198,7 +198,9 @@ function DatosCamionesTable({ onElementoSeleccionado }: { onElementoSeleccionado
                   title="Clic para resaltar en el mapa"
                 >
                   <td className="px-4 py-2 text-gray-800 font-mono font-semibold">{camion.id}</td>
-                  <td className="px-4 py-2 text-blue-700 font-bold">{camion.capacidadActualGLP.toFixed(2)}</td>
+                  <td className="px-4 py-2 text-blue-700 font-bold">
+                    {camion.capacidadActualGLP.toFixed(2)} / {camion.capacidadMaximaGLP}
+                  </td>
                   <td className="px-4 py-2 text-green-700 font-bold">
                     {camion.combustibleActual.toFixed(2)} / {camion.combustibleMaximo}
                   </td>
