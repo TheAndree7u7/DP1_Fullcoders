@@ -151,10 +151,10 @@ const SimulacionSemanal: React.FC = () => {
       </div>
 
       {/* Botón flotante para mostrar menú inferior */}
-      {!bottomMenuExpandido && (
+      {!bottomMenuExpandido && panel === 'camiones' && (
         <button
           onClick={() => setBottomMenuExpandido(true)}
-          className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-20 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg p-3 transition-all duration-200"
+          className="absolute bottom-4 right-4 z-20 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg p-3 transition-all duration-200"
           title="Mostrar ruta del camión"
         >
           <ChevronUp size={20} />
