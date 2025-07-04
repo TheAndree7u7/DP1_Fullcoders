@@ -1,137 +1,176 @@
 // components/TablaPedidos.tsx
-import { useState } from 'react';
-import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
-import { useSimulacion } from '../context/SimulacionContext';
-import type { CamionEstado } from '../context/SimulacionContext';
+import React, { useState } from "react";
+import { useSimulacion } from "../context/SimulacionContext";
+import { Package, MapPin, Truck } from "lucide-react";
+import type { Pedido } from "../types";
 
-type SortDirection = 'asc' | 'desc' | null;
-type SortColumn = 'numero' | 'cantidad' | 'ubicacion' | 'estado' | null;
+// Función para obtener el color según el estado del pedido
+const getColorByEstado = (estado: string) => {
+  switch (estado) {
+    case 'PENDIENTE':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+    case 'EN_TRANSITO':
+      return 'bg-blue-100 text-blue-800 border-blue-300';
+    case 'ENTREGADO':
+      return 'bg-green-100 text-green-800 border-green-300';
+    case 'CANCELADO':
+      return 'bg-red-100 text-red-800 border-red-300';
+    case 'RETRASO':
+      return 'bg-orange-100 text-orange-800 border-orange-300';
+    default:
+      return 'bg-gray-100 text-gray-800 border-gray-300';
+  }
+};
+
+// Función para obtener el ícono según el estado del pedido
+const getIconByEstado = (estado: string) => {
+  switch (estado) {
+    case 'PENDIENTE':
+      return <Package className="w-4 h-4" />;
+    case 'EN_TRANSITO':
+      return <Truck className="w-4 h-4" />;
+    case 'ENTREGADO':
+      return <MapPin className="w-4 h-4" />;
+    case 'CANCELADO':
+      return <Package className="w-4 h-4" />;
+    case 'RETRASO':
+      return <Package className="w-4 h-4" />;
+    default:
+      return <Package className="w-4 h-4" />;
+  }
+};
 
 const TablaPedidos: React.FC = () => {
-  const { camiones } = useSimulacion();
-  const [sortColumn, setSortColumn] = useState<SortColumn>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const { rutasCamiones, camiones } = useSimulacion();
+  const [filtroEstado, setFiltroEstado] = useState<string>('TODOS');
 
-  const headers = [
-    { key: 'numero', label: 'Número' },
-    { key: 'cantidad', label: 'Cantidad' },
-    { key: 'ubicacion', label: 'Ubicación' },
-    { key: 'estado', label: 'Estado' }
-  ];
+  // Extraer todos los pedidos de las rutas de camiones
+  const todosPedidos = React.useMemo(() => {
+    const pedidos: Array<Pedido & { camionId: string; estadoCamion: string }> = [];
+    
+    rutasCamiones.forEach(ruta => {
+      const camion = camiones.find(c => c.id === ruta.id);
+      const estadoCamion = camion?.estado || 'Desconocido';
+      
+      ruta.pedidos.forEach(pedido => {
+        // Inferir el estado del pedido basado en el estado del camión y otros factores
+        let estadoPedido = pedido.estado || 'PENDIENTE';
+        
+        if (estadoCamion === 'Entregado') {
+          estadoPedido = 'ENTREGADO';
+        } else if (estadoCamion === 'En Camino' || estadoCamion === 'Disponible') {
+          estadoPedido = 'EN_TRANSITO';
+        } else if (estadoCamion === 'Averiado') {
+          estadoPedido = 'RETRASO';
+        }
+        
+        pedidos.push({
+          ...pedido,
+          estado: estadoPedido,
+          camionId: ruta.id,
+          estadoCamion
+        });
+      });
+    });
+    
+    return pedidos;
+  }, [rutasCamiones, camiones]);
 
-  // Función para obtener el valor de ordenamiento
-  const getSortValue = (camion: CamionEstado, column: string) => {
-    switch (column) {
-      case 'numero':
-        return camion.id;
-      case 'cantidad':
-        return camion.capacidadActualGLP;
-      case 'ubicacion':
-        return camion.ubicacion;
-      case 'estado':
-        return camion.estado;
-      default:
-        return '';
-    }
-  };
+     // Filtrar pedidos según el estado seleccionado
+   const pedidosFiltrados = React.useMemo(() => {
+     if (filtroEstado === 'TODOS') return todosPedidos;
+     return todosPedidos.filter(pedido => (pedido.estado || 'PENDIENTE') === filtroEstado);
+   }, [todosPedidos, filtroEstado]);
 
-  // Función para manejar el ordenamiento
-  const handleSort = (column: SortColumn) => {
-    let newDirection: SortDirection = 'asc';
-    
-    if (sortColumn === column) {
-      if (sortDirection === 'asc') {
-        newDirection = 'desc';
-      } else if (sortDirection === 'desc') {
-        newDirection = null;
-      } else {
-        newDirection = 'asc';
-      }
-    }
-    
-    setSortColumn(newDirection ? column : null);
-    setSortDirection(newDirection);
-  };
-
-  // Datos ordenados
-  const sortedCamiones = [...camiones].sort((a, b) => {
-    if (!sortColumn || !sortDirection) return 0;
-    
-    const aValue = getSortValue(a, sortColumn);
-    const bValue = getSortValue(b, sortColumn);
-    
-    let comparison = 0;
-    
-    if (sortColumn === 'cantidad') {
-      // Ordenamiento numérico para cantidad
-      comparison = Number(aValue) - Number(bValue);
-    } else {
-      // Ordenamiento alfabético para texto
-      comparison = String(aValue).localeCompare(String(bValue));
-    }
-    
-    return sortDirection === 'asc' ? comparison : -comparison;
-  });
-
-  const data = sortedCamiones.map((camion) => [
-    camion.id,
-    camion.capacidadActualGLP,
-    camion.ubicacion,
-    camion.estado,
-  ]);
-
-  // Función para renderizar el icono de ordenamiento
-  const renderSortIcon = (columnKey: string) => {
-    if (sortColumn !== columnKey) {
-      return <ChevronsUpDown size={14} className="text-gray-400 hover:text-gray-600" />;
-    }
-    
-    if (sortDirection === 'asc') {
-      return <ChevronUp size={14} className="text-blue-600" />;
-    } else {
-      return <ChevronDown size={14} className="text-blue-600" />;
-    }
-  };
+   // Obtener estados únicos para el filtro
+   const estadosDisponibles = React.useMemo(() => {
+     const estados = new Set(todosPedidos.map(pedido => pedido.estado || 'PENDIENTE'));
+     return Array.from(estados);
+   }, [todosPedidos]);
 
   return (
-    <div className="rounded-lg border border-gray-200 max-h-64">
-      {/* Cabecera fija */}
-      <div className="bg-gray-100 sticky top-0 z-10">
-        <table className="min-w-full table-auto text-sm text-left">
-          <thead>
-            <tr>
-              {headers.map((header) => (
-                <th key={header.key} className="px-4 py-2 font-semibold text-gray-700">
-                  <button
-                    onClick={() => handleSort(header.key as SortColumn)}
-                    className="flex items-center gap-1 hover:text-blue-600 transition-colors w-full text-left"
-                    title={`Ordenar por ${header.label}`}
-                  >
-                    <span>{header.label}</span>
-                    {renderSortIcon(header.key)}
-                  </button>
-                </th>
-              ))}
+    <div className="flex flex-col flex-1 min-h-0">
+      <div className="text-lg font-bold text-black mb-3 flex items-center gap-2">
+        <Package className="w-5 h-5" />
+        Lista de Pedidos
+      </div>
+
+      {/* Filtros */}
+      <div className="mb-3">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Filtrar por estado:
+        </label>
+        <select
+          value={filtroEstado}
+          onChange={(e) => setFiltroEstado(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+                     <option value="TODOS">Todos los estados ({todosPedidos.length})</option>
+           {estadosDisponibles.map(estado => (
+             <option key={estado} value={estado}>
+               {estado} ({todosPedidos.filter(p => (p.estado || 'PENDIENTE') === estado).length})
+             </option>
+           ))}
+        </select>
+      </div>
+
+      {/* Tabla de pedidos */}
+      <div className="flex-1 min-h-0 overflow-y-auto rounded-lg shadow border border-gray-200 bg-white">
+        <table className="min-w-full table-auto text-sm bg-white">
+          <thead className="sticky top-0 bg-gray-50 z-10">
+            <tr className="border-b border-gray-200">
+              <th className="px-4 py-2 text-left font-semibold text-black">Código</th>
+              <th className="px-4 py-2 text-left font-semibold text-black">Estado</th>
+              <th className="px-4 py-2 text-left font-semibold text-black">Ubicación</th>
+              <th className="px-4 py-2 text-left font-semibold text-black">Camión</th>
+              <th className="px-4 py-2 text-left font-semibold text-black">GLP</th>
             </tr>
           </thead>
-        </table>
-      </div>
-      
-      {/* Cuerpo de la tabla con scroll */}
-      <div className="overflow-y-auto max-h-[calc(100%-36px)]">
-        <table className="min-w-full table-auto text-sm text-left">
           <tbody>
-            {data.map((fila, filaIndex) => (
-              <tr key={filaIndex} className="border-t border-gray-100 hover:bg-gray-50">
-                {fila.map((celda, celdaIndex) => (
-                  <td key={celdaIndex} className="px-4 py-2 text-gray-700">
-                    {celda}
-                  </td>
-                ))}
+            {pedidosFiltrados.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                  No hay pedidos para mostrar
+                </td>
               </tr>
-            ))}
+            ) : (
+              pedidosFiltrados.map((pedido, idx) => (
+                <tr key={`${pedido.codigo}-${idx}`} className="border-b last:border-b-0 bg-white hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-2 text-gray-800 font-mono font-semibold">
+                    {pedido.codigo}
+                  </td>
+                                     <td className="px-4 py-2">
+                     <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getColorByEstado(pedido.estado || 'PENDIENTE')}`}>
+                       {getIconByEstado(pedido.estado || 'PENDIENTE')}
+                       {pedido.estado || 'PENDIENTE'}
+                     </span>
+                   </td>
+                  <td className="px-4 py-2 text-gray-600">
+                    ({pedido.coordenada.x}, {pedido.coordenada.y})
+                  </td>
+                  <td className="px-4 py-2 text-blue-700 font-bold">
+                    {pedido.camionId}
+                  </td>
+                  <td className="px-4 py-2 text-purple-700 font-bold">
+                    {pedido.volumenGLPAsignado?.toFixed(2) || 'N/A'}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
+      </div>
+
+      {/* Resumen */}
+      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+        <div className="flex justify-between items-center text-sm">
+          <span className="font-medium text-gray-700">
+            Total de pedidos: <span className="font-bold text-blue-600">{todosPedidos.length}</span>
+          </span>
+          <span className="font-medium text-gray-700">
+            Mostrando: <span className="font-bold text-purple-600">{pedidosFiltrados.length}</span>
+          </span>
+        </div>
       </div>
     </div>
   );

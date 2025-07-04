@@ -5,6 +5,7 @@ import MetricasRendimiento from './MetricasRendimiento';
 import CardsCamiones from './CardCamion';
 import IndicadoresCamiones from './IndicadoresCamiones';
 import BloqueosTable from './BloqueosTable';
+import TablaPedidos from './TablaPedidos';
 
 // Tabla simple de datos de camiones usando el contexto
 function DatosCamionesTable() {
@@ -25,7 +26,7 @@ function DatosCamionesTable() {
             </tr>
           </thead>
           <tbody>
-            {camiones.map((camion: any, idx: number) => (
+            {camiones.map((camion) => (
               <tr key={camion.id} className={
                 `border-b last:border-b-0 bg-white hover:bg-gray-100 transition-colors`
               }>
@@ -57,7 +58,7 @@ interface RightMenuProps {
 }
 
 const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded }) => {
-  const [panel, setPanel] = React.useState<'camiones' | 'bloqueos' | 'metricas' | 'estadoCamiones'>('camiones');
+  const [panel, setPanel] = React.useState<'camiones' | 'bloqueos' | 'metricas' | 'estadoCamiones' | 'pedidos'>('camiones');
   // Estados para expandir/contraer secciones en panel camiones
   // Solo una sección expandida a la vez (acordeón)
   // const [expandedSection, setExpandedSection] = React.useState<'estado' | 'datos'>('estado');
@@ -99,6 +100,12 @@ const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded }) => {
         >
           Estado de los camiones
         </button>
+        <button
+          className={`px-3 py-1 rounded font-semibold transition ${panel === 'pedidos' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800 hover:bg-blue-100'}`}
+          onClick={() => setPanel('pedidos')}
+        >
+          Pedidos
+        </button>
       </div>
 
       <div className="flex flex-col flex-1 min-h-0">
@@ -124,6 +131,9 @@ const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded }) => {
             <div className="text-xs font-bold text-gray-700">Indicadores de camiones</div>
             <IndicadoresCamiones />
           </>
+        )}
+        {panel === 'pedidos' && (
+          <TablaPedidos />
         )}
       </div>
     </div>
