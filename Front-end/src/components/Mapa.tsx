@@ -51,7 +51,7 @@ const calcularRotacion = (from: Coordenada, to: Coordenada): number => {
 };
 
 interface MapaProps {
-  elementoResaltado?: {tipo: 'camion' | 'pedido', id: string} | null;
+  elementoResaltado?: {tipo: 'camion' | 'pedido' | 'almacen', id: string} | null;
 }
 
 const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
@@ -415,8 +415,36 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
             {/* Almacenes */}
             {almacenes.map(almacen => {
               //console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
+              const esResaltado = elementoResaltado?.tipo === 'almacen' && elementoResaltado?.id === almacen.id;
               return (
                 <g key={almacen.id} style={{ cursor: 'pointer' }}>
+                  {/* Círculo de resaltado para almacenes */}
+                  {esResaltado && (
+                    <circle
+                      cx={almacen.coordenada.x * CELL_SIZE}
+                      cy={almacen.coordenada.y * CELL_SIZE}
+                      r={30}
+                      fill="none"
+                      stroke="#10b981"
+                      strokeWidth={3}
+                      strokeDasharray="6 3"
+                      opacity={0.8}
+                    >
+                      <animate
+                        attributeName="r"
+                        values="25;35;25"
+                        dur="2s"
+                        repeatCount="indefinite"
+                      />
+                      <animate
+                        attributeName="opacity"
+                        values="0.6;1;0.6"
+                        dur="2s"
+                        repeatCount="indefinite"
+                      />
+                    </circle>
+                  )}
+                  
                   <image
                     href={almacen.tipo === 'CENTRAL' ? almacenCentralIcon : almacenIntermedioIcon}
                     x={almacen.coordenada.x * CELL_SIZE - 20}

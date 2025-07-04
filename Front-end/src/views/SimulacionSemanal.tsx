@@ -20,7 +20,7 @@ const SimulacionSemanal: React.FC = () => {
   // Estado para el camión seleccionado desde el modal del mapa
   const [camionSeleccionadoExterno, setCamionSeleccionadoExterno] = useState<string | null>(null);
   // Estado para resaltar elementos en el mapa
-  const [elementoResaltado, setElementoResaltado] = useState<{tipo: 'camion' | 'pedido', id: string} | null>(null);
+  const [elementoResaltado, setElementoResaltado] = useState<{tipo: 'camion' | 'pedido' | 'almacen', id: string} | null>(null);
 
   // Constante que indica cada cuántas horas se reciben datos del backend
   const HORAS_POR_ACTUALIZACION = 2;
@@ -184,7 +184,8 @@ const SimulacionSemanal: React.FC = () => {
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-3 h-3 bg-amber-500 rounded-full animate-pulse"></div>
                 <span className="text-xs font-semibold text-amber-800">
-                  {elementoResaltado.tipo === 'camion' ? 'Camión' : 'Pedido'}
+                  {elementoResaltado.tipo === 'camion' ? 'Camión' : 
+                   elementoResaltado.tipo === 'pedido' ? 'Pedido' : 'Almacén'}
                 </span>
               </div>
               <div className="text-xs text-amber-700 mb-2 font-bold">
@@ -207,7 +208,8 @@ const SimulacionSemanal: React.FC = () => {
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-3 h-3 bg-amber-500 rounded-full animate-pulse"></div>
                 <span className="text-sm font-semibold text-amber-800">
-                  {elementoResaltado.tipo === 'camion' ? 'Camión' : 'Pedido'} seleccionado
+                  {elementoResaltado.tipo === 'camion' ? 'Camión' : 
+                   elementoResaltado.tipo === 'pedido' ? 'Pedido' : 'Almacén'} seleccionado
                 </span>
               </div>
               <div className="text-sm text-amber-700 mb-2 font-bold">

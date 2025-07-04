@@ -41,7 +41,7 @@ const getIconByEstado = (estado: string) => {
 };
 
 interface TablaPedidosProps {
-  onElementoSeleccionado?: (elemento: {tipo: 'camion' | 'pedido', id: string} | null) => void;
+  onElementoSeleccionado?: (elemento: {tipo: 'camion' | 'pedido' | 'almacen', id: string} | null) => void;
 }
 
 const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) => {
