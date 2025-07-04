@@ -24,11 +24,11 @@ const Navbar: React.FC = () => {
   return (
     <nav className="bg-white p-4 max-h-[48px] flex items-center justify-between fixed top-0 left-0 right-0 z-50" >
       <div className="flex items-center space-x-8">
-        <img src={logo} alt="logo" className="w-[24px] h-[24p]" />
+        <img src={logo} alt="logo" className="w-[24px] h-[24px]" />
         <div className="font-bold text-[14px] text-[#1890FF]">GLPSoft</div>
         <div className="text-black font-bold text-xl">Ejecución semanal</div>
       </div>
-
+      {/* ...botones de panel eliminados... */}
     </nav>
   );
 };
