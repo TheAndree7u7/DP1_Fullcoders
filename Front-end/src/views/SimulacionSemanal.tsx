@@ -100,8 +100,8 @@ const SimulacionSemanal: React.FC = () => {
         )}
       </div>
       
-      {/* Contenido principal */}
-      <div className="flex flex-row flex-1 gap-4 px-4 overflow-hidden relative">
+      {/* Contenido principal - ahora con altura dinámica */}
+      <div className={`flex flex-row flex-1 gap-4 px-4 overflow-hidden relative transition-all duration-300 ${bottomMenuExpandido ? 'pb-4' : ''}`}>
         {/* Mapa */}
         <div className={`transition-all duration-300 ${menuExpandido ? "flex-[2]" : "flex-[1]"}`}>
           <div className="bg-white p-4 rounded-xl overflow-auto w-full h-full">
@@ -137,8 +137,8 @@ const SimulacionSemanal: React.FC = () => {
         </button>
       )}
 
-      {/* Menú inferior */}
-      <div className="fixed bottom-0 left-0 right-0 z-30">
+      {/* Menú inferior - ahora empuja el contenido hacia arriba */}
+      <div className={`transition-all duration-300 ${bottomMenuExpandido ? 'flex-shrink-0' : 'h-0 overflow-hidden'}`}>
         <BottomMenu expanded={bottomMenuExpandido} setExpanded={setBottomMenuExpandido} />
       </div>
     </div>
