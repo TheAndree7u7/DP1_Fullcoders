@@ -172,12 +172,48 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [horaSimulacion, setHoraSimulacion] = useState<string>("00:00:00");
   const [pollingActivo, setPollingActivo] = useState<boolean>(false);
 
-  // Cargar almacenes al inicio
+  // Cargar almacenes al inicio con reintentos
   useEffect(() => {
-    console.log("🚀 CONTEXTO: Montando contexto y cargando almacenes...");
-    cargarAlmacenes();
-    cargarDatos(true);
+    console.log("🚀 CONTEXTO: Montando contexto...");
+    cargarDatosIniciales();
   }, []);
+
+  const cargarDatosIniciales = async () => {
+    let intentos = 0;
+    const maxIntentos = 10;
+    
+    while (intentos < maxIntentos) {
+      try {
+        console.log(`🔄 CONTEXTO: Intento ${intentos + 1}/${maxIntentos} de carga inicial...`);
+        
+        // Intentar cargar almacenes primero (silencioso en reintentos)
+        await cargarAlmacenes(intentos > 0);
+        console.log("✅ CONTEXTO: Almacenes cargados exitosamente");
+        
+        // Luego intentar cargar datos de simulación (esto puede fallar si no hay paquetes)
+        try {
+          await cargarDatos(true);
+          console.log("✅ CONTEXTO: Datos de simulación cargados");
+        } catch {
+          console.log("ℹ️ CONTEXTO: No hay paquetes de simulación iniciales (normal)");
+        }
+        
+        // Si llegamos aquí, al menos los almacenes se cargaron correctamente
+        break;
+        
+      } catch (error) {
+        intentos++;
+        console.log(`⚠️ CONTEXTO: Intento ${intentos} fallido:`, error);
+        
+        if (intentos < maxIntentos) {
+          // Esperar antes del siguiente intento
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } else {
+          console.error("❌ CONTEXTO: No se pudieron cargar los datos iniciales después de", maxIntentos, "intentos");
+        }
+      }
+    }
+  };
 
   // Contador de tiempo real de la simulación
   useEffect(() => {
@@ -243,15 +279,35 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
     console.log("🔄 POLLING: Iniciando polling automático para obtener primer paquete...");
     
+    let intentos = 0;
+    const maxIntentos = 30; // Máximo 60 segundos de polling
+    
     const interval = setInterval(async () => {
+      intentos++;
+      
+      if (intentos > maxIntentos) {
+        console.log("⏰ POLLING: Timeout alcanzado, desactivando polling...");
+        setPollingActivo(false);
+        return;
+      }
       try {
         console.log("🔍 POLLING: Buscando nuevos paquetes...");
         const data = (await getMejorIndividuo()) as IndividuoConBloqueos;
         
-        // Verificar si hay datos válidos (paquete disponible)
-        if (data && data.cromosoma && data.cromosoma.length > 0) {
-          console.log("✅ POLLING: Primer paquete encontrado, desactivando polling...");
+        // Verificar si hay datos válidos (cualquier paquete con estructura válida)
+        if (data && data.cromosoma && Array.isArray(data.cromosoma)) {
+          console.log("✅ POLLING: Primer paquete encontrado (camiones:", data.cromosoma.length, "), desactivando polling...");
           setPollingActivo(false);
+          
+          // Asegurar que los almacenes estén cargados antes del primer paquete
+          if (almacenes.length === 0) {
+            console.log("🏪 POLLING: Cargando almacenes antes del primer paquete...");
+            try {
+              await cargarAlmacenes(false); // No silencioso para debug
+            } catch (error) {
+              console.log("⚠️ POLLING: Error al cargar almacenes:", error);
+            }
+          }
           
           // Aplicar el primer paquete
           await aplicarSolucionPrecargada(data);
@@ -261,7 +317,11 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
           console.log("⏳ POLLING: No hay paquetes disponibles aún, continuando...");
         }
       } catch (error) {
-        console.log("⚠️ POLLING: Error al buscar paquetes (normal si no hay paquetes):", error);
+        // Silenciar errores esperados cuando no hay paquetes disponibles
+        const errorStr = String(error);
+        if (!errorStr.includes('No hay paquetes') && !errorStr.includes('null')) {
+          console.log("⚠️ POLLING: Error al buscar paquetes:", error);
+        }
       }
     }, 2000); // Verificar cada 2 segundos
 
@@ -275,8 +335,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const actualizarAlmacenes = async () => {
     try {
       console.log("🔄 ALMACENES: Actualizando información de almacenes...");
-      const data = await getAlmacenes();
-      setAlmacenes(data);
+      await cargarAlmacenes(false);
       console.log("✅ ALMACENES: Información actualizada");
     } catch (error) {
       console.error("❌ ALMACENES: Error al actualizar almacenes:", error);
@@ -287,15 +346,18 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * @function cargarAlmacenes
    * @description Carga los datos de almacenes desde el backend
    */
-  const cargarAlmacenes = async () => {
+  const cargarAlmacenes = async (silencioso: boolean = false) => {
     try {
-      //console.log('🔄 ALMACENES: Llamando a getAlmacenes...');
       const data = await getAlmacenes();
-      //console.log('✅ ALMACENES: Datos recibidos:', data);
       setAlmacenes(data);
-      //console.log('💾 ALMACENES: Estado actualizado con', data.length, 'almacenes');
+      if (!silencioso) {
+        console.log("✅ ALMACENES: Almacenes cargados:", data.length, "items");
+      }
     } catch (error) {
-      console.error("❌ ALMACENES: Error al cargar almacenes:", error);
+      if (!silencioso) {
+        console.error("❌ ALMACENES: Error al cargar almacenes:", error);
+      }
+      throw error; // Re-lanzar para que el caller pueda manejar el error
     }
   };
 
@@ -735,6 +797,9 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setTiempoRealSimulacion("00:00:00");
       setSimulacionActiva(false);
       
+      // Detener cualquier polling activo
+      setPollingActivo(false);
+      
       console.log("🔄 REINICIO: Reinicio completo finalizado - estado local y backend limpiados");
     } catch (error) {
       console.error("❌ REINICIO: Error al reiniciar simulación:", error);
@@ -843,6 +908,9 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     setInicioSimulacion(new Date());
     setTiempoRealSimulacion("00:00:00");
     setSimulacionActiva(true);
+    
+    // Detener cualquier polling anterior
+    setPollingActivo(false);
     
     console.log("✅ LIMPIEZA: Estado limpio, listo para recibir nuevos paquetes");
   };
