@@ -90,6 +90,7 @@ public class DataLoader {
         // Primero crear todos los pedidos originales
         for (String line : lines) {
             Pedido pedido = PedidoFactory.crearPedido(line);
+            pedido.setFechaLimite(pedido.getFechaRegistro().plusHours((long) pedido.getHorasLimite()));
             pedidosOriginales.add(pedido);
         }
         

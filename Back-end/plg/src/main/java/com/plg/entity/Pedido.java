@@ -17,7 +17,7 @@ public class Pedido extends Nodo {
     private LocalDateTime fechaRegistro;
     private double volumenGLPAsignado;
     private EstadoPedido estado;
-
+    private LocalDateTime fechaLimite;
     private Pedido pedidoCopia;
 
     public Pedido(Coordenada coordenada, boolean bloqueado, double gScore, double fScore, TipoNodo tipoNodo) {
@@ -50,6 +50,7 @@ public class Pedido extends Nodo {
             .fechaRegistro(fechaRegistro)
             .volumenGLPAsignado(volumenGLPAsignado)
             .estado(estado)
+            .fechaLimite(fechaLimite)
             .build();
     }
 
@@ -70,6 +71,7 @@ public class Pedido extends Nodo {
             this.fechaRegistro = this.pedidoCopia.getFechaRegistro();
             this.volumenGLPAsignado = this.pedidoCopia.getVolumenGLPAsignado();
             this.estado = this.pedidoCopia.getEstado();
+            this.fechaLimite = this.pedidoCopia.getFechaLimite();
         }
     }   
 

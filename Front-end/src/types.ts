@@ -85,6 +85,8 @@ export interface Pedido {
   horasLimite?: number;
   volumenGLPAsignado?: number;
   estado?: string;
+  fechaRegistro?: string; // Fecha de registro del pedido
+  fechaLimite?: string; // Fecha límite del pedido
 }
 
 export interface Gen {

@@ -1,7 +1,7 @@
 // components/TablaPedidos.tsx
 import React, { useState } from "react";
 import { useSimulacion } from "../context/SimulacionContext";
-import { Package, MapPin, Truck, Search, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { Package, MapPin, Truck, Search, ChevronUp, ChevronDown, ChevronsUpDown, Calendar } from "lucide-react";
 import type { Pedido } from "../types";
 
 // Función para obtener el color según el estado del pedido
@@ -37,6 +37,23 @@ const getIconByEstado = (estado: string) => {
       return <Package className="w-4 h-4" />;
     default:
       return <Package className="w-4 h-4" />;
+  }
+};
+
+// Función para formatear fecha
+const formatearFecha = (fecha: string | undefined) => {
+  if (!fecha) return 'N/A';
+  try {
+    const date = new Date(fecha);
+    return date.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch {
+    return 'N/A';
   }
 };
 
@@ -106,6 +123,10 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
          return pedido.camionId;
        case 'glp':
          return pedido.volumenGLPAsignado || 0;
+       case 'fechaRegistro':
+         return pedido.fechaRegistro || '';
+       case 'fechaLimite':
+         return pedido.fechaLimite || '';
        default:
          return '';
      }
@@ -128,7 +149,9 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
          `${pedido.coordenada.x},${pedido.coordenada.y}`.includes(terminoBusqueda) ||
          `(${pedido.coordenada.x},${pedido.coordenada.y})`.includes(terminoBusqueda) ||
          pedido.camionId.toLowerCase().includes(terminoBusqueda) ||
-         (pedido.estado || 'PENDIENTE').toLowerCase().includes(terminoBusqueda)
+         (pedido.estado || 'PENDIENTE').toLowerCase().includes(terminoBusqueda) ||
+         formatearFecha(pedido.fechaRegistro).toLowerCase().includes(terminoBusqueda) ||
+         formatearFecha(pedido.fechaLimite).toLowerCase().includes(terminoBusqueda)
        );
      }
 
@@ -191,7 +214,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
              </div>
              <input
                type="text"
-               placeholder="Buscar por código, ubicación, camión o estado..."
+               placeholder="Buscar por código, ubicación, camión, estado o fechas..."
                value={busqueda}
                onChange={(e) => setBusqueda(e.target.value)}
                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -281,12 +304,32 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
                    {renderSortIcon('glp')}
                  </button>
                </th>
+               <th className="px-4 py-2 text-left font-semibold text-black">
+                 <button
+                   onClick={() => handleSort('fechaRegistro')}
+                   className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                   title="Ordenar por Fecha de Registro"
+                 >
+                   <span>Fecha Registro</span>
+                   {renderSortIcon('fechaRegistro')}
+                 </button>
+               </th>
+               <th className="px-4 py-2 text-left font-semibold text-black">
+                 <button
+                   onClick={() => handleSort('fechaLimite')}
+                   className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                   title="Ordenar por Fecha Límite"
+                 >
+                   <span>Fecha Límite</span>
+                   {renderSortIcon('fechaLimite')}
+                 </button>
+               </th>
              </tr>
            </thead>
           <tbody>
             {pedidosFiltrados.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                   No hay pedidos para mostrar
                 </td>
               </tr>
@@ -315,6 +358,18 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
                    </td>
                    <td className="px-4 py-2 text-purple-700 font-bold">
                      {pedido.volumenGLPAsignado?.toFixed(2) || 'N/A'}
+                   </td>
+                   <td className="px-4 py-2 text-gray-600">
+                     <div className="flex items-center gap-1">
+                       <Calendar className="w-4 h-4 text-gray-400" />
+                       {formatearFecha(pedido.fechaRegistro)}
+                     </div>
+                   </td>
+                   <td className="px-4 py-2 text-gray-600">
+                     <div className="flex items-center gap-1">
+                       <Calendar className="w-4 h-4 text-red-400" />
+                       {formatearFecha(pedido.fechaLimite)}
+                     </div>
                    </td>
                  </tr>
                ))

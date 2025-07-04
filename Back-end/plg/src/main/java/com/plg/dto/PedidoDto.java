@@ -16,6 +16,7 @@ public class PedidoDto {
     private double volumenGLPAsignado;
     private EstadoPedido estado;
     private LocalDateTime fechaRegistro;
+    private LocalDateTime fechaLimite;
 
     public PedidoDto(Pedido pedido) {
         this.codigo = pedido.getCodigo();
@@ -24,5 +25,6 @@ public class PedidoDto {
         this.volumenGLPAsignado = pedido.getVolumenGLPAsignado();
         this.estado = pedido.getEstado();
         this.fechaRegistro = pedido.getFechaRegistro();
+        this.fechaLimite = pedido.getFechaLimite();
     }
 }
