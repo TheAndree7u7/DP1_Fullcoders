@@ -490,28 +490,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                  const cy = posicion.y * CELL_SIZE;
                  return (
                    <g key={camion.id}>
-                     {/* Círculo de resaltado */}
-                     {esResaltado && (
-                       <circle
-                         cx={cx}
-                         cy={cy}
-                         r={25}
-                         fill="none"
-                         stroke="#fbbf24"
-                         strokeWidth={3}
-                         strokeDasharray="6 3"
-                         opacity={0.8}
-                       >
-                         <animateTransform
-                           attributeName="transform"
-                           type="rotate"
-                           values={`0 ${cx} ${cy};360 ${cx} ${cy}`}
-                           dur="3s"
-                           repeatCount="indefinite"
-                         />
-                       </circle>
-                     )}
-                     
                      <g
                        transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
                        style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}
@@ -540,6 +518,35 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                          }
                        }}
                      >
+                       {/* Círculo de resaltado que se mueve con el camión */}
+                       {esResaltado && (
+                         <circle
+                           cx={0}
+                           cy={0}
+                           r={25}
+                           fill="none"
+                           stroke="#f59e0b"
+                           strokeWidth={3}
+                           strokeDasharray="8 4"
+                           opacity={0.9}
+                           style={{ transition: 'all 0.8s linear' }}
+                         >
+                           <animateTransform
+                             attributeName="transform"
+                             type="rotate"
+                             values="0 0 0;360 0 0"
+                             dur="4s"
+                             repeatCount="indefinite"
+                           />
+                           <animate
+                             attributeName="opacity"
+                             values="0.7;1;0.7"
+                             dur="1.5s"
+                             repeatCount="indefinite"
+                           />
+                         </circle>
+                       )}
+                       
                        {/* Cuerpo principal del camión */}
                        <rect x={-8} y={-3} width={16} height={6} rx={1} fill={colorFinal} stroke="black" strokeWidth={0.5} />
                        

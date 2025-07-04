@@ -177,24 +177,49 @@ const SimulacionSemanal: React.FC = () => {
           </div>
         )}
         
-        {/* Indicador de elemento resaltado */}
-        {elementoResaltado && (
-          <div className="absolute top-4 left-4 bg-amber-100 border border-amber-300 rounded-lg p-3 shadow-lg z-10">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-3 h-3 bg-amber-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-semibold text-amber-800">
-                {elementoResaltado.tipo === 'camion' ? 'Camión' : 'Pedido'} seleccionado
-              </span>
+        {/* Indicador de elemento resaltado - debajo de la leyenda para camiones */}
+        {elementoResaltado && panel === 'camiones' && (
+          <div className="absolute top-4 left-4 z-20" style={{ marginTop: '280px' }}>
+            <div className="bg-amber-100 border border-amber-300 rounded-lg p-3 shadow-lg w-32">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-3 h-3 bg-amber-500 rounded-full animate-pulse"></div>
+                <span className="text-xs font-semibold text-amber-800">
+                  {elementoResaltado.tipo === 'camion' ? 'Camión' : 'Pedido'}
+                </span>
+              </div>
+              <div className="text-xs text-amber-700 mb-2 font-bold">
+                {elementoResaltado.id}
+              </div>
+              <button
+                onClick={() => setElementoResaltado(null)}
+                className="text-xs bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded w-full"
+              >
+                Limpiar
+              </button>
             </div>
-            <div className="text-sm text-amber-700 mb-2">
-              <strong>{elementoResaltado.id}</strong>
+          </div>
+        )}
+        
+        {/* Indicador de elemento resaltado - para panel de bloqueos */}
+        {elementoResaltado && panel === 'bloqueos' && (
+          <div className="absolute top-20 left-4 z-20">
+            <div className="bg-amber-100 border border-amber-300 rounded-lg p-3 shadow-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-3 h-3 bg-amber-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-semibold text-amber-800">
+                  {elementoResaltado.tipo === 'camion' ? 'Camión' : 'Pedido'} seleccionado
+                </span>
+              </div>
+              <div className="text-sm text-amber-700 mb-2 font-bold">
+                {elementoResaltado.id}
+              </div>
+              <button
+                onClick={() => setElementoResaltado(null)}
+                className="text-xs bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded w-full"
+              >
+                Limpiar selección
+              </button>
             </div>
-            <button
-              onClick={() => setElementoResaltado(null)}
-              className="text-xs bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded"
-            >
-              Limpiar selección
-            </button>
           </div>
         )}
       </div>
