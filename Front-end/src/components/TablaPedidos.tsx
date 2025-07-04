@@ -1,7 +1,7 @@
 // components/TablaPedidos.tsx
 import React, { useState } from "react";
 import { useSimulacion } from "../context/SimulacionContext";
-import { Package, MapPin, Truck, Search } from "lucide-react";
+import { Package, MapPin, Truck, Search, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import type { Pedido } from "../types";
 
 // Función para obtener el color según el estado del pedido
@@ -44,6 +44,8 @@ const TablaPedidos: React.FC = () => {
   const { rutasCamiones, camiones } = useSimulacion();
   const [filtroEstado, setFiltroEstado] = useState<string>('TODOS');
   const [busqueda, setBusqueda] = useState<string>('');
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   // Extraer todos los pedidos de las rutas de camiones
   const todosPedidos = React.useMemo(() => {
@@ -77,19 +79,47 @@ const TablaPedidos: React.FC = () => {
     return pedidos;
   }, [rutasCamiones, camiones]);
 
-     // Filtrar pedidos según el estado seleccionado y la búsqueda
+     // Función para manejar el ordenamiento
+   const handleSort = (column: string) => {
+     if (sortColumn === column) {
+       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+     } else {
+       setSortColumn(column);
+       setSortDirection('asc');
+     }
+   };
+
+   // Función para obtener el valor a ordenar
+   const getSortValue = (pedido: Pedido & { camionId: string; estadoCamion: string }, column: string) => {
+     switch (column) {
+       case 'codigo':
+         return pedido.codigo;
+       case 'estado':
+         return pedido.estado || 'PENDIENTE';
+       case 'ubicacion':
+         return `${pedido.coordenada.x},${pedido.coordenada.y}`;
+       case 'camion':
+         return pedido.camionId;
+       case 'glp':
+         return pedido.volumenGLPAsignado || 0;
+       default:
+         return '';
+     }
+   };
+
+   // Filtrar y ordenar pedidos según el estado seleccionado y la búsqueda
    const pedidosFiltrados = React.useMemo(() => {
-     let pedidosFiltrados = todosPedidos;
+     let result = todosPedidos;
      
      // Filtrar por estado
      if (filtroEstado !== 'TODOS') {
-       pedidosFiltrados = pedidosFiltrados.filter(pedido => (pedido.estado || 'PENDIENTE') === filtroEstado);
+       result = result.filter(pedido => (pedido.estado || 'PENDIENTE') === filtroEstado);
      }
      
      // Filtrar por búsqueda
      if (busqueda.trim() !== '') {
        const terminoBusqueda = busqueda.toLowerCase().trim();
-       pedidosFiltrados = pedidosFiltrados.filter(pedido => 
+       result = result.filter(pedido => 
          pedido.codigo.toLowerCase().includes(terminoBusqueda) ||
          `${pedido.coordenada.x},${pedido.coordenada.y}`.includes(terminoBusqueda) ||
          `(${pedido.coordenada.x},${pedido.coordenada.y})`.includes(terminoBusqueda) ||
@@ -97,9 +127,39 @@ const TablaPedidos: React.FC = () => {
          (pedido.estado || 'PENDIENTE').toLowerCase().includes(terminoBusqueda)
        );
      }
+
+     // Ordenar
+     if (sortColumn) {
+       result = [...result].sort((a, b) => {
+         const aValue = getSortValue(a, sortColumn);
+         const bValue = getSortValue(b, sortColumn);
+         
+         let comparison = 0;
+         if (typeof aValue === 'number' && typeof bValue === 'number') {
+           comparison = aValue - bValue;
+         } else {
+           comparison = String(aValue).localeCompare(String(bValue));
+         }
+         
+         return sortDirection === 'asc' ? comparison : -comparison;
+       });
+     }
      
-     return pedidosFiltrados;
-   }, [todosPedidos, filtroEstado, busqueda]);
+     return result;
+   }, [todosPedidos, filtroEstado, busqueda, sortColumn, sortDirection]);
+
+   // Función para renderizar el ícono de ordenamiento
+   const renderSortIcon = (column: string) => {
+     if (sortColumn !== column) {
+       return <ChevronsUpDown size={14} className="text-gray-400 hover:text-gray-600" />;
+     }
+     
+     if (sortDirection === 'asc') {
+       return <ChevronUp size={14} className="text-blue-600" />;
+     } else {
+       return <ChevronDown size={14} className="text-blue-600" />;
+     }
+   };
 
    // Obtener estados únicos para el filtro
    const estadosDisponibles = React.useMemo(() => {
@@ -157,16 +217,61 @@ const TablaPedidos: React.FC = () => {
 
       {/* Tabla de pedidos */}
       <div className="flex-1 min-h-0 overflow-y-auto rounded-lg shadow border border-gray-200 bg-white">
-        <table className="min-w-full table-auto text-sm bg-white">
-          <thead className="sticky top-0 bg-gray-50 z-10">
-            <tr className="border-b border-gray-200">
-              <th className="px-4 py-2 text-left font-semibold text-black">Código</th>
-              <th className="px-4 py-2 text-left font-semibold text-black">Estado</th>
-              <th className="px-4 py-2 text-left font-semibold text-black">Ubicación</th>
-              <th className="px-4 py-2 text-left font-semibold text-black">Camión</th>
-              <th className="px-4 py-2 text-left font-semibold text-black">GLP</th>
-            </tr>
-          </thead>
+                 <table className="min-w-full table-auto text-sm bg-white">
+           <thead className="sticky top-0 bg-gray-50 z-10">
+             <tr className="border-b border-gray-200">
+               <th className="px-4 py-2 text-left font-semibold text-black">
+                 <button
+                   onClick={() => handleSort('codigo')}
+                   className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                   title="Ordenar por Código"
+                 >
+                   <span>Código</span>
+                   {renderSortIcon('codigo')}
+                 </button>
+               </th>
+               <th className="px-4 py-2 text-left font-semibold text-black">
+                 <button
+                   onClick={() => handleSort('estado')}
+                   className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                   title="Ordenar por Estado"
+                 >
+                   <span>Estado</span>
+                   {renderSortIcon('estado')}
+                 </button>
+               </th>
+               <th className="px-4 py-2 text-left font-semibold text-black">
+                 <button
+                   onClick={() => handleSort('ubicacion')}
+                   className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                   title="Ordenar por Ubicación"
+                 >
+                   <span>Ubicación</span>
+                   {renderSortIcon('ubicacion')}
+                 </button>
+               </th>
+               <th className="px-4 py-2 text-left font-semibold text-black">
+                 <button
+                   onClick={() => handleSort('camion')}
+                   className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                   title="Ordenar por Camión"
+                 >
+                   <span>Camión</span>
+                   {renderSortIcon('camion')}
+                 </button>
+               </th>
+               <th className="px-4 py-2 text-left font-semibold text-black">
+                 <button
+                   onClick={() => handleSort('glp')}
+                   className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                   title="Ordenar por GLP"
+                 >
+                   <span>GLP</span>
+                   {renderSortIcon('glp')}
+                 </button>
+               </th>
+             </tr>
+           </thead>
           <tbody>
             {pedidosFiltrados.length === 0 ? (
               <tr>

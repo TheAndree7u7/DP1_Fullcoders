@@ -1,6 +1,6 @@
 import React from 'react';
-import { ChevronRight, Search } from 'lucide-react';
-import { useSimulacion } from '../context/SimulacionContext';
+import { ChevronRight, Search, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { useSimulacion, type CamionEstado } from '../context/SimulacionContext';
 import MetricasRendimiento from './MetricasRendimiento';
 import CardsCamiones from './CardCamion';
 import IndicadoresCamiones from './IndicadoresCamiones';
@@ -11,21 +11,86 @@ import TablaPedidos from './TablaPedidos';
 function DatosCamionesTable() {
   const { camiones } = useSimulacion();
   const [busquedaCamion, setBusquedaCamion] = React.useState<string>('');
+  const [sortColumn, setSortColumn] = React.useState<string | null>(null);
+  const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('asc');
 
-  // Filtrar camiones por búsqueda
+  // Función para manejar el ordenamiento
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  // Función para obtener el valor a ordenar
+  const getSortValue = (camion: CamionEstado, column: string) => {
+    switch (column) {
+      case 'id':
+        return camion.id;
+      case 'glp':
+        return camion.capacidadActualGLP;
+      case 'combustible':
+        return camion.combustibleActual;
+      case 'ubicacion':
+        return camion.ubicacion;
+      case 'estado':
+        return camion.estado;
+      default:
+        return '';
+    }
+  };
+
+  // Filtrar y ordenar camiones
   const camionesFiltrados = React.useMemo(() => {
-    if (busquedaCamion.trim() === '') return camiones;
+    let result = camiones;
     
-    const terminoBusqueda = busquedaCamion.toLowerCase().trim();
-    return camiones.filter(camion => 
-      camion.id.toLowerCase().includes(terminoBusqueda) ||
-      camion.ubicacion.toLowerCase().includes(terminoBusqueda) ||
-      camion.estado.toLowerCase().includes(terminoBusqueda) ||
-      camion.capacidadActualGLP.toString().includes(terminoBusqueda) ||
-      camion.combustibleActual.toString().includes(terminoBusqueda) ||
-      camion.combustibleMaximo.toString().includes(terminoBusqueda)
-    );
-  }, [camiones, busquedaCamion]);
+    // Filtrar por búsqueda
+    if (busquedaCamion.trim() !== '') {
+      const terminoBusqueda = busquedaCamion.toLowerCase().trim();
+      result = result.filter(camion => 
+        camion.id.toLowerCase().includes(terminoBusqueda) ||
+        camion.ubicacion.toLowerCase().includes(terminoBusqueda) ||
+        camion.estado.toLowerCase().includes(terminoBusqueda) ||
+        camion.capacidadActualGLP.toString().includes(terminoBusqueda) ||
+        camion.combustibleActual.toString().includes(terminoBusqueda) ||
+        camion.combustibleMaximo.toString().includes(terminoBusqueda)
+      );
+    }
+
+    // Ordenar
+    if (sortColumn) {
+      result = [...result].sort((a, b) => {
+        const aValue = getSortValue(a, sortColumn);
+        const bValue = getSortValue(b, sortColumn);
+        
+        let comparison = 0;
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+          comparison = aValue - bValue;
+        } else {
+          comparison = String(aValue).localeCompare(String(bValue));
+        }
+        
+        return sortDirection === 'asc' ? comparison : -comparison;
+      });
+    }
+
+    return result;
+  }, [camiones, busquedaCamion, sortColumn, sortDirection]);
+
+  // Función para renderizar el ícono de ordenamiento
+  const renderSortIcon = (column: string) => {
+    if (sortColumn !== column) {
+      return <ChevronsUpDown size={14} className="text-gray-400 hover:text-gray-600" />;
+    }
+    
+    if (sortDirection === 'asc') {
+      return <ChevronUp size={14} className="text-blue-600" />;
+    } else {
+      return <ChevronDown size={14} className="text-blue-600" />;
+    }
+  };
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -56,11 +121,56 @@ function DatosCamionesTable() {
         <table className="min-w-full table-auto text-sm bg-white">
           <thead>
             <tr className="border-b border-gray-200">
-              <th className="px-4 py-2 text-left font-semibold text-black">ID</th>
-              <th className="px-4 py-2 text-left font-semibold text-black">GLP Actual</th>
-              <th className="px-4 py-2 text-left font-semibold text-black">Combustible</th>
-              <th className="px-4 py-2 text-left font-semibold text-black">Ubicación</th>
-              <th className="px-4 py-2 text-left font-semibold text-black">Estado</th>
+              <th className="px-4 py-2 text-left font-semibold text-black">
+                <button
+                  onClick={() => handleSort('id')}
+                  className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                  title="Ordenar por ID"
+                >
+                  <span>ID</span>
+                  {renderSortIcon('id')}
+                </button>
+              </th>
+              <th className="px-4 py-2 text-left font-semibold text-black">
+                <button
+                  onClick={() => handleSort('glp')}
+                  className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                  title="Ordenar por GLP Actual"
+                >
+                  <span>GLP Actual</span>
+                  {renderSortIcon('glp')}
+                </button>
+              </th>
+              <th className="px-4 py-2 text-left font-semibold text-black">
+                <button
+                  onClick={() => handleSort('combustible')}
+                  className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                  title="Ordenar por Combustible"
+                >
+                  <span>Combustible</span>
+                  {renderSortIcon('combustible')}
+                </button>
+              </th>
+              <th className="px-4 py-2 text-left font-semibold text-black">
+                <button
+                  onClick={() => handleSort('ubicacion')}
+                  className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                  title="Ordenar por Ubicación"
+                >
+                  <span>Ubicación</span>
+                  {renderSortIcon('ubicacion')}
+                </button>
+              </th>
+              <th className="px-4 py-2 text-left font-semibold text-black">
+                <button
+                  onClick={() => handleSort('estado')}
+                  className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                  title="Ordenar por Estado"
+                >
+                  <span>Estado</span>
+                  {renderSortIcon('estado')}
+                </button>
+              </th>
             </tr>
           </thead>
                       <tbody>
