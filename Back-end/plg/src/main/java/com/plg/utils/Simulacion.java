@@ -79,8 +79,9 @@ public class Simulacion {
         try {
             GestorHistorialSimulacion.setEnProceso(true);
             ConfiguracionSimulacion.imprimirDatosSimulacion();
-            LocalDateTime fechaLimite = Parametros.fecha_inicial.plusDays(7);
+            LocalDateTime fechaLimite = fechaActual.plusDays(7);
             System.out.println("🚀 Iniciando simulación hasta: " + fechaLimite);
+            System.out.println("📅 Fecha de inicio (desde frontend): " + fechaActual);
             System.out.println("📦 Pedidos semanales iniciales: " + pedidosSemanal.size());
             
             while (!pedidosSemanal.isEmpty() && (fechaActual.isBefore(fechaLimite) || fechaActual.isEqual(fechaLimite))) {

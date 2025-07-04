@@ -6,6 +6,7 @@ import RightMenu from "../components/RightMenu";
 import BottomMenu from "../components/BottomMenu";
 import { ChevronLeft, ChevronUp } from "lucide-react";
 import { useSimulacion } from "../context/SimulacionContext";
+import ControlSimulacion from "../components/ControlSimulacion";
 
 // Constante que define cuánto tiempo (en segundos) representa cada nodo en la simulación
 const SEGUNDOS_POR_NODO = 36;
@@ -21,6 +22,8 @@ const SimulacionSemanal: React.FC = () => {
   const [camionSeleccionadoExterno, setCamionSeleccionadoExterno] = useState<string | null>(null);
   // Estado para resaltar elementos en el mapa
   const [elementoResaltado, setElementoResaltado] = useState<{tipo: 'camion' | 'pedido' | 'almacen', id: string} | null>(null);
+  // Estado para el panel de control
+  const [controlPanelExpandido, setControlPanelExpandido] = useState(false);
 
   // Constante que indica cada cuántas horas se reciben datos del backend
   const HORAS_POR_ACTUALIZACION = 2;
@@ -141,6 +144,24 @@ const SimulacionSemanal: React.FC = () => {
               <span className="mr-2">Seg/nodo:</span>
               <span className="font-bold text-blue-300">{SEGUNDOS_POR_NODO}</span>
             </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Panel de control de simulación */}
+      <div className="px-4 py-2">
+        <div className="flex items-center justify-between mb-2">
+          <button
+            onClick={() => setControlPanelExpandido(!controlPanelExpandido)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+          >
+            {controlPanelExpandido ? '🔼 Ocultar Control' : '🔽 Mostrar Control de Simulación'}
+          </button>
+        </div>
+        
+        {controlPanelExpandido && (
+          <div className="transition-all duration-300">
+            <ControlSimulacion />
           </div>
         )}
       </div>

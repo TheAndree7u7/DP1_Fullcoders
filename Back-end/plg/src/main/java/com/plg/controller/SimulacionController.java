@@ -2,11 +2,18 @@ package com.plg.controller;
 
 import com.plg.utils.Simulacion;
 import com.plg.dto.IndividuoDto;
+import com.plg.dto.request.SimulacionRequest;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+
+import java.time.LocalDateTime;
 
 
 @RestController
@@ -47,9 +54,10 @@ public class SimulacionController {
     @GetMapping("/reiniciar")
     public String reiniciarSimulacion() {
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/reiniciar");
-        Simulacion.reiniciarReproduccion();
-        System.out.println("✅ ENDPOINT RESPUESTA: Simulación reiniciada");
-        return "Simulación reiniciada desde el inicio";
+        // Limpiar completamente el historial, no solo reiniciar la reproducción
+        com.plg.utils.simulacion.GestorHistorialSimulacion.limpiarHistorialCompleto();
+        System.out.println("✅ ENDPOINT RESPUESTA: Simulación reiniciada y historial limpiado");
+        return "Simulación reiniciada desde el inicio - historial limpiado";
     }
     
     @GetMapping("/info")
@@ -60,5 +68,60 @@ public class SimulacionController {
                           ", Actual=" + info.paqueteActual + 
                           ", EnProceso=" + info.enProceso);
         return info;
+    }
+
+    @PostMapping("/iniciar")
+    public ResponseEntity<String> iniciarSimulacion(@RequestBody SimulacionRequest request) {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/iniciar");
+        System.out.println("📅 Fecha recibida: " + request.getFechaInicio());
+        
+        try {
+            // Validar que la fecha no sea nula
+            if (request.getFechaInicio() == null) {
+                System.out.println("❌ Error: Fecha de inicio es nula");
+                return ResponseEntity.badRequest().body("Error: La fecha de inicio no puede ser nula");
+            }
+            
+            // Verificar si ya hay una simulación en proceso
+            if (Simulacion.obtenerInfoSimulacion().enProceso) {
+                System.out.println("⚠️ Ya hay una simulación en proceso");
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Error: Ya hay una simulación en proceso. Debe esperar a que termine o reiniciarla.");
+            }
+            
+            System.out.println("🔧 Configurando simulación con fecha: " + request.getFechaInicio());
+            
+            // Limpiar historial anterior antes de iniciar nueva simulación
+            com.plg.utils.simulacion.GestorHistorialSimulacion.limpiarHistorialCompleto();
+            
+            // Configurar la simulación con la fecha enviada desde el frontend
+            Simulacion.configurarSimulacion(request.getFechaInicio());
+            
+            // Ejecutar la simulación en un hilo separado para no bloquear la respuesta HTTP
+            Thread simulacionThread = new Thread(() -> {
+                try {
+                    System.out.println("🚀 Iniciando simulación en hilo separado...");
+                    Simulacion.ejecutarSimulacion();
+                    System.out.println("✅ Simulación completada exitosamente");
+                } catch (Exception e) {
+                    System.err.println("💥 Error durante la ejecución de la simulación: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            });
+            
+            simulacionThread.setName("SimulacionThread-" + request.getFechaInicio());
+            simulacionThread.start();
+            
+            String mensaje = "Simulación iniciada correctamente con fecha: " + request.getFechaInicio();
+            System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
+            
+            return ResponseEntity.ok(mensaje);
+            
+        } catch (Exception e) {
+            String errorMsg = "Error al iniciar simulación: " + e.getMessage();
+            System.err.println("❌ " + errorMsg);
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMsg);
+        }
     }
 }
