@@ -50,7 +50,11 @@ const calcularRotacion = (from: Coordenada, to: Coordenada): number => {
   }
 };
 
-const Mapa = () => {
+interface MapaProps {
+  elementoResaltado?: {tipo: 'camion' | 'pedido', id: string} | null;
+}
+
+const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
   const [camionesVisuales, setCamionesVisuales] = useState<CamionVisual[]>([]);
   const [running, setRunning] = useState(false);
   const [intervalo, setIntervalo] = useState(300);
@@ -361,8 +365,30 @@ const Mapa = () => {
             {/* Clientes/Pedidos */}
             {pedidosPendientes.map(pedido => {
               //console.log('👤 MAPA: Renderizando cliente:', pedido.codigo, 'en posición:', pedido.coordenada);
+              const esResaltado = elementoResaltado?.tipo === 'pedido' && elementoResaltado?.id === pedido.codigo;
               return (
                 <g key={pedido.codigo}>
+                  {/* Círculo de resaltado para pedidos */}
+                  {esResaltado && (
+                    <circle
+                      cx={pedido.coordenada.x * CELL_SIZE}
+                      cy={pedido.coordenada.y * CELL_SIZE}
+                      r={25}
+                      fill="none"
+                      stroke="#f59e0b"
+                      strokeWidth={3}
+                      strokeDasharray="4 2"
+                      opacity={0.8}
+                    >
+                      <animate
+                        attributeName="r"
+                        values="20;30;20"
+                        dur="2s"
+                        repeatCount="indefinite"
+                      />
+                    </circle>
+                  )}
+                  
                   <image
                     href={clienteIcon}
                     x={pedido.coordenada.x * CELL_SIZE - 15}
@@ -456,69 +482,93 @@ const Mapa = () => {
                  const estadoCamion = camiones.find(c => c.id === camion.id);
                  const esAveriado = estadoCamion?.estado === 'Averiado';
                  const esEnMantenimiento = estadoCamion?.estado === 'En Mantenimiento';
+                 const esResaltado = elementoResaltado?.tipo === 'camion' && elementoResaltado?.id === camion.id;
                  const { posicion, rotacion, color } = camion;
                  // Rojo para averiados, negro para mantenimiento, color original para otros estados
                  const colorFinal = esAveriado ? ESTADO_COLORS.AVERIADO : esEnMantenimiento ? ESTADO_COLORS.MANTENIMIENTO : color;
                  const cx = posicion.x * CELL_SIZE;
                  const cy = posicion.y * CELL_SIZE;
                  return (
-                   <g
-                     key={camion.id}
-                     transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
-                     style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}
-                     onMouseEnter={evt => {
-                       // Solo mostrar tooltip si no hay modal activo
-                       if (!clickedCamion) {
-                         setTooltipCamion(camion.id);
-                         setTooltipPos({ x: evt.clientX, y: evt.clientY });
-                       }
-                     }}
-                     onMouseMove={evt => {
-                       if (!clickedCamion && tooltipCamion === camion.id) {
-                         setTooltipPos({ x: evt.clientX, y: evt.clientY });
-                       }
-                     }}
-                     onMouseLeave={() => {
-                       setTooltipCamion(null);
-                     }}
-                     onClick={evt => {
-                       // Solo abrir el modal si no hay otro modal ya abierto
-                       if (!clickedCamion) {
-                         setClickedCamion(camion.id);
-                         setClickedPos({ x: evt.clientX, y: evt.clientY });
-                         // Ocultar el tooltip de hover
-                         setTooltipCamion(null);
-                       }
-                     }}
-                   >
-                     {/* Cuerpo principal del camión */}
-                     <rect x={-8} y={-3} width={16} height={6} rx={1} fill={colorFinal} stroke="black" strokeWidth={0.5} />
-                     
-                     {/* Cabina del camión (frente) */}
-                     <rect x={6} y={-2} width={4} height={4} rx={0.5} fill={colorFinal} stroke="black" strokeWidth={0.5} />
-                     
-                     {/* Ruedas */}
-                     <circle cx={-5} cy={4} r={1.5} fill="black" />
-                     <circle cx={2} cy={4} r={1.5} fill="black" />
-                     <circle cx={7} cy={4} r={1.5} fill="black" />
-                     
-                     {/* Indicador de dirección (flecha) */}
-                     <polygon 
-                       points="10,0 8,-1.5 8,1.5" 
-                       fill="white" 
-                       stroke="black" 
-                       strokeWidth={0.3}
-                     />
-                     
-                     {/* Líneas de detalle del camión */}
-                     <line x1={-6} y1={-1} x2={4} y2={-1} stroke="black" strokeWidth={0.3} opacity={0.6} />
-                     <line x1={-6} y1={1} x2={4} y2={1} stroke="black" strokeWidth={0.3} opacity={0.6} />
-                     
-                     {esAveriado && (
-                       <text x={0} y={-10} textAnchor="middle" fontSize="8" fill="#dc2626" fontWeight="bold">
-                         💥
-                       </text>
+                   <g key={camion.id}>
+                     {/* Círculo de resaltado */}
+                     {esResaltado && (
+                       <circle
+                         cx={cx}
+                         cy={cy}
+                         r={25}
+                         fill="none"
+                         stroke="#fbbf24"
+                         strokeWidth={3}
+                         strokeDasharray="6 3"
+                         opacity={0.8}
+                       >
+                         <animateTransform
+                           attributeName="transform"
+                           type="rotate"
+                           values={`0 ${cx} ${cy};360 ${cx} ${cy}`}
+                           dur="3s"
+                           repeatCount="indefinite"
+                         />
+                       </circle>
                      )}
+                     
+                     <g
+                       transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
+                       style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}
+                       onMouseEnter={evt => {
+                         // Solo mostrar tooltip si no hay modal activo
+                         if (!clickedCamion) {
+                           setTooltipCamion(camion.id);
+                           setTooltipPos({ x: evt.clientX, y: evt.clientY });
+                         }
+                       }}
+                       onMouseMove={evt => {
+                         if (!clickedCamion && tooltipCamion === camion.id) {
+                           setTooltipPos({ x: evt.clientX, y: evt.clientY });
+                         }
+                       }}
+                       onMouseLeave={() => {
+                         setTooltipCamion(null);
+                       }}
+                       onClick={evt => {
+                         // Solo abrir el modal si no hay otro modal ya abierto
+                         if (!clickedCamion) {
+                           setClickedCamion(camion.id);
+                           setClickedPos({ x: evt.clientX, y: evt.clientY });
+                           // Ocultar el tooltip de hover
+                           setTooltipCamion(null);
+                         }
+                       }}
+                     >
+                       {/* Cuerpo principal del camión */}
+                       <rect x={-8} y={-3} width={16} height={6} rx={1} fill={colorFinal} stroke="black" strokeWidth={0.5} />
+                       
+                       {/* Cabina del camión (frente) */}
+                       <rect x={6} y={-2} width={4} height={4} rx={0.5} fill={colorFinal} stroke="black" strokeWidth={0.5} />
+                       
+                       {/* Ruedas */}
+                       <circle cx={-5} cy={4} r={1.5} fill="black" />
+                       <circle cx={2} cy={4} r={1.5} fill="black" />
+                       <circle cx={7} cy={4} r={1.5} fill="black" />
+                       
+                       {/* Indicador de dirección (flecha) */}
+                       <polygon 
+                         points="10,0 8,-1.5 8,1.5" 
+                         fill="white" 
+                         stroke="black" 
+                         strokeWidth={0.3}
+                       />
+                       
+                       {/* Líneas de detalle del camión */}
+                       <line x1={-6} y1={-1} x2={4} y2={-1} stroke="black" strokeWidth={0.3} opacity={0.6} />
+                       <line x1={-6} y1={1} x2={4} y2={1} stroke="black" strokeWidth={0.3} opacity={0.6} />
+                       
+                       {esAveriado && (
+                         <text x={0} y={-10} textAnchor="middle" fontSize="8" fill="#dc2626" fontWeight="bold">
+                           💥
+                         </text>
+                       )}
+                     </g>
                    </g>
                  );
               })}

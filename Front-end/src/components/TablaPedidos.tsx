@@ -40,7 +40,11 @@ const getIconByEstado = (estado: string) => {
   }
 };
 
-const TablaPedidos: React.FC = () => {
+interface TablaPedidosProps {
+  onElementoSeleccionado?: (elemento: {tipo: 'camion' | 'pedido', id: string} | null) => void;
+}
+
+const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) => {
   const { rutasCamiones, camiones } = useSimulacion();
   const [filtroEstado, setFiltroEstado] = useState<string>('TODOS');
   const [busqueda, setBusqueda] = useState<string>('');
@@ -215,6 +219,13 @@ const TablaPedidos: React.FC = () => {
          </div>
        </div>
 
+      {/* Tip para seleccionar pedido */}
+      <div className="mb-3 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+        <p className="text-xs text-amber-700">
+          💡 <strong>Tip:</strong> Haz clic en cualquier fila para resaltar el pedido en el mapa
+        </p>
+      </div>
+
       {/* Tabla de pedidos */}
       <div className="flex-1 min-h-0 overflow-y-auto rounded-lg shadow border border-gray-200 bg-white">
                  <table className="min-w-full table-auto text-sm bg-white">
@@ -280,28 +291,33 @@ const TablaPedidos: React.FC = () => {
                 </td>
               </tr>
             ) : (
-              pedidosFiltrados.map((pedido, idx) => (
-                <tr key={`${pedido.codigo}-${idx}`} className="border-b last:border-b-0 bg-white hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-2 text-gray-800 font-mono font-semibold">
-                    {pedido.codigo}
-                  </td>
-                                     <td className="px-4 py-2">
+                             pedidosFiltrados.map((pedido, idx) => (
+                 <tr 
+                   key={`${pedido.codigo}-${idx}`} 
+                   onClick={() => onElementoSeleccionado && onElementoSeleccionado({tipo: 'pedido', id: pedido.codigo})}
+                   className="border-b last:border-b-0 bg-white hover:bg-yellow-50 hover:cursor-pointer transition-colors"
+                   title="Clic para resaltar en el mapa"
+                 >
+                   <td className="px-4 py-2 text-gray-800 font-mono font-semibold">
+                     {pedido.codigo}
+                   </td>
+                   <td className="px-4 py-2">
                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getColorByEstado(pedido.estado || 'PENDIENTE')}`}>
                        {getIconByEstado(pedido.estado || 'PENDIENTE')}
                        {pedido.estado || 'PENDIENTE'}
                      </span>
                    </td>
-                  <td className="px-4 py-2 text-gray-600">
-                    ({pedido.coordenada.x}, {pedido.coordenada.y})
-                  </td>
-                  <td className="px-4 py-2 text-blue-700 font-bold">
-                    {pedido.camionId}
-                  </td>
-                  <td className="px-4 py-2 text-purple-700 font-bold">
-                    {pedido.volumenGLPAsignado?.toFixed(2) || 'N/A'}
-                  </td>
-                </tr>
-              ))
+                   <td className="px-4 py-2 text-gray-600">
+                     ({pedido.coordenada.x}, {pedido.coordenada.y})
+                   </td>
+                   <td className="px-4 py-2 text-blue-700 font-bold">
+                     {pedido.camionId}
+                   </td>
+                   <td className="px-4 py-2 text-purple-700 font-bold">
+                     {pedido.volumenGLPAsignado?.toFixed(2) || 'N/A'}
+                   </td>
+                 </tr>
+               ))
             )}
           </tbody>
         </table>

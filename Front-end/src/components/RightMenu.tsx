@@ -8,7 +8,7 @@ import BloqueosTable from './BloqueosTable';
 import TablaPedidos from './TablaPedidos';
 
 // Tabla simple de datos de camiones usando el contexto
-function DatosCamionesTable() {
+function DatosCamionesTable({ onElementoSeleccionado }: { onElementoSeleccionado: (elemento: {tipo: 'camion' | 'pedido', id: string} | null) => void }) {
   const { camiones } = useSimulacion();
   const [busquedaCamion, setBusquedaCamion] = React.useState<string>('');
   const [sortColumn, setSortColumn] = React.useState<string | null>(null);
@@ -117,6 +117,13 @@ function DatosCamionesTable() {
         </div>
       </div>
 
+      {/* Tip para seleccionar camión */}
+      <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+        <p className="text-xs text-blue-700">
+          💡 <strong>Tip:</strong> Haz clic en cualquier fila para resaltar el camión en el mapa
+        </p>
+      </div>
+
       <div className="flex-1 min-h-0 overflow-y-auto rounded-lg shadow border border-gray-200 bg-white">
         <table className="min-w-full table-auto text-sm bg-white">
           <thead>
@@ -182,9 +189,14 @@ function DatosCamionesTable() {
               </tr>
             ) : (
               camionesFiltrados.map((camion) => (
-                <tr key={camion.id} className={
-                  `border-b last:border-b-0 bg-white hover:bg-gray-100 transition-colors`
-                }>
+                <tr 
+                  key={camion.id} 
+                  onClick={() => onElementoSeleccionado({tipo: 'camion', id: camion.id})}
+                  className={
+                    `border-b last:border-b-0 bg-white hover:bg-blue-50 hover:cursor-pointer transition-colors`
+                  }
+                  title="Clic para resaltar en el mapa"
+                >
                   <td className="px-4 py-2 text-gray-800 font-mono font-semibold">{camion.id}</td>
                   <td className="px-4 py-2 text-blue-700 font-bold">{camion.capacidadActualGLP.toFixed(2)}</td>
                   <td className="px-4 py-2 text-green-700 font-bold">
@@ -226,9 +238,10 @@ function DatosCamionesTable() {
 interface RightMenuProps {
   expanded: boolean;
   setExpanded: (value: boolean) => void;
+  onElementoSeleccionado: (elemento: {tipo: 'camion' | 'pedido', id: string} | null) => void;
 }
 
-const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded }) => {
+const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded, onElementoSeleccionado }) => {
   const [panel, setPanel] = React.useState<'camiones' | 'bloqueos' | 'metricas' | 'estadoCamiones' | 'pedidos'>('camiones');
   // Estados para expandir/contraer secciones en panel camiones
   // Solo una sección expandida a la vez (acordeón)
@@ -281,7 +294,7 @@ const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded }) => {
 
       <div className="flex flex-col flex-1 min-h-0">
         {panel === 'camiones' && (
-          <DatosCamionesTable />
+          <DatosCamionesTable onElementoSeleccionado={onElementoSeleccionado} />
         )}
         {panel === 'estadoCamiones' && (
           <div className="flex flex-col flex-1 min-h-0">
@@ -304,7 +317,7 @@ const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded }) => {
           </>
         )}
         {panel === 'pedidos' && (
-          <TablaPedidos />
+          <TablaPedidos onElementoSeleccionado={onElementoSeleccionado} />
         )}
       </div>
     </div>

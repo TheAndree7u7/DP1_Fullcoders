@@ -19,6 +19,8 @@ const SimulacionSemanal: React.FC = () => {
   const [panel, setPanel] = useState<'camiones' | 'bloqueos'>('camiones');
   // Estado para el camión seleccionado desde el modal del mapa
   const [camionSeleccionadoExterno, setCamionSeleccionadoExterno] = useState<string | null>(null);
+  // Estado para resaltar elementos en el mapa
+  const [elementoResaltado, setElementoResaltado] = useState<{tipo: 'camion' | 'pedido', id: string} | null>(null);
 
   // Constante que indica cada cuántas horas se reciben datos del backend
   const HORAS_POR_ACTUALIZACION = 2;
@@ -150,12 +152,12 @@ const SimulacionSemanal: React.FC = () => {
             {/* Mapa */}
             <div className={`transition-all duration-300 ${menuExpandido ? "flex-[2]" : "flex-[1]"}`}>
               <div className="bg-white p-4 rounded-xl overflow-auto w-full h-full">
-                <Mapa />
+                <Mapa elementoResaltado={elementoResaltado} />
               </div>
             </div>
             {/* Menú derecho */}
             <div className={`transition-all duration-300 ${menuExpandido ? "flex-[1]" : "w-0 overflow-hidden"}`}>
-              <RightMenu expanded={menuExpandido} setExpanded={setMenuExpandido} />
+              <RightMenu expanded={menuExpandido} setExpanded={setMenuExpandido} onElementoSeleccionado={setElementoResaltado} />
             </div>
             {/* Botón flotante para mostrar menú si está oculto */}
             {!menuExpandido && (
@@ -172,6 +174,27 @@ const SimulacionSemanal: React.FC = () => {
           <div className="w-full flex flex-col items-center justify-start pt-8">
             <div className="text-xl font-bold mb-4">Bloqueos activos</div>
             <BloqueosTable />
+          </div>
+        )}
+        
+        {/* Indicador de elemento resaltado */}
+        {elementoResaltado && (
+          <div className="absolute top-4 left-4 bg-amber-100 border border-amber-300 rounded-lg p-3 shadow-lg z-10">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-3 h-3 bg-amber-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-semibold text-amber-800">
+                {elementoResaltado.tipo === 'camion' ? 'Camión' : 'Pedido'} seleccionado
+              </span>
+            </div>
+            <div className="text-sm text-amber-700 mb-2">
+              <strong>{elementoResaltado.id}</strong>
+            </div>
+            <button
+              onClick={() => setElementoResaltado(null)}
+              className="text-xs bg-amber-500 hover:bg-amber-600 text-white px-2 py-1 rounded"
+            >
+              Limpiar selección
+            </button>
           </div>
         )}
       </div>
