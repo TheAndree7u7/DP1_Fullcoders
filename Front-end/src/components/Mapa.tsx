@@ -84,7 +84,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
   const [clickedAlmacenPos, setClickedAlmacenPos] = useState<{x: number, y: number} | null>(null);
 
   // DEBUG: Verificar que almacenes llega al componente
-  console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
+  // console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
 
   // Función para obtener los pedidos pendientes (no entregados)
   const getPedidosPendientes = () => {
@@ -460,7 +460,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
 
             {/* Almacenes */}
             {almacenes.map(almacen => {
-              console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
+              // console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
               const esResaltado = elementoResaltado?.tipo === 'almacen' && elementoResaltado?.id === almacen.id;
               return (
                 <g key={almacen.id} style={{ cursor: 'pointer' }}>

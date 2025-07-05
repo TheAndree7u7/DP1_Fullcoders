@@ -241,7 +241,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       
       // Log cada 10 segundos para debuggear
       if (segundos % 10 === 0) {
-        console.log("⏱️ CONTADOR: Tiempo transcurrido:", tiempoFormateado);
+        // console.log("⏱️ CONTADOR: Tiempo transcurrido:", tiempoFormateado);
       }
     }, 1000);
 
@@ -730,18 +730,18 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Log para debuggear los pedidos que se entregan
       if (pedidosEntregadosAhora.length > 0) {
-        console.log(
-          `🚚 Camión ${camion.id} llegó a (${coordNuevaUbicacion.x},${coordNuevaUbicacion.y}) - Entregando ${pedidosEntregadosAhora.length} pedidos:`,
-          pedidosEntregadosAhora,
-        );
-        console.log(`⛽ GLP antes de entrega: ${nuevoGLP.toFixed(2)}`);
+        // console.log(
+        //   `🚚 Camión ${camion.id} llegó a (${coordNuevaUbicacion.x},${coordNuevaUbicacion.y}) - Entregando ${pedidosEntregadosAhora.length} pedidos:`,
+        //   pedidosEntregadosAhora,
+        // );
+        // console.log(`⛽ GLP antes de entrega: ${nuevoGLP.toFixed(2)}`);
 
         for (const pedido of pedidosEntregadosAhora) {
-          console.log(`📋 Pedido:`, pedido);
+          // console.log(`📋 Pedido:`, pedido);
           if (pedido.volumenGLPAsignado) {
-            console.log(
-              `⬇️ Reduciendo ${pedido.volumenGLPAsignado} GLP del camión ${camion.id}`,
-            );
+            // console.log(
+            //   `⬇️ Reduciendo ${pedido.volumenGLPAsignado} GLP del camión ${camion.id}`,
+            // );
             nuevoGLP -= pedido.volumenGLPAsignado;
           } else {
             console.log(`⚠️ Pedido sin volumenGLPAsignado:`, pedido);
@@ -749,7 +749,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         }
         // Asegurar que no sea negativo
         nuevoGLP = Math.max(0, nuevoGLP);
-        console.log(`✅ GLP después de entrega: ${nuevoGLP.toFixed(2)}`);
+        // console.log(`✅ GLP después de entrega: ${nuevoGLP.toFixed(2)}`);
       }
 
       // Crear nuevo estado del camión con valores actualizados
@@ -772,10 +772,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         // Actualizar el peso combinado basado en el nuevo peso de carga
         nuevoCamion.pesoCombinado = calcularPesoCombinado(nuevoCamionAdaptado);
 
-        console.log(`📊 Camión ${camion.id} pesos actualizados:`, {
-          pesoCarga: nuevoCamion.pesoCarga.toFixed(2),
-          pesoCombinado: nuevoCamion.pesoCombinado.toFixed(2),
-        });
+        // console.log(`📊 Camión ${camion.id} pesos actualizados:`, {
+        //   pesoCarga: nuevoCamion.pesoCarga.toFixed(2),
+        //   pesoCombinado: nuevoCamion.pesoCombinado.toFixed(2),
+        // });
       }
 
       // SIEMPRE actualizar la distancia máxima cuando cambie el combustible
