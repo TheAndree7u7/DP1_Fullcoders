@@ -705,7 +705,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // PRIMERO: Mover el camión a la nueva posición
       const nuevaUbicacion = ruta.ruta[siguientePaso];
-      const coordNuevaUbicacion = parseCoord(nuevaUbicacion);
+      // const coordNuevaUbicacion = parseCoord(nuevaUbicacion);
 
       // SEGUNDO: Verificar si hay pedidos para entregar en la NUEVA ubicación (donde acaba de llegar)
       // Usar la misma lógica que getPedidosPendientes() para determinar si el pedido debe entregarse
