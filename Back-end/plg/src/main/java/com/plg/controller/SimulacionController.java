@@ -4,6 +4,7 @@ import com.plg.utils.Simulacion;
 import com.plg.dto.IndividuoDto;
 import com.plg.dto.request.SimulacionRequest;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -203,6 +204,41 @@ public class SimulacionController {
             
         } catch (Exception e) {
             String errorMsg = "Error al iniciar simulación: " + e.getMessage();
+            System.err.println("❌ " + errorMsg);
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMsg);
+        }
+    }
+    
+    @DeleteMapping("/eliminar-paquetes-futuros")
+    public ResponseEntity<String> eliminarPaquetesFuturos() {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/eliminar-paquetes-futuros");
+        
+        try {
+            // Obtener información actual antes de eliminar
+            Simulacion.SimulacionInfo infoAntes = Simulacion.obtenerInfoSimulacion();
+            System.out.println("📊 ANTES: Total=" + infoAntes.totalPaquetes + 
+                              ", Actual=" + infoAntes.paqueteActual);
+            
+            // Eliminar paquetes futuros (mantener solo el actual)
+            System.out.println("🗑️ Eliminando paquetes futuros...");
+            
+            // TODO: Implementar el método eliminarPaquetesFuturos() en la clase Simulacion
+            // Por ahora, simular la eliminación
+            int paquetesEliminados = Math.max(0, infoAntes.totalPaquetes - infoAntes.paqueteActual - 1);
+            
+            System.out.println("📊 Simulando eliminación de " + paquetesEliminados + " paquetes futuros");
+            
+            String mensaje = "Paquetes futuros marcados para eliminación. " +
+                           "Esta funcionalidad está en desarrollo. " +
+                           "Paquetes identificados para eliminación: " + paquetesEliminados;
+            
+            System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
+            
+            return ResponseEntity.ok(mensaje);
+            
+        } catch (Exception e) {
+            String errorMsg = "Error al eliminar paquetes futuros: " + e.getMessage();
             System.err.println("❌ " + errorMsg);
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMsg);

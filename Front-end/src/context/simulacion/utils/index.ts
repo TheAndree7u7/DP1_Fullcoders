@@ -18,4 +18,12 @@ export {
   reanudarSimulacion, 
   iniciarContadorTiempo, 
   iniciarPollingPrimerPaquete 
-} from './controles'; 
+} from './controles';
+
+// Exportar utilidades de estado
+export { 
+  capturarEstadoCompleto, 
+  generarResumenEstado,
+  convertirEstadoParaBackend,
+  type EstadoSimulacionCompleto 
+} from './estado'; 

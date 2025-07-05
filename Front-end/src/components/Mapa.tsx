@@ -44,7 +44,26 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
   const [running, setRunning] = useState(false);
   const [intervalo, setIntervalo] = useState(300);
   const intervalRef = useRef<number | null>(null);
-  const { camiones, rutasCamiones, almacenes, avanzarHora, cargando, bloqueos, marcarCamionAveriado, actualizarAlmacenes, iniciarContadorTiempo, setSimulacionActiva, simulacionActiva } = useSimulacion();
+  const { 
+    camiones, 
+    rutasCamiones, 
+    almacenes, 
+    avanzarHora, 
+    cargando, 
+    bloqueos, 
+    marcarCamionAveriado, 
+    actualizarAlmacenes, 
+    iniciarContadorTiempo, 
+    setSimulacionActiva, 
+    simulacionActiva,
+    horaActual,
+    horaSimulacion,
+    fechaHoraSimulacion,
+    fechaInicioSimulacion,
+    diaSimulacion,
+    tiempoRealSimulacion,
+    tiempoTranscurridoSimulado
+  } = useSimulacion();
   // Estado para el tooltip (hover)
   const [tooltipCamion, setTooltipCamion] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{x: number, y: number} | null>(null);
@@ -638,21 +657,57 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                   <button
                     className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded disabled:opacity-50"
                     disabled={averiando === clickedCamion + '-1'}
-                    onClick={() => handleAveriar(clickedCamion, 1, marcarCamionAveriado, setAveriando, setClickedCamion, setSimulacionActiva)}
+                    onClick={() => handleAveriar(clickedCamion, 1, marcarCamionAveriado, setAveriando, setClickedCamion, setSimulacionActiva, {
+                      horaActual,
+                      horaSimulacion,
+                      fechaHoraSimulacion,
+                      fechaInicioSimulacion,
+                      diaSimulacion,
+                      tiempoRealSimulacion,
+                      tiempoTranscurridoSimulado,
+                      camiones,
+                      rutasCamiones,
+                      almacenes,
+                      bloqueos
+                    })}
                   >
                     {averiando === clickedCamion + '-1' ? 'Averiando...' : 'Avería tipo 1'}
                   </button>
                   <button
                     className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded disabled:opacity-50"
                     disabled={averiando === clickedCamion + '-2'}
-                    onClick={() => handleAveriar(clickedCamion, 2, marcarCamionAveriado, setAveriando, setClickedCamion, setSimulacionActiva)}
+                    onClick={() => handleAveriar(clickedCamion, 2, marcarCamionAveriado, setAveriando, setClickedCamion, setSimulacionActiva, {
+                      horaActual,
+                      horaSimulacion,
+                      fechaHoraSimulacion,
+                      fechaInicioSimulacion,
+                      diaSimulacion,
+                      tiempoRealSimulacion,
+                      tiempoTranscurridoSimulado,
+                      camiones,
+                      rutasCamiones,
+                      almacenes,
+                      bloqueos
+                    })}
                   >
                     {averiando === clickedCamion + '-2' ? 'Averiando...' : 'Avería tipo 2'}
                   </button>
                   <button
                     className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded disabled:opacity-50"
                     disabled={averiando === clickedCamion + '-3'}
-                    onClick={() => handleAveriar(clickedCamion, 3, marcarCamionAveriado, setAveriando, setClickedCamion, setSimulacionActiva)}
+                    onClick={() => handleAveriar(clickedCamion, 3, marcarCamionAveriado, setAveriando, setClickedCamion, setSimulacionActiva, {
+                      horaActual,
+                      horaSimulacion,
+                      fechaHoraSimulacion,
+                      fechaInicioSimulacion,
+                      diaSimulacion,
+                      tiempoRealSimulacion,
+                      tiempoTranscurridoSimulado,
+                      camiones,
+                      rutasCamiones,
+                      almacenes,
+                      bloqueos
+                    })}
                   >
                     {averiando === clickedCamion + '-3' ? 'Averiando...' : 'Avería tipo 3'}
                   </button>

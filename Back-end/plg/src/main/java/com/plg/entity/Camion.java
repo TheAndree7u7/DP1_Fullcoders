@@ -149,7 +149,7 @@ public class Camion extends Nodo {
             intermedio = 0;
         }
 
-        // Actualiza la posición del camión en el mapa solo si está disponible
+        // !Actualiza la posición del camión en el mapa solo si está disponible
         if (this.estado == EstadoCamion.DISPONIBLE && intermedio < gen.getRutaFinal().size()) {
             Coordenada nuevaCoordenada = gen.getRutaFinal().get(intermedio).getCoordenada();
             setCoordenada(nuevaCoordenada);

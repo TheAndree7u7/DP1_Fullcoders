@@ -7,6 +7,7 @@ import java.util.NoSuchElementException;
 import org.springframework.stereotype.Service;
 
 import com.plg.dto.request.AveriaRequest;
+import com.plg.dto.request.AveriaConEstadoRequest;
 import com.plg.entity.Averia;
 import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
@@ -119,6 +120,112 @@ public class AveriaService {
             throw new InvalidInputException("Datos inválidos: " + e.getMessage());
         } catch (Exception e) {
             throw new InvalidInputException("Error al crear la avería: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Crea una nueva avería con estado completo de la simulación.
+     * Este método maneja tanto la creación de la avería como el procesamiento
+     * del estado completo de la simulación en el momento de la avería.
+     *
+     * @param request datos de la avería con estado completo de la simulación
+     * @return la avería creada
+     * @throws InvalidInputException si los datos son inválidos
+     */
+    public Averia agregarConEstadoCompleto(AveriaConEstadoRequest request) throws InvalidInputException {
+        // Validaciones básicas
+        if (request.getCodigoCamion() == null || request.getCodigoCamion().trim().isEmpty()) {
+            throw new InvalidInputException("El código del camión es obligatorio");
+        }
+        if (request.getTipoIncidente() == null) {
+            throw new InvalidInputException("El tipo de incidente es obligatorio");
+        }
+        if (request.getEstadoSimulacion() == null) {
+            throw new InvalidInputException("El estado de la simulación es obligatorio");
+        }
+
+        try {
+            // Log del estado recibido
+            System.out.println("🚛💥 BACKEND: Procesando avería con estado completo");
+            System.out.println("📊 BACKEND: Camión: " + request.getCodigoCamion());
+            System.out.println("📊 BACKEND: Tipo: " + request.getTipoIncidente());
+            System.out.println("📊 BACKEND: Timestamp: " + request.getEstadoSimulacion().getTimestamp());
+            System.out.println("📊 BACKEND: Hora simulación: " + request.getEstadoSimulacion().getHoraSimulacion());
+            System.out.println("📊 BACKEND: Camiones en estado: " + 
+                (request.getEstadoSimulacion().getCamiones() != null ? 
+                 request.getEstadoSimulacion().getCamiones().size() : 0));
+            System.out.println("📊 BACKEND: Rutas en estado: " + 
+                (request.getEstadoSimulacion().getRutasCamiones() != null ? 
+                 request.getEstadoSimulacion().getRutasCamiones().size() : 0));
+            System.out.println("📊 BACKEND: Almacenes en estado: " + 
+                (request.getEstadoSimulacion().getAlmacenes() != null ? 
+                 request.getEstadoSimulacion().getAlmacenes().size() : 0));
+            System.out.println("📊 BACKEND: Bloqueos en estado: " + 
+                (request.getEstadoSimulacion().getBloqueos() != null ? 
+                 request.getEstadoSimulacion().getBloqueos().size() : 0));
+
+            // Procesar el estado completo de la simulación
+            procesarEstadoCompleto(request.getEstadoSimulacion());
+
+            // Crear la avería usando el método estándar
+            AveriaRequest averiaRequest = request.toAveriaRequest();
+            Averia averia = agregar(averiaRequest);
+
+            System.out.println("✅ BACKEND: Avería creada exitosamente para camión: " + averia.getCamion().getCodigo());
+            System.out.println("✅ BACKEND: Estado completo procesado correctamente");
+
+            return averia;
+
+        } catch (Exception e) {
+            System.err.println("❌ BACKEND: Error al procesar avería con estado completo: " + e.getMessage());
+            throw new InvalidInputException("Error al crear la avería con estado completo: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Procesa el estado completo de la simulación capturado durante la avería.
+     * Este método maneja el análisis y almacenamiento del estado completo.
+     *
+     * @param estadoSimulacion el estado completo de la simulación
+     */
+    private void procesarEstadoCompleto(AveriaConEstadoRequest.EstadoSimulacion estadoSimulacion) {
+        try {
+            System.out.println("🔄 BACKEND: Procesando estado completo de la simulación...");
+            
+            // Aquí puedes agregar lógica específica para procesar el estado:
+            // - Guardar el estado en base de datos
+            // - Generar reportes
+            // - Realizar análisis de la simulación
+            // - Tomar decisiones basadas en el estado
+            
+            // Por ahora, solo registramos la información recibida
+            if (estadoSimulacion.getCamiones() != null) {
+                System.out.println("📈 BACKEND: Analizando " + estadoSimulacion.getCamiones().size() + " camiones");
+                // Ejemplo: contar camiones por estado
+                long camionesEnCamino = estadoSimulacion.getCamiones().stream()
+                    .filter(c -> "En Camino".equals(c.getEstado()))
+                    .count();
+                long camionesAveriados = estadoSimulacion.getCamiones().stream()
+                    .filter(c -> c.getEstado() != null && c.getEstado().contains("Averiado"))
+                    .count();
+                System.out.println("📊 BACKEND: Camiones en camino: " + camionesEnCamino);
+                System.out.println("📊 BACKEND: Camiones averiados: " + camionesAveriados);
+            }
+            
+            if (estadoSimulacion.getRutasCamiones() != null) {
+                System.out.println("📈 BACKEND: Analizando " + estadoSimulacion.getRutasCamiones().size() + " rutas");
+                // Ejemplo: contar total de pedidos
+                int totalPedidos = estadoSimulacion.getRutasCamiones().stream()
+                    .mapToInt(ruta -> ruta.getPedidos() != null ? ruta.getPedidos().size() : 0)
+                    .sum();
+                System.out.println("📊 BACKEND: Total de pedidos en rutas: " + totalPedidos);
+            }
+            
+            System.out.println("✅ BACKEND: Estado completo procesado exitosamente");
+            
+        } catch (Exception e) {
+            System.err.println("⚠️ BACKEND: Error al procesar estado completo: " + e.getMessage());
+            // No lanzamos excepción aquí para no fallar la creación de la avería
         }
     }
 
