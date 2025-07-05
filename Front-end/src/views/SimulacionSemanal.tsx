@@ -5,7 +5,8 @@ import BloqueosTable from "../components/BloqueosTable";
 import RightMenu from "../components/RightMenu";
 import BottomMenu from "../components/BottomMenu";
 import { ChevronLeft, ChevronUp } from "lucide-react";
-import { useSimulacion, formatearTiempoTranscurrido } from "../context/SimulacionContext";
+import { useSimulacion,  } from "../context/SimulacionContext";
+import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
 import ControlSimulacion from "../components/ControlSimulacion";
 
 // Constante que define cuánto tiempo (en segundos) representa cada nodo en la simulación

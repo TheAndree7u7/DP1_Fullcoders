@@ -13,7 +13,6 @@ import type {
   Individuo,
   Gen,
   Nodo,
-  Camion,
   Almacen,
   Coordenada,
 } from "../types";
@@ -23,6 +22,10 @@ import {
   calcularConsumoGalones,
   calcularDistanciaMaxima,
 } from "../types";
+import { 
+  parseCoord, 
+  adaptarCamionParaCalculos
+} from "./simulacion/utils";
 
 /**
  * Constantes de configuración de la simulación
@@ -241,7 +244,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       
       // Log cada 10 segundos para debuggear
       if (segundos % 10 === 0) {
-        console.log("⏱️ CONTADOR: Tiempo transcurrido:", tiempoFormateado);
+        // console.log("⏱️ CONTADOR: Tiempo transcurrido:", tiempoFormateado);
       }
     }, 1000);
 
@@ -705,7 +708,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // PRIMERO: Mover el camión a la nueva posición
       const nuevaUbicacion = ruta.ruta[siguientePaso];
-      const coordNuevaUbicacion = parseCoord(nuevaUbicacion);
+      // const coordNuevaUbicacion = parseCoord(nuevaUbicacion);
 
       // SEGUNDO: Verificar si hay pedidos para entregar en la NUEVA ubicación (donde acaba de llegar)
       // Usar la misma lógica que getPedidosPendientes() para determinar si el pedido debe entregarse
@@ -730,18 +733,18 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Log para debuggear los pedidos que se entregan
       if (pedidosEntregadosAhora.length > 0) {
-        console.log(
-          `🚚 Camión ${camion.id} llegó a (${coordNuevaUbicacion.x},${coordNuevaUbicacion.y}) - Entregando ${pedidosEntregadosAhora.length} pedidos:`,
-          pedidosEntregadosAhora,
-        );
-        console.log(`⛽ GLP antes de entrega: ${nuevoGLP.toFixed(2)}`);
+        // console.log(
+        //   `🚚 Camión ${camion.id} llegó a (${coordNuevaUbicacion.x},${coordNuevaUbicacion.y}) - Entregando ${pedidosEntregadosAhora.length} pedidos:`,
+        //   pedidosEntregadosAhora,
+        // );
+        // console.log(`⛽ GLP antes de entrega: ${nuevoGLP.toFixed(2)}`);
 
         for (const pedido of pedidosEntregadosAhora) {
-          console.log(`📋 Pedido:`, pedido);
+          // console.log(`📋 Pedido:`, pedido);
           if (pedido.volumenGLPAsignado) {
-            console.log(
-              `⬇️ Reduciendo ${pedido.volumenGLPAsignado} GLP del camión ${camion.id}`,
-            );
+            // console.log(
+            //   `⬇️ Reduciendo ${pedido.volumenGLPAsignado} GLP del camión ${camion.id}`,
+            // );
             nuevoGLP -= pedido.volumenGLPAsignado;
           } else {
             console.log(`⚠️ Pedido sin volumenGLPAsignado:`, pedido);
@@ -749,7 +752,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         }
         // Asegurar que no sea negativo
         nuevoGLP = Math.max(0, nuevoGLP);
-        console.log(`✅ GLP después de entrega: ${nuevoGLP.toFixed(2)}`);
+        // console.log(`✅ GLP después de entrega: ${nuevoGLP.toFixed(2)}`);
       }
 
       // Crear nuevo estado del camión con valores actualizados
@@ -772,10 +775,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         // Actualizar el peso combinado basado en el nuevo peso de carga
         nuevoCamion.pesoCombinado = calcularPesoCombinado(nuevoCamionAdaptado);
 
-        console.log(`📊 Camión ${camion.id} pesos actualizados:`, {
-          pesoCarga: nuevoCamion.pesoCarga.toFixed(2),
-          pesoCombinado: nuevoCamion.pesoCombinado.toFixed(2),
-        });
+        // console.log(`📊 Camión ${camion.id} pesos actualizados:`, {
+        //   pesoCarga: nuevoCamion.pesoCarga.toFixed(2),
+        //   pesoCombinado: nuevoCamion.pesoCombinado.toFixed(2),
+        // });
       }
 
       // SIEMPRE actualizar la distancia máxima cuando cambie el combustible
@@ -1003,73 +1006,8 @@ export const useSimulacion = (): SimulacionContextType => {
   return context;
 };
 
-/**
- * Función para parsear una coordenada en formato "(x,y)" a objeto Coordenada
- */
-const parseCoord = (s: string): Coordenada => {
-  const match = s.match(/\((\d+),\s*(\d+)\)/);
-  if (!match) throw new Error(`Coordenada inválida: ${s}`);
-  return { x: parseInt(match[1]), y: parseInt(match[2]) };
-};
 
-/**
- * Función adaptadora para convertir un CamionEstado a un objeto compatible con Camion
- * Esta función es esencial para poder usar las funciones de cálculo en types.ts
- */
-const adaptarCamionParaCalculos = (camion: CamionEstado): Camion => {
-  return {
-    codigo: camion.id,
-    capacidadActualGLP: camion.capacidadActualGLP,
-    capacidadMaximaGLP: camion.capacidadMaximaGLP,
-    combustibleActual: camion.combustibleActual,
-    combustibleMaximo: camion.combustibleMaximo,
-    distanciaMaxima: camion.distanciaMaxima,
-    estado: camion.estado,
-    pesoCarga: camion.pesoCarga,
-    pesoCombinado: camion.pesoCombinado,
-    tara: camion.tara,
-    tipo: camion.tipo,
-    velocidadPromedio: camion.velocidadPromedio,
-  };
-};
 
-/**
- * @function formatearTiempoTranscurrido
- * @description Convierte tiempo en formato HH:MM:SS a formato legible como "transcurrieron X días Y horas Z minutos"
- * @param {string} tiempoHMS - Tiempo en formato HH:MM:SS
- * @returns {string} Tiempo formateado de manera legible
- */
-export const formatearTiempoTranscurrido = (tiempoHMS: string): string => {
-  if (!tiempoHMS || tiempoHMS === "00:00:00") {
-    return "No hay tiempo transcurrido";
-  }
 
-  const partes = tiempoHMS.split(":");
-  const horas = parseInt(partes[0]);
-  const minutos = parseInt(partes[1]);
-  const segundos = parseInt(partes[2]);
 
-  const totalSegundos = horas * 3600 + minutos * 60 + segundos;
-  const dias = Math.floor(totalSegundos / 86400);
-  const horasRestantes = Math.floor((totalSegundos % 86400) / 3600);
-  const minutosRestantes = Math.floor((totalSegundos % 3600) / 60);
 
-  const resultado = "Transcurrieron ";
-  const partes_resultado = [];
-
-  if (dias > 0) {
-    partes_resultado.push(`${dias} día${dias > 1 ? 's' : ''}`);
-  }
-  if (horasRestantes > 0) {
-    partes_resultado.push(`${horasRestantes} hora${horasRestantes > 1 ? 's' : ''}`);
-  }
-  if (minutosRestantes > 0) {
-    partes_resultado.push(`${minutosRestantes} minuto${minutosRestantes > 1 ? 's' : ''}`);
-  }
-
-  if (partes_resultado.length === 0) {
-    return "Transcurrieron menos de un minuto";
-  }
-
-  return resultado + partes_resultado.join(' y ');
-};
