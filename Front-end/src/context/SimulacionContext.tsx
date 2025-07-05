@@ -24,7 +24,11 @@ import {
 } from "../types";
 import { 
   parseCoord, 
-  adaptarCamionParaCalculos
+  adaptarCamionParaCalculos,
+  pausarSimulacion as pausarSimulacionUtil,
+  reanudarSimulacion as reanudarSimulacionUtil,
+  iniciarContadorTiempo as iniciarContadorTiempoUtil,
+  iniciarPollingPrimerPaquete as iniciarPollingPrimerPaqueteUtil
 } from "./simulacion/utils";
 
 /**
@@ -114,6 +118,7 @@ interface SimulacionContextType {
   iniciarPollingPrimerPaquete: () => void; // Inicia el polling para obtener el primer paquete
   pausarSimulacion: () => void; // Nueva función para pausar la simulación
   reanudarSimulacion: () => void; // Nueva función para reanudar la simulación
+  setSimulacionActiva: (value: boolean) => void; // Setter directo para simulacionActiva
   cargando: boolean;
   bloqueos: Bloqueo[];
   marcarCamionAveriado: (camionId: string) => void; // Nueva función para manejar averías
@@ -859,10 +864,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * @description Inicia el contador de tiempo real de la simulación
    */
   const iniciarContadorTiempo = () => {
-    setInicioSimulacion(new Date());
-    setTiempoRealSimulacion("00:00:00");
-    setSimulacionActiva(true);
-    console.log("⏱️ CONTADOR: Iniciando contador de tiempo real de simulación...");
+    iniciarContadorTiempoUtil(setInicioSimulacion, setTiempoRealSimulacion, setSimulacionActiva);
   };
 
   /**
@@ -870,8 +872,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * @description Inicia el polling para obtener el primer paquete disponible
    */
   const iniciarPollingPrimerPaquete = () => {
-    console.log("🚀 POLLING: Activando polling para obtener primer paquete...");
-    setPollingActivo(true);
+    iniciarPollingPrimerPaqueteUtil(setPollingActivo);
   };
 
   /**
@@ -916,8 +917,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * @description Pausa la simulación desactivando el contador de tiempo
    */
   const pausarSimulacion = () => {
-    setSimulacionActiva(false);
-    console.log("⏸️ SIMULACIÓN: Simulación pausada");
+    pausarSimulacionUtil(setSimulacionActiva);
   };
 
   /**
@@ -925,8 +925,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * @description Reanuda la simulación activando el contador de tiempo
    */
   const reanudarSimulacion = () => {
-    setSimulacionActiva(true);
-    console.log("▶️ SIMULACIÓN: Simulación reanudada");
+    reanudarSimulacionUtil(setSimulacionActiva);
   };
 
   /**
@@ -1004,6 +1003,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         iniciarPollingPrimerPaquete,
         pausarSimulacion,
         reanudarSimulacion,
+        setSimulacionActiva,
         cargando,
         bloqueos,
         marcarCamionAveriado,

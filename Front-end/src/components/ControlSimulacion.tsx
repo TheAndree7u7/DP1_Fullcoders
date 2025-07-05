@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Play, RotateCcw, Clock, Calendar, Info } from 'lucide-react';
 import { iniciarSimulacion, obtenerInfoSimulacion } from '../services/simulacionApiService';
 import { useSimulacion } from '../context/SimulacionContext';
+import { reanudarSimulacion as reanudarSimulacionUtil } from '../context/simulacion/utils/controles';
 
 interface InfoSimulacion {
   totalPaquetes: number;
@@ -17,7 +18,7 @@ const ControlSimulacion: React.FC = () => {
   const [mensaje, setMensaje] = useState<string>('');
   const [tipoMensaje, setTipoMensaje] = useState<'success' | 'error' | 'info'>('info');
   const [infoSimulacion, setInfoSimulacion] = useState<InfoSimulacion | null>(null);
-  const { reiniciar, limpiarEstadoParaNuevaSimulacion, iniciarPollingPrimerPaquete, reanudarSimulacion, simulacionActiva } = useSimulacion();
+  const { reiniciar, limpiarEstadoParaNuevaSimulacion, iniciarPollingPrimerPaquete, setSimulacionActiva, simulacionActiva } = useSimulacion();
 
   // Establecer fecha por defecto (hoy)
   useEffect(() => {
@@ -265,7 +266,7 @@ const ControlSimulacion: React.FC = () => {
         {/* Botón de reanudar - solo se muestra si la simulación está pausada */}
         {!simulacionActiva && (infoSimulacion?.enProceso ?? false) && (
           <button
-            onClick={reanudarSimulacion}
+            onClick={() => reanudarSimulacionUtil(setSimulacionActiva)}
             disabled={cargando}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >

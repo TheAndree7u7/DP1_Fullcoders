@@ -5,6 +5,7 @@
 
 import { averiarCamionTipo } from "../../../services/averiaApiService";
 import { toast, Bounce } from 'react-toastify';
+import { pausarSimulacion as pausarSimulacionUtil } from "../../../context/simulacion/utils/controles";
 
 /**
  * Función para manejar la avería de un camión
@@ -13,7 +14,7 @@ import { toast, Bounce } from 'react-toastify';
  * @param {(camionId: string) => void} marcarCamionAveriado - Función para marcar el camión como averiado en el contexto
  * @param {(camionId: string) => void} setAveriando - Función para actualizar el estado de "averiando"
  * @param {() => void} setClickedCamion - Función para cerrar el modal del camión
- * @param {() => void} pausarSimulacion - Función para pausar la simulación
+ * @param {(value: boolean) => void} setSimulacionActiva - Función para controlar el estado de la simulación
  * @returns {Promise<void>}
  */
 export const handleAveriar = async (
@@ -22,7 +23,7 @@ export const handleAveriar = async (
   marcarCamionAveriado: (camionId: string) => void,
   setAveriando: (value: string | null) => void,
   setClickedCamion: (value: string | null) => void,
-  pausarSimulacion: () => void
+  setSimulacionActiva: (value: boolean) => void
 ): Promise<void> => {
   setAveriando(camionId + '-' + tipo);
   try {
@@ -32,8 +33,8 @@ export const handleAveriar = async (
     // Marcar el camión como averiado en el contexto
     marcarCamionAveriado(camionId);
     
-    // Pausar la simulación
-    pausarSimulacion();
+    // Pausar la simulación usando la utilidad
+    pausarSimulacionUtil(setSimulacionActiva);
     
     // Mostrar toast de éxito
     toast.error(`🚛💥 Camión ${camionId} averiado (Tipo ${tipo}) - Simulación pausada`, {
