@@ -112,6 +112,8 @@ interface SimulacionContextType {
   reiniciarYEmpezarNuevo: () => Promise<void>; // Nueva función para reiniciar y empezar con nuevos paquetes
   limpiarEstadoParaNuevaSimulacion: () => void; // Limpia estado pero no carga datos
   iniciarPollingPrimerPaquete: () => void; // Inicia el polling para obtener el primer paquete
+  pausarSimulacion: () => void; // Nueva función para pausar la simulación
+  reanudarSimulacion: () => void; // Nueva función para reanudar la simulación
   cargando: boolean;
   bloqueos: Bloqueo[];
   marcarCamionAveriado: (camionId: string) => void; // Nueva función para manejar averías
@@ -227,7 +229,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Contador de tiempo real de la simulación
   useEffect(() => {
-    if (!inicioSimulacion) return;
+    if (!inicioSimulacion || !simulacionActiva) return;
 
     console.log("⏱️ CONTADOR: Iniciando useEffect del contador con fecha:", inicioSimulacion);
 
@@ -249,7 +251,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [inicioSimulacion]);
+  }, [inicioSimulacion, simulacionActiva]);
 
   // Calcular la hora de simulación basado en fechaHoraSimulacion y horaActual
   useEffect(() => {
@@ -315,7 +317,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Polling automático para obtener el primer paquete después de iniciar la simulación
   useEffect(() => {
-    if (!pollingActivo) return;
+    if (!pollingActivo || !simulacionActiva) return;
 
     console.log("🔄 POLLING: Iniciando polling automático para obtener primer paquete...");
     
@@ -377,7 +379,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("🛑 POLLING: Limpiando interval de polling");
       clearInterval(interval);
     };
-  }, [pollingActivo]);
+  }, [pollingActivo, simulacionActiva]);
 
   // Función para actualizar almacenes (útil para refrescar capacidades)
   const actualizarAlmacenes = async () => {
@@ -654,7 +656,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * y recargando datos del backend cuando sea necesario
    */
   const avanzarHora = async () => {
-    if (esperandoActualizacion) return;
+    if (esperandoActualizacion || !simulacionActiva) return;
 
     // Verificar si necesitamos solicitar anticipadamente la próxima solución
     const nodosTres4 = Math.floor(NODOS_PARA_ACTUALIZACION * 0.75);
@@ -910,6 +912,24 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   /**
+   * @function pausarSimulacion
+   * @description Pausa la simulación desactivando el contador de tiempo
+   */
+  const pausarSimulacion = () => {
+    setSimulacionActiva(false);
+    console.log("⏸️ SIMULACIÓN: Simulación pausada");
+  };
+
+  /**
+   * @function reanudarSimulacion
+   * @description Reanuda la simulación activando el contador de tiempo
+   */
+  const reanudarSimulacion = () => {
+    setSimulacionActiva(true);
+    console.log("▶️ SIMULACIÓN: Simulación reanudada");
+  };
+
+  /**
    * @function limpiarEstadoParaNuevaSimulacion
    * @description Limpia el estado para una nueva simulación y carga los primeros datos
    */
@@ -982,6 +1002,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         reiniciarYEmpezarNuevo,
         limpiarEstadoParaNuevaSimulacion,
         iniciarPollingPrimerPaquete,
+        pausarSimulacion,
+        reanudarSimulacion,
         cargando,
         bloqueos,
         marcarCamionAveriado,

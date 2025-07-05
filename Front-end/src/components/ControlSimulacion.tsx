@@ -17,7 +17,7 @@ const ControlSimulacion: React.FC = () => {
   const [mensaje, setMensaje] = useState<string>('');
   const [tipoMensaje, setTipoMensaje] = useState<'success' | 'error' | 'info'>('info');
   const [infoSimulacion, setInfoSimulacion] = useState<InfoSimulacion | null>(null);
-  const { reiniciar, limpiarEstadoParaNuevaSimulacion, iniciarPollingPrimerPaquete } = useSimulacion();
+  const { reiniciar, limpiarEstadoParaNuevaSimulacion, iniciarPollingPrimerPaquete, reanudarSimulacion, simulacionActiva } = useSimulacion();
 
   // Establecer fecha por defecto (hoy)
   useEffect(() => {
@@ -141,12 +141,14 @@ const ControlSimulacion: React.FC = () => {
 
   const obtenerColorEstado = () => {
     if (!infoSimulacion) return 'bg-gray-500';
-    return infoSimulacion.enProceso ? 'bg-green-500' : 'bg-red-500';
+    if (!infoSimulacion.enProceso) return 'bg-red-500';
+    return simulacionActiva ? 'bg-green-500' : 'bg-yellow-500';
   };
 
   const obtenerTextoEstado = () => {
     if (!infoSimulacion) return 'Desconocido';
-    return infoSimulacion.enProceso ? 'En Proceso' : 'Detenida';
+    if (!infoSimulacion.enProceso) return 'Detenida';
+    return simulacionActiva ? 'En Proceso' : 'Pausada';
   };
 
   // Manejador para el cambio de hora que garantiza el formato correcto
@@ -259,6 +261,18 @@ const ControlSimulacion: React.FC = () => {
           <Play className="w-4 h-4" />
           {cargando ? 'Iniciando...' : 'Iniciar Simulación'}
         </button>
+        
+        {/* Botón de reanudar - solo se muestra si la simulación está pausada */}
+        {!simulacionActiva && (infoSimulacion?.enProceso ?? false) && (
+          <button
+            onClick={reanudarSimulacion}
+            disabled={cargando}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          >
+            <Play className="w-4 h-4" />
+            Reanudar Simulación
+          </button>
+        )}
         
         <button
           onClick={manejarReinicioSimulacion}
