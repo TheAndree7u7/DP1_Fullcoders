@@ -4,14 +4,14 @@ import type { Coordenada } from '../types';
 import almacenCentralIcon from '../assets/almacen_central.svg';
 import almacenIntermedioIcon from '../assets/almacen_intermedio.svg';
 import clienteIcon from '../assets/cliente.svg';
-import { averiarCamionTipo } from '../services/averiaApiService';
-import { toast, Bounce } from 'react-toastify';
+
 import { CAMION_COLORS, ESTADO_COLORS } from '../config/colors';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { 
   parseCoord, 
   calcularRotacion, 
-  getPedidosPendientes 
+  getPedidosPendientes,
+  handleAveriar 
 } from './mapa/utils';
 
 interface CamionVisual {
@@ -157,47 +157,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
     );
   }, [camiones, rutasCamiones]);
 
-  // Eliminar función no usada
-
-  const handleAveriar = async (camionId: string, tipo: number) => {
-    setAveriando(camionId + '-' + tipo);
-    try {
-      const fechaHoraReporte = new Date().toISOString();
-      await averiarCamionTipo(camionId, tipo, fechaHoraReporte);
-      
-      // Marcar el camión como averiado en el contexto
-      marcarCamionAveriado(camionId);
-      
-      // Mostrar toast de éxito
-      toast.error(`🚛💥 Camión ${camionId} averiado (Tipo ${tipo})`, {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Bounce,
-      });
-      
-    } catch {
-      toast.error('❌ Error al averiar el camión', {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Bounce,
-      });
-    } finally {
-      setAveriando(null);
-      setClickedCamion(null);
-    }
-  };
+  // Función handleAveriar movida a mapa/utils/averias.ts
 
   if (cargando) {
     return <p>Cargando simulación...</p>;
@@ -678,21 +638,21 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                   <button
                     className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded disabled:opacity-50"
                     disabled={averiando === clickedCamion + '-1'}
-                    onClick={() => handleAveriar(clickedCamion, 1)}
+                    onClick={() => handleAveriar(clickedCamion, 1, marcarCamionAveriado, setAveriando, setClickedCamion)}
                   >
                     {averiando === clickedCamion + '-1' ? 'Averiando...' : 'Avería tipo 1'}
                   </button>
                   <button
                     className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded disabled:opacity-50"
                     disabled={averiando === clickedCamion + '-2'}
-                    onClick={() => handleAveriar(clickedCamion, 2)}
+                    onClick={() => handleAveriar(clickedCamion, 2, marcarCamionAveriado, setAveriando, setClickedCamion)}
                   >
                     {averiando === clickedCamion + '-2' ? 'Averiando...' : 'Avería tipo 2'}
                   </button>
                   <button
                     className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded disabled:opacity-50"
                     disabled={averiando === clickedCamion + '-3'}
-                    onClick={() => handleAveriar(clickedCamion, 3)}
+                    onClick={() => handleAveriar(clickedCamion, 3, marcarCamionAveriado, setAveriando, setClickedCamion)}
                   >
                     {averiando === clickedCamion + '-3' ? 'Averiando...' : 'Avería tipo 3'}
                   </button>

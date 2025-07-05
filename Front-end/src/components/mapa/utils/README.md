@@ -13,13 +13,16 @@ Esta carpeta contiene las funciones auxiliares que fueron refactorizadas del com
 ### `pedidos.ts`
 - **`getPedidosPendientes(rutasCamiones: RutaCamion[], camiones: CamionEstado[]): Pedido[]`**: Obtiene los pedidos pendientes (no entregados) de todas las rutas, considerando el estado actual de los camiones.
 
+### `averias.ts`
+- **`handleAveriar(camionId: string, tipo: number, marcarCamionAveriado: Function, setAveriando: Function, setClickedCamion: Function): Promise<void>`**: Maneja la avería de un camión específico, actualizando el backend y mostrando notificaciones.
+
 ### `index.ts`
 - **Exportaciones centralizadas**: Permite importar todas las utilidades desde un solo punto de entrada.
 
 ## Uso
 
 ```typescript
-import { parseCoord, calcularRotacion, getPedidosPendientes } from './mapa/utils';
+import { parseCoord, calcularRotacion, getPedidosPendientes, handleAveriar } from './mapa/utils';
 
 // Parsear coordenadas
 const coordenada = parseCoord("(12,8)");
@@ -29,6 +32,9 @@ const rotacion = calcularRotacion(coordOrigen, coordDestino);
 
 // Obtener pedidos pendientes
 const pedidosPendientes = getPedidosPendientes(rutasCamiones, camiones);
+
+// Averiar un camión
+await handleAveriar("CAM001", 1, marcarCamionAveriado, setAveriando, setClickedCamion);
 ```
 
 ## Beneficios de la refactorización

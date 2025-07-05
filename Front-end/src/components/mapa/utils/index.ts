@@ -10,4 +10,7 @@ export { parseCoord } from "./coordenadas";
 export { calcularRotacion } from "./camiones";
 
 // Utilidades de pedidos
-export { getPedidosPendientes } from "./pedidos"; 
+export { getPedidosPendientes } from "./pedidos";
+
+// Utilidades de averías
+export { handleAveriar } from "./averias"; 
