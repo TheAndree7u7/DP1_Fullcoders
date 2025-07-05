@@ -1,8 +1,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import logo from "../assets/logo.png";
-import { useSimulacion, formatearTiempoTranscurrido } from "../context/SimulacionContext";
-
+import { useSimulacion,  } from "../context/SimulacionContext";
+import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
 
 const Navbar: React.FC = () => {
   const [, setIsOpen] = useState(false);

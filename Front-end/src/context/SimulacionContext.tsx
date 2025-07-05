@@ -13,7 +13,6 @@ import type {
   Individuo,
   Gen,
   Nodo,
-  Camion,
   Almacen,
   Coordenada,
 } from "../types";
@@ -23,6 +22,10 @@ import {
   calcularConsumoGalones,
   calcularDistanciaMaxima,
 } from "../types";
+import { 
+  parseCoord, 
+  adaptarCamionParaCalculos
+} from "./simulacion/utils";
 
 /**
  * Constantes de configuración de la simulación
@@ -1003,73 +1006,8 @@ export const useSimulacion = (): SimulacionContextType => {
   return context;
 };
 
-/**
- * Función para parsear una coordenada en formato "(x,y)" a objeto Coordenada
- */
-const parseCoord = (s: string): Coordenada => {
-  const match = s.match(/\((\d+),\s*(\d+)\)/);
-  if (!match) throw new Error(`Coordenada inválida: ${s}`);
-  return { x: parseInt(match[1]), y: parseInt(match[2]) };
-};
 
-/**
- * Función adaptadora para convertir un CamionEstado a un objeto compatible con Camion
- * Esta función es esencial para poder usar las funciones de cálculo en types.ts
- */
-const adaptarCamionParaCalculos = (camion: CamionEstado): Camion => {
-  return {
-    codigo: camion.id,
-    capacidadActualGLP: camion.capacidadActualGLP,
-    capacidadMaximaGLP: camion.capacidadMaximaGLP,
-    combustibleActual: camion.combustibleActual,
-    combustibleMaximo: camion.combustibleMaximo,
-    distanciaMaxima: camion.distanciaMaxima,
-    estado: camion.estado,
-    pesoCarga: camion.pesoCarga,
-    pesoCombinado: camion.pesoCombinado,
-    tara: camion.tara,
-    tipo: camion.tipo,
-    velocidadPromedio: camion.velocidadPromedio,
-  };
-};
 
-/**
- * @function formatearTiempoTranscurrido
- * @description Convierte tiempo en formato HH:MM:SS a formato legible como "transcurrieron X días Y horas Z minutos"
- * @param {string} tiempoHMS - Tiempo en formato HH:MM:SS
- * @returns {string} Tiempo formateado de manera legible
- */
-export const formatearTiempoTranscurrido = (tiempoHMS: string): string => {
-  if (!tiempoHMS || tiempoHMS === "00:00:00") {
-    return "No hay tiempo transcurrido";
-  }
 
-  const partes = tiempoHMS.split(":");
-  const horas = parseInt(partes[0]);
-  const minutos = parseInt(partes[1]);
-  const segundos = parseInt(partes[2]);
 
-  const totalSegundos = horas * 3600 + minutos * 60 + segundos;
-  const dias = Math.floor(totalSegundos / 86400);
-  const horasRestantes = Math.floor((totalSegundos % 86400) / 3600);
-  const minutosRestantes = Math.floor((totalSegundos % 3600) / 60);
 
-  const resultado = "Transcurrieron ";
-  const partes_resultado = [];
-
-  if (dias > 0) {
-    partes_resultado.push(`${dias} día${dias > 1 ? 's' : ''}`);
-  }
-  if (horasRestantes > 0) {
-    partes_resultado.push(`${horasRestantes} hora${horasRestantes > 1 ? 's' : ''}`);
-  }
-  if (minutosRestantes > 0) {
-    partes_resultado.push(`${minutosRestantes} minuto${minutosRestantes > 1 ? 's' : ''}`);
-  }
-
-  if (partes_resultado.length === 0) {
-    return "Transcurrieron menos de un minuto";
-  }
-
-  return resultado + partes_resultado.join(' y ');
-};
