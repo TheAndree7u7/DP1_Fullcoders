@@ -6,7 +6,7 @@
  */
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { getMejorIndividuo, reiniciarSimulacion } from "../services/simulacionApiService";
+import { getMejorIndividuo, reiniciarSimulacion, estaPausadaPorAveria } from "../services/simulacionApiService";
 import { getAlmacenes } from "../services/almacenApiService";
 import type {
   Pedido,
@@ -111,6 +111,7 @@ interface SimulacionContextType {
   iniciarPollingPrimerPaquete: () => void; // Inicia el polling para obtener el primer paquete
   cargando: boolean;
   bloqueos: Bloqueo[];
+  pausadaPorAveria: boolean; // Estado de pausa por avería
   marcarCamionAveriado: (camionId: string) => void; // Nueva función para manejar averías
   actualizarAlmacenes: () => Promise<void>; // Nueva función para actualizar almacenes
 }
@@ -175,6 +176,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [simulacionActiva, setSimulacionActiva] = useState<boolean>(false);
   const [horaSimulacion, setHoraSimulacion] = useState<string>("00:00:00");
   const [pollingActivo, setPollingActivo] = useState<boolean>(false);
+  const [pausadaPorAveria, setPausadaPorAveria] = useState<boolean>(false);
 
   // Efecto de polling activo DESHABILITADO - ahora usamos el polling específico más abajo
   // que maneja mejor el primer paquete sin consumir paquetes innecesarios
@@ -183,6 +185,23 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     console.log("🚀 CONTEXTO: Montando contexto...");
     cargarDatosIniciales();
+  }, []);
+
+  // Verificar estado de pausa por avería cada 500ms para mayor responsividad
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const pausada = await estaPausadaPorAveria();
+        if (pausada !== pausadaPorAveria) {
+          console.log(`🔄 CONTEXTO: Cambio de estado de pausa: ${pausadaPorAveria} → ${pausada}`);
+          setPausadaPorAveria(pausada);
+        }
+      } catch (error) {
+        console.error("Error al verificar pausa por avería:", error);
+      }
+    }, 500); // Reducido de 2000ms a 500ms para mayor responsividad
+
+    return () => clearInterval(interval);
   }, []);
 
   const cargarDatosIniciales = async () => {
@@ -322,6 +341,12 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     const interval = setInterval(async () => {
       intentos++;
       
+      // ⏸️ DETENER POLLING SI ESTÁ PAUSADA POR AVERÍA
+      if (pausadaPorAveria) {
+        console.log("⏸️ POLLING PAUSADO: No se buscan nuevos paquetes porque está pausada por avería");
+        return;
+      }
+      
       if (intentos > maxIntentos) {
         console.log("⏰ POLLING: Timeout alcanzado, desactivando polling...");
         setPollingActivo(false);
@@ -374,7 +399,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("🛑 POLLING: Limpiando interval de polling");
       clearInterval(interval);
     };
-  }, [pollingActivo]);
+  }, [pollingActivo, pausadaPorAveria]);
 
   // Función para actualizar almacenes (útil para refrescar capacidades)
   const actualizarAlmacenes = async () => {
@@ -415,6 +440,14 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     if (esInicial) {
       setCargando(true);
     }
+    
+    // ⏸️ NO CARGAR DATOS SI ESTÁ PAUSADA POR AVERÍA
+    if (pausadaPorAveria) {
+      console.log("⏸️ CARGA BLOQUEADA: No se cargan nuevos paquetes porque está pausada por avería");
+      if (esInicial) setCargando(false);
+      return;
+    }
+    
     try {
       console.log(
         "🔄 SOLICITUD: Iniciando solicitud de nueva solución al servidor...",
@@ -551,6 +584,12 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * @description Carga anticipadamente la siguiente solución para transición suave
    */
   const cargarSolucionAnticipada = async () => {
+    // ⏸️ NO CARGAR SOLUCIÓN ANTICIPADA SI ESTÁ PAUSADA POR AVERÍA
+    if (pausadaPorAveria) {
+      console.log("⏸️ CARGA ANTICIPADA BLOQUEADA: No se carga porque está pausada por avería");
+      return;
+    }
+    
     try {
       console.log("🚀 ANTICIPADA: Cargando solución anticipada en background...");
       const data = await getMejorIndividuo() as IndividuoConBloqueos;
@@ -652,6 +691,12 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    */
   const avanzarHora = async () => {
     if (esperandoActualizacion) return;
+    
+    // ⏸️ VERIFICAR PAUSA POR AVERÍA - NO AVANZAR SI ESTÁ PAUSADA
+    if (pausadaPorAveria) {
+      console.log("⏸️ AVANCE BLOQUEADO: Simulación pausada por avería, esperando paquete parche...");
+      return;
+    }
 
     // Verificar si necesitamos solicitar anticipadamente la próxima solución
     const nodosTres4 = Math.floor(NODOS_PARA_ACTUALIZACION * 0.75);
@@ -981,6 +1026,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         iniciarPollingPrimerPaquete,
         cargando,
         bloqueos,
+        pausadaPorAveria,
         marcarCamionAveriado,
         actualizarAlmacenes,
       }}

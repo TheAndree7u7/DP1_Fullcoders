@@ -137,10 +137,54 @@ public class SimulacionController {
         return info;
     }
 
+    /**
+     * Verifica si la simulación está pausada por avería
+     */
+    @GetMapping("/pausada-por-averia")
+    public ResponseEntity<Boolean> estaPausadaPorAveria() {
+        boolean pausada = Simulacion.estaPausadaPorAveria();
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/pausada-por-averia - Resultado: " + pausada);
+        return ResponseEntity.ok(pausada);
+    }
+
+    /**
+     * Endpoint de debug para verificar cómo se reciben las fechas
+     */
+    @PostMapping("/debug-fecha")
+    public ResponseEntity<String> debugFecha(@RequestBody SimulacionRequest request) {
+        System.out.println("🔧 ENDPOINT DEBUG FECHA LLAMADO");
+        
+        StringBuilder debug = new StringBuilder();
+        debug.append("📅 FECHA DEBUG INFORMACIÓN:\n");
+        debug.append("• Fecha recibida: ").append(request.getFechaInicio()).append("\n");
+        debug.append("• Fecha toString: ").append(request.getFechaInicio() != null ? request.getFechaInicio().toString() : "null").append("\n");
+        debug.append("• Fecha formato ISO: ").append(request.getFechaInicio() != null ? request.getFechaInicio().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME) : "null").append("\n");
+        debug.append("• Zona horaria sistema: ").append(java.time.ZoneId.systemDefault()).append("\n");
+        debug.append("• Fecha actual sistema: ").append(java.time.LocalDateTime.now()).append("\n");
+        
+        if (request.getFechaInicio() != null) {
+            debug.append("• Año: ").append(request.getFechaInicio().getYear()).append("\n");
+            debug.append("• Mes: ").append(request.getFechaInicio().getMonth()).append("\n");
+            debug.append("• Día: ").append(request.getFechaInicio().getDayOfMonth()).append("\n");
+            debug.append("• Hora: ").append(request.getFechaInicio().getHour()).append("\n");
+            debug.append("• Minutos: ").append(request.getFechaInicio().getMinute()).append("\n");
+        }
+        
+        String resultado = debug.toString();
+        System.out.println(resultado);
+        
+        return ResponseEntity.ok(resultado);
+    }
+
     @PostMapping("/iniciar")
     public ResponseEntity<String> iniciarSimulacion(@RequestBody SimulacionRequest request) {
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/iniciar");
-        System.out.println("📅 Fecha recibida: " + request.getFechaInicio());
+        System.out.println("📅 FECHA DIAGNÓSTICO:");
+        System.out.println("   • Fecha recibida en request: " + request.getFechaInicio());
+        System.out.println("   • Fecha toString: " + (request.getFechaInicio() != null ? request.getFechaInicio().toString() : "null"));
+        System.out.println("   • Fecha format ISO: " + (request.getFechaInicio() != null ? request.getFechaInicio().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME) : "null"));
+        System.out.println("   • Zona horaria del sistema: " + java.time.ZoneId.systemDefault());
+        System.out.println("   • Fecha actual sistema: " + java.time.LocalDateTime.now());
         
         try {
             // Validar que la fecha no sea nula

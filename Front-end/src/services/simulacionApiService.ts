@@ -1,5 +1,5 @@
 import type { Individuo } from "../types";
-import { API_URLS } from "../config/api";
+import { API_URLS, API_CONFIG } from "../config/api";
 
 export async function getMejorIndividuo(): Promise<Individuo> {
   try {
@@ -133,5 +133,28 @@ export async function obtenerInfoSimulacion(): Promise<{
   } catch (error) {
     console.error("Error al obtener información de simulación:", error);
     throw error;
+  }
+}
+
+/**
+ * Verifica si la simulación está pausada por avería
+ * @returns Promise<boolean> true si está pausada, false si no
+ */
+export async function estaPausadaPorAveria(): Promise<boolean> {
+  try {
+         const response = await fetch(`${API_CONFIG.BASE_URL}/api/simulacion/pausada-por-averia`, {
+      method: 'GET'
+    });
+
+    if (!response.ok) {
+      console.error(`Error al verificar pausa por avería: ${response.status}`);
+      return false; // En caso de error, asumir que no está pausada
+    }
+
+    const pausada = await response.json();
+    return pausada;
+  } catch (error) {
+    console.error("Error al verificar si está pausada por avería:", error);
+    return false; // En caso de error, asumir que no está pausada
   }
 }

@@ -4,7 +4,7 @@ import type { Coordenada, Pedido } from '../types';
 import almacenCentralIcon from '../assets/almacen_central.svg';
 import almacenIntermedioIcon from '../assets/almacen_intermedio.svg';
 import clienteIcon from '../assets/cliente.svg';
-import { averiarCamionTipo } from '../services/averiaApiService';
+import { averiarCamionDinamico } from '../services/averiaApiService';
 import { toast, Bounce } from 'react-toastify';
 import { CAMION_COLORS, ESTADO_COLORS } from '../config/colors';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -69,7 +69,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
   const [running, setRunning] = useState(false);
   const [intervalo, setIntervalo] = useState(300);
   const intervalRef = useRef<number | null>(null);
-  const { camiones, rutasCamiones, almacenes, avanzarHora, cargando, bloqueos, marcarCamionAveriado, actualizarAlmacenes, iniciarContadorTiempo } = useSimulacion();
+  const { camiones, rutasCamiones, almacenes, avanzarHora, cargando, bloqueos, marcarCamionAveriado, actualizarAlmacenes, iniciarContadorTiempo, pausadaPorAveria } = useSimulacion();
   // Estado para el tooltip (hover)
   const [tooltipCamion, setTooltipCamion] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{x: number, y: number} | null>(null);
@@ -162,9 +162,12 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
   }, [rutasCamiones]);
 
   useEffect(() => {
-    if (running) {
+    if (running && !pausadaPorAveria) {
       intervalRef.current = window.setInterval(() => {
-        avanzarHora();
+        // Verificar nuevamente la pausa antes de avanzar, por si cambió durante el intervalo
+        if (!pausadaPorAveria) {
+          avanzarHora();
+        }
       }, intervalo);
     } else {
       if (intervalRef.current) window.clearInterval(intervalRef.current);
@@ -172,7 +175,16 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
     return () => {
       if (intervalRef.current) window.clearInterval(intervalRef.current);
     };
-  }, [running, intervalo, avanzarHora]);
+  }, [running, intervalo, avanzarHora, pausadaPorAveria]);
+
+  // Log cuando cambia el estado de pausa
+  useEffect(() => {
+    if (pausadaPorAveria) {
+      console.log('⏸️ MAPA: Simulación pausada por avería - Deteniendo animación');
+    } else {
+      console.log('▶️ MAPA: Simulación reanudada - Continuando animación');
+    }
+  }, [pausadaPorAveria]);
 
   useEffect(() => {
     // Rebuild visuals whenever routes or truck states change
@@ -236,15 +248,34 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
     setAveriando(camionId + '-' + tipo);
     try {
       const fechaHoraReporte = new Date().toISOString();
-      await averiarCamionTipo(camionId, tipo, fechaHoraReporte);
+      
+      // Obtener la posición actual del camión para enviarla al backend
+      const camionActual = camiones.find(c => c.id === camionId);
+      let coordenada: { fila: number; columna: number } | undefined;
+      
+      if (camionActual?.ubicacion) {
+        // Parsear la ubicación del camión (formato: "(x,y)")
+        const match = camionActual.ubicacion.match(/\((\d+),\s*(\d+)\)/);
+        if (match) {
+          coordenada = { fila: parseInt(match[1]), columna: parseInt(match[2]) };
+        }
+      }
+      
+      // Usar el nuevo endpoint con recálculo dinámico
+      console.log(`🚛💥 MAPA: Enviando avería dinámica para camión ${camionId} (Tipo ${tipo})`);
+      console.log(`📍 MAPA: Coordenada actual: ${coordenada ? `(${coordenada.fila}, ${coordenada.columna})` : 'No disponible'}`);
+      
+      await averiarCamionDinamico(camionId, tipo, fechaHoraReporte, coordenada);
+      
+      console.log(`✅ MAPA: Avería dinámica enviada exitosamente para camión ${camionId}`);
       
       // Marcar el camión como averiado en el contexto
       marcarCamionAveriado(camionId);
       
-      // Mostrar toast de éxito
-      toast.error(`🚛💥 Camión ${camionId} averiado (Tipo ${tipo})`, {
+      // Mostrar toast de éxito con información del recálculo
+      toast.error(`🚛💥 Camión ${camionId} averiado (Tipo ${tipo})\n🔄 Recalculando simulación...\n🩹 Generando paquete parche\n📦 Invalidando paquetes futuros`, {
         position: "top-right",
-        autoClose: 5000,
+        autoClose: 8000,
         hideProgressBar: false,
         closeOnClick: false,
         pauseOnHover: true,
@@ -254,7 +285,8 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
         transition: Bounce,
       });
       
-    } catch {
+    } catch (error) {
+      console.error('Error al averiar camión:', error);
       toast.error('❌ Error al averiar el camión', {
         position: "top-right",
         autoClose: 3000,
@@ -278,6 +310,24 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
 
   return (
     <div className="w-full h-full flex flex-col">
+      {/* Overlay de pausa por avería */}
+      {pausadaPorAveria && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-yellow-100 border-2 border-yellow-400 rounded-lg p-6 max-w-md mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-4 h-4 bg-yellow-500 rounded-full animate-pulse"></div>
+              <h3 className="text-lg font-bold text-yellow-800">Simulación Pausada</h3>
+            </div>
+            <p className="text-yellow-700 mb-2">
+              La simulación está pausada por una avería.
+            </p>
+            <p className="text-yellow-600 text-sm">
+              Generando paquete parche y recalculando rutas...
+            </p>
+          </div>
+        </div>
+      )}
+      
       <div className="flex items-start gap-3 flex-1">
         {/* Leyenda lateral compacta */}
         <div className="bg-white rounded-lg shadow-md border border-gray-200 p-2 w-32 flex-shrink-0">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Play, RotateCcw, Clock, Calendar, Info } from 'lucide-react';
 import { iniciarSimulacion, obtenerInfoSimulacion } from '../services/simulacionApiService';
 import { useSimulacion } from '../context/SimulacionContext';
+import { API_CONFIG } from '../config/api';
 
 interface InfoSimulacion {
   totalPaquetes: number;
@@ -17,7 +18,7 @@ const ControlSimulacion: React.FC = () => {
   const [mensaje, setMensaje] = useState<string>('');
   const [tipoMensaje, setTipoMensaje] = useState<'success' | 'error' | 'info'>('info');
   const [infoSimulacion, setInfoSimulacion] = useState<InfoSimulacion | null>(null);
-  const { reiniciar, limpiarEstadoParaNuevaSimulacion, iniciarPollingPrimerPaquete } = useSimulacion();
+  const { reiniciar, limpiarEstadoParaNuevaSimulacion, iniciarPollingPrimerPaquete, pausadaPorAveria } = useSimulacion();
 
   // Establecer fecha por defecto (hoy)
   useEffect(() => {
@@ -55,10 +56,18 @@ const ControlSimulacion: React.FC = () => {
     setTipoMensaje('info');
 
     try {
-      const fechaHoraISO = `${fechaInicio}T${horaInicio}:00`;
+      // Crear fecha explícitamente en zona horaria local
+      const fechaLocal = new Date(`${fechaInicio}T${horaInicio}:00`);
+      
+      // Convertir a ISO manteniendo la hora local (no UTC)
+      const fechaHoraISO = new Date(fechaLocal.getTime() - (fechaLocal.getTimezoneOffset() * 60000)).toISOString().slice(0, -1);
+      
+      console.log('📅 FRONTEND: Fecha seleccionada por usuario:', `${fechaInicio} ${horaInicio}`);
+      console.log('📅 FRONTEND: Fecha local creada:', fechaLocal.toString());
+      console.log('📅 FRONTEND: Fecha ISO enviada al backend:', fechaHoraISO);
       
       // Primero iniciar la simulación en el backend
-      setMensaje('Configurando simulación en el backend...');
+      setMensaje(`Configurando simulación para ${fechaInicio} ${horaInicio}...`);
       await iniciarSimulacion(fechaHoraISO);
       
       setMensaje('Simulación iniciada exitosamente. Cargando datos...');
@@ -158,6 +167,61 @@ const ControlSimulacion: React.FC = () => {
     }
   };
 
+  // Función para debuggear la fecha que se envía al backend
+  const manejarDebugFecha = async () => {
+    if (!fechaInicio || !horaInicio) {
+      setMensaje('Por favor, selecciona una fecha y hora válidas para el debug');
+      setTipoMensaje('error');
+      return;
+    }
+
+    setCargando(true);
+    setMensaje('Enviando fecha al backend para debug...');
+    setTipoMensaje('info');
+
+    try {
+      // Crear fecha de la misma manera que en iniciar simulación
+      const fechaLocal = new Date(`${fechaInicio}T${horaInicio}:00`);
+      const fechaHoraISO = new Date(fechaLocal.getTime() - (fechaLocal.getTimezoneOffset() * 60000)).toISOString().slice(0, -1);
+      
+      console.log('🔧 DEBUG: Enviando fecha debug al backend...');
+      console.log('📅 Frontend - Fecha ISO enviada:', fechaHoraISO);
+      
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/simulacion/debug-fecha`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fechaInicio: fechaHoraISO
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const resultado = await response.text();
+      console.log('✅ Respuesta del backend:', resultado);
+      
+      setMensaje(`Debug completado. Revisa la consola del navegador y del backend para ver los detalles.`);
+      setTipoMensaje('success');
+      
+      // También mostrar un resumen en el mensaje
+      setTimeout(() => {
+        setMensaje(`Frontend envió: ${fechaInicio} ${horaInicio} | ISO: ${fechaHoraISO}\nBackend respondió con información detallada en consola.`);
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Error en debug de fecha:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      setMensaje(`Error en debug: ${errorMessage}`);
+      setTipoMensaje('error');
+    } finally {
+      setCargando(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-4">
       <div className="flex items-center justify-between mb-4">
@@ -167,11 +231,23 @@ const ControlSimulacion: React.FC = () => {
         </h2>
         
         {/* Indicador de estado */}
-        <div className="flex items-center gap-2">
-          <div className={`w-3 h-3 rounded-full ${obtenerColorEstado()}`}></div>
-          <span className="text-sm font-medium text-gray-700">
-            {obtenerTextoEstado()}
-          </span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className={`w-3 h-3 rounded-full ${obtenerColorEstado()}`}></div>
+            <span className="text-sm font-medium text-gray-700">
+              {obtenerTextoEstado()}
+            </span>
+          </div>
+          
+          {/* Indicador de pausa por avería */}
+          {pausadaPorAveria && (
+            <div className="flex items-center gap-2 bg-yellow-100 px-3 py-1 rounded-full">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+              <span className="text-xs font-medium text-yellow-800">
+                Pausada por avería
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -225,6 +301,16 @@ const ControlSimulacion: React.FC = () => {
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={cargando}
           />
+          {fechaInicio && (
+            <p className="text-xs text-gray-500 mt-1">
+              Fecha seleccionada: {new Date(fechaInicio).toLocaleDateString('es-ES', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </p>
+          )}
         </div>
         
         <div>
@@ -249,6 +335,29 @@ const ControlSimulacion: React.FC = () => {
         </div>
       </div>
 
+      {/* Preview de fecha y hora */}
+      {fechaInicio && horaInicio && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Info className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-800">Vista Previa</span>
+          </div>
+          <div className="text-sm text-blue-700">
+            <p><strong>Fecha y hora a enviar:</strong> {fechaInicio} a las {horaInicio}</p>
+            <p className="text-xs mt-1">
+              Esto equivale a: {new Date(`${fechaInicio}T${horaInicio}:00`).toLocaleDateString('es-ES', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Botones de control */}
       <div className="flex gap-3 mb-4">
         <button
@@ -268,6 +377,15 @@ const ControlSimulacion: React.FC = () => {
           <RotateCcw className="w-4 h-4" />
           Reiniciar
         </button>
+        
+        <button
+          onClick={manejarDebugFecha}
+          disabled={cargando || !fechaInicio || !horaInicio}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+        >
+          <Info className="w-4 h-4" />
+          Debug Fecha
+        </button>
       </div>
 
       {/* Mensaje de estado */}
@@ -279,7 +397,17 @@ const ControlSimulacion: React.FC = () => {
             ? 'bg-red-100 text-red-800 border border-red-200'
             : 'bg-blue-100 text-blue-800 border border-blue-200'
         }`}>
-          {mensaje}
+          <div className="whitespace-pre-line">{mensaje}</div>
+        </div>
+      )}
+
+      {/* Información de debug */}
+      {fechaInicio && horaInicio && (
+        <div className="mt-4 p-3 bg-gray-50 rounded-md text-xs text-gray-600">
+          <div className="font-medium mb-1">🔧 Información de Debug:</div>
+          <div>• Zona horaria del navegador: {Intl.DateTimeFormat().resolvedOptions().timeZone}</div>
+          <div>• Offset UTC: {new Date().getTimezoneOffset() / -60} horas</div>
+          <div>• Fecha/hora actual: {new Date().toLocaleString('es-ES')}</div>
         </div>
       )}
     </div>

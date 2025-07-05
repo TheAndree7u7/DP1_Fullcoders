@@ -19,6 +19,8 @@ import com.plg.entity.TipoNodo;
 import com.plg.entity.TipoIncidente;
 import com.plg.repository.AveriaRepository;
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidInputException;
+import com.plg.utils.Simulacion;
+import com.plg.utils.simulacion.RecalculoDinamico;
 
 /**
  * Servicio para operaciones sobre averías.
@@ -317,4 +319,30 @@ public class AveriaService {
 
         return fecha1Truncada.isBefore(fecha2Truncada) || fecha1Truncada.isEqual(fecha2Truncada);
     }
+
+    /**
+     * Activa el recálculo dinámico de la simulación cuando ocurre una avería.
+     * Guarda las posiciones actuales de todos los camiones y solicita recalcular
+     * la simulación desde el momento de la avería.
+     *
+     * @param codigoCamion código del camión averiado
+     * @param averia la avería que desencadena el recálculo
+     */
+    public void activarRecalculoDinamico(String codigoCamion, Averia averia) {
+        try {
+            // Obtener todos los camiones para el snapshot
+            List<Camion> camiones = camionService.listar();
+            
+            // Iniciar el recálculo dinámico usando la clase especializada
+            RecalculoDinamico.iniciarRecalculo(codigoCamion, averia, camiones);
+            
+            System.out.println("🔄 RECÁLCULO DINÁMICO: Proceso iniciado para camión " + codigoCamion);
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error en recálculo dinámico: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+
 }

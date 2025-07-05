@@ -221,12 +221,21 @@ public class Mapa {
     public List<Nodo> aStar(Nodo nodo1, Nodo nodo2) {
         // Validaciones de entrada
         if (nodo1 == null || nodo2 == null || nodo1.getCoordenada() == null || nodo2.getCoordenada() == null) {
-            System.err.println("⚠️ A*: Nodos de entrada inválidos");
+            System.err.println("❌ A*: Nodos de entrada inválidos - nodo1=" + nodo1 + ", nodo2=" + nodo2);
             return Collections.emptyList();
         }
         
+        // Log silenciado para evitar spam en consola
+        // System.out.println("🔍 A*: Iniciando búsqueda de " + nodo1.getCoordenada() + " a " + nodo2.getCoordenada());
+        
         Nodo inicio = getNodo(nodo1.getCoordenada());
         Nodo destino = getNodo(nodo2.getCoordenada());
+        
+        // Verificar que las coordenadas están dentro del mapa
+        if (inicio == null || destino == null) {
+            System.err.println("❌ A*: Coordenadas fuera del mapa - inicio=" + inicio + ", destino=" + destino);
+            return Collections.emptyList();
+        }
         
         // Si origen y destino son el mismo, devolver ruta directa
         if (inicio.equals(destino)) {
@@ -300,12 +309,19 @@ public class Mapa {
         
         // Si se agotaron las iteraciones o no se encontró ruta
         if (iteraciones >= MAX_ITERATIONS) {
-            System.err.println("⚠️ A*: Se alcanzó el límite de iteraciones (" + MAX_ITERATIONS + "), devolviendo ruta directa");
+            System.err.println("❌ A*: CRÍTICO - Límite de iteraciones para " + inicio.getCoordenada() + " → " + destino.getCoordenada());
         } else {
-            System.err.println("⚠️ A*: No se encontró ruta entre " + inicio.getCoordenada() + " y " + destino.getCoordenada());
+            System.err.println("❌ A*: CRÍTICO - Sin ruta válida entre " + inicio.getCoordenada() + " y " + destino.getCoordenada());
         }
         
-        return Collections.singletonList(destino); // Ruta directa como fallback
+        // Loguear información de debugging
+        System.err.println("   📊 DEBUG: Inicio bloqueado=" + inicio.isBloqueado() + ", Destino bloqueado=" + destino.isBloqueado());
+        System.err.println("   📊 DEBUG: Mapa tamaño=" + filas + "x" + columnas + ", Iteraciones ejecutadas=" + iteraciones);
+        System.err.println("   📊 DEBUG: Nodos en openSet al fallar=" + openSet.size() + ", Nodos en closedSet=" + closedSet.size());
+        
+        // Intentar crear una ruta alternativa como último recurso
+        System.err.println("🔄 A*: Intentando ruta alternativa como último recurso");
+        return crearRutaAlternativa(inicio, destino);
     }
 
     private List<Nodo> reconstruirRuta(Map<Nodo, Nodo> cameFrom, Nodo nodoActual) {
@@ -316,5 +332,167 @@ public class Mapa {
         }
         Collections.reverse(ruta);
         return ruta;
+    }
+
+    /**
+     * Crea una ruta alternativa cuando A* no puede encontrar una ruta directa.
+     * Intenta encontrar un nodo cercano al destino que sea alcanzable.
+     */
+    private List<Nodo> crearRutaAlternativa(Nodo inicio, Nodo destino) {
+        // Prevenir recursión infinita - si ya estamos en una llamada recursiva, devolver ruta directa
+        if (Thread.currentThread().getStackTrace().length > 50) {
+            List<Nodo> rutaDirecta = new ArrayList<>();
+            rutaDirecta.add(inicio);
+            if (!inicio.equals(destino)) {
+                rutaDirecta.add(destino);
+            }
+            return rutaDirecta;
+        }
+        
+        // Si el destino está bloqueado, intentar encontrar un nodo no bloqueado cerca
+        if (destino.isBloqueado()) {
+            Nodo nodoAlternativo = encontrarNodoNoBloquadoCercano(destino);
+            if (nodoAlternativo != null && !nodoAlternativo.equals(inicio)) {
+                // Usar un algoritmo más simple para evitar recursión
+                List<Nodo> rutaAlternativa = crearRutaSimple(inicio, nodoAlternativo);
+                if (rutaAlternativa.size() > 1) {
+                    // Agregar el destino original al final
+                    rutaAlternativa.add(destino);
+                    return rutaAlternativa;
+                }
+            }
+        }
+        
+        // Como último recurso, crear una ruta directa simple
+        List<Nodo> rutaDirecta = new ArrayList<>();
+        rutaDirecta.add(inicio);
+        if (!inicio.equals(destino)) {
+            rutaDirecta.add(destino);
+        }
+        return rutaDirecta;
+    }
+
+    /**
+     * Crea una ruta simple sin usar A* para evitar recursión.
+     * Intenta una ruta paso a paso evitando nodos bloqueados.
+     */
+    private List<Nodo> crearRutaSimple(Nodo inicio, Nodo destino) {
+        List<Nodo> ruta = new ArrayList<>();
+        ruta.add(inicio);
+        
+        int filaActual = inicio.getCoordenada().getFila();
+        int columnaActual = inicio.getCoordenada().getColumna();
+        int filaDestino = destino.getCoordenada().getFila();
+        int columnaDestino = destino.getCoordenada().getColumna();
+        
+        // Moverse paso a paso hacia el destino
+        while (filaActual != filaDestino || columnaActual != columnaDestino) {
+            // Decidir hacia dónde moverse
+            int nuevaFila = filaActual;
+            int nuevaColumna = columnaActual;
+            
+            // Priorizar el movimiento que más se acerque al destino
+            if (filaActual < filaDestino) {
+                nuevaFila = filaActual + 1;
+            } else if (filaActual > filaDestino) {
+                nuevaFila = filaActual - 1;
+            } else if (columnaActual < columnaDestino) {
+                nuevaColumna = columnaActual + 1;
+            } else if (columnaActual > columnaDestino) {
+                nuevaColumna = columnaActual - 1;
+            }
+            
+            // Verificar límites del mapa
+            if (nuevaFila >= 0 && nuevaFila < filas && 
+                nuevaColumna >= 0 && nuevaColumna < columnas) {
+                
+                Nodo siguienteNodo = getNodo(nuevaFila, nuevaColumna);
+                
+                // Si el siguiente nodo está bloqueado, intentar una ruta alternativa
+                if (siguienteNodo.isBloqueado() && !siguienteNodo.equals(destino)) {
+                    // Intentar moverse primero en la otra dirección
+                    if (nuevaFila != filaActual) {
+                        // Estábamos moviendo en fila, intentar columna
+                        if (columnaActual < columnaDestino) {
+                            nuevaColumna = columnaActual + 1;
+                            nuevaFila = filaActual;
+                        } else if (columnaActual > columnaDestino) {
+                            nuevaColumna = columnaActual - 1;
+                            nuevaFila = filaActual;
+                        }
+                    } else {
+                        // Estábamos moviendo en columna, intentar fila
+                        if (filaActual < filaDestino) {
+                            nuevaFila = filaActual + 1;
+                            nuevaColumna = columnaActual;
+                        } else if (filaActual > filaDestino) {
+                            nuevaFila = filaActual - 1;
+                            nuevaColumna = columnaActual;
+                        }
+                    }
+                    
+                    // Verificar de nuevo
+                    if (nuevaFila >= 0 && nuevaFila < filas && 
+                        nuevaColumna >= 0 && nuevaColumna < columnas) {
+                        siguienteNodo = getNodo(nuevaFila, nuevaColumna);
+                    }
+                }
+                
+                // Si aún está bloqueado, salir del bucle para evitar loops infinitos
+                if (siguienteNodo.isBloqueado() && !siguienteNodo.equals(destino)) {
+                    System.err.println("⚠️ crearRutaSimple: No se puede evitar nodo bloqueado, terminando ruta");
+                    break;
+                }
+                
+                ruta.add(siguienteNodo);
+                filaActual = nuevaFila;
+                columnaActual = nuevaColumna;
+                
+                // Evitar bucles infinitos
+                if (ruta.size() > 1000) {
+                    System.err.println("⚠️ crearRutaSimple: Ruta demasiado larga, terminando");
+                    break;
+                }
+            } else {
+                // Fuera del mapa, salir
+                System.err.println("⚠️ crearRutaSimple: Coordenadas fuera del mapa");
+                break;
+            }
+        }
+        
+        return ruta;
+    }
+
+    /**
+     * Encuentra un nodo no bloqueado cerca del nodo especificado.
+     */
+    private Nodo encontrarNodoNoBloquadoCercano(Nodo nodo) {
+        Coordenada coord = nodo.getCoordenada();
+        int fila = coord.getFila();
+        int columna = coord.getColumna();
+        
+        // Buscar en un radio creciente hasta encontrar un nodo no bloqueado
+        for (int radio = 1; radio <= 5; radio++) {
+            for (int df = -radio; df <= radio; df++) {
+                for (int dc = -radio; dc <= radio; dc++) {
+                    if (df == 0 && dc == 0) continue; // Saltar el nodo original
+                    
+                    int nuevaFila = fila + df;
+                    int nuevaColumna = columna + dc;
+                    
+                    // Verificar límites del mapa
+                    if (nuevaFila >= 0 && nuevaFila < filas && 
+                        nuevaColumna >= 0 && nuevaColumna < columnas) {
+                        
+                        Nodo candidato = getNodo(nuevaFila, nuevaColumna);
+                        if (!candidato.isBloqueado()) {
+                            return candidato;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return null; // No se encontró ningún nodo no bloqueado cerca
     }
 }

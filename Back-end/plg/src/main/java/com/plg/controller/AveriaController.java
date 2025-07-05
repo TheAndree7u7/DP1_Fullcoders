@@ -163,6 +163,27 @@ public class AveriaController {
     }
 
     /**
+     * Agrega una nueva avería con recálculo dinámico de la simulación.
+     * Guarda las posiciones actuales de todos los camiones y recalcula
+     * la simulación desde el momento de la avería.
+     */
+    @PostMapping("/averiar-camion-dinamico")
+    public ResponseEntity<?> averiarCamionDinamico(@RequestBody AveriaRequest request) {
+        try {
+            // Crear la avería normalmente
+            Averia averia = averiaService.agregar(request);
+            
+            // Activar el recálculo dinámico desde el momento de la avería
+            averiaService.activarRecalculoDinamico(request.getCodigoCamion(), averia);
+            
+            return ResponseEntity.status(HttpStatus.CREATED).body(averia);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error al crear avería con recálculo dinámico: " + e.getMessage());
+        }
+    }
+
+    /**
      * Actualiza los estados de camiones con averías según las fechas de
      * disponibilidad. Este endpoint permite forzar la actualización de estados
      * de camiones averiados.

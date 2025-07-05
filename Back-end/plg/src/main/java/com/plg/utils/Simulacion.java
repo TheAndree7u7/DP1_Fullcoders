@@ -53,6 +53,12 @@ public class Simulacion {
     public static BlockingQueue<IndividuoDto> gaResultQueue = new SynchronousQueue<>();
     public static Semaphore iniciar = new Semaphore(0);
     public static Semaphore continuar = new Semaphore(0);
+    
+    // Control de pausa por averías
+    private static volatile boolean pausadaPorAveria = false;
+    private static final Object pausaLock = new Object();
+    private static volatile boolean paqueteParcheDisponible = false;
+    private static volatile boolean algoritmoGeneticoEnEjecucion = false;
 
     // Getters y setters para permitir acceso desde clases auxiliares
     public static List<Pedido> getPedidosSemanal() {
@@ -75,6 +81,82 @@ public class Simulacion {
         ConfiguracionSimulacion.configurarSimulacion(startDate);
     }
 
+    /**
+     * Pausa la simulación por avería. La simulación esperará hasta que se genere el paquete parche.
+     */
+    public static void pausarPorAveria() {
+        synchronized (pausaLock) {
+            System.out.println("⏸️ SOLICITANDO PAUSA DE SIMULACIÓN por avería...");
+            
+            // Si hay un algoritmo genético en ejecución, esperar a que termine
+            while (algoritmoGeneticoEnEjecucion) {
+                System.out.println("⏳ Esperando que termine el algoritmo genético actual...");
+                try {
+                    Thread.sleep(100); // Esperar 100ms antes de verificar de nuevo
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+            
+            pausadaPorAveria = true;
+            paqueteParcheDisponible = false;
+            System.out.println("⏸️ SIMULACIÓN PAUSADA CONFIRMADA: Esperando paquete parche por avería");
+        }
+    }
+
+    /**
+     * Notifica que el paquete parche está disponible y reanuda la simulación.
+     */
+    public static void notificarPaqueteParcheDisponible() {
+        synchronized (pausaLock) {
+            paqueteParcheDisponible = true;
+            pausadaPorAveria = false;
+            pausaLock.notifyAll();
+            System.out.println("▶️ SIMULACIÓN REANUDADA: Paquete parche disponible, consumiendo inmediatamente");
+        }
+    }
+
+    /**
+     * Verifica si la simulación está pausada por avería.
+     */
+    public static boolean estaPausadaPorAveria() {
+        return pausadaPorAveria;
+    }
+
+    /**
+     * Marca el inicio de la ejecución del algoritmo genético.
+     */
+    public static void marcarInicioAlgoritmoGenetico() {
+        algoritmoGeneticoEnEjecucion = true;
+    }
+
+    /**
+     * Marca el fin de la ejecución del algoritmo genético.
+     */
+    public static void marcarFinAlgoritmoGenetico() {
+        algoritmoGeneticoEnEjecucion = false;
+    }
+
+    /**
+     * Verifica si el algoritmo genético está en ejecución.
+     */
+    public static boolean isAlgoritmoGeneticoEnEjecucion() {
+        return algoritmoGeneticoEnEjecucion;
+    }
+
+    /**
+     * Espera hasta que el paquete parche esté disponible.
+     */
+    private static void esperarPaqueteParche() throws InterruptedException {
+        synchronized (pausaLock) {
+            while (pausadaPorAveria && !paqueteParcheDisponible) {
+                System.out.println("⏳ Simulación esperando paquete parche...");
+                pausaLock.wait(1000); // Esperar máximo 1 segundo antes de verificar de nuevo
+            }
+        }
+    }
+
     public static void ejecutarSimulacion() {
         try {
             GestorHistorialSimulacion.setEnProceso(true);
@@ -88,6 +170,22 @@ public class Simulacion {
                 // Verificar si el hilo ha sido interrumpido
                 if (Thread.currentThread().isInterrupted()) {
                     System.out.println("🛑 Simulación interrumpida por solicitud externa");
+                    GestorHistorialSimulacion.setEnProceso(false);
+                    return;
+                }
+                
+                // Verificar si la simulación está pausada por avería
+                try {
+                    if (estaPausadaPorAveria()) {
+                        System.out.println("⏸️ Simulación pausada - Esperando paquete parche...");
+                    }
+                    esperarPaqueteParche();
+                    if (!estaPausadaPorAveria()) {
+                        System.out.println("▶️ Simulación reanudada - Continuando con paquete normal");
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    System.out.println("🛑 Simulación interrumpida mientras esperaba paquete parche");
                     GestorHistorialSimulacion.setEnProceso(false);
                     return;
                 }
@@ -106,11 +204,20 @@ public class Simulacion {
 
                 if (!pedidosPorAtender.isEmpty()) {
                     
+                    // Verificar nuevamente si la simulación está pausada antes de ejecutar el algoritmo genético
+                    if (estaPausadaPorAveria()) {
+                        System.out.println("⏸️ Algoritmo genético omitido - Simulación pausada por avería");
+                        continue; // Saltar esta iteración y verificar pausa de nuevo
+                    }
+                    
                     if (modoStandalone) {
                         // Modo standalone: ejecutar sin esperar semáforos
                         try {
+                            System.out.println("🧠 Ejecutando algoritmo genético para tiempo: " + fechaActual);
+                            marcarInicioAlgoritmoGenetico();
                             AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(), pedidosEnviar);
                             algoritmoGenetico.ejecutarAlgoritmo();
+                            marcarFinAlgoritmoGenetico();
 
                             IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(),
                                     pedidosEnviar, bloqueosActivos, fechaActual);
@@ -121,6 +228,7 @@ public class Simulacion {
                             // Agregar al historial para el frontend
                             GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
                         } catch (Exception e) {
+                            marcarFinAlgoritmoGenetico(); // Marcar fin incluso en caso de error
                             System.err.println("❌ Error en algoritmo genético en tiempo " + fechaActual + ": " + e.getMessage());
                             e.printStackTrace();
                             
