@@ -77,7 +77,32 @@ public class Camion extends Nodo {
     }
 
     public double calcularDistanciaMaxima() {
-        this.distanciaMaxima = (combustibleActual * 180) / (tara + pesoCarga);
+        // Prevenir división por cero y valores negativos
+        double pesoTotal = tara + pesoCarga;
+        
+        // Validaciones de seguridad
+        if (combustibleActual <= 0) {
+            this.distanciaMaxima = 0.0;
+            return this.distanciaMaxima;
+        }
+        
+        if (pesoTotal <= 0) {
+            System.err.println("⚠️ ADVERTENCIA: Peso total del camión " + codigo + " es <= 0. Tara: " + tara + ", Carga: " + pesoCarga);
+            this.distanciaMaxima = 50.0; // Valor mínimo de seguridad
+            return this.distanciaMaxima;
+        }
+        
+        // Fórmula corregida para distancia máxima (rendimiento mejorado)
+        // Rendimiento base: 15 km/galón, ajustado por peso
+        double rendimientoBase = 15.0; // km por galón
+        double factorPeso = Math.max(0.3, 10.0 / pesoTotal); // Factor que reduce el rendimiento con más peso
+        double rendimientoReal = rendimientoBase * factorPeso;
+        
+        this.distanciaMaxima = combustibleActual * rendimientoReal;
+        
+        // Asegurar un mínimo razonable
+        this.distanciaMaxima = Math.max(this.distanciaMaxima, 10.0);
+        
         return this.distanciaMaxima;
     }
 
@@ -111,12 +136,21 @@ public class Camion extends Nodo {
         actualizarCombustible(distanciaRecorrida);
 
         // En el tiempo transcurrido donde se puede encontrar el camión
-        // System.out.println("gen.nodos.size() = " + gen.getRutaFinal().size());
+        // Verificar que la ruta final no esté vacía
+        if (gen.getRutaFinal().isEmpty()) {
+            System.out.println("⚠️ ADVERTENCIA: Camión " + codigo + " tiene ruta final vacía");
+            return;
+        }
+        
         int intermedio = Math.min(gen.getPosNodo(), gen.getRutaFinal().size() - 1);
+        
+        // Asegurar que el índice sea válido
+        if (intermedio < 0) {
+            intermedio = 0;
+        }
 
-        // System.out.println("intermedio = " + intermedio);
         // Actualiza la posición del camión en el mapa solo si está disponible
-        if (this.estado == EstadoCamion.DISPONIBLE) {
+        if (this.estado == EstadoCamion.DISPONIBLE && intermedio < gen.getRutaFinal().size()) {
             Coordenada nuevaCoordenada = gen.getRutaFinal().get(intermedio).getCoordenada();
             setCoordenada(nuevaCoordenada);
         }
@@ -155,7 +189,8 @@ public class Camion extends Nodo {
 
         // Si ya regresé al almacén central, actualizo el combustible del camión
         // y la carga de GLP
-        if (gen.getRutaFinal().get(intermedio).getTipoNodo() == TipoNodo.ALMACEN) {
+        if (intermedio >= 0 && intermedio < gen.getRutaFinal().size() && 
+            gen.getRutaFinal().get(intermedio).getTipoNodo() == TipoNodo.ALMACEN) {
             Almacen almacen = (Almacen) gen.getRutaFinal().get(intermedio);
             if (almacen.getTipo() == TipoAlmacen.CENTRAL) {
                 this.combustibleActual = this.combustibleMaximo;

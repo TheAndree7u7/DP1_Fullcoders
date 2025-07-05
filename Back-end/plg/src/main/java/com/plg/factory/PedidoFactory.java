@@ -130,7 +130,8 @@ public class PedidoFactory {
                 .estado(EstadoPedido.REGISTRADO)
                 .fechaRegistro(fechaRegistro)
                 .build();
-        pedidos.add(pedido);
+        // NOTA: No agregamos el pedido a la lista aquí, el DataLoader se encarga de esto
+        // pedidos.add(pedido);
         return pedido;
     }
 

@@ -12,7 +12,7 @@ interface InfoSimulacion {
 
 const ControlSimulacion: React.FC = () => {
   const [fechaInicio, setFechaInicio] = useState<string>('');
-  const [horaInicio, setHoraInicio] = useState<string>('08:00');
+  const [horaInicio, setHoraInicio] = useState<string>('00:00');
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState<string>('');
   const [tipoMensaje, setTipoMensaje] = useState<'success' | 'error' | 'info'>('info');
@@ -51,22 +51,26 @@ const ControlSimulacion: React.FC = () => {
     }
 
     setCargando(true);
-    setMensaje('');
+    setMensaje('Iniciando simulación...');
+    setTipoMensaje('info');
 
     try {
       const fechaHoraISO = `${fechaInicio}T${horaInicio}:00`;
       
-      // Primero limpiar el estado para la nueva simulación
-      limpiarEstadoParaNuevaSimulacion();
-      console.log("🧹 FRONTEND: Estado limpiado para nueva simulación");
+      // Primero iniciar la simulación en el backend
+      setMensaje('Configurando simulación en el backend...');
+      await iniciarSimulacion(fechaHoraISO);
       
-      // Luego iniciar la simulación en el backend
-      const respuesta = await iniciarSimulacion(fechaHoraISO);
-      
-      setMensaje(respuesta);
+      setMensaje('Simulación iniciada exitosamente. Cargando datos...');
       setTipoMensaje('success');
       
-      console.log("🚀 FRONTEND: Simulación iniciada en backend, esperando que genere paquetes...");
+      console.log("🚀 FRONTEND: Simulación iniciada en backend, limpiando estado...");
+      
+      // Limpiar el estado y cargar nuevos datos
+      await limpiarEstadoParaNuevaSimulacion();
+      console.log("🧹 FRONTEND: Estado limpiado y datos cargados para nueva simulación");
+      
+      setMensaje('Iniciando visualización automática...');
       
       // Iniciar el polling para obtener el primer paquete automáticamente
       iniciarPollingPrimerPaquete();
@@ -78,13 +82,25 @@ const ControlSimulacion: React.FC = () => {
           const info = await obtenerInfoSimulacion();
           setInfoSimulacion(info);
           console.log("📊 FRONTEND: Info de simulación actualizada:", info);
+          
+          if (info.enProceso) {
+            setMensaje('Simulación en progreso - Los datos se actualizan automáticamente');
+            setTipoMensaje('success');
+          } else {
+            setMensaje('Simulación completada o detenida');
+            setTipoMensaje('info');
+          }
         } catch (error) {
           console.error('Error al actualizar info:', error);
+          setMensaje('Simulación iniciada pero no se pudo obtener el estado');
+          setTipoMensaje('error');
         }
       }, 3000); // Esperamos 3 segundos para que el backend empiece a generar paquetes
       
     } catch (error) {
-      setMensaje(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      console.error('Error al iniciar simulación:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      setMensaje(`Error al iniciar simulación: ${errorMessage}`);
       setTipoMensaje('error');
     } finally {
       setCargando(false);
@@ -102,15 +118,18 @@ const ControlSimulacion: React.FC = () => {
       setMensaje('Simulación reiniciada exitosamente');
       setTipoMensaje('success');
       
-      // Actualizar información inmediatamente
+      console.log("🔄 FRONTEND: Simulación reiniciada completamente");
+      
+      // Actualizar información después de unos segundos para dar tiempo al backend
       setTimeout(async () => {
         try {
           const info = await obtenerInfoSimulacion();
           setInfoSimulacion(info);
+          console.log("📊 FRONTEND: Info de simulación actualizada después de reiniciar:", info);
         } catch (error) {
           console.error('Error al actualizar info:', error);
         }
-      }, 1000);
+      }, 3000); // Aumentamos el tiempo para dar más margen al backend
       
     } catch (error) {
       setMensaje(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
@@ -128,6 +147,15 @@ const ControlSimulacion: React.FC = () => {
   const obtenerTextoEstado = () => {
     if (!infoSimulacion) return 'Desconocido';
     return infoSimulacion.enProceso ? 'En Proceso' : 'Detenida';
+  };
+
+  // Manejador para el cambio de hora que garantiza el formato correcto
+  const manejarCambioHora = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valor = e.target.value;
+    // Validar que el valor sea un formato de hora válido (HH:MM)
+    if (valor === '' || /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(valor)) {
+      setHoraInicio(valor);
+    }
   };
 
   return (
@@ -164,6 +192,22 @@ const ControlSimulacion: React.FC = () => {
               <span className="ml-2 font-medium">{infoSimulacion.paqueteActual}</span>
             </div>
           </div>
+          
+          {/* Barra de progreso */}
+          {infoSimulacion.totalPaquetes > 0 && (
+            <div className="mt-3">
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>Progreso</span>
+                <span>{Math.round((infoSimulacion.paqueteActual / infoSimulacion.totalPaquetes) * 100)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(infoSimulacion.paqueteActual / infoSimulacion.totalPaquetes) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -191,10 +235,17 @@ const ControlSimulacion: React.FC = () => {
           <input
             type="time"
             value={horaInicio}
-            onChange={(e) => setHoraInicio(e.target.value)}
+            onChange={manejarCambioHora}
+            min="00:00"
+            max="23:59"
+            step="60"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={cargando}
+            placeholder="00:00"
           />
+          <p className="text-xs text-gray-500 mt-1">
+            Formato: HH:MM (00:00 - 23:59)
+          </p>
         </div>
       </div>
 

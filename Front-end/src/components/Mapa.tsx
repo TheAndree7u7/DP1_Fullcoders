@@ -27,8 +27,18 @@ const SVG_HEIGHT = GRID_HEIGHT * CELL_SIZE;
 const BLOQUEO_STROKE_WIDTH = 4;
 
 const parseCoord = (s: string): Coordenada => {
+  // Validar que el parámetro existe y es un string
+  if (!s || typeof s !== 'string') {
+    console.warn('🚨 parseCoord: Valor inválido recibido:', s);
+    return { x: 0, y: 0 }; // Coordenada por defecto
+  }
+  
   const match = s.match(/\((\d+),\s*(\d+)\)/);
-  if (!match) throw new Error(`Coordenada inválida: ${s}`);
+  if (!match) {
+    console.warn('🚨 parseCoord: Formato de coordenada inválido:', s);
+    return { x: 0, y: 0 }; // Coordenada por defecto
+  }
+  
   return { x: parseInt(match[1]), y: parseInt(match[2]) };
 };
 
@@ -74,7 +84,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
   const [clickedAlmacenPos, setClickedAlmacenPos] = useState<{x: number, y: number} | null>(null);
 
   // DEBUG: Verificar que almacenes llega al componente
-  //console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
+  console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
 
   // Función para obtener los pedidos pendientes (no entregados)
   const getPedidosPendientes = () => {
@@ -100,8 +110,18 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
       ruta.pedidos.forEach(pedido => {
         // Buscar el índice del nodo que corresponde a este pedido
         const indicePedidoEnRuta = ruta.ruta.findIndex(nodo => {
-          const coordNodo = parseCoord(nodo);
-          return coordNodo.x === pedido.coordenada.x && coordNodo.y === pedido.coordenada.y;
+          // Validar que el nodo existe y es un string
+          if (!nodo || typeof nodo !== 'string') {
+            return false;
+          }
+          
+          try {
+            const coordNodo = parseCoord(nodo);
+            return coordNodo.x === pedido.coordenada.x && coordNodo.y === pedido.coordenada.y;
+          } catch {
+            console.warn('🚨 Error al parsear coordenada del nodo:', nodo);
+            return false;
+          }
         });
 
         // Si el pedido está en un nodo que aún no ha sido visitado, mostrarlo
@@ -120,7 +140,16 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
 
   useEffect(() => {
     const iniciales = rutasCamiones.map((info, idx) => {
-      const ruta = info.ruta.map(parseCoord);
+      // Filtrar valores undefined o null de la ruta
+      const rutaValida = info.ruta.filter(nodo => nodo && typeof nodo === 'string');
+      const ruta = rutaValida.map(parseCoord);
+      
+      // Asegurar que hay al menos una coordenada válida
+      if (ruta.length === 0) {
+        console.warn('🚨 Ruta vacía para camión:', info.id);
+        ruta.push({ x: 0, y: 0 }); // Coordenada por defecto
+      }
+      
       return {
         id: info.id,
         color: CAMION_COLORS[idx % CAMION_COLORS.length],
@@ -149,10 +178,25 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
     // Rebuild visuals whenever routes or truck states change
     setCamionesVisuales(() =>
       rutasCamiones.map((info, idx) => {
-        const rutaCoords = info.ruta.map(parseCoord);
+        // Filtrar valores undefined o null de la ruta
+        const rutaValida = info.ruta.filter(nodo => nodo && typeof nodo === 'string');
+        const rutaCoords = rutaValida.map(parseCoord);
+        
+        // Asegurar que hay al menos una coordenada válida
+        if (rutaCoords.length === 0) {
+          console.warn('🚨 Ruta vacía para camión:', info.id);
+          rutaCoords.push({ x: 0, y: 0 }); // Coordenada por defecto
+        }
+        
         const estadoCamion = camiones.find(c => c.id === info.id);
-        // Determine current position and direction
-        const currentPos = estadoCamion ? parseCoord(estadoCamion.ubicacion) : rutaCoords[0];
+        
+        // Determinar posición actual y dirección
+        let currentPos = rutaCoords[0]; // Posición por defecto
+        
+        if (estadoCamion && estadoCamion.ubicacion && typeof estadoCamion.ubicacion === 'string') {
+          currentPos = parseCoord(estadoCamion.ubicacion);
+        }
+        
         let rotacion = 0;
         
         if (estadoCamion && rutaCoords.length > 1) {
@@ -169,10 +213,12 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
             rotacion = calcularRotacion(prevPos, currentPos);
           }
         }
+        
         // Compute remaining path
         const porcentaje = estadoCamion ? estadoCamion.porcentaje : 0;
         const idxRest = Math.ceil(porcentaje);
         const rutaRestante = rutaCoords.slice(idxRest);
+        
         return {
           id: info.id,
           color: CAMION_COLORS[idx % CAMION_COLORS.length],
@@ -414,7 +460,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
 
             {/* Almacenes */}
             {almacenes.map(almacen => {
-              //console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
+              console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
               const esResaltado = elementoResaltado?.tipo === 'almacen' && elementoResaltado?.id === almacen.id;
               return (
                 <g key={almacen.id} style={{ cursor: 'pointer' }}>
@@ -549,6 +595,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                        {/* Círculo de resaltado que se mueve con el camión */}
                        {esResaltado && (
                          <circle
+                           key={`resaltado-${camion.id}`}
                            cx={0}
                            cy={0}
                            r={25}
@@ -576,18 +623,19 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                        )}
                        
                        {/* Cuerpo principal del camión */}
-                       <rect x={-8} y={-3} width={16} height={6} rx={1} fill={colorFinal} stroke="black" strokeWidth={0.5} />
+                       <rect key={`cuerpo-${camion.id}`} x={-8} y={-3} width={16} height={6} rx={1} fill={colorFinal} stroke="black" strokeWidth={0.5} />
                        
                        {/* Cabina del camión (frente) */}
-                       <rect x={6} y={-2} width={4} height={4} rx={0.5} fill={colorFinal} stroke="black" strokeWidth={0.5} />
+                       <rect key={`cabina-${camion.id}`} x={6} y={-2} width={4} height={4} rx={0.5} fill={colorFinal} stroke="black" strokeWidth={0.5} />
                        
                        {/* Ruedas */}
-                       <circle cx={-5} cy={4} r={1.5} fill="black" />
-                       <circle cx={2} cy={4} r={1.5} fill="black" />
-                       <circle cx={7} cy={4} r={1.5} fill="black" />
+                       <circle key={`rueda1-${camion.id}`} cx={-5} cy={4} r={1.5} fill="black" />
+                       <circle key={`rueda2-${camion.id}`} cx={2} cy={4} r={1.5} fill="black" />
+                       <circle key={`rueda3-${camion.id}`} cx={7} cy={4} r={1.5} fill="black" />
                        
                        {/* Indicador de dirección (flecha) */}
                        <polygon 
+                         key={`flecha-${camion.id}`}
                          points="10,0 8,-1.5 8,1.5" 
                          fill="white" 
                          stroke="black" 
@@ -595,11 +643,11 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                        />
                        
                        {/* Líneas de detalle del camión */}
-                       <line x1={-6} y1={-1} x2={4} y2={-1} stroke="black" strokeWidth={0.3} opacity={0.6} />
-                       <line x1={-6} y1={1} x2={4} y2={1} stroke="black" strokeWidth={0.3} opacity={0.6} />
+                       <line key={`linea1-${camion.id}`} x1={-6} y1={-1} x2={4} y2={-1} stroke="black" strokeWidth={0.3} opacity={0.6} />
+                       <line key={`linea2-${camion.id}`} x1={-6} y1={1} x2={4} y2={1} stroke="black" strokeWidth={0.3} opacity={0.6} />
                        
                        {esAveriado && (
-                         <text x={0} y={-10} textAnchor="middle" fontSize="8" fill="#dc2626" fontWeight="bold">
+                         <text key={`averia-${camion.id}`} x={0} y={-10} textAnchor="middle" fontSize="8" fill="#dc2626" fontWeight="bold">
                            💥
                          </text>
                        )}

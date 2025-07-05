@@ -28,7 +28,7 @@ import {
  * Constantes de configuración de la simulación
  */
 const HORA_INICIAL = 0;
-const HORA_PRIMERA_ACTUALIZACION = 1;
+const HORA_PRIMERA_ACTUALIZACION = 0; // Cambié de 1 a 0 para empezar desde el primer paquete
 const NODOS_PARA_ACTUALIZACION = 100;
 //aca 100 nodos significan 2h de tiempo entonces cada nodo
 // representa 1.2 minutos de tiempo real, lo que es un valor razonable para simular el avance
@@ -97,8 +97,10 @@ interface SimulacionContextType {
   rutasCamiones: RutaCamion[];
   almacenes: Almacen[];
   fechaHoraSimulacion: string | null; // Fecha y hora de la simulación del backend
+  fechaInicioSimulacion: string | null; // Fecha y hora de inicio de la simulación
   diaSimulacion: number | null; // Día extraído de fechaHoraSimulacion
   tiempoRealSimulacion: string; // Tiempo real transcurrido desde el inicio de la simulación
+  tiempoTranscurridoSimulado: string; // Tiempo transcurrido dentro de la simulación
   simulacionActiva: boolean; // Indica si la simulación está activa (contador funcionando)
   horaSimulacion: string; // Hora actual dentro de la simulación (HH:MM:SS)
   avanzarHora: () => void;
@@ -165,12 +167,17 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [fechaHoraSimulacion, setFechaHoraSimulacion] = useState<string | null>(
     null,
   );
+  const [fechaInicioSimulacion, setFechaInicioSimulacion] = useState<string | null>(null);
   const [diaSimulacion, setDiaSimulacion] = useState<number | null>(null);
   const [tiempoRealSimulacion, setTiempoRealSimulacion] = useState<string>("00:00:00");
+  const [tiempoTranscurridoSimulado, setTiempoTranscurridoSimulado] = useState<string>("00:00:00");
   const [inicioSimulacion, setInicioSimulacion] = useState<Date | null>(null);
   const [simulacionActiva, setSimulacionActiva] = useState<boolean>(false);
   const [horaSimulacion, setHoraSimulacion] = useState<string>("00:00:00");
   const [pollingActivo, setPollingActivo] = useState<boolean>(false);
+
+  // Efecto de polling activo DESHABILITADO - ahora usamos el polling específico más abajo
+  // que maneja mejor el primer paquete sin consumir paquetes innecesarios
 
   // Cargar almacenes al inicio con reintentos
   useEffect(() => {
@@ -190,13 +197,13 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         await cargarAlmacenes(intentos > 0);
         console.log("✅ CONTEXTO: Almacenes cargados exitosamente");
         
-        // Luego intentar cargar datos de simulación (esto puede fallar si no hay paquetes)
-        try {
-          await cargarDatos(true);
-          console.log("✅ CONTEXTO: Datos de simulación cargados");
-        } catch {
-          console.log("ℹ️ CONTEXTO: No hay paquetes de simulación iniciales (normal)");
-        }
+        // No intentar cargar datos de simulación automáticamente para evitar consumir paquetes
+        // Los datos se cargarán a través del polling cuando estén disponibles
+        console.log("ℹ️ CONTEXTO: Datos de simulación se cargarán vía polling cuando estén disponibles");
+        
+        // Poner cargando en false ya que los almacenes se cargaron exitosamente
+        setCargando(false);
+        console.log("✅ CONTEXTO: Estado de carga cambiado a false - almacenes listos");
         
         // Si llegamos aquí, al menos los almacenes se cargaron correctamente
         break;
@@ -273,6 +280,36 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [horaActual, fechaHoraSimulacion]);
 
+  // Calcular tiempo transcurrido simulado
+  useEffect(() => {
+    if (fechaHoraSimulacion && fechaInicioSimulacion) {
+      const fechaActual = new Date(fechaHoraSimulacion);
+      const fechaInicio = new Date(fechaInicioSimulacion);
+      
+      // Calcular diferencia en milisegundos
+      const diferenciaMilisegundos = fechaActual.getTime() - fechaInicio.getTime();
+      
+      // Convertir a segundos
+      const totalSegundos = Math.floor(diferenciaMilisegundos / 1000);
+      
+      // Calcular días, horas, minutos y segundos
+      const dias = Math.floor(totalSegundos / 86400);
+      const horas = Math.floor((totalSegundos % 86400) / 3600);
+      const minutos = Math.floor((totalSegundos % 3600) / 60);
+      const segundos = totalSegundos % 60;
+      
+      // Formatear como HH:MM:SS para compatibilidad con la función existente
+      const horasFormateadas = (dias * 24 + horas).toString().padStart(2, '0');
+      const minutosFormateados = minutos.toString().padStart(2, '0');
+      const segundosFormateados = segundos.toString().padStart(2, '0');
+      
+      const tiempoFormateado = `${horasFormateadas}:${minutosFormateados}:${segundosFormateados}`;
+      setTiempoTranscurridoSimulado(tiempoFormateado);
+    } else {
+      setTiempoTranscurridoSimulado("00:00:00");
+    }
+  }, [fechaHoraSimulacion, fechaInicioSimulacion]);
+
   // Polling automático para obtener el primer paquete después de iniciar la simulación
   useEffect(() => {
     if (!pollingActivo) return;
@@ -280,7 +317,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     console.log("🔄 POLLING: Iniciando polling automático para obtener primer paquete...");
     
     let intentos = 0;
-    const maxIntentos = 30; // Máximo 60 segundos de polling
+    const maxIntentos = 60; // Máximo 120 segundos de polling (tiempo suficiente para que el backend genere paquetes)
     
     const interval = setInterval(async () => {
       intentos++;
@@ -288,6 +325,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       if (intentos > maxIntentos) {
         console.log("⏰ POLLING: Timeout alcanzado, desactivando polling...");
         setPollingActivo(false);
+        setCargando(false); // Quitar estado de carga para evitar que se quede colgado
+        console.log("⚠️ POLLING: Estado de carga cambiado a false por timeout");
         return;
       }
       try {
@@ -309,10 +348,16 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
             }
           }
           
-          // Aplicar el primer paquete
+          // Aplicar el primer paquete y setear la hora inicial correctamente
           await aplicarSolucionPrecargada(data);
           
-          console.log("🎉 POLLING: Primer paquete aplicado exitosamente al mapa");
+          // Asegurar que empezamos desde la hora inicial (paquete 1)
+          setHoraActual(HORA_PRIMERA_ACTUALIZACION);
+          
+          // Asegurar que el estado de carga esté en false
+          setCargando(false);
+          
+          console.log("🎉 POLLING: Primer paquete aplicado exitosamente al mapa desde la hora", HORA_PRIMERA_ACTUALIZACION);
         } else {
           console.log("⏳ POLLING: No hay paquetes disponibles aún, continuando...");
         }
@@ -383,6 +428,13 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Actualizar fecha y hora de la simulación
       if (data.fechaHoraSimulacion) {
         setFechaHoraSimulacion(data.fechaHoraSimulacion);
+        
+        // Establecer fecha de inicio si es la primera vez
+        if (!fechaInicioSimulacion) {
+          setFechaInicioSimulacion(data.fechaHoraSimulacion);
+          console.log("Fecha de inicio de simulación establecida:", data.fechaHoraSimulacion);
+        }
+        
         // Extraer el día de la fecha
         const fecha = new Date(data.fechaHoraSimulacion);
         setDiaSimulacion(fecha.getDate());
@@ -465,11 +517,22 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         setBloqueos([]);
       }
 
-      // Actualizar almacenes si vienen en la respuesta
+      // Gestionar almacenes: priorizar los que vienen del backend, sino mantener los actuales o cargar nuevos
       if (data.almacenes && data.almacenes.length > 0) {
         console.log("🏪 CONTEXTO: Actualizando almacenes desde simulación:", data.almacenes);
         setAlmacenes(data.almacenes);
+      } else if (almacenes.length === 0) {
+        // Si no vienen almacenes en la respuesta y no tenemos almacenes cargados, cargarlos
+        console.log("🏪 CONTEXTO: No hay almacenes en la simulación, cargando desde API...");
+        try {
+          await cargarAlmacenes(false);
+        } catch (error) {
+          console.log("⚠️ CONTEXTO: Error al cargar almacenes desde API:", error);
+        }
+      } else {
+        console.log("🏪 CONTEXTO: Manteniendo almacenes existentes (" + almacenes.length + " items)");
       }
+      
       if (esInicial) setHoraActual(HORA_PRIMERA_ACTUALIZACION);
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
       setEsperandoActualizacion(false);
@@ -477,6 +540,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setProximaSolucionCargada(null);
     } catch (error) {
       console.error("Error al cargar datos de simulación:", error);
+      throw error; // Re-lanzar para que el caller pueda manejar el error
     } finally {
       if (esInicial) setCargando(false);
     }
@@ -506,12 +570,19 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("⚡ TRANSICIÓN: Aplicando solución precargada...");
       
       // Actualizar fecha y hora de la simulación
-      if (data.fechaHoraSimulacion) {
-        setFechaHoraSimulacion(data.fechaHoraSimulacion);
-        const fecha = new Date(data.fechaHoraSimulacion);
-        setDiaSimulacion(fecha.getDate());
-        console.log("Fecha de simulación actualizada:", data.fechaHoraSimulacion, "Día:", fecha.getDate());
+          if (data.fechaHoraSimulacion) {
+      setFechaHoraSimulacion(data.fechaHoraSimulacion);
+      
+      // Establecer fecha de inicio si es la primera vez
+      if (!fechaInicioSimulacion) {
+        setFechaInicioSimulacion(data.fechaHoraSimulacion);
+        console.log("Fecha de inicio de simulación establecida:", data.fechaHoraSimulacion);
       }
+      
+      const fecha = new Date(data.fechaHoraSimulacion);
+      setDiaSimulacion(fecha.getDate());
+      console.log("Fecha de simulación actualizada:", data.fechaHoraSimulacion, "Día:", fecha.getDate());
+    }
 
       const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => ({
         id: gen.camion.codigo,
@@ -564,6 +635,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setEsperandoActualizacion(false);
       setSolicitudAnticipadaEnviada(false);
       setProximaSolucionCargada(null);
+      
+      // Asegurar que el estado de carga esté en false después de aplicar datos
+      setCargando(false);
+      console.log("✅ TRANSICIÓN: Estado de carga cambiado a false después de aplicar solución");
       
     } catch (error) {
       console.error("❌ TRANSICIÓN: Error al aplicar solución precargada:", error);
@@ -656,7 +731,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Log para debuggear los pedidos que se entregan
       if (pedidosEntregadosAhora.length > 0) {
         console.log(
-          `� Camión ${camion.id} llegó a (${coordNuevaUbicacion.x},${coordNuevaUbicacion.y}) - Entregando ${pedidosEntregadosAhora.length} pedidos:`,
+          `🚚 Camión ${camion.id} llegó a (${coordNuevaUbicacion.x},${coordNuevaUbicacion.y}) - Entregando ${pedidosEntregadosAhora.length} pedidos:`,
           pedidosEntregadosAhora,
         );
         console.log(`⛽ GLP antes de entrega: ${nuevoGLP.toFixed(2)}`);
@@ -764,41 +839,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       await reiniciarSimulacion();
       console.log("✅ REINICIO: Paquetes del backend reiniciados exitosamente");
       
-      // Luego reiniciar el estado local
-      const nuevosCamiones: CamionEstado[] = rutasCamiones.map((ruta) => {
-        // Aquí intentamos mantener los datos previos del camión si existen
-        const anterior = camiones.find((c) => c.id === ruta.id);
-        return {
-          id: ruta.id,
-          ubicacion: ruta.ruta[0],
-          porcentaje: 0,
-          estado: anterior?.estado ?? "En Camino",
-          capacidadActualGLP: anterior?.capacidadActualGLP ?? 0,
-          capacidadMaximaGLP: anterior?.capacidadMaximaGLP ?? 0,
-          combustibleActual: anterior?.combustibleActual ?? 0,
-          combustibleMaximo: anterior?.combustibleMaximo ?? 0,
-          distanciaMaxima: anterior?.distanciaMaxima ?? 0,
-          pesoCarga: anterior?.pesoCarga ?? 0,
-          pesoCombinado: anterior?.pesoCombinado ?? 0,
-          tara: anterior?.tara ?? 0,
-          tipo: anterior?.tipo ?? "",
-          velocidadPromedio: anterior?.velocidadPromedio ?? 0,
-        };
-      });
-      setCamiones(nuevosCamiones);
-      setHoraActual(HORA_PRIMERA_ACTUALIZACION);
-      setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
-      setEsperandoActualizacion(false);
-      setSolicitudAnticipadaEnviada(false);
-      setProximaSolucionCargada(null);
-      
-      // Reiniciar el contador de tiempo real
-      setInicioSimulacion(null);
-      setTiempoRealSimulacion("00:00:00");
-      setSimulacionActiva(false);
-      
-      // Detener cualquier polling activo
-      setPollingActivo(false);
+      // Limpiar estado y cargar nuevos datos
+      await limpiarEstadoParaNuevaSimulacion();
       
       console.log("🔄 REINICIO: Reinicio completo finalizado - estado local y backend limpiados");
     } catch (error) {
@@ -839,27 +881,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       await reiniciarSimulacion();
       console.log("✅ NUEVO INICIO: Paquetes del backend reiniciados exitosamente");
       
-      // Limpiar completamente el estado local
-      setCamiones([]);
-      setRutasCamiones([]);
-      setBloqueos([]);
-      setFechaHoraSimulacion(null);
-      setDiaSimulacion(null);
-      setHoraActual(HORA_INICIAL);
-      setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
-      setEsperandoActualizacion(false);
-      setSolicitudAnticipadaEnviada(false);
-      setProximaSolucionCargada(null);
-      
-      // Reiniciar el contador de tiempo real
-      setInicioSimulacion(new Date());
-      setTiempoRealSimulacion("00:00:00");
-      setSimulacionActiva(true);
-      
-      console.log("🔄 NUEVO INICIO: Estado local limpiado, cargando nuevos datos...");
-      
-      // Cargar los nuevos datos iniciales
-      await cargarDatos(true);
+      // Limpiar completamente el estado local y cargar nuevos datos
+      await limpiarEstadoParaNuevaSimulacion();
       
       console.log("🎉 NUEVO INICIO: Simulación reiniciada y nuevos datos cargados exitosamente");
     } catch (error) {
@@ -885,19 +908,21 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
   /**
    * @function limpiarEstadoParaNuevaSimulacion
-   * @description Limpia el estado para una nueva simulación pero no carga datos inmediatamente
+   * @description Limpia el estado para una nueva simulación y carga los primeros datos
    */
-  const limpiarEstadoParaNuevaSimulacion = () => {
+  const limpiarEstadoParaNuevaSimulacion = async () => {
     console.log("🧹 LIMPIEZA: Limpiando estado para nueva simulación...");
     
-    // Limpiar datos de simulación anterior
+    // Limpiar datos de simulación anterior (pero NO los almacenes)
     setCamiones([]);
     setRutasCamiones([]);
     setBloqueos([]);
     setFechaHoraSimulacion(null);
+    setFechaInicioSimulacion(null);
     setDiaSimulacion(null);
+    setTiempoTranscurridoSimulado("00:00:00");
     
-    // Resetear contadores pero no cargar datos
+    // Resetear contadores
     setHoraActual(HORA_INICIAL);
     setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
     setEsperandoActualizacion(false);
@@ -912,7 +937,26 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     // Detener cualquier polling anterior
     setPollingActivo(false);
     
-    console.log("✅ LIMPIEZA: Estado limpio, listo para recibir nuevos paquetes");
+    console.log("✅ LIMPIEZA: Estado limpio, cargando almacenes y datos...");
+    
+    // Asegurar que los almacenes estén cargados SIEMPRE
+    try {
+      if (almacenes.length === 0) {
+        console.log("🏪 LIMPIEZA: Cargando almacenes...");
+        await cargarAlmacenes(false);
+        console.log("✅ LIMPIEZA: Almacenes cargados exitosamente");
+      }
+    } catch (error) {
+      console.log("⚠️ LIMPIEZA: Error al cargar almacenes:", error);
+    }
+    
+    // Mientras esperamos el primer paquete, mostrar estado de carga
+    setCargando(true);
+    console.log("🔄 LIMPIEZA: Configurando estado de carga mientras esperamos primer paquete...");
+    
+    // No intentar cargar datos inmediatamente, solo usar polling para obtener el primer paquete
+    console.log("🔄 LIMPIEZA: Iniciando polling para obtener el primer paquete disponible...");
+    setPollingActivo(true);
   };
 
   return (
@@ -923,8 +967,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         rutasCamiones,
         almacenes,
         fechaHoraSimulacion,
+        fechaInicioSimulacion,
         diaSimulacion,
         tiempoRealSimulacion,
+        tiempoTranscurridoSimulado,
         simulacionActiva,
         horaSimulacion,
         avanzarHora,
@@ -985,4 +1031,45 @@ const adaptarCamionParaCalculos = (camion: CamionEstado): Camion => {
     tipo: camion.tipo,
     velocidadPromedio: camion.velocidadPromedio,
   };
+};
+
+/**
+ * @function formatearTiempoTranscurrido
+ * @description Convierte tiempo en formato HH:MM:SS a formato legible como "transcurrieron X días Y horas Z minutos"
+ * @param {string} tiempoHMS - Tiempo en formato HH:MM:SS
+ * @returns {string} Tiempo formateado de manera legible
+ */
+export const formatearTiempoTranscurrido = (tiempoHMS: string): string => {
+  if (!tiempoHMS || tiempoHMS === "00:00:00") {
+    return "No hay tiempo transcurrido";
+  }
+
+  const partes = tiempoHMS.split(":");
+  const horas = parseInt(partes[0]);
+  const minutos = parseInt(partes[1]);
+  const segundos = parseInt(partes[2]);
+
+  const totalSegundos = horas * 3600 + minutos * 60 + segundos;
+  const dias = Math.floor(totalSegundos / 86400);
+  const horasRestantes = Math.floor((totalSegundos % 86400) / 3600);
+  const minutosRestantes = Math.floor((totalSegundos % 3600) / 60);
+
+  const resultado = "Transcurrieron ";
+  const partes_resultado = [];
+
+  if (dias > 0) {
+    partes_resultado.push(`${dias} día${dias > 1 ? 's' : ''}`);
+  }
+  if (horasRestantes > 0) {
+    partes_resultado.push(`${horasRestantes} hora${horasRestantes > 1 ? 's' : ''}`);
+  }
+  if (minutosRestantes > 0) {
+    partes_resultado.push(`${minutosRestantes} minuto${minutosRestantes > 1 ? 's' : ''}`);
+  }
+
+  if (partes_resultado.length === 0) {
+    return "Transcurrieron menos de un minuto";
+  }
+
+  return resultado + partes_resultado.join(' y ');
 };

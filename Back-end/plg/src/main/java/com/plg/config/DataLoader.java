@@ -11,9 +11,15 @@ import com.plg.utils.ExcepcionesPerzonalizadas.InvalidDataFormatException;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Component
 public class DataLoader {
@@ -75,12 +81,333 @@ public class DataLoader {
     }
 
     public static List<Pedido> initializePedidos() throws InvalidDataFormatException, IOException {
+        // Limpiar la lista de pedidos antes de cargar nuevos
+        PedidoFactory.pedidos.clear();
+        
         List<String> lines = Herramientas.readAllLines(getPathPedidos());
+        List<Pedido> pedidosOriginales = new ArrayList<>();
+        
+        // Primero crear todos los pedidos originales
         for (String line : lines) {
-            PedidoFactory.crearPedido(line);
+            Pedido pedido = PedidoFactory.crearPedido(line);
+            pedido.setFechaLimite(pedido.getFechaRegistro().plusHours((long) pedido.getHorasLimite()));
+            pedidosOriginales.add(pedido);
         }
+        
+        // Ahora procesar cada pedido para dividirlo si es necesario
+        List<Pedido> pedidosFinales = new ArrayList<>();
+        int pedidosDivididos = 0;
+        int totalPedidosOriginales = pedidosOriginales.size();
+        
+        for (Pedido pedidoOriginal : pedidosOriginales) {
+            if (necesitaDivision(pedidoOriginal.getVolumenGLPAsignado())) {
+                // Dividir el pedido
+                List<Pedido> pedidosSubdivididos = dividirPedido(pedidoOriginal);
+                pedidosFinales.addAll(pedidosSubdivididos);
+                pedidosDivididos++;
+                System.out.println("Pedido " + pedidoOriginal.getCodigo() + " dividido en " + 
+                                 pedidosSubdivididos.size() + " partes (volumen original: " + 
+                                 pedidoOriginal.getVolumenGLPAsignado() + " m³)");
+            } else {
+                pedidosFinales.add(pedidoOriginal);
+            }
+        }
+        
+        // Actualizar las listas
+        PedidoFactory.pedidos.clear();
+        PedidoFactory.pedidos.addAll(pedidosFinales);
         pedidos = PedidoFactory.pedidos;
+        
+        // Mostrar estadísticas
+        System.out.println("\n=== ESTADÍSTICAS DE CARGA DE PEDIDOS ===");
+        System.out.println("📊 Pedidos originales leídos: " + totalPedidosOriginales);
+        System.out.println("📊 Pedidos que requirieron división: " + pedidosDivididos);
+        System.out.println("📊 Total de pedidos finales: " + pedidos.size());
+        
+        mostrarEstadisticasCapacidad();
+        
         return pedidos;
+    }
+
+    /**
+     * Verifica si un pedido necesita ser dividido en función de las capacidades de los camiones.
+     */
+    private static boolean necesitaDivision(double volumenGLP) {
+        if (volumenGLP <= 0) {
+            return false;
+        }
+        double capacidadMaxima = obtenerCapacidadMaximaCamion();
+        return volumenGLP > capacidadMaxima;
+    }
+
+    /**
+     * Obtiene la capacidad máxima de GLP de todos los camiones disponibles.
+     */
+    private static double obtenerCapacidadMaximaCamion() {
+        List<Camion> camionesDisponibles = camiones.stream()
+                .filter(camion -> camion.getEstado() != EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
+                .collect(Collectors.toList());
+        
+        if (camionesDisponibles.isEmpty()) {
+            camionesDisponibles = camiones;
+        }
+        
+        return camionesDisponibles.stream()
+                .mapToDouble(Camion::getCapacidadMaximaGLP)
+                .max()
+                .orElse(200.0); // Valor por defecto si no hay camiones
+    }
+
+    /**
+     * Divide un pedido grande en múltiples pedidos más pequeños.
+     */
+    private static List<Pedido> dividirPedido(Pedido pedidoOriginal) {
+        List<Pedido> pedidosDivididos = new ArrayList<>();
+        
+        // Obtener capacidades de todos los camiones disponibles
+        List<Double> capacidadesCamiones = obtenerCapacidadesCamiones();
+        
+        if (capacidadesCamiones.isEmpty()) {
+            // Si no hay camiones, devolver el pedido original
+            return List.of(pedidoOriginal);
+        }
+        
+        // Calcular la división óptima
+        List<Double> volumenePorPedido = calcularDivisionOptima(pedidoOriginal.getVolumenGLPAsignado(), capacidadesCamiones);
+        
+        // Crear pedidos divididos
+        for (int i = 0; i < volumenePorPedido.size(); i++) {
+            double volumenPedido = volumenePorPedido.get(i);
+            
+            // Generar código único para cada pedido dividido
+            String codigoCompleto = pedidoOriginal.getCodigo() + "-DIV" + (i + 1);
+            
+            Pedido pedido = Pedido.builder()
+                    .coordenada(pedidoOriginal.getCoordenada())
+                    .bloqueado(false)
+                    .gScore(0)
+                    .fScore(0)
+                    .tipoNodo(TipoNodo.PEDIDO)
+                    .codigo(codigoCompleto)
+                    .horasLimite(pedidoOriginal.getHorasLimite())
+                    .volumenGLPAsignado(volumenPedido)
+                    .estado(EstadoPedido.REGISTRADO)
+                    .fechaRegistro(pedidoOriginal.getFechaRegistro())
+                    .build();
+            
+            pedidosDivididos.add(pedido);
+        }
+        
+        return pedidosDivididos;
+    }
+
+    /**
+     * Obtiene las capacidades de todos los camiones disponibles.
+     */
+    private static List<Double> obtenerCapacidadesCamiones() {
+        List<Camion> camionesDisponibles = camiones.stream()
+                .filter(camion -> camion.getEstado() != EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
+                .collect(Collectors.toList());
+        
+        if (camionesDisponibles.isEmpty()) {
+            camionesDisponibles = camiones;
+        }
+        
+        return camionesDisponibles.stream()
+                .map(Camion::getCapacidadMaximaGLP)
+                .sorted((a, b) -> Double.compare(b, a)) // Ordenar de mayor a menor
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Calcula la división óptima del volumen total entre los camiones disponibles.
+     * Implementa múltiples estrategias de optimización.
+     */
+    private static List<Double> calcularDivisionOptima(double volumenTotal, List<Double> capacidadesCamiones) {
+        // Evaluar diferentes estrategias y elegir la mejor
+        List<Double> estrategia1 = estrategiaGreedySimple(volumenTotal, capacidadesCamiones);
+        List<Double> estrategia2 = estrategiaBalanceada(volumenTotal, capacidadesCamiones);
+        List<Double> estrategia3 = estrategiaMinimizarCamiones(volumenTotal, capacidadesCamiones);
+        
+        // Evaluar y seleccionar la mejor estrategia
+        AnalisisEstrategia mejor = evaluarEstrategias(volumenTotal, estrategia1, estrategia2, estrategia3);
+        
+        System.out.println("🎯 Estrategia seleccionada: " + mejor.nombre + 
+                          " (Camiones: " + mejor.numCamiones + 
+                          ", Eficiencia: " + String.format("%.1f%%", mejor.eficiencia * 100) + ")");
+        
+        return mejor.division;
+    }
+
+    /**
+     * Estrategia 1: Greedy Simple - Llenar camiones más grandes primero
+     */
+    private static List<Double> estrategiaGreedySimple(double volumenTotal, List<Double> capacidadesCamiones) {
+        List<Double> volumenPorPedido = new ArrayList<>();
+        double volumenRestante = volumenTotal;
+        
+        while (volumenRestante > 0) {
+            int indiceCamion = 0;
+            while (volumenRestante > 0 && indiceCamion < capacidadesCamiones.size()) {
+                double capacidadCamion = capacidadesCamiones.get(indiceCamion);
+                double volumenAsignado = Math.min(volumenRestante, capacidadCamion);
+                
+                volumenPorPedido.add(volumenAsignado);
+                volumenRestante -= volumenAsignado;
+                indiceCamion++;
+            }
+        }
+        
+        return volumenPorPedido;
+    }
+
+    /**
+     * Estrategia 2: Balanceada - Distribuir entre diferentes tipos de camiones
+     */
+    private static List<Double> estrategiaBalanceada(double volumenTotal, List<Double> capacidadesCamiones) {
+        List<Double> volumenPorPedido = new ArrayList<>();
+        double volumenRestante = volumenTotal;
+        
+        // Agrupar capacidades por tipo
+        Map<Double, Integer> tiposCamiones = new HashMap<>();
+        for (Double capacidad : capacidadesCamiones) {
+            tiposCamiones.put(capacidad, tiposCamiones.getOrDefault(capacidad, 0) + 1);
+        }
+        
+        // Distribuir proporcionalmente entre tipos
+        while (volumenRestante > 0) {
+            boolean asignoVolumen = false;
+            
+            for (Map.Entry<Double, Integer> entry : tiposCamiones.entrySet()) {
+                if (volumenRestante <= 0 || entry.getValue() <= 0) continue;
+                
+                double capacidad = entry.getKey();
+                double volumenAsignado = Math.min(volumenRestante, capacidad);
+                
+                volumenPorPedido.add(volumenAsignado);
+                volumenRestante -= volumenAsignado;
+                entry.setValue(entry.getValue() - 1);
+                asignoVolumen = true;
+                
+                if (volumenRestante <= 0) break;
+            }
+            
+            if (!asignoVolumen) break; // No hay más camiones disponibles
+        }
+        
+        return volumenPorPedido;
+    }
+
+    /**
+     * Estrategia 3: Minimizar Camiones - Usar el menor número posible de camiones
+     */
+    private static List<Double> estrategiaMinimizarCamiones(double volumenTotal, List<Double> capacidadesCamiones) {
+        List<Double> volumenPorPedido = new ArrayList<>();
+        double volumenRestante = volumenTotal;
+        
+        // Ordenar capacidades de mayor a menor
+        List<Double> capacidadesOrdenadas = new ArrayList<>(capacidadesCamiones);
+        capacidadesOrdenadas.sort((a, b) -> Double.compare(b, a));
+        
+        for (Double capacidad : capacidadesOrdenadas) {
+            while (volumenRestante > 0 && volumenRestante >= capacidad * 0.1) { // Usar si al menos 10% de la capacidad
+                double volumenAsignado = Math.min(volumenRestante, capacidad);
+                volumenPorPedido.add(volumenAsignado);
+                volumenRestante -= volumenAsignado;
+            }
+            if (volumenRestante <= 0) break;
+        }
+        
+        return volumenPorPedido;
+    }
+
+    /**
+     * Evalúa las diferentes estrategias y selecciona la mejor
+     */
+    private static AnalisisEstrategia evaluarEstrategias(double volumenTotal, 
+                                                       List<Double> estrategia1, 
+                                                       List<Double> estrategia2, 
+                                                       List<Double> estrategia3) {
+        
+        AnalisisEstrategia analisis1 = new AnalisisEstrategia("Greedy Simple", estrategia1, volumenTotal);
+        AnalisisEstrategia analisis2 = new AnalisisEstrategia("Balanceada", estrategia2, volumenTotal);
+        AnalisisEstrategia analisis3 = new AnalisisEstrategia("Minimizar Camiones", estrategia3, volumenTotal);
+        
+        // Priorizar: 1) Eficiencia, 2) Menor número de camiones
+        List<AnalisisEstrategia> estrategias = Arrays.asList(analisis1, analisis2, analisis3);
+        
+        return estrategias.stream()
+                .filter(e -> e.esValida)
+                .max(Comparator.comparing((AnalisisEstrategia e) -> e.eficiencia)
+                              .thenComparing((AnalisisEstrategia e) -> -e.numCamiones))
+                .orElse(analisis1); // Fallback a estrategia 1
+    }
+
+    /**
+     * Clase para analizar el rendimiento de cada estrategia
+     */
+    private static class AnalisisEstrategia {
+        String nombre;
+        List<Double> division;
+        int numCamiones;
+        double eficiencia;
+        boolean esValida;
+        
+        AnalisisEstrategia(String nombre, List<Double> division, double volumenTotal) {
+            this.nombre = nombre;
+            this.division = division;
+            this.numCamiones = division.size();
+            
+            double volumenAsignado = division.stream().mapToDouble(Double::doubleValue).sum();
+            this.eficiencia = volumenAsignado / volumenTotal;
+            this.esValida = Math.abs(volumenAsignado - volumenTotal) < 0.001;
+        }
+    }
+
+    /**
+     * Muestra estadísticas de capacidad de camiones y demanda de pedidos.
+     */
+    private static void mostrarEstadisticasCapacidad() {
+        // Capacidad total disponible
+        double capacidadTotalDisponible = camiones.stream()
+                .filter(camion -> camion.getEstado() != EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
+                .mapToDouble(Camion::getCapacidadMaximaGLP)
+                .sum();
+        
+        // Capacidad total de todos los camiones (incluyendo los en mantenimiento)
+        double capacidadTotalSistema = camiones.stream()
+                .mapToDouble(Camion::getCapacidadMaximaGLP)
+                .sum();
+        
+        // Suma total de GLP de todos los pedidos
+        double demandaTotalGLP = pedidos.stream()
+                .mapToDouble(Pedido::getVolumenGLPAsignado)
+                .sum();
+        
+        // Cantidad de camiones por estado
+        long camionesDisponibles = camiones.stream()
+                .filter(camion -> camion.getEstado() != EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
+                .count();
+        
+        long camionesEnMantenimiento = camiones.stream()
+                .filter(camion -> camion.getEstado() == EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
+                .count();
+        
+        System.out.println("\n=== ESTADÍSTICAS DE CAPACIDAD Y DEMANDA ===");
+        System.out.println("🚛 Total de camiones: " + camiones.size());
+        System.out.println("✅ Camiones disponibles: " + camionesDisponibles);
+        System.out.println("🔧 Camiones en mantenimiento: " + camionesEnMantenimiento);
+        System.out.println("📦 Capacidad total disponible: " + String.format("%.2f", capacidadTotalDisponible) + " m³");
+        System.out.println("📦 Capacidad total del sistema: " + String.format("%.2f", capacidadTotalSistema) + " m³");
+        System.out.println("📊 Demanda total de GLP: " + String.format("%.2f", demandaTotalGLP) + " m³");
+        System.out.println("📈 Ratio demanda/capacidad disponible: " + String.format("%.2f", demandaTotalGLP / capacidadTotalDisponible));
+        System.out.println("📈 Ratio demanda/capacidad total: " + String.format("%.2f", demandaTotalGLP / capacidadTotalSistema));
+        
+        if (demandaTotalGLP > capacidadTotalDisponible) {
+            System.out.println("⚠️  ADVERTENCIA: La demanda supera la capacidad disponible!");
+        } else {
+            System.out.println("✅ La capacidad disponible es suficiente para cubrir la demanda");
+        }
     }
 
     /**

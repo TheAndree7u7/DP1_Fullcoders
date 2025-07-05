@@ -27,7 +27,7 @@ const BottomMenu: React.FC<BottomMenuProps> = ({ expanded, setExpanded, camionSe
   const { rutasCamiones, camiones } = useSimulacion();
   const [camionSeleccionado, setCamionSeleccionado] = useState<string | null>(null);
   const [seguimientoAutomatico, setSeguimientoAutomatico] = useState<boolean>(false);
-  const [scrollAutomatico, setScrollAutomatico] = useState<boolean>(false);
+  // const [scrollAutomatico, setScrollAutomatico] = useState<boolean>(false);
   const timelineRef = React.useRef<HTMLDivElement>(null);
 
   // Efecto para manejar la selección externa de camión
@@ -159,10 +159,10 @@ const BottomMenu: React.FC<BottomMenuProps> = ({ expanded, setExpanded, camionSe
     if (seguimientoAutomatico && camionSeleccionado && rutaProcesada.length > 0) {
       console.log('🎯 SEGUIMIENTO: Activando scroll automático para camión', camionSeleccionado);
       const timer = setTimeout(() => {
-        setScrollAutomatico(true);
+        // setScrollAutomatico(true);
         scrollToCurrentNodeInternal();
         // Resetear la bandera después de un breve delay
-        setTimeout(() => setScrollAutomatico(false), 200);
+        // setTimeout(() => setScrollAutomatico(false), 200);
       }, 100);
       
       return () => clearTimeout(timer);
