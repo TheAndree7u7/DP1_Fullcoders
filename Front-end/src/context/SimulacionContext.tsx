@@ -97,8 +97,10 @@ interface SimulacionContextType {
   rutasCamiones: RutaCamion[];
   almacenes: Almacen[];
   fechaHoraSimulacion: string | null; // Fecha y hora de la simulación del backend
+  fechaInicioSimulacion: string | null; // Fecha y hora de inicio de la simulación
   diaSimulacion: number | null; // Día extraído de fechaHoraSimulacion
   tiempoRealSimulacion: string; // Tiempo real transcurrido desde el inicio de la simulación
+  tiempoTranscurridoSimulado: string; // Tiempo transcurrido dentro de la simulación
   simulacionActiva: boolean; // Indica si la simulación está activa (contador funcionando)
   horaSimulacion: string; // Hora actual dentro de la simulación (HH:MM:SS)
   avanzarHora: () => void;
@@ -165,8 +167,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [fechaHoraSimulacion, setFechaHoraSimulacion] = useState<string | null>(
     null,
   );
+  const [fechaInicioSimulacion, setFechaInicioSimulacion] = useState<string | null>(null);
   const [diaSimulacion, setDiaSimulacion] = useState<number | null>(null);
   const [tiempoRealSimulacion, setTiempoRealSimulacion] = useState<string>("00:00:00");
+  const [tiempoTranscurridoSimulado, setTiempoTranscurridoSimulado] = useState<string>("00:00:00");
   const [inicioSimulacion, setInicioSimulacion] = useState<Date | null>(null);
   const [simulacionActiva, setSimulacionActiva] = useState<boolean>(false);
   const [horaSimulacion, setHoraSimulacion] = useState<string>("00:00:00");
@@ -275,6 +279,36 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setHoraSimulacion(horaFormateada);
     }
   }, [horaActual, fechaHoraSimulacion]);
+
+  // Calcular tiempo transcurrido simulado
+  useEffect(() => {
+    if (fechaHoraSimulacion && fechaInicioSimulacion) {
+      const fechaActual = new Date(fechaHoraSimulacion);
+      const fechaInicio = new Date(fechaInicioSimulacion);
+      
+      // Calcular diferencia en milisegundos
+      const diferenciaMilisegundos = fechaActual.getTime() - fechaInicio.getTime();
+      
+      // Convertir a segundos
+      const totalSegundos = Math.floor(diferenciaMilisegundos / 1000);
+      
+      // Calcular días, horas, minutos y segundos
+      const dias = Math.floor(totalSegundos / 86400);
+      const horas = Math.floor((totalSegundos % 86400) / 3600);
+      const minutos = Math.floor((totalSegundos % 3600) / 60);
+      const segundos = totalSegundos % 60;
+      
+      // Formatear como HH:MM:SS para compatibilidad con la función existente
+      const horasFormateadas = (dias * 24 + horas).toString().padStart(2, '0');
+      const minutosFormateados = minutos.toString().padStart(2, '0');
+      const segundosFormateados = segundos.toString().padStart(2, '0');
+      
+      const tiempoFormateado = `${horasFormateadas}:${minutosFormateados}:${segundosFormateados}`;
+      setTiempoTranscurridoSimulado(tiempoFormateado);
+    } else {
+      setTiempoTranscurridoSimulado("00:00:00");
+    }
+  }, [fechaHoraSimulacion, fechaInicioSimulacion]);
 
   // Polling automático para obtener el primer paquete después de iniciar la simulación
   useEffect(() => {
@@ -394,6 +428,13 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Actualizar fecha y hora de la simulación
       if (data.fechaHoraSimulacion) {
         setFechaHoraSimulacion(data.fechaHoraSimulacion);
+        
+        // Establecer fecha de inicio si es la primera vez
+        if (!fechaInicioSimulacion) {
+          setFechaInicioSimulacion(data.fechaHoraSimulacion);
+          console.log("Fecha de inicio de simulación establecida:", data.fechaHoraSimulacion);
+        }
+        
         // Extraer el día de la fecha
         const fecha = new Date(data.fechaHoraSimulacion);
         setDiaSimulacion(fecha.getDate());
@@ -529,12 +570,19 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("⚡ TRANSICIÓN: Aplicando solución precargada...");
       
       // Actualizar fecha y hora de la simulación
-      if (data.fechaHoraSimulacion) {
-        setFechaHoraSimulacion(data.fechaHoraSimulacion);
-        const fecha = new Date(data.fechaHoraSimulacion);
-        setDiaSimulacion(fecha.getDate());
-        console.log("Fecha de simulación actualizada:", data.fechaHoraSimulacion, "Día:", fecha.getDate());
+          if (data.fechaHoraSimulacion) {
+      setFechaHoraSimulacion(data.fechaHoraSimulacion);
+      
+      // Establecer fecha de inicio si es la primera vez
+      if (!fechaInicioSimulacion) {
+        setFechaInicioSimulacion(data.fechaHoraSimulacion);
+        console.log("Fecha de inicio de simulación establecida:", data.fechaHoraSimulacion);
       }
+      
+      const fecha = new Date(data.fechaHoraSimulacion);
+      setDiaSimulacion(fecha.getDate());
+      console.log("Fecha de simulación actualizada:", data.fechaHoraSimulacion, "Día:", fecha.getDate());
+    }
 
       const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => ({
         id: gen.camion.codigo,
@@ -870,7 +918,9 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     setRutasCamiones([]);
     setBloqueos([]);
     setFechaHoraSimulacion(null);
+    setFechaInicioSimulacion(null);
     setDiaSimulacion(null);
+    setTiempoTranscurridoSimulado("00:00:00");
     
     // Resetear contadores
     setHoraActual(HORA_INICIAL);
@@ -917,8 +967,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         rutasCamiones,
         almacenes,
         fechaHoraSimulacion,
+        fechaInicioSimulacion,
         diaSimulacion,
         tiempoRealSimulacion,
+        tiempoTranscurridoSimulado,
         simulacionActiva,
         horaSimulacion,
         avanzarHora,
@@ -979,4 +1031,45 @@ const adaptarCamionParaCalculos = (camion: CamionEstado): Camion => {
     tipo: camion.tipo,
     velocidadPromedio: camion.velocidadPromedio,
   };
+};
+
+/**
+ * @function formatearTiempoTranscurrido
+ * @description Convierte tiempo en formato HH:MM:SS a formato legible como "transcurrieron X días Y horas Z minutos"
+ * @param {string} tiempoHMS - Tiempo en formato HH:MM:SS
+ * @returns {string} Tiempo formateado de manera legible
+ */
+export const formatearTiempoTranscurrido = (tiempoHMS: string): string => {
+  if (!tiempoHMS || tiempoHMS === "00:00:00") {
+    return "No hay tiempo transcurrido";
+  }
+
+  const partes = tiempoHMS.split(":");
+  const horas = parseInt(partes[0]);
+  const minutos = parseInt(partes[1]);
+  const segundos = parseInt(partes[2]);
+
+  const totalSegundos = horas * 3600 + minutos * 60 + segundos;
+  const dias = Math.floor(totalSegundos / 86400);
+  const horasRestantes = Math.floor((totalSegundos % 86400) / 3600);
+  const minutosRestantes = Math.floor((totalSegundos % 3600) / 60);
+
+  const resultado = "Transcurrieron ";
+  const partes_resultado = [];
+
+  if (dias > 0) {
+    partes_resultado.push(`${dias} día${dias > 1 ? 's' : ''}`);
+  }
+  if (horasRestantes > 0) {
+    partes_resultado.push(`${horasRestantes} hora${horasRestantes > 1 ? 's' : ''}`);
+  }
+  if (minutosRestantes > 0) {
+    partes_resultado.push(`${minutosRestantes} minuto${minutosRestantes > 1 ? 's' : ''}`);
+  }
+
+  if (partes_resultado.length === 0) {
+    return "Transcurrieron menos de un minuto";
+  }
+
+  return resultado + partes_resultado.join(' y ');
 };

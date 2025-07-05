@@ -5,7 +5,7 @@ import BloqueosTable from "../components/BloqueosTable";
 import RightMenu from "../components/RightMenu";
 import BottomMenu from "../components/BottomMenu";
 import { ChevronLeft, ChevronUp } from "lucide-react";
-import { useSimulacion } from "../context/SimulacionContext";
+import { useSimulacion, formatearTiempoTranscurrido } from "../context/SimulacionContext";
 import ControlSimulacion from "../components/ControlSimulacion";
 
 // Constante que define cuánto tiempo (en segundos) representa cada nodo en la simulación
@@ -14,7 +14,7 @@ const SEGUNDOS_POR_NODO = 36;
 const SimulacionSemanal: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
   const [bottomMenuExpandido, setBottomMenuExpandido] = useState(false);
-  const { diaSimulacion, fechaHoraSimulacion, horaActual } = useSimulacion();
+  const { fechaHoraSimulacion, horaActual, tiempoTranscurridoSimulado } = useSimulacion();
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
   // Estado para alternar paneles
   const [panel, setPanel] = useState<'camiones' | 'bloqueos'>('camiones');
@@ -125,7 +125,7 @@ const SimulacionSemanal: React.FC = () => {
     <div className="bg-[#F5F5F5] w-screen h-screen flex flex-col pt-16">
       <Navbar />
       <div className="bg-[#1E293B] text-white py-2 px-4 flex justify-between items-center">
-        <h1 className="font-bold">Ejecución Semanal {diaSimulacion && `- Día ${diaSimulacion}`}</h1>
+        <h1 className="font-bold">Ejecución Semanal - {formatearTiempoTranscurrido(tiempoTranscurridoSimulado)}</h1>
         {tiempoSimulado && (
           <div className="text-sm flex items-center gap-4">
             <div>
