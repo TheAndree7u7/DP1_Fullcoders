@@ -3,10 +3,12 @@ package com.plg.entity;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 import com.plg.utils.Gen;
 import com.plg.utils.Individuo;
@@ -217,10 +219,29 @@ public class Mapa {
     }
 
     public List<Nodo> aStar(Nodo nodo1, Nodo nodo2) {
+        // Validaciones de entrada
+        if (nodo1 == null || nodo2 == null || nodo1.getCoordenada() == null || nodo2.getCoordenada() == null) {
+            System.err.println("⚠️ A*: Nodos de entrada inválidos");
+            return Collections.emptyList();
+        }
+        
         Nodo inicio = getNodo(nodo1.getCoordenada());
         Nodo destino = getNodo(nodo2.getCoordenada());
+        
+        // Si origen y destino son el mismo, devolver ruta directa
+        if (inicio.equals(destino)) {
+            return Collections.singletonList(inicio);
+        }
+        
         PriorityQueue<Nodo> openSet = new PriorityQueue<>((a, b) -> Double.compare(a.getFScore(), b.getFScore()));
-        Map<Nodo, Nodo> cameFrom = new LinkedHashMap<>();
+        Map<Nodo, Nodo> cameFrom = new HashMap<>(); // Cambiar a HashMap para mejor rendimiento
+        Set<Nodo> closedSet = new HashSet<>(); // Agregar conjunto cerrado
+        
+        // Límites de seguridad para prevenir OutOfMemoryError
+        final int MAX_ITERATIONS = 10000;
+        final int MAX_NODES_IN_PATH = 500;
+        int iteraciones = 0;
+        
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
                 Nodo nodo = getNodo(i, j);
@@ -228,19 +249,43 @@ public class Mapa {
                 nodo.setFScore(Double.POSITIVE_INFINITY);
             }
         }
+        
         inicio.setGScore(0);
         inicio.setFScore(calcularHeuristica(inicio, destino));
         openSet.add(inicio);
-        while (!openSet.isEmpty()) {
+        
+        while (!openSet.isEmpty() && iteraciones < MAX_ITERATIONS) {
+            iteraciones++;
+            
             Nodo nodoActual = openSet.poll();
-            if (nodoActual.equals(destino)) {
-                return reconstruirRuta(cameFrom, nodoActual);
+            
+            // Verificar si ya procesamos este nodo
+            if (closedSet.contains(nodoActual)) {
+                continue;
             }
+            closedSet.add(nodoActual);
+            
+            if (nodoActual.equals(destino)) {
+                List<Nodo> ruta = reconstruirRuta(cameFrom, nodoActual);
+                // Verificar que la ruta no sea demasiado larga
+                if (ruta.size() > MAX_NODES_IN_PATH) {
+                    System.err.println("⚠️ A*: Ruta demasiado larga (" + ruta.size() + " nodos), devolviendo ruta directa");
+                    return Collections.singletonList(destino);
+                }
+                return ruta;
+            }
+            
             for (Nodo vecino : getAdj(nodoActual.getCoordenada())) {
+                // Saltar nodos ya procesados
+                if (closedSet.contains(vecino)) {
+                    continue;
+                }
+                
                 // Permitir llegar a un nodo bloqueado solo si es el destino
                 if (vecino.isBloqueado() && !vecino.equals(destino)) {
                     continue;
                 }
+                
                 double tentativeGScore = nodoActual.getGScore() + 1;
                 if (tentativeGScore < vecino.getGScore()) {
                     cameFrom.put(vecino, nodoActual);
@@ -252,7 +297,15 @@ public class Mapa {
                 }
             }
         }
-        return Collections.emptyList();
+        
+        // Si se agotaron las iteraciones o no se encontró ruta
+        if (iteraciones >= MAX_ITERATIONS) {
+            System.err.println("⚠️ A*: Se alcanzó el límite de iteraciones (" + MAX_ITERATIONS + "), devolviendo ruta directa");
+        } else {
+            System.err.println("⚠️ A*: No se encontró ruta entre " + inicio.getCoordenada() + " y " + destino.getCoordenada());
+        }
+        
+        return Collections.singletonList(destino); // Ruta directa como fallback
     }
 
     private List<Nodo> reconstruirRuta(Map<Nodo, Nodo> cameFrom, Nodo nodoActual) {

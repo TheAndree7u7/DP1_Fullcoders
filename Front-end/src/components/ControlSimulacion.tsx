@@ -51,15 +51,17 @@ const ControlSimulacion: React.FC = () => {
     }
 
     setCargando(true);
-    setMensaje('');
+    setMensaje('Iniciando simulación...');
+    setTipoMensaje('info');
 
     try {
       const fechaHoraISO = `${fechaInicio}T${horaInicio}:00`;
       
       // Primero iniciar la simulación en el backend
-      const respuesta = await iniciarSimulacion(fechaHoraISO);
+      setMensaje('Configurando simulación en el backend...');
+      await iniciarSimulacion(fechaHoraISO);
       
-      setMensaje(respuesta);
+      setMensaje('Simulación iniciada exitosamente. Cargando datos...');
       setTipoMensaje('success');
       
       console.log("🚀 FRONTEND: Simulación iniciada en backend, limpiando estado...");
@@ -67,6 +69,8 @@ const ControlSimulacion: React.FC = () => {
       // Limpiar el estado y cargar nuevos datos
       await limpiarEstadoParaNuevaSimulacion();
       console.log("🧹 FRONTEND: Estado limpiado y datos cargados para nueva simulación");
+      
+      setMensaje('Iniciando visualización automática...');
       
       // Iniciar el polling para obtener el primer paquete automáticamente
       iniciarPollingPrimerPaquete();
@@ -78,13 +82,25 @@ const ControlSimulacion: React.FC = () => {
           const info = await obtenerInfoSimulacion();
           setInfoSimulacion(info);
           console.log("📊 FRONTEND: Info de simulación actualizada:", info);
+          
+          if (info.enProceso) {
+            setMensaje('Simulación en progreso - Los datos se actualizan automáticamente');
+            setTipoMensaje('success');
+          } else {
+            setMensaje('Simulación completada o detenida');
+            setTipoMensaje('info');
+          }
         } catch (error) {
           console.error('Error al actualizar info:', error);
+          setMensaje('Simulación iniciada pero no se pudo obtener el estado');
+          setTipoMensaje('error');
         }
       }, 3000); // Esperamos 3 segundos para que el backend empiece a generar paquetes
       
     } catch (error) {
-      setMensaje(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      console.error('Error al iniciar simulación:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      setMensaje(`Error al iniciar simulación: ${errorMessage}`);
       setTipoMensaje('error');
     } finally {
       setCargando(false);
@@ -176,6 +192,22 @@ const ControlSimulacion: React.FC = () => {
               <span className="ml-2 font-medium">{infoSimulacion.paqueteActual}</span>
             </div>
           </div>
+          
+          {/* Barra de progreso */}
+          {infoSimulacion.totalPaquetes > 0 && (
+            <div className="mt-3">
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>Progreso</span>
+                <span>{Math.round((infoSimulacion.paqueteActual / infoSimulacion.totalPaquetes) * 100)}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(infoSimulacion.paqueteActual / infoSimulacion.totalPaquetes) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

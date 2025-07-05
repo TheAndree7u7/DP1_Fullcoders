@@ -22,6 +22,32 @@ import java.time.LocalDateTime;
 
 public class SimulacionController {
 
+    // Referencia al hilo actual de simulación para poder detenerlo
+    private static Thread hiloSimulacionActual = null;
+
+    /**
+     * Detiene la simulación actual si está en progreso
+     */
+    private static void detenerSimulacionActual() {
+        if (hiloSimulacionActual != null && hiloSimulacionActual.isAlive()) {
+            System.out.println("🛑 Deteniendo simulación anterior...");
+            hiloSimulacionActual.interrupt();
+            try {
+                // Esperar un poco para que el hilo termine
+                hiloSimulacionActual.join(2000); // Esperar máximo 2 segundos
+                if (hiloSimulacionActual.isAlive()) {
+                    System.out.println("⚠️ El hilo de simulación no terminó completamente");
+                } else {
+                    System.out.println("✅ Simulación anterior detenida correctamente");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                System.out.println("❌ Error al esperar que termine la simulación anterior");
+            }
+        }
+        hiloSimulacionActual = null;
+    }
+
     @GetMapping("/mejor")
     public IndividuoDto obtenerMejorIndividuo() {
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/mejor");
@@ -52,12 +78,53 @@ public class SimulacionController {
     }
     
     @GetMapping("/reiniciar")
-    public String reiniciarSimulacion() {
+    public ResponseEntity<String> reiniciarSimulacion() {
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/reiniciar");
-        // Limpiar completamente el historial, no solo reiniciar la reproducción
-        com.plg.utils.simulacion.GestorHistorialSimulacion.limpiarHistorialCompleto();
-        System.out.println("✅ ENDPOINT RESPUESTA: Simulación reiniciada y historial limpiado");
-        return "Simulación reiniciada desde el inicio - historial limpiado";
+        
+        try {
+            // Detener la simulación anterior si existe
+            detenerSimulacionActual();
+            
+            // Limpiar completamente el historial para generar nueva simulación
+            com.plg.utils.simulacion.GestorHistorialSimulacion.limpiarHistorialCompleto();
+            System.out.println("🧹 Historial limpiado completamente");
+            
+            // Usar la fecha actual para reiniciar la simulación
+            LocalDateTime fechaActual = LocalDateTime.now();
+            System.out.println("🔧 Reiniciando simulación con fecha: " + fechaActual);
+            
+            // Configurar nueva simulación
+            Simulacion.configurarSimulacion(fechaActual);
+            
+            // Ejecutar la nueva simulación en un hilo separado
+            Thread nuevoHiloSimulacion = new Thread(() -> {
+                try {
+                    System.out.println("🚀 Iniciando nueva simulación después de reiniciar...");
+                    Simulacion.ejecutarSimulacion();
+                    System.out.println("✅ Nueva simulación completada exitosamente");
+                } catch (Exception e) {
+                    System.err.println("💥 Error durante la ejecución de la nueva simulación:");
+                    System.err.println("   • Mensaje: " + e.getMessage());
+                    System.err.println("   • Tipo: " + e.getClass().getSimpleName());
+                    e.printStackTrace();
+                }
+            });
+            
+            nuevoHiloSimulacion.setName("SimulacionThread-Reinicio-" + fechaActual);
+            nuevoHiloSimulacion.start();
+            hiloSimulacionActual = nuevoHiloSimulacion;
+            
+            String mensaje = "Simulación reiniciada y nueva simulación generándose con fecha: " + fechaActual;
+            System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
+            
+            return ResponseEntity.ok(mensaje);
+            
+        } catch (Exception e) {
+            String errorMsg = "Error al reiniciar simulación: " + e.getMessage();
+            System.err.println("❌ " + errorMsg);
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMsg);
+        }
     }
     
     @GetMapping("/info")
@@ -82,11 +149,24 @@ public class SimulacionController {
                 return ResponseEntity.badRequest().body("Error: La fecha de inicio no puede ser nula");
             }
             
-            // Verificar si ya hay una simulación en proceso
-            if (Simulacion.obtenerInfoSimulacion().enProceso) {
-                System.out.println("⚠️ Ya hay una simulación en proceso");
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Error: Ya hay una simulación en proceso. Debe esperar a que termine o reiniciarla.");
+            // Detener cualquier simulación anterior
+            detenerSimulacionActual();
+            System.out.println("🛑 Simulación anterior detenida (si existía)");
+            
+            // Verificar estado del sistema antes de iniciar
+            System.out.println("🔍 DIAGNÓSTICO DEL SISTEMA:");
+            System.out.println("   • Almacenes disponibles: " + com.plg.config.DataLoader.almacenes.size());
+            System.out.println("   • Camiones disponibles: " + com.plg.config.DataLoader.camiones.size());
+            System.out.println("   • Mapa inicializado: " + (com.plg.entity.Mapa.getInstance() != null));
+            
+            // Verificar camiones disponibles (no en mantenimiento)
+            long camionesDisponibles = com.plg.config.DataLoader.camiones.stream()
+                .filter(camion -> camion.getEstado() != com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
+                .count();
+            System.out.println("   • Camiones no en mantenimiento: " + camionesDisponibles);
+            
+            if (camionesDisponibles == 0) {
+                System.out.println("⚠️ ADVERTENCIA: Todos los camiones están en mantenimiento");
             }
             
             System.out.println("🔧 Configurando simulación con fecha: " + request.getFechaInicio());
@@ -104,13 +184,17 @@ public class SimulacionController {
                     Simulacion.ejecutarSimulacion();
                     System.out.println("✅ Simulación completada exitosamente");
                 } catch (Exception e) {
-                    System.err.println("💥 Error durante la ejecución de la simulación: " + e.getMessage());
+                    System.err.println("💥 Error durante la ejecución de la simulación:");
+                    System.err.println("   • Mensaje: " + e.getMessage());
+                    System.err.println("   • Tipo: " + e.getClass().getSimpleName());
+                    System.err.println("   • Stack trace completo:");
                     e.printStackTrace();
                 }
             });
             
             simulacionThread.setName("SimulacionThread-" + request.getFechaInicio());
             simulacionThread.start();
+            hiloSimulacionActual = simulacionThread;
             
             String mensaje = "Simulación iniciada correctamente con fecha: " + request.getFechaInicio();
             System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);

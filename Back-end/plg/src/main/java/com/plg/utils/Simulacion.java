@@ -85,7 +85,14 @@ public class Simulacion {
             System.out.println("📦 Pedidos semanales iniciales: " + pedidosSemanal.size());
             
             while (!pedidosSemanal.isEmpty() && (fechaActual.isBefore(fechaLimite) || fechaActual.isEqual(fechaLimite))) {
-            Pedido pedido = pedidosSemanal.get(0);
+                // Verificar si el hilo ha sido interrumpido
+                if (Thread.currentThread().isInterrupted()) {
+                    System.out.println("🛑 Simulación interrumpida por solicitud externa");
+                    GestorHistorialSimulacion.setEnProceso(false);
+                    return;
+                }
+                
+                Pedido pedido = pedidosSemanal.get(0);
             // Voy agregando pedidos a la lista de pedidos
             if (UtilesSimulacion.pedidoConFechaMenorAFechaActual(pedido, fechaActual)) {
                 pedidosSemanal.remove(0);
@@ -116,7 +123,18 @@ public class Simulacion {
                         } catch (Exception e) {
                             System.err.println("❌ Error en algoritmo genético en tiempo " + fechaActual + ": " + e.getMessage());
                             e.printStackTrace();
-                            // Continuar con la simulación en lugar de terminar
+                            
+                            // Crear un paquete de emergencia en lugar de no generar nada
+                            try {
+                                System.out.println("🚑 Creando paquete de emergencia para tiempo " + fechaActual);
+                                Individuo individuoEmergencia = IndividuoFactory.crearIndividuoVacio();
+                                IndividuoDto paqueteEmergencia = new IndividuoDto(individuoEmergencia,
+                                        pedidosEnviar, bloqueosActivos, fechaActual);
+                                GestorHistorialSimulacion.agregarPaquete(paqueteEmergencia);
+                            } catch (Exception e2) {
+                                System.err.println("❌ Error al crear paquete de emergencia: " + e2.getMessage());
+                                e2.printStackTrace();
+                            }
                         }
                     } else {
                         // Modo web interactivo: esperar semáforos

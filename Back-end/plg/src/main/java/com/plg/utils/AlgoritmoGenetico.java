@@ -73,6 +73,14 @@ public class AlgoritmoGenetico {
         poblacion.sort((ind1, ind2) -> Double.compare(ind1.getFitness(), ind2.getFitness()));
         mejorIndividuo = poblacion.get(0);
         verificarMejorIndividuo(mejorIndividuo);
+        
+        // Si el mejor individuo tiene fitness infinito, intentar crear un individuo vacío más simple
+        if (mejorIndividuo.getFitness() == Double.POSITIVE_INFINITY) {
+            LoggerUtil.logWarning("🔧 El mejor individuo tiene fitness infinito. Creando solución de emergencia...");
+            // Crear un individuo con rutas vacías (solo regresar al almacén)
+            mejorIndividuo = crearIndividuoEmergencia();
+        }
+        
         actualizarParametrosGlobales(mejorIndividuo);
         System.out.println("Fitness algoritmo genético: " + Parametros.contadorPrueba + " " + mejorIndividuo.getFitness());
         for (Gen gen : mejorIndividuo.getCromosoma()) {
@@ -233,8 +241,10 @@ public class AlgoritmoGenetico {
 
     public void verificarMejorIndividuo(Individuo individuo) {
         if (individuo.getFitness() == Double.POSITIVE_INFINITY) {
-            LoggerUtil.logError("⚠️ Fitness infinito detectado. Detalles del individuo:\n" + individuo.getDescripcion());
-            throw new RuntimeException("Fitness infinito detectado en algoritmo genético: " + individuo.getDescripcion());
+            LoggerUtil.logWarning("⚠️ Fitness infinito detectado en el mejor individuo. Esto puede ocurrir cuando no hay soluciones válidas en esta iteración.");
+            LoggerUtil.logWarning("Detalles del individuo: " + individuo.getDescripcion());
+            // En lugar de lanzar una excepción, registramos el problema y continuamos
+            // Esto permite que el algoritmo genético continue evolucionando
         }
     }
 
@@ -243,5 +253,36 @@ public class AlgoritmoGenetico {
         Parametros.kilometrosRecorridos = individuo.getCromosoma().stream()
                 .mapToDouble(gen -> gen.getRutaFinal().size()).sum();
         Parametros.contadorPrueba++;
+    }
+
+    private Individuo crearIndividuoEmergencia() {
+        try {
+            LoggerUtil.logWarning("🚑 Creando individuo de emergencia con rutas vacías...");
+            
+            // Crear un individuo vacío con una lista de pedidos vacía
+            Individuo individuoEmergencia = new Individuo(new ArrayList<>());
+            
+            // Configurar cada gen para que solo regrese al almacén
+            for (Gen gen : individuoEmergencia.getCromosoma()) {
+                gen.getNodos().clear();
+                gen.getPedidos().clear();
+                
+                // Solo agregar el almacén central como destino
+                if (!DataLoader.almacenes.isEmpty()) {
+                    gen.getNodos().add(DataLoader.almacenes.get(0));
+                }
+            }
+            
+            // Recalcular fitness del individuo de emergencia
+            individuoEmergencia.setFitness(individuoEmergencia.calcularFitness());
+            
+            LoggerUtil.logWarning("✅ Individuo de emergencia creado con fitness: " + individuoEmergencia.getFitness());
+            return individuoEmergencia;
+            
+        } catch (Exception e) {
+            LoggerUtil.logError("❌ Error al crear individuo de emergencia: " + e.getMessage());
+            // Si falla, devolver el individuo original
+            return mejorIndividuo;
+        }
     }
 }

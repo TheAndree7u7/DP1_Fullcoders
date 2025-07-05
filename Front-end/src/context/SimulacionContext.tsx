@@ -28,7 +28,7 @@ import {
  * Constantes de configuración de la simulación
  */
 const HORA_INICIAL = 0;
-const HORA_PRIMERA_ACTUALIZACION = 1;
+const HORA_PRIMERA_ACTUALIZACION = 0; // Cambié de 1 a 0 para empezar desde el primer paquete
 const NODOS_PARA_ACTUALIZACION = 100;
 //aca 100 nodos significan 2h de tiempo entonces cada nodo
 // representa 1.2 minutos de tiempo real, lo que es un valor razonable para simular el avance
@@ -172,42 +172,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [horaSimulacion, setHoraSimulacion] = useState<string>("00:00:00");
   const [pollingActivo, setPollingActivo] = useState<boolean>(false);
 
-  // Efecto de polling activo para obtener datos
-  useEffect(() => {
-    let intervalId: number;
-
-    if (pollingActivo) {
-      console.log("🔄 POLLING: Iniciando polling activo para obtener datos...");
-      
-      intervalId = setInterval(async () => {
-        try {
-          // Asegurar que los almacenes estén cargados antes del primer paquete
-          if (almacenes.length === 0) {
-            console.log("🏪 POLLING: Cargando almacenes antes del primer paquete...");
-            try {
-              await cargarAlmacenes(false); // No silencioso para debug
-            } catch (error) {
-              console.log("⚠️ POLLING: Error al cargar almacenes:", error);
-            }
-          }
-          
-          await cargarDatos(false);
-          console.log("✅ POLLING: Datos cargados exitosamente");
-          // Si se cargaron datos exitosamente, detener el polling
-          setPollingActivo(false);
-        } catch (error) {
-          console.log("⏳ POLLING: Esperando que el backend genere paquetes...", error);
-          // Continuar el polling si no hay datos disponibles
-        }
-      }, 2000); // Cada 2 segundos
-    }
-
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [pollingActivo, almacenes.length]);
+  // Efecto de polling activo DESHABILITADO - ahora usamos el polling específico más abajo
+  // que maneja mejor el primer paquete sin consumir paquetes innecesarios
 
   // Cargar almacenes al inicio con reintentos
   useEffect(() => {
@@ -227,13 +193,13 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         await cargarAlmacenes(intentos > 0);
         console.log("✅ CONTEXTO: Almacenes cargados exitosamente");
         
-        // Luego intentar cargar datos de simulación (esto puede fallar si no hay paquetes)
-        try {
-          await cargarDatos(true);
-          console.log("✅ CONTEXTO: Datos de simulación cargados");
-        } catch {
-          console.log("ℹ️ CONTEXTO: No hay paquetes de simulación iniciales (normal)");
-        }
+        // No intentar cargar datos de simulación automáticamente para evitar consumir paquetes
+        // Los datos se cargarán a través del polling cuando estén disponibles
+        console.log("ℹ️ CONTEXTO: Datos de simulación se cargarán vía polling cuando estén disponibles");
+        
+        // Poner cargando en false ya que los almacenes se cargaron exitosamente
+        setCargando(false);
+        console.log("✅ CONTEXTO: Estado de carga cambiado a false - almacenes listos");
         
         // Si llegamos aquí, al menos los almacenes se cargaron correctamente
         break;
@@ -317,7 +283,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     console.log("🔄 POLLING: Iniciando polling automático para obtener primer paquete...");
     
     let intentos = 0;
-    const maxIntentos = 30; // Máximo 60 segundos de polling
+    const maxIntentos = 60; // Máximo 120 segundos de polling (tiempo suficiente para que el backend genere paquetes)
     
     const interval = setInterval(async () => {
       intentos++;
@@ -325,6 +291,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       if (intentos > maxIntentos) {
         console.log("⏰ POLLING: Timeout alcanzado, desactivando polling...");
         setPollingActivo(false);
+        setCargando(false); // Quitar estado de carga para evitar que se quede colgado
+        console.log("⚠️ POLLING: Estado de carga cambiado a false por timeout");
         return;
       }
       try {
@@ -346,10 +314,16 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
             }
           }
           
-          // Aplicar el primer paquete
+          // Aplicar el primer paquete y setear la hora inicial correctamente
           await aplicarSolucionPrecargada(data);
           
-          console.log("🎉 POLLING: Primer paquete aplicado exitosamente al mapa");
+          // Asegurar que empezamos desde la hora inicial (paquete 1)
+          setHoraActual(HORA_PRIMERA_ACTUALIZACION);
+          
+          // Asegurar que el estado de carga esté en false
+          setCargando(false);
+          
+          console.log("🎉 POLLING: Primer paquete aplicado exitosamente al mapa desde la hora", HORA_PRIMERA_ACTUALIZACION);
         } else {
           console.log("⏳ POLLING: No hay paquetes disponibles aún, continuando...");
         }
@@ -613,6 +587,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setEsperandoActualizacion(false);
       setSolicitudAnticipadaEnviada(false);
       setProximaSolucionCargada(null);
+      
+      // Asegurar que el estado de carga esté en false después de aplicar datos
+      setCargando(false);
+      console.log("✅ TRANSICIÓN: Estado de carga cambiado a false después de aplicar solución");
       
     } catch (error) {
       console.error("❌ TRANSICIÓN: Error al aplicar solución precargada:", error);
@@ -922,15 +900,13 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("⚠️ LIMPIEZA: Error al cargar almacenes:", error);
     }
     
-    // Intentar cargar los primeros datos de simulación
-    try {
-      await cargarDatos(true);
-      console.log("✅ LIMPIEZA: Primeros datos de simulación cargados exitosamente");
-    } catch (error) {
-      console.log("⚠️ LIMPIEZA: No hay datos de simulación iniciales disponibles aún, iniciando polling...", error);
-      // Si no hay datos iniciales, activar el polling
-      setPollingActivo(true);
-    }
+    // Mientras esperamos el primer paquete, mostrar estado de carga
+    setCargando(true);
+    console.log("🔄 LIMPIEZA: Configurando estado de carga mientras esperamos primer paquete...");
+    
+    // No intentar cargar datos inmediatamente, solo usar polling para obtener el primer paquete
+    console.log("🔄 LIMPIEZA: Iniciando polling para obtener el primer paquete disponible...");
+    setPollingActivo(true);
   };
 
   return (
