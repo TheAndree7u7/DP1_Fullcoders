@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSimulacion } from '../context/SimulacionContext';
-import type { Coordenada, Pedido } from '../types';
+import type { Coordenada } from '../types';
 import almacenCentralIcon from '../assets/almacen_central.svg';
 import almacenIntermedioIcon from '../assets/almacen_intermedio.svg';
 import clienteIcon from '../assets/cliente.svg';
@@ -8,6 +8,11 @@ import { averiarCamionTipo } from '../services/averiaApiService';
 import { toast, Bounce } from 'react-toastify';
 import { CAMION_COLORS, ESTADO_COLORS } from '../config/colors';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { 
+  parseCoord, 
+  calcularRotacion, 
+  getPedidosPendientes 
+} from './mapa/utils';
 
 interface CamionVisual {
   id: string;
@@ -26,39 +31,9 @@ const SVG_HEIGHT = GRID_HEIGHT * CELL_SIZE;
 // Parametrización del grosor de línea de bloqueos
 const BLOQUEO_STROKE_WIDTH = 4;
 
-const parseCoord = (s: string): Coordenada => {
-  // Validar que el parámetro existe y es un string
-  if (!s || typeof s !== 'string') {
-    console.warn('🚨 parseCoord: Valor inválido recibido:', s);
-    return { x: 0, y: 0 }; // Coordenada por defecto
-  }
-  
-  const match = s.match(/\((\d+),\s*(\d+)\)/);
-  if (!match) {
-    console.warn('🚨 parseCoord: Formato de coordenada inválido:', s);
-    return { x: 0, y: 0 }; // Coordenada por defecto
-  }
-  
-  return { x: parseInt(match[1]), y: parseInt(match[2]) };
-};
 
-const calcularRotacion = (from: Coordenada, to: Coordenada): number => {
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  
-  // Si no hay movimiento, mantener la rotación actual (hacia la derecha por defecto)
-  if (dx === 0 && dy === 0) return 0;
-  
-  // Determinar la dirección basada en el movimiento
-  // En SVG, y+ es hacia abajo, y- es hacia arriba
-  if (Math.abs(dx) > Math.abs(dy)) {
-    // Movimiento principalmente horizontal
-    return dx > 0 ? 0 : 180; // Derecha : Izquierda
-  } else {
-    // Movimiento principalmente vertical  
-    return dy > 0 ? 90 : 270; // Abajo : Arriba
-  }
-};
+
+
 
 interface MapaProps {
   elementoResaltado?: {tipo: 'camion' | 'pedido' | 'almacen', id: string} | null;
@@ -86,55 +61,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
   // DEBUG: Verificar que almacenes llega al componente
   // console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
 
-  // Función para obtener los pedidos pendientes (no entregados)
-  const getPedidosPendientes = () => {
-    const pedidosPendientes: Pedido[] = [];
-    
-    rutasCamiones.forEach(ruta => {
-      const camionActual = camiones.find(c => c.id === ruta.id);
-      if (!camionActual) {
-        // Si no hay estado del camión, mostrar todos los pedidos
-        pedidosPendientes.push(...ruta.pedidos);
-        return;
-      }
-
-      // Obtener la posición actual del camión en la ruta
-      const posicionActual = camionActual.porcentaje;
-      
-      // Si el camión está entregado, no mostrar ningún pedido de esta ruta
-      if (camionActual.estado === 'Entregado') {
-        return;
-      }
-
-      // Para cada pedido de esta ruta, verificar si ya fue visitado
-      ruta.pedidos.forEach(pedido => {
-        // Buscar el índice del nodo que corresponde a este pedido
-        const indicePedidoEnRuta = ruta.ruta.findIndex(nodo => {
-          // Validar que el nodo existe y es un string
-          if (!nodo || typeof nodo !== 'string') {
-            return false;
-          }
-          
-          try {
-            const coordNodo = parseCoord(nodo);
-            return coordNodo.x === pedido.coordenada.x && coordNodo.y === pedido.coordenada.y;
-          } catch {
-            console.warn('🚨 Error al parsear coordenada del nodo:', nodo);
-            return false;
-          }
-        });
-
-        // Si el pedido está en un nodo que aún no ha sido visitado, mostrarlo
-        if (indicePedidoEnRuta === -1 || indicePedidoEnRuta > posicionActual) {
-          pedidosPendientes.push(pedido);
-        }
-      });
-    });
-
-    return pedidosPendientes;
-  };
-
-  const pedidosPendientes = getPedidosPendientes();
+  const pedidosPendientes = getPedidosPendientes(rutasCamiones, camiones);
   //console.log('👥 MAPA: Pedidos pendientes (clientes):', pedidosPendientes);
   //console.log('🚚 MAPA: Estado de camiones:', camiones);
 
