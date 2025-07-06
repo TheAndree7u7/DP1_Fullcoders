@@ -129,6 +129,7 @@ public class PedidoFactory {
                 .volumenGLPAsignado((double) m3)
                 .estado(EstadoPedido.REGISTRADO)
                 .fechaRegistro(fechaRegistro)
+                .fechaLimite(fechaRegistro.plusHours((long)horaLimite))
                 .build();
         pedidos.add(pedido);
         return pedido;

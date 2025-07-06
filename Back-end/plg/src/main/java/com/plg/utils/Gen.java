@@ -3,12 +3,15 @@ package com.plg.utils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.time.LocalDateTime;
+import com.plg.utils.Simulacion;
 
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
 import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
+import com.plg.entity.EstadoPedido;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -39,6 +42,8 @@ public class Gen {
         double fitness = 0.0;
         Nodo posicionActual = camion;
         List<Nodo> rutaEntradaBloqueada = null;
+        LocalDateTime fechaActual = Simulacion.getFechaActual();
+        LocalDateTime fechaLlegada = fechaActual;
         for (int i = 0; i < nodos.size(); i++) {
             Nodo destino = nodos.get(i);
             List<Nodo> rutaAstar = Mapa.getInstance().aStar(posicionActual, destino);
@@ -51,29 +56,30 @@ public class Gen {
             }
             if (destino instanceof Pedido) {
                 Pedido pedido = (Pedido) destino;
-                double tiempoEntregaLimite = pedido.getHorasLimite();
-                double tiempoLlegada = distanciaCalculada / camion.getVelocidadPromedio() + 0.25; // +15 minutos (0.25 horas) de tiempo de despacho
-                boolean tiempoMenorQueLimite = tiempoLlegada <= tiempoEntregaLimite;
-                boolean volumenGLPAsignado = camion.getCapacidadActualGLP() >= pedido.getVolumenGLPAsignado();
-                if (tiempoMenorQueLimite && volumenGLPAsignado) {
+                double tiempoLlegadaHoras = distanciaCalculada / camion.getVelocidadPromedio() + 0.25; // +15 minutos (0.25 horas) de tiempo de despacho
+                fechaLlegada = fechaLlegada.plusMinutes((long) (tiempoLlegadaHoras * 60));
+                boolean dentroDeLimite = pedido.getFechaLimite() == null || !fechaLlegada.isAfter(pedido.getFechaLimite());
+                double volumenAEntregar = Math.min(camion.getCapacidadActualGLP(), pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado());
+                boolean entregadoCompleto = (pedido.getVolumenGLPEntregado() + volumenAEntregar) >= pedido.getVolumenGLPAsignado();
+                if (dentroDeLimite) {
                     fitness += distanciaCalculada;
                     camion.actualizarCombustible(distanciaCalculada);
-                    camion.entregarVolumenGLP(pedido.getVolumenGLPAsignado());
+                    camion.entregarVolumenGLP(volumenAEntregar);
+                    // Sumar al volumen entregado
+                    pedido.setVolumenGLPEntregado(pedido.getVolumenGLPEntregado() + volumenAEntregar);
+                    if (entregadoCompleto) {
+                        pedido.setVolumenGLPEntregado(pedido.getVolumenGLPAsignado());
+                        pedido.setEstado(EstadoPedido.ENTREGADO);
+                    }
                     if (i > 0 && rutaAstar.size() > 1) {
                         rutaAstar.remove(0);
                     }
                     rutaFinal.addAll(rutaAstar);
-                    
                     // Agregar tiempo de parada de 15 minutos (repetir el nodo del pedido)
-                    // Como la velocidad promedio es 50 km/h y cada nodo representa 1km,
-                    // en 15 minutos (0.25 horas) el camión recorrería 50 * 0.25 = 12.5 nodos
-                    // Aproximamos a 13 nodos adicionales para representar la parada
                     int nodosParada = (int) Math.ceil(camion.getVelocidadPromedio() * 0.25); // 15 minutos en nodos
                     for (int j = 0; j < nodosParada; j++) {
-                        rutaFinal.add(destino); // Repetir el nodo del pedido
+                        rutaFinal.add(destino);
                     }
-                    
-                    // Si el pedido está en un nodo bloqueado, guardar la ruta de entrada
                     if (destino.isBloqueado()) {
                         rutaEntradaBloqueada = new ArrayList<>(rutaAstar);
                     } else {
@@ -82,7 +88,7 @@ public class Gen {
                     posicionActual = destino;
                 } else {
                     fitness = Double.POSITIVE_INFINITY;
-                    this.descripcion = descripcionError(pedido, camion, tiempoEntregaLimite, tiempoLlegada, tiempoMenorQueLimite, volumenGLPAsignado);
+                    this.descripcion = "El pedido " + pedido.getCodigo() + " no puede ser entregado a tiempo. Fecha límite: " + pedido.getFechaLimite() + ", fecha llegada: " + fechaLlegada;
                     break;
                 }
             } else if (destino instanceof Almacen || destino instanceof Camion) {
@@ -94,25 +100,20 @@ public class Gen {
                 rutaEntradaBloqueada = null;
                 posicionActual = destino;
             } else {
-                // Otro tipo de nodo
                 if (i > 0 && rutaAstar.size() > 1) {
                     rutaAstar.remove(0);
                 }
                 rutaFinal.addAll(rutaAstar);
                 posicionActual = destino;
             }
-            // Si el nodo anterior era bloqueado y hay que salir, regresar por la ruta invertida
             if (rutaEntradaBloqueada != null && i + 1 < nodos.size()) {
-                // No incluir el nodo bloqueado al salir
                 List<Nodo> rutaSalida = new ArrayList<>(rutaEntradaBloqueada);
                 Collections.reverse(rutaSalida);
-                rutaSalida.remove(0); // Quitar el nodo bloqueado
-                
-                // Solo procesar si hay nodos en la ruta de salida
+                rutaSalida.remove(0);
                 if (!rutaSalida.isEmpty()) {
                     rutaFinal.addAll(rutaSalida);
                     fitness += rutaSalida.size();
-                    posicionActual = rutaSalida.get(rutaSalida.size() - 1); // Último nodo no bloqueado
+                    posicionActual = rutaSalida.get(rutaSalida.size() - 1);
                 }
                 rutaEntradaBloqueada = null;
             }
