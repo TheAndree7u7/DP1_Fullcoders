@@ -4,6 +4,7 @@ import com.plg.utils.Simulacion;
 import com.plg.dto.IndividuoDto;
 import com.plg.dto.request.SimulacionRequest;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,6 +47,22 @@ public class SimulacionController {
             }
         }
         hiloSimulacionActual = null;
+    }
+
+    /**
+     * Método público para detener la simulación actual por averías.
+     * Este método puede ser llamado desde otros servicios como AveriaService.
+     */
+    public static void detenerSimulacionPorAveria() {
+        System.out.println("🚨 DETENER SIMULACIÓN POR AVERÍA");
+        
+        // Marcar la simulación como no en proceso
+        com.plg.utils.simulacion.GestorHistorialSimulacion.setEnProceso(false);
+        
+        // Detener el hilo de simulación
+        detenerSimulacionActual();
+        
+        System.out.println("✅ Simulación detenida por avería");
     }
 
     @GetMapping("/mejor")
@@ -203,6 +220,43 @@ public class SimulacionController {
             
         } catch (Exception e) {
             String errorMsg = "Error al iniciar simulación: " + e.getMessage();
+            System.err.println("❌ " + errorMsg);
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMsg);
+        }
+    }
+    
+    @DeleteMapping("/eliminar-paquetes-futuros")
+    public ResponseEntity<String> eliminarPaquetesFuturos() {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/eliminar-paquetes-futuros");
+        
+        try {
+            // Obtener información actual antes de eliminar
+            Simulacion.SimulacionInfo infoAntes = Simulacion.obtenerInfoSimulacion();
+            System.out.println("📊 ANTES: Total=" + infoAntes.totalPaquetes + 
+                              ", Actual=" + infoAntes.paqueteActual);
+            
+            // Eliminar paquetes futuros (mantener solo el actual)
+            System.out.println("🗑️ Eliminando paquetes futuros...");
+            
+            // Usar el método implementado en la clase Simulacion
+            int paquetesEliminados = Simulacion.eliminarPaquetesFuturos();
+            
+            // Obtener información después de eliminar
+            Simulacion.SimulacionInfo infoDespues = Simulacion.obtenerInfoSimulacion();
+            System.out.println("📊 DESPUÉS: Total=" + infoDespues.totalPaquetes + 
+                              ", Actual=" + infoDespues.paqueteActual);
+            
+            String mensaje = "Paquetes futuros eliminados exitosamente. " +
+                           "Paquetes eliminados: " + paquetesEliminados + 
+                           ". Total actual: " + infoDespues.totalPaquetes;
+            
+            System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
+            
+            return ResponseEntity.ok(mensaje);
+            
+        } catch (Exception e) {
+            String errorMsg = "Error al eliminar paquetes futuros: " + e.getMessage();
             System.err.println("❌ " + errorMsg);
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMsg);
