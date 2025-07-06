@@ -163,15 +163,20 @@ public class Camion extends Nodo {
                 if (pedido.getEstado() == EstadoPedido.ENTREGADO) {
                     continue;
                 }
-                pedidosEntregados.add(pedido);
-                // Voy al GLP del camión y reduzco la carga porque lo entrego
-                entregarVolumenGLP(pedido.getVolumenGLPAsignado());
-                // Marcamos el pedido como entregado para no considerarlo en la siguiente iteración
-                pedido.setEstado(EstadoPedido.ENTREGADO);
-                pedidosPorAtender.remove(nodo);
-                pedidosPlanificados.remove(nodo);
-                
-                // El tiempo de parada ya está representado en la rutaFinal como nodos duplicados
+                // Calcular cuánto GLP puede entregar este camión en este paso
+                double volumenRestante = pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado();
+                double volumenAEntregar = Math.min(this.capacidadActualGLP, volumenRestante);
+                if (volumenAEntregar > 0) {
+                    entregarVolumenGLP(volumenAEntregar);
+                    pedido.setVolumenGLPEntregado(pedido.getVolumenGLPEntregado() + volumenAEntregar);
+                }
+                // Si ya se entregó todo el GLP, marcar como entregado y actualizar sets
+                if (Math.abs(pedido.getVolumenGLPEntregado() - pedido.getVolumenGLPAsignado()) < 1e-6) {
+                    pedido.setEstado(EstadoPedido.ENTREGADO);
+                    pedidosEntregados.add(pedido);
+                    pedidosPorAtender.remove(nodo);
+                    pedidosPlanificados.remove(nodo);
+                }
             }
         }
         for (int i = intermedio + 1; i < gen.getRutaFinal().size(); i++) {

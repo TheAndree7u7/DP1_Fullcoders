@@ -116,10 +116,10 @@ public class CamionFactory {
     public static Camion crearCamionesPorTipo(TipoCamion tipo, boolean operativo, Coordenada coordenada) {
         double tara, capacidadGLP, pesoCarga = 0.0;
         switch (tipo) {
-            case TA: tara = 2.5; capacidadGLP = 12.5; pesoCarga = 12.5; break;
-            case TB: tara = 2.0; capacidadGLP = 7.5; pesoCarga = 7.5; break;
-            case TC: tara = 1.5; capacidadGLP = 5.0; pesoCarga = 5; break;
-            case TD: tara = 1.0; capacidadGLP = 2.5; pesoCarga = 2.5; break;
+            case TA: tara = 2.5; capacidadGLP = 25; pesoCarga = 12.5; break;
+            case TB: tara = 2.0; capacidadGLP = 15; pesoCarga = 7.5; break;
+            case TC: tara = 1.5; capacidadGLP = 10; pesoCarga = 5; break;
+            case TD: tara = 1.0; capacidadGLP = 5; pesoCarga = 2.5; break;
             default: throw new IllegalArgumentException("Tipo de camión no válido: " + tipo);
         }
 

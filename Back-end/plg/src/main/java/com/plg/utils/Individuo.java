@@ -8,9 +8,9 @@ import java.util.Random;
 import com.plg.config.DataLoader;
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
-import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
+import com.plg.entity.EstadoPedido;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -60,56 +60,39 @@ public class Individuo {
         for (Camion camion : camionesDisponibles) {
             cromosoma.add(new Gen(camion, new ArrayList<>()));
         }
+        // Asignación: si un pedido supera la capacidad, se asigna a varios camiones (misma instancia)
         Almacen almacenCentral = almacenes.get(0);
         List<Nodo> pedidosMezclados = new ArrayList<>();
         pedidosMezclados.addAll(pedidos);
         Collections.shuffle(pedidosMezclados, new Random(Parametros.semillaAleatoria));
-        List<Gen> genesMezclados = new ArrayList<>(cromosoma);
-        Collections.shuffle(genesMezclados, new Random(Parametros.semillaAleatoria + 1));
-
-        // NUEVO: Para cada pedido, selecciona un subconjunto random de genes y asigna al más cercano
-        Random selectorDeGen = new Random(Parametros.semillaAleatoria + 2);
-        for (Nodo pedido : pedidosMezclados) {
-            if (!(pedido instanceof Pedido)) {
+        double capacidadDivisionPedido = 25.0; // parametrizable si lo deseas
+        Random random = new Random(Parametros.semillaAleatoria + 42);
+        for (Nodo pedidoNodo : pedidosMezclados) {
+            if (!(pedidoNodo instanceof Pedido)) {
                 continue;
             }
-            int cantidadCercanos = (int) Math.ceil(genesMezclados.size() * porcentajeAsignacionCercana);
-            // Seleccionar subconjunto random de genes
-            List<Gen> subconjuntoGenes = new ArrayList<>(genesMezclados);
-            Collections.shuffle(subconjuntoGenes, selectorDeGen);
-            subconjuntoGenes = subconjuntoGenes.subList(0, Math.max(1, cantidadCercanos));
-            double minDist = Double.POSITIVE_INFINITY;
-            Gen mejorGen = null;
-            for (Gen gen : subconjuntoGenes) {
-                Nodo nodoCamion = gen.getCamion();
-                double dist = Mapa.getInstance().calcularHeuristica(nodoCamion, pedido);
-                if (dist < minDist) {
-                    minDist = dist;
-                    mejorGen = gen;
+            Pedido pedido = (Pedido) pedidoNodo;
+            double cantidad = pedido.getVolumenGLPAsignado();
+            if (cantidad > capacidadDivisionPedido) {
+                int partes = (int) Math.ceil(cantidad / capacidadDivisionPedido);
+                List<Integer> indices = new ArrayList<>();
+                for (int i = 0; i < cromosoma.size(); i++) indices.add(i);
+                Collections.shuffle(indices, random);
+                for (int i = 0; i < partes; i++) {
+                    int idx = indices.get(i % indices.size());
+                    Gen gen = cromosoma.get(idx);
+                    gen.getPedidos().add(pedido);
+                    gen.getNodos().add(pedido);
                 }
-            }
-            if (mejorGen != null) {
-                mejorGen.getPedidos().add((Pedido) pedido);
-                mejorGen.getNodos().add(pedido);
+            } else {
+                int idx = random.nextInt(cromosoma.size());
+                Gen gen = cromosoma.get(idx);
+                gen.getPedidos().add(pedido);
+                gen.getNodos().add(pedido);
             }
         }
         for (Gen gen : cromosoma) {
             gen.getNodos().add(almacenCentral);
-        }
-        // Insertar almacenes intermedios (almacenes index 1 y 2) en rutas largas
-        for (Gen gen : cromosoma) {
-            List<Nodo> nodos = gen.getNodos();
-            if (nodos.size() > 3) { // al menos dos pedidos y un almacén central
-                // Insertar almacén intermedio con cierta probabilidad entre dos pedidos
-                for (int i = 1; i < nodos.size() - 2; i++) { // entre el primer pedido y el penúltimo
-                    if (selectorDeGen.nextDouble() < 0.5) { // 50% de probabilidad
-                        // Elegir aleatoriamente entre almacén 1 o 2 si existen
-                        Almacen almacenIntermedio = almacenes.size() > 2 ? almacenes.get(1 + selectorDeGen.nextInt(2)) : almacenes.get(1);
-                        nodos.add(i + 1, almacenIntermedio);
-                        i++; // saltar el almacén recién insertado para evitar inserciones consecutivas
-                    }
-                }
-            }
         }
     }
 
@@ -121,9 +104,24 @@ public class Individuo {
             double fitnessGen = gen.calcularFitness();
             if (fitnessGen == Double.POSITIVE_INFINITY) {
                 this.descripcion = gen.getDescripcion(); // Guardar la descripción del error
+                restaurarEstadoActual();
                 return Double.POSITIVE_INFINITY; // Si algún gen tiene fitness máximo, el individuo es inválido
             }
             fitness += fitnessGen; // Sumar el fitness de cada gen
+        }
+        // Comprobar que todos los pedidos están ENTREGADOS
+        boolean todosEntregados = true;
+        StringBuilder errores = new StringBuilder();
+        for (Pedido pedido : pedidos) {
+            if (pedido.getEstado() != EstadoPedido.ENTREGADO) {
+                todosEntregados = false;
+                errores.append("Pedido no entregado: ").append(pedido.getCodigo()).append("\n");
+            }
+        }
+        if (!todosEntregados) {
+            this.descripcion = errores.toString();
+            restaurarEstadoActual();
+            return Double.POSITIVE_INFINITY;
         }
         restaurarEstadoActual();
         return fitness;
