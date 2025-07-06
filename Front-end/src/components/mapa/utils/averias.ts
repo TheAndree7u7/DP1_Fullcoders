@@ -4,7 +4,7 @@
  */
 
 import { averiarCamionConEstado } from "../../../services/averiaApiService";
-import { eliminarPaquetesFuturos } from "../../../services/simulacionApiService";
+import { eliminarPaquetesFuturos, obtenerInfoSimulacion } from "../../../services/simulacionApiService";
 import { toast, Bounce } from 'react-toastify';
 import { pausarSimulacion as pausarSimulacionUtil } from "../../../context/simulacion/utils/controles";
 import { capturarEstadoCompleto, generarResumenEstado, convertirEstadoParaBackend, type EstadoSimulacionCompleto } from "../../../context/simulacion/utils/estado";
@@ -172,5 +172,100 @@ export const handleAveriar = async (
     setAveriando(null);
     setClickedCamion(null);
     console.log("🔚 PROCESO DE AVERÍA FINALIZADO");
+    
+    // Pasar inmediatamente al siguiente paquete después de la avería
+    pasarAlSiguientePaquete(setPollingActivo);
   }
-}; 
+};
+
+/**
+ * Función para pasar al siguiente paquete después de que termine el proceso de avería
+ * Espera un tiempo fijo y luego reactiva el polling para permitir la continuación
+ * @param setPollingActivo - Función para controlar el polling de paquetes
+ */
+const pasarAlSiguientePaquete = async (setPollingActivo?: (value: boolean) => void) => {
+  try {
+    console.log("🔄 AVERÍA TERMINADA: Esperando generación del nuevo paquete...");
+    
+    // Obtener información actual para referencia
+    const infoActual = await obtenerInfoSimulacion();
+    const paqueteActualAntes = infoActual.paqueteActual;
+    const paqueteEsperado = paqueteActualAntes + 1;
+    
+    console.log(`📊 INFORMACIÓN ACTUAL: Paquete actual=${paqueteActualAntes}, esperando paquete=${paqueteEsperado}`);
+    
+    // Mostrar notificación de espera al usuario
+    toast.info(`⏳ Esperando que se genere el siguiente paquete después de la avería...`, {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      transition: Bounce,
+    });
+    
+    // Esperar un tiempo fijo para dar tiempo al backend a generar el nuevo paquete
+    // Basándome en los logs, veo que el sistema SÍ está generando los datos
+    console.log("⏳ ESPERANDO: Dando tiempo al backend para generar el nuevo paquete...");
+    await new Promise(resolve => setTimeout(resolve, 5000)); // 5 segundos
+    
+    // Verificar si ahora hay más paquetes disponibles
+    const infoActualizada = await obtenerInfoSimulacion();
+    console.log(`📊 INFORMACIÓN ACTUALIZADA: Paquete actual=${infoActualizada.paqueteActual}, Total=${infoActualizada.totalPaquetes}`);
+    
+    // Siempre reactivar el polling - el sistema de polling normal manejará la obtención de datos
+    if (setPollingActivo) {
+      setPollingActivo(true);
+      console.log("✅ SIGUIENTE PAQUETE: Polling reactivado - el sistema continuará automáticamente");
+      
+      // Mostrar notificación de éxito
+      toast.success(`📦 Continuando con la simulación después de la avería`, {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+    } else {
+      console.warn("⚠️ SIGUIENTE PAQUETE: No se pudo reactivar el polling - función no disponible");
+      
+      // Mostrar notificación de advertencia
+      toast.warning(`⚠️ No se pudo reactivar el polling automático`, {
+        position: "top-right",
+        autoClose: 6000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+    }
+    
+  } catch (error) {
+    console.error("❌ ERROR AL PASAR AL SIGUIENTE PAQUETE:", error);
+    
+    // Mostrar error al usuario
+    toast.error(`❌ Error al pasar al siguiente paquete: ${error instanceof Error ? error.message : 'Error desconocido'}`, {
+      position: "top-right",
+      autoClose: 6000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      transition: Bounce,
+    });
+  }
+};
+
+ 
