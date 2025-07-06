@@ -36,46 +36,49 @@ public class GestorHistorialSimulacion {
 
     /**
      * Inserta un paquete parche en una posición específica del historial.
-     * Este método se usa cuando se genera un paquete de emergencia debido a una avería.
+     * Este método se usa cuando se genera un paquete de emergencia debido a una
+     * avería.
      * 
-     * @param paquete El paquete parche a insertar
-     * @param posicion La posición donde insertar el paquete (típicamente paqueteActual + 1)
+     * @param paquete  El paquete parche a insertar
+     * @param posicion La posición donde insertar el paquete (típicamente
+     *                 paqueteActual + 1)
      */
     public static synchronized void insertarPaqueteParche(IndividuoDto paquete, int posicion) {
         // Validar que la posición sea válida
         if (posicion < 0 || posicion > historialSimulacion.size()) {
-            System.err.println("❌ PAQUETE PARCHE: Posición inválida " + posicion + ", historial size: " + historialSimulacion.size());
+            System.err.println("❌ PAQUETE PARCHE: Posición inválida " + posicion + ", historial size: "
+                    + historialSimulacion.size());
             return;
         }
-        
+
         contadorPaquetes++;
         historialSimulacion.add(posicion, paquete);
-        
+
         // Calcular fitness del paquete parche (por ahora usar valor fijo)
         double fitness = 0.0; // Se podría mejorar para calcular el fitness real
-        
+
         // Mostrar información completa como los otros paquetes
         System.out.println("------------------------");
         System.out.println("Tiempo actual: " + paquete.getFechaHoraSimulacion());
         System.out.println("Fitness algoritmo genético (paquete parche): " + String.format("%.1f", fitness));
-        System.out.println("🩹 PAQUETE PARCHE INSERTADO #" + contadorPaquetes + " en posición " + posicion + 
-                          " | Tiempo: " + paquete.getFechaHoraSimulacion() + 
-                          " | Pedidos: " + paquete.getPedidos().size());
-        
+        System.out.println("🩹 PAQUETE PARCHE INSERTADO #" + contadorPaquetes + " en posición " + posicion +
+                " | Tiempo: " + paquete.getFechaHoraSimulacion() +
+                " | Pedidos: " + paquete.getPedidos().size());
+
         // Mostrar estado de pedidos semanales (aproximado)
         List<com.plg.entity.Pedido> pedidosSemanal = com.plg.utils.Simulacion.getPedidosSemanal();
         int pedidosRestantes = pedidosSemanal != null ? pedidosSemanal.size() : 0;
-        
+
         // Por ahora usamos valores aproximados para por atender y planificados
         int porAtender = paquete.getPedidos().size();
         int planificados = 0;
-        
-        System.out.println("📊 Estado: Pedidos semanales restantes: " + pedidosRestantes + 
-                          ", Por atender: " + porAtender + 
-                          ", Planificados: " + planificados);
-        
-        System.out.println("📊 DESPUÉS DEL PARCHE: Total paquetes=" + historialSimulacion.size() + 
-                          ", Posición actual frontend=" + indiceActualFrontend);
+
+        System.out.println("📊 Estado: Pedidos semanales restantes: " + pedidosRestantes +
+                ", Por atender: " + porAtender +
+                ", Planificados: " + planificados);
+
+        System.out.println("📊 DESPUÉS DEL PARCHE: Total paquetes=" + historialSimulacion.size() +
+                ", Posición actual frontend=" + indiceActualFrontend);
     }
 
     /**
@@ -87,41 +90,44 @@ public class GestorHistorialSimulacion {
     public static synchronized int eliminarPaquetesFuturos() {
         int paquetesAntesDeEliminar = historialSimulacion.size();
         int paqueteActualIndex = indiceActualFrontend;
-        
+
         System.out.println("🗑️ ELIMINANDO PAQUETES FUTUROS:");
         System.out.println("   • Total paquetes antes: " + paquetesAntesDeEliminar);
-        System.out.println("   • Índice actual frontend: " + paqueteActualIndex);
-        System.out.println("   • Paquete actual siendo consumido: " + (paqueteActualIndex > 0 ? paqueteActualIndex : "ninguno"));
-        
+        System.out.println("   • Índice actual frontend (próximo a consumir): " + paqueteActualIndex);
+        System.out.println(
+                "   • Paquete actual siendo consumido: "
+                        + (paqueteActualIndex > 0 ? (paqueteActualIndex - 1) : "ninguno"));
+
         if (paqueteActualIndex >= historialSimulacion.size()) {
             System.out.println("⚠️ No hay paquetes futuros para eliminar (frontend al final del historial)");
             return 0;
         }
-        
+
         // Eliminar todos los paquetes después del índice actual
-        // El frontend ya consumió hasta indiceActualFrontend-1, 
+        // El frontend ya consumió hasta indiceActualFrontend-1,
         // así que eliminamos desde indiceActualFrontend en adelante
         int paquetesAEliminar = historialSimulacion.size() - paqueteActualIndex;
-        
+
         for (int i = historialSimulacion.size() - 1; i >= paqueteActualIndex; i--) {
             historialSimulacion.remove(i);
         }
-        
+
         int paquetesDespuesDeEliminar = historialSimulacion.size();
-        
+
         System.out.println("✅ PAQUETES FUTUROS ELIMINADOS:");
         System.out.println("   • Paquetes eliminados: " + paquetesAEliminar);
         System.out.println("   • Total paquetes después: " + paquetesDespuesDeEliminar);
         System.out.println("   • Próximo índice a consumir: " + indiceActualFrontend);
-        
+
         return paquetesAEliminar;
     }
 
     public static synchronized IndividuoDto obtenerSiguientePaquete() {
         if (indiceActualFrontend < historialSimulacion.size()) {
             IndividuoDto paquete = historialSimulacion.get(indiceActualFrontend);
+            int paqueteConsumido = indiceActualFrontend; // Guardar el índice antes de incrementar
             indiceActualFrontend++;
-            System.out.println("🔥 PAQUETE CONSUMIDO #" + indiceActualFrontend + " | Tiempo: "
+            System.out.println("🔥 PAQUETE CONSUMIDO #" + paqueteConsumido + " | Tiempo: "
                     + paquete.getFechaHoraSimulacion() + " | Total disponibles: " + historialSimulacion.size());
             return paquete;
         }
@@ -140,7 +146,8 @@ public class GestorHistorialSimulacion {
         indiceActualFrontend = 0;
         contadorPaquetes = 0;
         simulacionEnProceso = false;
-        System.out.println("🧹 HISTORIAL LIMPIADO COMPLETAMENTE | Paquetes eliminados: " + paquetesEliminados + " | Estado reiniciado");
+        System.out.println("🧹 HISTORIAL LIMPIADO COMPLETAMENTE | Paquetes eliminados: " + paquetesEliminados
+                + " | Estado reiniciado");
     }
 
     /* ------------------------------ GETTERS -------------------------------- */
@@ -150,7 +157,11 @@ public class GestorHistorialSimulacion {
     }
 
     public static synchronized int getPaqueteActual() {
-        return indiceActualFrontend;
+        // Devolver el paquete que se está consumiendo actualmente
+        // Si indiceActualFrontend es 0, no se ha consumido ningún paquete aún
+        // Si indiceActualFrontend es N, se han consumido N paquetes, el actual es el
+        // N-1
+        return Math.max(0, indiceActualFrontend - 1);
     }
 
     public static synchronized int getContadorPaquetes() {
@@ -174,4 +185,4 @@ public class GestorHistorialSimulacion {
         }
         return null;
     }
-} 
+}

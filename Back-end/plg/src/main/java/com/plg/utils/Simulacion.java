@@ -321,7 +321,7 @@ public class Simulacion {
 
             // Obtener información del paquete actual
             int paqueteActualNumero = GestorHistorialSimulacion.getPaqueteActual();
-            IndividuoDto paqueteActual = GestorHistorialSimulacion.obtenerPaquetePorIndice(paqueteActualNumero - 1);
+            IndividuoDto paqueteActual = GestorHistorialSimulacion.obtenerPaquetePorIndice(paqueteActualNumero);
 
             if (paqueteActual == null) {
                 System.err.println("❌ No se pudo obtener el paquete actual para generar el parche");
@@ -391,7 +391,7 @@ public class Simulacion {
         }
 
         // Insertar en la posición paqueteActual + 1
-        int posicionInsercion = GestorHistorialSimulacion.getPaqueteActual();
+        int posicionInsercion = GestorHistorialSimulacion.getPaqueteActual() + 1;
         GestorHistorialSimulacion.insertarPaqueteParche(paqueteParche, posicionInsercion);
 
         System.out.println("🩹 Paquete parche insertado en posición: " + posicionInsercion);
