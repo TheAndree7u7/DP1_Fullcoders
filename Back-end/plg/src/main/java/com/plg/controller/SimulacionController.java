@@ -177,6 +177,9 @@ public class SimulacionController {
             // Configurar la simulación con la fecha enviada desde el frontend
             Simulacion.configurarSimulacion(request.getFechaInicio());
             
+
+
+            
             // Ejecutar la simulación en un hilo separado para no bloquear la respuesta HTTP
             Thread simulacionThread = new Thread(() -> {
                 try {

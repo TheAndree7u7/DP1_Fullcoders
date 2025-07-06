@@ -1,14 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Play, RotateCcw, Clock, Calendar, Info } from 'lucide-react';
-import { iniciarSimulacion, obtenerInfoSimulacion } from '../services/simulacionApiService';
+import { Play, RotateCcw, Clock, Calendar } from 'lucide-react';
+import { iniciarSimulacion /*, obtenerInfoSimulacion */ } from '../services/simulacionApiService';
 import { useSimulacion } from '../context/SimulacionContext';
 
-interface InfoSimulacion {
-  totalPaquetes: number;
-  paqueteActual: number;
-  enProceso: boolean;
-  tiempoActual: string;
-}
+
 
 const ControlSimulacion: React.FC = () => {
   const [fechaInicio, setFechaInicio] = useState<string>('');
@@ -16,32 +11,31 @@ const ControlSimulacion: React.FC = () => {
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState<string>('');
   const [tipoMensaje, setTipoMensaje] = useState<'success' | 'error' | 'info'>('info');
-  const [infoSimulacion, setInfoSimulacion] = useState<InfoSimulacion | null>(null);
+  // const [infoSimulacion, setInfoSimulacion] = useState<InfoSimulacion | null>(null);
   const { reiniciar, limpiarEstadoParaNuevaSimulacion, iniciarPollingPrimerPaquete } = useSimulacion();
 
   // Establecer fecha por defecto (hoy)
   useEffect(() => {
-    const hoy = new Date();
-    const fechaFormateada = hoy.toISOString().split('T')[0];
-    setFechaInicio(fechaFormateada);
+    // Fecha por defecto: 1 de enero de 2025
+    setFechaInicio('2025-01-01');
   }, []);
 
   // Actualizar información de la simulación cada 5 segundos
-  useEffect(() => {
-    const intervalo = setInterval(async () => {
-      try {
-        const info = await obtenerInfoSimulacion();
-        setInfoSimulacion(info);
-      } catch (error) {
-        console.error('Error al obtener info de simulación:', error);
-      }
-    }, 5000);
-
-    // Obtener información inicial
-    obtenerInfoSimulacion().then(setInfoSimulacion).catch(console.error);
-
-    return () => clearInterval(intervalo);
-  }, []);
+  // useEffect(() => {
+  //   const intervalo = setInterval(async () => {
+  //     try {
+  //       const info = await obtenerInfoSimulacion();
+  //       setInfoSimulacion(info);
+  //     } catch (error) {
+  //       console.error('Error al obtener info de simulación:', error);
+  //     }
+  //   }, 5000);
+  //
+  //   // Obtener información inicial
+  //   obtenerInfoSimulacion().then(setInfoSimulacion).catch(console.error);
+  //
+  //   return () => clearInterval(intervalo);
+  // }, []);
 
   const manejarInicioSimulacion = async () => {
     if (!fechaInicio || !horaInicio) {
@@ -76,26 +70,26 @@ const ControlSimulacion: React.FC = () => {
       iniciarPollingPrimerPaquete();
       console.log("🔄 FRONTEND: Polling iniciado para obtener primer paquete automáticamente");
       
-      // Actualizar información después de unos segundos para dar tiempo al backend
-      setTimeout(async () => {
-        try {
-          const info = await obtenerInfoSimulacion();
-          setInfoSimulacion(info);
-          console.log("📊 FRONTEND: Info de simulación actualizada:", info);
-          
-          if (info.enProceso) {
-            setMensaje('Simulación en progreso - Los datos se actualizan automáticamente');
-            setTipoMensaje('success');
-          } else {
-            setMensaje('Simulación completada o detenida');
-            setTipoMensaje('info');
-          }
-        } catch (error) {
-          console.error('Error al actualizar info:', error);
-          setMensaje('Simulación iniciada pero no se pudo obtener el estado');
-          setTipoMensaje('error');
-        }
-      }, 3000); // Esperamos 3 segundos para que el backend empiece a generar paquetes
+      // Comentado: Actualizar información después de unos segundos para dar tiempo al backend
+      // setTimeout(async () => {
+      //   try {
+      //     const info = await obtenerInfoSimulacion();
+      //     setInfoSimulacion(info);
+      //     console.log("📊 FRONTEND: Info de simulación actualizada:", info);
+      //     
+      //     if (info.enProceso) {
+      //       setMensaje('Simulación en progreso - Los datos se actualizan automáticamente');
+      //       setTipoMensaje('success');
+      //     } else {
+      //       setMensaje('Simulación completada o detenida');
+      //       setTipoMensaje('info');
+      //     }
+      //   } catch (error) {
+      //     console.error('Error al actualizar info:', error);
+      //     setMensaje('Simulación iniciada pero no se pudo obtener el estado');
+      //     setTipoMensaje('error');
+      //   }
+      // }, 3000); // Esperamos 3 segundos para que el backend empiece a generar paquetes
       
     } catch (error) {
       console.error('Error al iniciar simulación:', error);
@@ -120,16 +114,16 @@ const ControlSimulacion: React.FC = () => {
       
       console.log("🔄 FRONTEND: Simulación reiniciada completamente");
       
-      // Actualizar información después de unos segundos para dar tiempo al backend
-      setTimeout(async () => {
-        try {
-          const info = await obtenerInfoSimulacion();
-          setInfoSimulacion(info);
-          console.log("📊 FRONTEND: Info de simulación actualizada después de reiniciar:", info);
-        } catch (error) {
-          console.error('Error al actualizar info:', error);
-        }
-      }, 3000); // Aumentamos el tiempo para dar más margen al backend
+      // Comentado: Actualizar información después de unos segundos para dar tiempo al backend
+      // setTimeout(async () => {
+      //   try {
+      //     const info = await obtenerInfoSimulacion();
+      //     setInfoSimulacion(info);
+      //     console.log("📊 FRONTEND: Info de simulación actualizada después de reiniciar:", info);
+      //   } catch (error) {
+      //     console.error('Error al actualizar info:', error);
+      //   }
+      // }, 3000); // Aumentamos el tiempo para dar más margen al backend
       
     } catch (error) {
       setMensaje(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
@@ -139,15 +133,15 @@ const ControlSimulacion: React.FC = () => {
     }
   };
 
-  const obtenerColorEstado = () => {
-    if (!infoSimulacion) return 'bg-gray-500';
-    return infoSimulacion.enProceso ? 'bg-green-500' : 'bg-red-500';
-  };
+  // const obtenerColorEstado = () => {
+  //   if (!infoSimulacion) return 'bg-gray-500';
+  //   return infoSimulacion.enProceso ? 'bg-green-500' : 'bg-red-500';
+  // };
 
-  const obtenerTextoEstado = () => {
-    if (!infoSimulacion) return 'Desconocido';
-    return infoSimulacion.enProceso ? 'En Proceso' : 'Detenida';
-  };
+  // const obtenerTextoEstado = () => {
+  //   if (!infoSimulacion) return 'Desconocido';
+  //   return infoSimulacion.enProceso ? 'En Proceso' : 'Detenida';
+  // };
 
   // Manejador para el cambio de hora que garantiza el formato correcto
   const manejarCambioHora = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,51 +159,20 @@ const ControlSimulacion: React.FC = () => {
           <Clock className="w-5 h-5" />
           Control de Simulación
         </h2>
-        
-        {/* Indicador de estado */}
+        {/*
         <div className="flex items-center gap-2">
           <div className={`w-3 h-3 rounded-full ${obtenerColorEstado()}`}></div>
           <span className="text-sm font-medium text-gray-700">
             {obtenerTextoEstado()}
           </span>
         </div>
+        */}
       </div>
 
-      {/* Información de la simulación */}
-      {infoSimulacion && (
-        <div className="bg-gray-50 rounded-md p-3 mb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Info className="w-4 h-4 text-blue-500" />
-            <span className="text-sm font-medium text-gray-700">Estado Actual</span>
-          </div>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-gray-600">Total de paquetes:</span>
-              <span className="ml-2 font-medium">{infoSimulacion.totalPaquetes}</span>
-            </div>
-            <div>
-              <span className="text-gray-600">Paquete actual:</span>
-              <span className="ml-2 font-medium">{infoSimulacion.paqueteActual}</span>
-            </div>
-          </div>
-          
-          {/* Barra de progreso */}
-          {infoSimulacion.totalPaquetes > 0 && (
-            <div className="mt-3">
-              <div className="flex justify-between text-xs text-gray-600 mb-1">
-                <span>Progreso</span>
-                <span>{Math.round((infoSimulacion.paqueteActual / infoSimulacion.totalPaquetes) * 100)}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(infoSimulacion.paqueteActual / infoSimulacion.totalPaquetes) * 100}%` }}
-                ></div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Información de la simulación (deshabilitada temporalmente) */}
+      {/*
+        Aquí se mostraba el estado y progreso de la simulación. Deshabilitado por solicitud.
+      */}
 
       {/* Controles de fecha y hora */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -253,7 +216,7 @@ const ControlSimulacion: React.FC = () => {
       <div className="flex gap-3 mb-4">
         <button
           onClick={manejarInicioSimulacion}
-          disabled={cargando || (infoSimulacion?.enProceso ?? false)}
+          disabled={cargando}
           className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
         >
           <Play className="w-4 h-4" />
