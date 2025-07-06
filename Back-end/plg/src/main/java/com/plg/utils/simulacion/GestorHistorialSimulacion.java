@@ -51,9 +51,29 @@ public class GestorHistorialSimulacion {
         contadorPaquetes++;
         historialSimulacion.add(posicion, paquete);
         
+        // Calcular fitness del paquete parche (por ahora usar valor fijo)
+        double fitness = 0.0; // Se podría mejorar para calcular el fitness real
+        
+        // Mostrar información completa como los otros paquetes
+        System.out.println("------------------------");
+        System.out.println("Tiempo actual: " + paquete.getFechaHoraSimulacion());
+        System.out.println("Fitness algoritmo genético (paquete parche): " + String.format("%.1f", fitness));
         System.out.println("🩹 PAQUETE PARCHE INSERTADO #" + contadorPaquetes + " en posición " + posicion + 
                           " | Tiempo: " + paquete.getFechaHoraSimulacion() + 
                           " | Pedidos: " + paquete.getPedidos().size());
+        
+        // Mostrar estado de pedidos semanales (aproximado)
+        List<com.plg.entity.Pedido> pedidosSemanal = com.plg.utils.Simulacion.getPedidosSemanal();
+        int pedidosRestantes = pedidosSemanal != null ? pedidosSemanal.size() : 0;
+        
+        // Por ahora usamos valores aproximados para por atender y planificados
+        int porAtender = paquete.getPedidos().size();
+        int planificados = 0;
+        
+        System.out.println("📊 Estado: Pedidos semanales restantes: " + pedidosRestantes + 
+                          ", Por atender: " + porAtender + 
+                          ", Planificados: " + planificados);
+        
         System.out.println("📊 DESPUÉS DEL PARCHE: Total paquetes=" + historialSimulacion.size() + 
                           ", Posición actual frontend=" + indiceActualFrontend);
     }

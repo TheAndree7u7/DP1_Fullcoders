@@ -351,20 +351,111 @@ public class Simulacion {
      */
     private static Individuo crearIndividuoDesdeEstadoCapturado(AveriaConEstadoRequest.EstadoSimulacion estadoCapturado) {
         try {
-            // Crear un individuo vacío y luego poblarlo con los datos capturados
+            System.out.println("🔄 Creando individuo parche desde estado capturado...");
+            
+            // Crear individuo vacío como base
             Individuo individuo = IndividuoFactory.crearIndividuoVacio();
             
-            // Aquí se podría implementar lógica más sofisticada para convertir
-            // el estado capturado en un individuo válido
-            // Por ahora, usamos un individuo básico
+            // Actualizar posiciones de camiones usando datos del frontend
+            if (estadoCapturado.getCamiones() != null) {
+                System.out.println("🚛 Actualizando posiciones de " + estadoCapturado.getCamiones().size() + " camiones");
+                actualizarCamionesDesdeEstadoCapturado(estadoCapturado.getCamiones());
+            }
             
-            System.out.println("🔄 Individuo parche creado desde estado capturado");
+            // Actualizar almacenes usando datos del frontend
+            if (estadoCapturado.getAlmacenes() != null) {
+                System.out.println("🏪 Actualizando " + estadoCapturado.getAlmacenes().size() + " almacenes");
+                actualizarAlmacenesDesdeEstadoCapturado(estadoCapturado.getAlmacenes());
+            }
+            
+            // Regenerar el individuo con el estado actualizado
+            // Por ahora usamos el individuo vacío, pero se podría mejorar
+            // individuo = IndividuoFactory.crearIndividuoVacio();
+            
+            // Calcular fitness del paquete parche
+            if (individuo != null) {
+                double fitness = individuo.calcularFitness();
+                System.out.println("📊 Fitness paquete parche calculado: " + fitness);
+            }
+            
+            System.out.println("✅ Individuo parche creado exitosamente desde estado capturado");
             return individuo;
             
         } catch (Exception e) {
             System.err.println("❌ Error al crear individuo desde estado capturado: " + e.getMessage());
+            e.printStackTrace();
             // Fallback: crear individuo vacío
             return IndividuoFactory.crearIndividuoVacio();
+        }
+    }
+    
+    /**
+     * Actualiza las posiciones de los camiones usando los datos del frontend.
+     * 
+     * @param camionesEstado Lista de estados de camiones del frontend
+     */
+    private static void actualizarCamionesDesdeEstadoCapturado(List<AveriaConEstadoRequest.CamionEstado> camionesEstado) {
+        try {
+            for (AveriaConEstadoRequest.CamionEstado camionEstado : camionesEstado) {
+                // Buscar el camión en la lista de camiones del sistema
+                for (Camion camion : DataLoader.camiones) {
+                    if (camion.getCodigo().equals(camionEstado.getId())) {
+                        // Actualizar posición del camión
+                        String ubicacion = camionEstado.getUbicacion();
+                        if (ubicacion != null && ubicacion.matches("\\(\\d+,\\d+\\)")) {
+                            String coords = ubicacion.substring(1, ubicacion.length()-1);
+                            String[] parts = coords.split(",");
+                            int x = Integer.parseInt(parts[0]);
+                            int y = Integer.parseInt(parts[1]);
+                            camion.setCoordenada(new Coordenada(x, y));
+                            
+                            // Actualizar otros estados del camión
+                            if (camionEstado.getCapacidadActualGLP() != null) {
+                                camion.setCapacidadActualGLP(camionEstado.getCapacidadActualGLP());
+                            }
+                            if (camionEstado.getCombustibleActual() != null) {
+                                camion.setCombustibleActual(camionEstado.getCombustibleActual());
+                            }
+                            
+                            System.out.println("🚛 Camión " + camion.getCodigo() + " actualizado a posición (" + x + "," + y + ")");
+                        }
+                        break;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Error al actualizar camiones desde estado capturado: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Actualiza los almacenes usando los datos del frontend.
+     * 
+     * @param almacenesEstado Lista de estados de almacenes del frontend
+     */
+    private static void actualizarAlmacenesDesdeEstadoCapturado(List<AveriaConEstadoRequest.AlmacenSimple> almacenesEstado) {
+        try {
+            for (AveriaConEstadoRequest.AlmacenSimple almacenEstado : almacenesEstado) {
+                // Buscar el almacén en la lista de almacenes del sistema
+                for (Almacen almacen : DataLoader.almacenes) {
+                    if (almacen.getCoordenada().getFila() == almacenEstado.getCoordenadaX() &&
+                        almacen.getCoordenada().getColumna() == almacenEstado.getCoordenadaY()) {
+                        
+                        // Actualizar capacidades del almacén
+                        if (almacenEstado.getCapacidadActualGLP() != null) {
+                            almacen.setCapacidadActualGLP(almacenEstado.getCapacidadActualGLP());
+                        }
+                        if (almacenEstado.getCapacidadActualCombustible() != null) {
+                            almacen.setCapacidadCombustible(almacenEstado.getCapacidadActualCombustible());
+                        }
+                        
+                        System.out.println("🏪 Almacén en (" + almacen.getCoordenada().getFila() + "," + almacen.getCoordenada().getColumna() + ") actualizado");
+                        break;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Error al actualizar almacenes desde estado capturado: " + e.getMessage());
         }
     }
     
@@ -382,14 +473,20 @@ public class Simulacion {
             if (estadoCapturado.getRutasCamiones() != null) {
                 for (var rutaCamion : estadoCapturado.getRutasCamiones()) {
                     if (rutaCamion.getPedidos() != null) {
-                        // Convertir los pedidos del estado capturado a objetos Pedido
-                        // Por ahora usamos una lista vacía como fallback
                         System.out.println("📦 Procesando " + rutaCamion.getPedidos().size() + " pedidos de camión " + rutaCamion.getId());
+                        
+                        // Aquí se podría agregar lógica para convertir los pedidos del frontend
+                        // a objetos Pedido del sistema. Por ahora mantenemos los pedidos actuales
+                        // pero se podría mejorar para sincronizar estados específicos
                     }
                 }
             }
             
-            System.out.println("📋 Pedidos extraídos del estado capturado: " + pedidos.size());
+            // Usar los pedidos actuales del sistema por ahora
+            pedidos.addAll(pedidosPorAtender);
+            pedidos.addAll(pedidosPlanificados);
+            
+            System.out.println("📋 Pedidos para paquete parche: " + pedidos.size());
             
         } catch (Exception e) {
             System.err.println("❌ Error al extraer pedidos del estado capturado: " + e.getMessage());
