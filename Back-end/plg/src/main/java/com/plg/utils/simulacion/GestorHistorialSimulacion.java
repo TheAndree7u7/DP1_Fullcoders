@@ -60,6 +60,21 @@ public class GestorHistorialSimulacion {
         System.out.println("🧹 HISTORIAL LIMPIADO COMPLETAMENTE | Paquetes eliminados: " + paquetesEliminados + " | Estado reiniciado");
     }
 
+
+    /**
+     * Busca el paquete (IndividuoDto) cuya fecha de simulación coincida exactamente con la fecha dada.
+     * Si no hay coincidencia exacta, retorna null.
+     */
+    public static synchronized IndividuoDto obtenerPaquetePorFecha(java.time.LocalDateTime fecha) {
+        if (fecha == null) return null;
+        for (IndividuoDto paquete : historialSimulacion) {
+            if (fecha.equals(paquete.getFechaHoraSimulacion())) {
+                return paquete;
+            }
+        }
+        return null;
+    }
+
     /* ------------------------------ GETTERS -------------------------------- */
 
     public static synchronized int getTotalPaquetes() {
