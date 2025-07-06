@@ -5,13 +5,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.SynchronousQueue;
-
 
 import com.plg.config.DataLoader;
-import com.plg.dto.IndividuoDto;
 import com.plg.entity.Almacen;
 import com.plg.entity.Bloqueo;
 import com.plg.entity.Camion;
@@ -25,9 +20,6 @@ import com.plg.utils.simulacion.ConfiguracionSimulacion;
 import com.plg.utils.simulacion.MantenimientoManager;
 import com.plg.utils.simulacion.AveriasManager;
 import com.plg.utils.simulacion.UtilesSimulacion;
-// import com.plg.utils.simulacion.CamionStateApplier;
-import com.plg.utils.simulacion.IndividuoFactory;
-import com.plg.utils.simulacion.GestorHistorialSimulacion;
 
 
 public class Simulacion {
@@ -41,19 +33,6 @@ public class Simulacion {
 
     // Variable global para pedidosEnviar
     public static List<Pedido> pedidosEnviar = new ArrayList<>();
-
-    // Queue de paquetes generados para el frontend
-    // Administrado por GestorHistorialSimulacion
-    public static List<IndividuoDto> historialSimulacion = new ArrayList<>();
-
-    // Modo de ejecución: true para standalone (generar paquetes continuamente)
-    public static boolean modoStandalone = true;
-
-    // Colas para simulación
-    public static BlockingQueue<Object> gaTriggerQueue = new SynchronousQueue<>();
-    public static BlockingQueue<IndividuoDto> gaResultQueue = new SynchronousQueue<>();
-    public static Semaphore iniciar = new Semaphore(0);
-    public static Semaphore continuar = new Semaphore(0);
 
     // Getters y setters para permitir acceso desde clases auxiliares
     public static List<Pedido> getPedidosSemanal() {
@@ -78,47 +57,6 @@ public class Simulacion {
 
     public static void ejecutarSimulacion() {
         // Contenido eliminado por solicitud del usuario
-    }
-
-    /**
-     * Obtiene el siguiente paquete de la simulación para el frontend
-     * Cada llamada devuelve el siguiente paso en secuencia
-     */
-    public static IndividuoDto obtenerSiguientePaquete() {
-        return GestorHistorialSimulacion.obtenerSiguientePaquete();
-    }
-
-    /**
-     * Reinicia la reproducción desde el inicio para el frontend
-     */
-    public static void reiniciarReproduccion() {
-        GestorHistorialSimulacion.reiniciarReproduccion();
-    }
-
-    /**
-     * Obtiene información del estado actual de la simulación
-     */
-    public static SimulacionInfo obtenerInfoSimulacion() {
-        return new SimulacionInfo(
-                GestorHistorialSimulacion.getTotalPaquetes(),
-                GestorHistorialSimulacion.getPaqueteActual(),
-                GestorHistorialSimulacion.isEnProceso(),
-                fechaActual);
-    }
-
-    // Clase auxiliar para información de la simulación
-    public static class SimulacionInfo {
-        public final int totalPaquetes;
-        public final int paqueteActual;
-        public final boolean enProceso;
-        public final LocalDateTime tiempoActual;
-
-        public SimulacionInfo(int totalPaquetes, int paqueteActual, boolean enProceso, LocalDateTime tiempoActual) {
-            this.totalPaquetes = totalPaquetes;
-            this.paqueteActual = paqueteActual;
-            this.enProceso = enProceso;
-            this.tiempoActual = tiempoActual;
-        }
     }
 
     public static void actualizarEstadoGlobal(LocalDateTime fechaActual) {

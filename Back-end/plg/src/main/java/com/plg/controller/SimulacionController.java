@@ -100,34 +100,12 @@ public class SimulacionController {
             // Detener la simulación anterior si existe
             detenerSimulacionActual();
 
-            // Limpiar completamente el historial para generar nueva simulación
-            com.plg.utils.simulacion.GestorHistorialSimulacion.limpiarHistorialCompleto();
-            System.out.println("🧹 Historial limpiado completamente");
-
             // Usar la fecha actual para reiniciar la simulación
             LocalDateTime fechaActual = LocalDateTime.now();
             System.out.println("🔧 Reiniciando simulación con fecha: " + fechaActual);
 
             // Configurar nueva simulación
             Simulacion.configurarSimulacion(fechaActual);
-
-            // Ejecutar la nueva simulación en un hilo separado
-            Thread nuevoHiloSimulacion = new Thread(() -> {
-                try {
-                    System.out.println("🚀 Iniciando nueva simulación después de reiniciar...");
-                    Simulacion.ejecutarSimulacion();
-                    System.out.println("✅ Nueva simulación completada exitosamente");
-                } catch (Exception e) {
-                    System.err.println("💥 Error durante la ejecución de la nueva simulación:");
-                    System.err.println("   • Mensaje: " + e.getMessage());
-                    System.err.println("   • Tipo: " + e.getClass().getSimpleName());
-                    e.printStackTrace();
-                }
-            });
-
-            nuevoHiloSimulacion.setName("SimulacionThread-Reinicio-" + fechaActual);
-            nuevoHiloSimulacion.start();
-            hiloSimulacionActual = nuevoHiloSimulacion;
 
             String mensaje = "Simulación reiniciada y nueva simulación generándose con fecha: " + fechaActual;
             System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
@@ -140,16 +118,6 @@ public class SimulacionController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMsg);
         }
-    }
-
-    @GetMapping("/info")
-    public Simulacion.SimulacionInfo obtenerInfoSimulacion() {
-        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/info");
-        Simulacion.SimulacionInfo info = Simulacion.obtenerInfoSimulacion();
-        System.out.println("✅ ENDPOINT RESPUESTA: Total=" + info.totalPaquetes +
-                ", Actual=" + info.paqueteActual +
-                ", EnProceso=" + info.enProceso);
-        return info;
     }
 
     @PostMapping("/iniciar")
@@ -186,30 +154,8 @@ public class SimulacionController {
 
             System.out.println("🔧 Configurando simulación con fecha: " + request.getFechaInicio());
 
-            // Limpiar historial anterior antes de iniciar nueva simulación
-            com.plg.utils.simulacion.GestorHistorialSimulacion.limpiarHistorialCompleto();
-
             // Configurar la simulación con la fecha enviada desde el frontend
             Simulacion.configurarSimulacion(request.getFechaInicio());
-
-            // Ejecutar la simulación en un hilo separado para no bloquear la respuesta HTTP
-            Thread simulacionThread = new Thread(() -> {
-                try {
-                    System.out.println("🚀 Iniciando simulación en hilo separado...");
-                    Simulacion.ejecutarSimulacion();
-                    System.out.println("✅ Simulación completada exitosamente");
-                } catch (Exception e) {
-                    System.err.println("💥 Error durante la ejecución de la simulación:");
-                    System.err.println("   • Mensaje: " + e.getMessage());
-                    System.err.println("   • Tipo: " + e.getClass().getSimpleName());
-                    System.err.println("   • Stack trace completo:");
-                    e.printStackTrace();
-                }
-            });
-
-            simulacionThread.setName("SimulacionThread-" + request.getFechaInicio());
-            simulacionThread.start();
-            hiloSimulacionActual = simulacionThread;
 
             String mensaje = "Simulación iniciada correctamente con fecha: " + request.getFechaInicio();
             System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
