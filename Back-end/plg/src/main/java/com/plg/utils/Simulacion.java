@@ -320,9 +320,13 @@ public class Simulacion {
             System.out.println("🩹 GENERANDO PAQUETE PARCHE para avería en: " + timestampAveria);
 
             // Obtener información del paquete actual
+            System.out.println("🔄 Paquete actual: \n" + GestorHistorialSimulacion.getPaqueteActual());
+            System.out.println("________________________________________________________");
             int paqueteActualNumero = GestorHistorialSimulacion.getPaqueteActual();
-            IndividuoDto paqueteActual = GestorHistorialSimulacion.obtenerPaquetePorIndice(paqueteActualNumero);
 
+            IndividuoDto paqueteActual = GestorHistorialSimulacion.obtenerPaquetePorIndice(paqueteActualNumero - 1);
+            // System.out.println("🔄 Individuo del paquete actual: \n" + paqueteActual);
+            System.out.println("________________________________________________________");
             if (paqueteActual == null) {
                 System.err.println("❌ No se pudo obtener el paquete actual para generar el parche");
                 return null;
