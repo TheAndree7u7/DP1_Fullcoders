@@ -191,7 +191,12 @@ public class AveriaService {
      * @param request el request completo con el timestamp correcto de la avería
      */
     private void procesarEstadoCompleto(AveriaConEstadoRequest.EstadoSimulacion estadoSimulacion, AveriaConEstadoRequest request) {
-        try {
+        try { 
+            System.out.println("==========================================================");
+            System.out.println("==========================================================");
+            System.out.println("🔄 BACKEND: Procesando estado completo de la simulación...");
+            System.out.println("🔄 BACKEND: Estado simulación: " + estadoSimulacion);
+            System.out.println("🔄 BACKEND: Request: " + request);
             System.out.println("🔄 BACKEND: Procesando estado completo de la simulación...");
             
             // Paso 0: Detener la simulación inmediatamente para evitar más paquetes
@@ -239,7 +244,8 @@ public class AveriaService {
             analizarEstadoCapturado(estadoSimulacion);
             
             System.out.println("✅ BACKEND: Estado completo procesado y paquete parche generado exitosamente");
-            
+            System.out.println("==========================================================");
+            System.out.println("==========================================================");
         } catch (Exception e) {
             System.err.println("⚠️ BACKEND: Error al procesar estado completo: " + e.getMessage());
             e.printStackTrace();
