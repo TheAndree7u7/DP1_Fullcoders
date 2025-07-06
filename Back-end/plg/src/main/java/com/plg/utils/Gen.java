@@ -29,13 +29,13 @@ public class Gen {
     private List<Nodo> rutaFinal;
     private List<Pedido> pedidos;
     private double fitness;
-    private List<Almacen> almacenes;
+
+
     public Gen(Camion camion, List<Nodo> nodosOriginal) {
         this.camion = camion;
         this.nodos = nodosOriginal;
         this.rutaFinal = new ArrayList<>();
         this.pedidos = new ArrayList<>();
-        this.almacenes = new ArrayList<>();
     }
 
     public double calcularFitness() {

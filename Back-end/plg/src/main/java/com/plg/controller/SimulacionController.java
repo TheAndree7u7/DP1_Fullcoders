@@ -78,6 +78,7 @@ public class SimulacionController {
         System.out.println("🧩 Pedidos a enviar unidos para la fecha: " + pedidosEnviar.size());
         System.out.println("🧬 Ejecutando algoritmo genético para la fecha: " + fecha);
         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(), pedidosEnviar);
+        algoritmoGenetico.ejecutarAlgoritmo();
         IndividuoDto mejorIndividuoDto = new IndividuoDto(
                 algoritmoGenetico.getMejorIndividuo(),
                 pedidosEnviar,

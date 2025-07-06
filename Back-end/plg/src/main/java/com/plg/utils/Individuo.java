@@ -39,22 +39,8 @@ public class Individuo {
 
     private void inicializarCromosoma() {
         List<Almacen> almacenes = DataLoader.almacenes;
-        List<Camion> camiones = DataLoader.camiones;
-
-        // FILTRAR CAMIONES EN MANTENIMIENTO - Ubicación más eficiente
-        List<Camion> camionesDisponibles = camiones.stream()
-                .filter(camion -> camion.getEstado() != com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
-                .collect(java.util.stream.Collectors.toList());
-
-        // Verificar que tengamos camiones disponibles
-        if (camionesDisponibles.isEmpty()) {
-            LoggerUtil.logError("⚠️  ADVERTENCIA: No hay camiones disponibles (todos en mantenimiento)");
-            LoggerUtil.logWarning("Se usará la lista completa de camiones, incluyendo los que están en mantenimiento.");
-            camionesDisponibles = camiones;
-        } else {
-            LoggerUtil.log("🚛 Camiones disponibles para algoritmo: " + camionesDisponibles.size()
-                    + " de " + camiones.size() + " totales");
-        }
+        // Obtener camiones disponibles (no en mantenimiento)
+        List<Camion> camionesDisponibles = obtenerCamionesDisponibles();
 
         cromosoma = new ArrayList<>();
         for (Camion camion : camionesDisponibles) {
@@ -94,6 +80,33 @@ public class Individuo {
         for (Gen gen : cromosoma) {
             gen.getNodos().add(almacenCentral);
         }
+    }
+
+    /**
+     * Filtra los camiones que no están en mantenimiento preventivo.
+     * Si todos los camiones están en mantenimiento, devuelve la lista completa.
+     * 
+     * @return Lista de camiones disponibles para asignación
+     */
+    private List<Camion> obtenerCamionesDisponibles() {
+        List<Camion> camiones = DataLoader.camiones;
+        
+        // FILTRAR CAMIONES EN MANTENIMIENTO - Ubicación más eficiente
+        List<Camion> camionesDisponibles = camiones.stream()
+                .filter(camion -> camion.getEstado() != com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
+                .collect(java.util.stream.Collectors.toList());
+
+        // Verificar que tengamos camiones disponibles
+        if (camionesDisponibles.isEmpty()) {
+            LoggerUtil.logError("⚠️  ADVERTENCIA: No hay camiones disponibles (todos en mantenimiento)");
+            LoggerUtil.logWarning("Se usará la lista completa de camiones, incluyendo los que están en mantenimiento.");
+            camionesDisponibles = camiones;
+        } else {
+            LoggerUtil.log("🚛 Camiones disponibles para algoritmo: " + camionesDisponibles.size()
+                    + " de " + camiones.size() + " totales");
+        }
+        
+        return camionesDisponibles;
     }
 
     public double calcularFitness() {
