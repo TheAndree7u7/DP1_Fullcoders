@@ -285,10 +285,11 @@ public class Simulacion {
             // Calcular el tiempo de inicio del paquete parche = timestamp de la avería
             LocalDateTime inicioParche = timestampAveria;
             
-            // Calcular el tiempo de fin = inicio del paquete actual + 2 horas (ventana normal)  
+            // Calcular el tiempo de fin = inicio del paquete actual + 4 horas (2 intervalos de 2 horas)
+            // El parche debe cubrir hasta el final del próximo paquete que habría empezado
             // getFechaHoraSimulacion() devuelve un LocalDateTime directamente
             LocalDateTime inicioPaqueteActual = paqueteActual.getFechaHoraSimulacion();
-            LocalDateTime finParche = inicioPaqueteActual.plusHours(2);
+            LocalDateTime finParche = inicioPaqueteActual.plusHours(4); // 2 intervalos de 2 horas cada uno
             
             System.out.println("⏰ VENTANA TEMPORAL DEL PARCHE:");
             System.out.println("   • Inicio parche: " + inicioParche);
