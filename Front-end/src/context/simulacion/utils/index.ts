@@ -10,7 +10,7 @@ export { parseCoord } from './coordenadas';
 export { adaptarCamionParaCalculos } from './camiones';
 
 // Exportar utilidades de tiempo
-export { } from './tiempo';
+export { formatearTiempoTranscurrido, calcularTimestampSimulacion } from './tiempo';
 
 // Exportar controles de simulación
 export { 

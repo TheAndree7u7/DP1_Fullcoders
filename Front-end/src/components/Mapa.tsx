@@ -56,6 +56,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
     iniciarContadorTiempo, 
     setSimulacionActiva, 
     simulacionActiva,
+    setPollingActivo,
     horaActual,
     horaSimulacion,
     fechaHoraSimulacion,
@@ -669,7 +670,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                       rutasCamiones,
                       almacenes,
                       bloqueos
-                    })}
+                    }, setPollingActivo)}
                   >
                     {averiando === clickedCamion + '-1' ? 'Averiando...' : 'Avería tipo 1'}
                   </button>
@@ -688,7 +689,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                       rutasCamiones,
                       almacenes,
                       bloqueos
-                    })}
+                    }, setPollingActivo)}
                   >
                     {averiando === clickedCamion + '-2' ? 'Averiando...' : 'Avería tipo 2'}
                   </button>
@@ -707,7 +708,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                       rutasCamiones,
                       almacenes,
                       bloqueos
-                    })}
+                    }, setPollingActivo)}
                   >
                     {averiando === clickedCamion + '-3' ? 'Averiando...' : 'Avería tipo 3'}
                   </button>

@@ -119,6 +119,7 @@ interface SimulacionContextType {
   pausarSimulacion: () => void; // Nueva función para pausar la simulación
   reanudarSimulacion: () => void; // Nueva función para reanudar la simulación
   setSimulacionActiva: (value: boolean) => void; // Setter directo para simulacionActiva
+  setPollingActivo: (value: boolean) => void; // Nueva función para controlar el polling de paquetes
   cargando: boolean;
   bloqueos: Bloqueo[];
   marcarCamionAveriado: (camionId: string) => void; // Nueva función para manejar averías
@@ -1004,6 +1005,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         pausarSimulacion,
         reanudarSimulacion,
         setSimulacionActiva,
+        setPollingActivo,
         cargando,
         bloqueos,
         marcarCamionAveriado,

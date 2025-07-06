@@ -49,6 +49,22 @@ public class SimulacionController {
         hiloSimulacionActual = null;
     }
 
+    /**
+     * Método público para detener la simulación actual por averías.
+     * Este método puede ser llamado desde otros servicios como AveriaService.
+     */
+    public static void detenerSimulacionPorAveria() {
+        System.out.println("🚨 DETENER SIMULACIÓN POR AVERÍA");
+        
+        // Marcar la simulación como no en proceso
+        com.plg.utils.simulacion.GestorHistorialSimulacion.setEnProceso(false);
+        
+        // Detener el hilo de simulación
+        detenerSimulacionActual();
+        
+        System.out.println("✅ Simulación detenida por avería");
+    }
+
     @GetMapping("/mejor")
     public IndividuoDto obtenerMejorIndividuo() {
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/mejor");
@@ -223,15 +239,17 @@ public class SimulacionController {
             // Eliminar paquetes futuros (mantener solo el actual)
             System.out.println("🗑️ Eliminando paquetes futuros...");
             
-            // TODO: Implementar el método eliminarPaquetesFuturos() en la clase Simulacion
-            // Por ahora, simular la eliminación
-            int paquetesEliminados = Math.max(0, infoAntes.totalPaquetes - infoAntes.paqueteActual - 1);
+            // Usar el método implementado en la clase Simulacion
+            int paquetesEliminados = Simulacion.eliminarPaquetesFuturos();
             
-            System.out.println("📊 Simulando eliminación de " + paquetesEliminados + " paquetes futuros");
+            // Obtener información después de eliminar
+            Simulacion.SimulacionInfo infoDespues = Simulacion.obtenerInfoSimulacion();
+            System.out.println("📊 DESPUÉS: Total=" + infoDespues.totalPaquetes + 
+                              ", Actual=" + infoDespues.paqueteActual);
             
-            String mensaje = "Paquetes futuros marcados para eliminación. " +
-                           "Esta funcionalidad está en desarrollo. " +
-                           "Paquetes identificados para eliminación: " + paquetesEliminados;
+            String mensaje = "Paquetes futuros eliminados exitosamente. " +
+                           "Paquetes eliminados: " + paquetesEliminados + 
+                           ". Total actual: " + infoDespues.totalPaquetes;
             
             System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
             

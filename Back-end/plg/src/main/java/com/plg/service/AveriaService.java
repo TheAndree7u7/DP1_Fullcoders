@@ -165,7 +165,7 @@ public class AveriaService {
                  request.getEstadoSimulacion().getBloqueos().size() : 0));
 
             // Procesar el estado completo de la simulación
-            procesarEstadoCompleto(request.getEstadoSimulacion());
+            procesarEstadoCompleto(request.getEstadoSimulacion(), request);
 
             // Crear la avería usando el método estándar
             AveriaRequest averiaRequest = request.toAveriaRequest();
@@ -184,48 +184,119 @@ public class AveriaService {
 
     /**
      * Procesa el estado completo de la simulación capturado durante la avería.
-     * Este método maneja el análisis y almacenamiento del estado completo.
+     * Este método maneja el análisis, almacenamiento del estado completo y 
+     * la generación del paquete parche para manejar la interrupción temporal.
      *
      * @param estadoSimulacion el estado completo de la simulación
+     * @param request el request completo con el timestamp correcto de la avería
      */
-    private void procesarEstadoCompleto(AveriaConEstadoRequest.EstadoSimulacion estadoSimulacion) {
+    private void procesarEstadoCompleto(AveriaConEstadoRequest.EstadoSimulacion estadoSimulacion, AveriaConEstadoRequest request) {
         try {
             System.out.println("🔄 BACKEND: Procesando estado completo de la simulación...");
             
-            // Aquí puedes agregar lógica específica para procesar el estado:
-            // - Guardar el estado en base de datos
-            // - Generar reportes
-            // - Realizar análisis de la simulación
-            // - Tomar decisiones basadas en el estado
+            // Paso 0: Detener la simulación inmediatamente para evitar más paquetes
+            System.out.println("🚨 BACKEND: Deteniendo simulación del backend por avería...");
+            com.plg.controller.SimulacionController.detenerSimulacionPorAveria();
             
-            // Por ahora, solo registramos la información recibida
+            // Paso 1: Detener la generación de paquetes futuros inmediatamente
+            System.out.println("🛑 BACKEND: Eliminando paquetes futuros...");
+            int paquetesEliminados = com.plg.utils.Simulacion.eliminarPaquetesFuturos();
+            System.out.println("✅ BACKEND: Paquetes futuros eliminados: " + paquetesEliminados);
+            
+            // Paso 2: Generar paquete parche con el estado capturado
+            System.out.println("🩹 BACKEND: Generando paquete parche para manejar la avería...");
+            // Usar el timestamp de la avería enviado desde el frontend, no el del estado de simulación
+            String timestampString = request.getFechaHoraReporte();
+            if (timestampString.endsWith("Z")) {
+                timestampString = timestampString.substring(0, timestampString.length() - 1);
+            }
+            LocalDateTime timestampAveria = LocalDateTime.parse(timestampString);
+            
+            System.out.println("📅 BACKEND: Usando timestamp de avería correcto: " + timestampAveria);
+            System.out.println("📅 BACKEND: (No el timestamp del estado: " + estadoSimulacion.getTimestamp() + ")");
+            
+            com.plg.dto.IndividuoDto paqueteParche = com.plg.utils.Simulacion.generarPaqueteParche(
+                timestampAveria, 
+                estadoSimulacion
+            );
+            
+            if (paqueteParche != null) {
+                // Paso 3: Insertar el paquete parche en el historial
+                com.plg.utils.Simulacion.insertarPaqueteParche(paqueteParche);
+                System.out.println("✅ BACKEND: Paquete parche insertado exitosamente");
+                
+                // Obtener información actualizada
+                com.plg.utils.Simulacion.SimulacionInfo infoActual = com.plg.utils.Simulacion.obtenerInfoSimulacion();
+                System.out.println("📊 BACKEND: Estado actual después del parche:");
+                System.out.println("   • Total paquetes: " + infoActual.totalPaquetes);
+                System.out.println("   • Paquete actual: " + infoActual.paqueteActual);
+                System.out.println("   • En proceso: " + infoActual.enProceso);
+            } else {
+                System.err.println("❌ BACKEND: No se pudo generar el paquete parche");
+            }
+            
+            // Paso 4: Análisis del estado para logs y reportes
+            analizarEstadoCapturado(estadoSimulacion);
+            
+            System.out.println("✅ BACKEND: Estado completo procesado y paquete parche generado exitosamente");
+            
+        } catch (Exception e) {
+            System.err.println("⚠️ BACKEND: Error al procesar estado completo: " + e.getMessage());
+            e.printStackTrace();
+            // No lanzamos excepción aquí para no fallar la creación de la avería
+        }
+    }
+    
+    /**
+     * Analiza el estado capturado durante la avería para generar logs y reportes.
+     *
+     * @param estadoSimulacion el estado completo de la simulación
+     */
+    private void analizarEstadoCapturado(AveriaConEstadoRequest.EstadoSimulacion estadoSimulacion) {
+        try {
+            System.out.println("📊 BACKEND: ANÁLISIS DEL ESTADO CAPTURADO:");
+            
+            // Análisis de camiones
             if (estadoSimulacion.getCamiones() != null) {
                 System.out.println("📈 BACKEND: Analizando " + estadoSimulacion.getCamiones().size() + " camiones");
-                // Ejemplo: contar camiones por estado
                 long camionesEnCamino = estadoSimulacion.getCamiones().stream()
                     .filter(c -> "En Camino".equals(c.getEstado()))
                     .count();
                 long camionesAveriados = estadoSimulacion.getCamiones().stream()
                     .filter(c -> c.getEstado() != null && c.getEstado().contains("Averiado"))
                     .count();
-                System.out.println("📊 BACKEND: Camiones en camino: " + camionesEnCamino);
-                System.out.println("📊 BACKEND: Camiones averiados: " + camionesAveriados);
+                long camionesDisponibles = estadoSimulacion.getCamiones().stream()
+                    .filter(c -> "Disponible".equals(c.getEstado()))
+                    .count();
+                    
+                System.out.println("   • Camiones en camino: " + camionesEnCamino);
+                System.out.println("   • Camiones averiados: " + camionesAveriados);
+                System.out.println("   • Camiones disponibles: " + camionesDisponibles);
             }
             
+            // Análisis de rutas y pedidos
             if (estadoSimulacion.getRutasCamiones() != null) {
                 System.out.println("📈 BACKEND: Analizando " + estadoSimulacion.getRutasCamiones().size() + " rutas");
-                // Ejemplo: contar total de pedidos
                 int totalPedidos = estadoSimulacion.getRutasCamiones().stream()
                     .mapToInt(ruta -> ruta.getPedidos() != null ? ruta.getPedidos().size() : 0)
                     .sum();
-                System.out.println("📊 BACKEND: Total de pedidos en rutas: " + totalPedidos);
+                System.out.println("   • Total de pedidos en rutas: " + totalPedidos);
             }
             
-            System.out.println("✅ BACKEND: Estado completo procesado exitosamente");
+            // Análisis de almacenes
+            if (estadoSimulacion.getAlmacenes() != null) {
+                System.out.println("📈 BACKEND: Analizando " + estadoSimulacion.getAlmacenes().size() + " almacenes");
+                // Aquí se podría agregar más análisis de almacenes
+            }
+            
+            // Análisis temporal
+            System.out.println("⏰ BACKEND: Datos temporales:");
+            System.out.println("   • Timestamp avería: " + estadoSimulacion.getTimestamp());
+            System.out.println("   • Hora simulación: " + estadoSimulacion.getHoraSimulacion());
+            System.out.println("   • Hora actual: " + estadoSimulacion.getHoraActual());
             
         } catch (Exception e) {
-            System.err.println("⚠️ BACKEND: Error al procesar estado completo: " + e.getMessage());
-            // No lanzamos excepción aquí para no fallar la creación de la avería
+            System.err.println("❌ BACKEND: Error al analizar estado capturado: " + e.getMessage());
         }
     }
 
