@@ -193,7 +193,7 @@ public class CamionService {
                         case "disponible":
                             camion.setEstado(EstadoCamion.DISPONIBLE);
                             break;
-                        case "inmovilizado por avería":
+                        case "averiado":
                             camion.setEstado(EstadoCamion.INMOVILIZADO_POR_AVERIA);
                             break;
                         case "en mantenimiento":

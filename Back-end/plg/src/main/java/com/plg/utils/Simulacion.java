@@ -461,6 +461,7 @@ public class Simulacion {
                     .filter(pedido -> pedido.getFechaRegistro().isAfter(fechaInicioParche)
                             && pedido.getFechaRegistro().isBefore(fechaFinParche))
                     .collect(Collectors.toList());
+            System.out.println("🔍 DIAGNÓSTICO: Posiciones DESPUÉS de actualizar desde frontend:");
             Camion.imprimirDatosCamiones(DataLoader.camiones);
             // Numero de pedidos antes de filtrar
             System.out.println("NUmero de pedidos antes de filtrar: " + pedidosEnviar.size());
@@ -486,6 +487,9 @@ public class Simulacion {
                 // Aplicar el estado final de los camiones permanentemente
                 // CamionStateApplier.aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
 
+                System.out.println("🔍 DIAGNÓSTICO: Posiciones DESPUÉS de ejecutar algoritmo genético:");
+                Camion.imprimirDatosCamiones(DataLoader.camiones);
+
                 // Agregar al historial para el frontend
                 GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
                 faltacrearparche = false;
@@ -503,6 +507,9 @@ public class Simulacion {
                     IndividuoDto paqueteEmergencia = new IndividuoDto(individuoEmergencia,
                             pedidosEnviar, bloqueosActivos, fechaActual);
                     GestorHistorialSimulacion.agregarPaquete(paqueteEmergencia);
+
+                    System.out.println("🔍 DIAGNÓSTICO: Posiciones DESPUÉS de crear paquete de emergencia:");
+                    Camion.imprimirDatosCamiones(DataLoader.camiones);
                 } catch (Exception e2) {
                     System.err.println("❌ Error al crear paquete de emergencia: " + e2.getMessage());
                     e2.printStackTrace();
@@ -516,6 +523,9 @@ public class Simulacion {
             // Imprimir resumen detallado de estados
             imprimirResumenEstados();
             System.out.println("ESPERANDO 1 HORA");
+
+            System.out.println("🔍 DIAGNÓSTICO: Posiciones FINALES antes de salir de crearPaqueteParche:");
+            Camion.imprimirDatosCamiones(DataLoader.camiones);
 
             fechaActual = fechaFinParche;
             // ESPERA 1HORA
@@ -560,18 +570,35 @@ public class Simulacion {
     private static void actualizarCamionesDesdeEstadoCapturado(
             List<AveriaConEstadoRequest.CamionEstado> camionesEstado) {
         try {
+            System.out.println("🔧 DEPURACIÓN: Iniciando actualización de camiones desde estado capturado");
             for (AveriaConEstadoRequest.CamionEstado camionEstado : camionesEstado) {
+                System.out.println("🔧 Procesando camión: " + camionEstado.getId() + " con ubicación: "
+                        + camionEstado.getUbicacion());
                 // Buscar el camión en la lista de camiones del sistema
+                boolean camionEncontrado = false;
                 for (Camion camion : DataLoader.camiones) {
                     if (camion.getCodigo().equals(camionEstado.getId())) {
+                        camionEncontrado = true;
+                        System.out.println("🔧 Camión encontrado: " + camion.getCodigo() + ", posición actual: "
+                                + camion.getCoordenada());
                         // Actualizar posición del camión
                         String ubicacion = camionEstado.getUbicacion();
+                        System.out.println("🔧 Validando ubicación: '" + ubicacion + "'");
+                        System.out.println("🔧 Ubicación no nula: " + (ubicacion != null));
+                        System.out.println("🔧 Ubicación match regex: "
+                                + (ubicacion != null && ubicacion.matches("\\(\\d+,\\d+\\)")));
                         if (ubicacion != null && ubicacion.matches("\\(\\d+,\\d+\\)")) {
                             String coords = ubicacion.substring(1, ubicacion.length() - 1);
                             String[] parts = coords.split(",");
                             int x = Integer.parseInt(parts[0]);
                             int y = Integer.parseInt(parts[1]);
+
+                            System.out.println("🔧 Coordenadas parseadas: x=" + x + ", y=" + y);
+                            System.out.println("🔧 Posición ANTES de actualizar: " + camion.getCoordenada());
+
                             camion.setCoordenada(new Coordenada(x, y));
+
+                            System.out.println("🔧 Posición DESPUÉS de setCoordenada: " + camion.getCoordenada());
 
                             // Actualizar otros estados del camión
                             if (camionEstado.getCapacidadActualGLP() != null) {
@@ -580,17 +607,33 @@ public class Simulacion {
                             if (camionEstado.getCombustibleActual() != null) {
                                 camion.setCombustibleActual(camionEstado.getCombustibleActual());
                             }
+
                             // Usar repository para actualizar el camion
+                            System.out.println("🔧 Llamando a repository.update() para camión: " + camion.getCodigo());
                             camionRepository.update(camion);
+
+                            System.out.println("🔧 Posición DESPUÉS de repository.update(): " + camion.getCoordenada());
                             System.out.println("🚛 Camión " + camion.getCodigo() + " actualizado a posición (" + x + ","
                                     + y + ")");
+                        } else {
+                            System.out.println(
+                                    "🔧 ❌ Ubicación inválida para camión " + camionEstado.getId() + ": " + ubicacion);
                         }
                         break;
+                    }
+                }
+
+                if (!camionEncontrado) {
+                    System.out.println("🔧 ❌ Camión NO encontrado en DataLoader.camiones: " + camionEstado.getId());
+                    System.out.println("🔧 Camiones disponibles en DataLoader:");
+                    for (Camion c : DataLoader.camiones) {
+                        System.out.println("🔧   - " + c.getCodigo());
                     }
                 }
             }
         } catch (Exception e) {
             System.err.println("❌ Error al actualizar camiones desde estado capturado: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 

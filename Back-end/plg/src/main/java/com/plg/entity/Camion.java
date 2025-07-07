@@ -58,7 +58,7 @@ public class Camion extends Nodo {
     @Override
     public String toString() {
         return String.format(
-                "Camión %s [%s]%n"
+                "Camión %s [%s] - %s%n"
                         + "  - Coordenada:    %s%n"
                         + "  - GLP (m3):       %.2f / %.2f%n"
                         + "  - Carga (t):      %.2f (tara) + %.2f (carga)%n"
@@ -66,6 +66,7 @@ public class Camion extends Nodo {
                         + "  - Distancia máx.: %.2f km%n",
                 codigo,
                 tipo,
+                estado != null ? estado.name() : "N/A",
                 getCoordenada() != null ? getCoordenada() : "N/A",
                 capacidadActualGLP,
                 capacidadMaximaGLP,

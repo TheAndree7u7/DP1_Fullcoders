@@ -7,7 +7,7 @@ import { averiarCamionConEstado } from "../../../services/averiaApiService";
 import { eliminarPaquetesFuturos, obtenerInfoSimulacion } from "../../../services/simulacionApiService";
 import { toast, Bounce } from 'react-toastify';
 import { pausarSimulacion as pausarSimulacionUtil } from "../../../context/simulacion/utils/controles";
-import { capturarEstadoCompleto, generarResumenEstado, convertirEstadoParaBackend, type EstadoSimulacionCompleto } from "../../../context/simulacion/utils/estado";
+import { capturarEstadoCompleto, generarResumenEstado, type EstadoSimulacionCompleto } from "../../../context/simulacion/utils/estado";
 import { calcularTimestampSimulacion } from "../../../context/simulacion/utils/tiempo";
 import type { CamionEstado, RutaCamion, Bloqueo } from "../../../context/SimulacionContext";
 import type { Almacen } from "../../../types";
@@ -80,16 +80,40 @@ export const handleAveriar = async (
     console.log("⏸️ PAUSANDO SIMULACIÓN INMEDIATAMENTE...");
     pausarSimulacionUtil(setSimulacionActiva);
     
-    // 3. Capturar el estado completo actual
-    console.log("📸 CAPTURANDO ESTADO COMPLETO...");
+    // 3. 🔧 CORREGIDO: Marcar el camión como averiado ANTES de capturar el estado
+    console.log("🔄 MARCANDO CAMIÓN COMO AVERIADO PRIMERO...");
+    marcarCamionAveriado(camionId);
+    console.log(`✅ Camión ${camionId} marcado como averiado en el contexto local`);
+    
+    // 4. Capturar el estado completo actual (ahora incluye el camión averiado)
+    console.log("📸 CAPTURANDO ESTADO COMPLETO (CON CAMIÓN AVERIADO)...");
     const estadoCompleto: EstadoSimulacionCompleto = capturarEstadoCompleto(estadoSimulacion);
     
-    // 4. Generar resumen del estado para logs
+    // 5. Verificar que el camión está averiado en el estado capturado
+    const camionAveriado = estadoCompleto.camiones?.find(c => c.id === camionId);
+    if (camionAveriado) {
+      console.log(`✅ VERIFICACIÓN: Camión ${camionId} en estado capturado:`, {
+        id: camionAveriado.id,
+        estado: camionAveriado.estado,
+        ubicacion: camionAveriado.ubicacion
+      });
+      
+      if (camionAveriado.estado !== 'Averiado') {
+        console.error(`❌ ERROR: El camión ${camionId} NO está marcado como averiado en el estado capturado. Estado actual: ${camionAveriado.estado}`);
+        // Intentar actualizar el estado manualmente
+        camionAveriado.estado = 'Averiado';
+        console.log(`🔧 CORRECCIÓN: Forzando estado 'Averiado' para el camión ${camionId}`);
+      }
+    } else {
+      console.error(`❌ ERROR: No se encontró el camión ${camionId} en el estado capturado`);
+    }
+    
+    // 6. Generar resumen del estado para logs
     const resumenEstado = generarResumenEstado(estadoCompleto);
     console.log("📊 RESUMEN DEL ESTADO AL MOMENTO DE LA AVERÍA:");
     console.log(resumenEstado);
     
-    // 5. CRÍTICO: Eliminar paquetes futuros - esta operación debe ser exitosa
+    // 7. CRÍTICO: Eliminar paquetes futuros - esta operación debe ser exitosa
     console.log("🗑️ ELIMINANDO PAQUETES FUTUROS (CRÍTICO)...");
     try {
       await eliminarPaquetesFuturos();
@@ -112,17 +136,12 @@ export const handleAveriar = async (
       throw new Error(`Error crítico al eliminar paquetes futuros: ${error}`);
     }
     
-    // 6. Enviar avería con estado completo al backend
-    console.log("📡 ENVIANDO AVERÍA CON ESTADO COMPLETO...");
+    // 8. Enviar avería con estado completo al backend (ahora incluye el camión averiado)
+    console.log("📡 ENVIANDO AVERÍA CON ESTADO COMPLETO (CAMIÓN AVERIADO)...");
     console.log("📅 TIMESTAMP USADO PARA AVERÍA:", fechaHoraReporte);
-    const estadoParaBackend = convertirEstadoParaBackend(estadoCompleto);
-    await averiarCamionConEstado(camionId, tipo, fechaHoraReporte, estadoParaBackend);
+    await averiarCamionConEstado(camionId, tipo, fechaHoraReporte, estadoCompleto);
     
-    // 7. Marcar el camión como averiado en el contexto
-    console.log("🔄 ACTUALIZANDO ESTADO LOCAL...");
-    marcarCamionAveriado(camionId);
-    
-    // 8. Mostrar toast de éxito
+    // 9. Mostrar toast de éxito
     toast.success(`🚛💥 Camión ${camionId} averiado (Tipo ${tipo}) - Simulación pausada y paquetes futuros eliminados`, {
       position: "top-right",
       autoClose: 6000,
@@ -140,6 +159,7 @@ export const handleAveriar = async (
       tipo,
       timestampUsado: fechaHoraReporte,
       estadoCapturado: true,
+      camionAveriado: true,
       paquetesFuturosEliminados: true,
       simulacionPausada: true,
       pollingDetenido: !!setPollingActivo

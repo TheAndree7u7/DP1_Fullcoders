@@ -33,16 +33,50 @@ const ControlSimulacion: React.FC = () => {
       try {
         const info = await obtenerInfoSimulacion();
         setInfoSimulacion(info);
+        
+        // 🔍 DIAGNÓSTICO: Agregar logs para ver por qué el botón está bloqueado
+        console.log("📊 DIAGNÓSTICO: Estado de la simulación obtenido del backend:", {
+          totalPaquetes: info.totalPaquetes,
+          paqueteActual: info.paqueteActual,
+          enProceso: info.enProceso,
+          tiempoActual: info.tiempoActual
+        });
+        
+        console.log("🔒 DIAGNÓSTICO: Estado del botón 'Iniciar Simulación':", {
+          cargando: cargando,
+          simulacionEnProceso: info.enProceso,
+          botonBloqueado: cargando || info.enProceso,
+          razonBloqueo: cargando ? 'Cargando activo' : info.enProceso ? 'Simulación en proceso' : 'No bloqueado'
+        });
+        
       } catch (error) {
         console.error('Error al obtener info de simulación:', error);
       }
     }, 5000);
 
     // Obtener información inicial
-    obtenerInfoSimulacion().then(setInfoSimulacion).catch(console.error);
+    obtenerInfoSimulacion().then((info) => {
+      setInfoSimulacion(info);
+      
+      // 🔍 DIAGNÓSTICO: Log inicial también
+      console.log("📊 DIAGNÓSTICO: Estado inicial de la simulación:", {
+        totalPaquetes: info.totalPaquetes,
+        paqueteActual: info.paqueteActual,
+        enProceso: info.enProceso,
+        tiempoActual: info.tiempoActual
+      });
+      
+      console.log("🔒 DIAGNÓSTICO: Estado inicial del botón 'Iniciar Simulación':", {
+        cargando: cargando,
+        simulacionEnProceso: info.enProceso,
+        botonBloqueado: cargando || info.enProceso,
+        razonBloqueo: cargando ? 'Cargando activo' : info.enProceso ? 'Simulación en proceso' : 'No bloqueado'
+      });
+      
+    }).catch(console.error);
 
     return () => clearInterval(intervalo);
-  }, []);
+  }, [cargando]); // Agregué cargando como dependencia para actualizar logs
 
   const manejarInicioSimulacion = async () => {
     if (!fechaInicio || !horaInicio) {
@@ -134,6 +168,49 @@ const ControlSimulacion: React.FC = () => {
       
     } catch (error) {
       setMensaje(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      setTipoMensaje('error');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // 🔧 NUEVA FUNCIÓN: Forzar reinicio cuando el botón está bloqueado
+  const manejarForzarReinicio = async () => {
+    setCargando(true);
+    setMensaje('Forzando reinicio del sistema...');
+    setTipoMensaje('info');
+
+    try {
+      console.log("🔧 FORZAR REINICIO: Iniciando reinicio forzado del sistema");
+      
+      // Reiniciar tanto el backend como el contexto local
+      await reiniciar();
+      
+      // Limpiar estado local forzadamente
+      setInfoSimulacion(null);
+      
+      console.log("🔧 FORZAR REINICIO: Reinicio completado, esperando actualización del estado");
+      
+      // Forzar actualización del estado después de un tiempo
+      setTimeout(async () => {
+        try {
+          const info = await obtenerInfoSimulacion();
+          setInfoSimulacion(info);
+          console.log("📊 FORZAR REINICIO: Info actualizada:", info);
+          
+          setMensaje('Sistema reiniciado forzadamente. El botón debería estar disponible ahora.');
+          setTipoMensaje('success');
+          
+        } catch (error) {
+          console.error('Error al actualizar info después del reinicio forzado:', error);
+          setMensaje('Reinicio forzado completado pero no se pudo verificar el estado');
+          setTipoMensaje('error');
+        }
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Error en reinicio forzado:', error);
+      setMensaje(`Error en reinicio forzado: ${error instanceof Error ? error.message : 'Error desconocido'}`);
       setTipoMensaje('error');
     } finally {
       setCargando(false);
@@ -347,7 +424,33 @@ const ControlSimulacion: React.FC = () => {
           <RotateCcw className="w-4 h-4" />
           Reiniciar
         </button>
+
+        {/* 🔧 NUEVO BOTÓN: Forzar Reinicio - solo se muestra si el botón de iniciar está bloqueado */}
+        {(infoSimulacion?.enProceso ?? false) && (
+          <button
+            onClick={manejarForzarReinicio}
+            disabled={cargando}
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          >
+            <RotateCcw className="w-4 h-4" />
+            {cargando ? 'Forzando...' : 'Forzar Reinicio'}
+          </button>
+        )}
       </div>
+
+      {/* 🔧 NUEVO: Mensaje de ayuda cuando el botón está bloqueado */}
+      {(infoSimulacion?.enProceso ?? false) && !cargando && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+            <span className="text-yellow-800 font-medium">Botón "Iniciar Simulación" bloqueado</span>
+          </div>
+          <p className="text-yellow-700 text-sm mt-1">
+            El sistema detecta que hay una simulación en proceso. 
+            Si crees que esto es un error, usa el botón "Forzar Reinicio" para desbloquear el sistema.
+          </p>
+        </div>
+      )}
 
       {/* Mensaje de estado */}
       {mensaje && (
