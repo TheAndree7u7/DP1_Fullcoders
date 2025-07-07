@@ -293,6 +293,8 @@ public class AveriaService {
             // }
 
             // Paso 4: REANUDAR la simulación después de procesar la avería
+            // ! colocar QUE FALTA CREAR PARCHE
+            com.plg.utils.Simulacion.faltacrearparche = true;
             System.out.println("▶️ BACKEND: Reanudando simulación después de procesaravería...");
             com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
             // Paso 5: Análisis del estado para logs y reportes
