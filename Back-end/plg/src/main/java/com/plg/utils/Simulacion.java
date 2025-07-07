@@ -241,7 +241,7 @@ public class Simulacion {
             System.out.println("🚀 Iniciando simulación hasta: " + fechaLimite);
             System.out.println("📅 Fecha de inicio (desde frontend): " + fechaActual);
             System.out.println("📦 Pedidos semanales iniciales: " + pedidosSemanal.size());
-
+            // ! ACA SE SIMULA LA SEMANA COMPLETA
             while (!pedidosSemanal.isEmpty()
                     && (fechaActual.isBefore(fechaLimite) || fechaActual.isEqual(fechaLimite))) {
                 // Verificar si el hilo ha sido interrumpido
@@ -271,27 +271,20 @@ public class Simulacion {
                     }
                 }
                 Pedido pedido = pedidosSemanal.get(0);
-                // Voy agregando pedidos a la lista de pedidos
+                // ! Se agregan los pedisos hasta que el pedido tenga una fecha de registro
+                // mayor a la fecha actual
                 if (UtilesSimulacion.pedidoConFechaMenorAFechaActual(pedido, fechaActual)) {
                     pedidosSemanal.remove(0);
                     pedidosPorAtender.add(pedido);
                 } else {
+                    // ! Aca se agregaron todos los pedidos que tienen una fecha de registro
+                    // ! menor a la fecha actual
                     System.out.println("************************************************");
-                    // ! Quiero saber las posiciones actuales de los camiones en el mapa
-                    System.out.println("Posiciones anteriores de los camiones en el mapa en una linea : ");
-                    for (Camion camion : DataLoader.camiones) {
-                        System.out.println("Camion: " + camion.getCodigo() + " - Posicion: " + camion.getCoordenada());
-                    }
-
+                    System.out.println("Tiempo actual: " + fechaActual);
                     List<Pedido> pedidosEnviar = UtilesSimulacion.unirPedidosSinRepetidos(pedidosPlanificados,
                             pedidosPorAtender);
+                    Camion.imprimirDatosCamiones(DataLoader.camiones);
                     actualizarEstadoGlobal(fechaActual, pedidosEnviar);
-
-                    // ! Quiero saber las posiciones actuales de los camiones en el mapa
-                    System.out.println("Posiciones actuales de los camiones en el mapa en una linea : ");
-                    for (Camion camion : DataLoader.camiones) {
-                        System.out.println("Camion: " + camion.getCodigo() + " - Posicion: " + camion.getCoordenada());
-                    }
 
                     List<Bloqueo> bloqueosActivos = actualizarBloqueos(fechaActual);
 
@@ -303,6 +296,9 @@ public class Simulacion {
                         if (modoStandalone) {
                             // Modo standalone: ejecutar sin esperar semáforos
                             try {
+                                // ! Quiero saber las posiciones actuales de los camiones en el mapa
+                                Camion.imprimirDatosCamiones(DataLoader.camiones);
+                                // ===============================================
                                 AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(),
                                         pedidosEnviar);
                                 algoritmoGenetico.ejecutarAlgoritmo();
@@ -311,11 +307,16 @@ public class Simulacion {
                                         pedidosEnviar, bloqueosActivos, fechaActual);
 
                                 // Aplicar el estado final de los camiones permanentemente
-                                CamionStateApplier.aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
+                                // CamionStateApplier.aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
 
                                 // Agregar al historial para el frontend
                                 GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
-
+                                // ! Quiero saber las posiciones actuales de los camiones en el mapa
+                                System.out.println("Posiciones actuales de los camiones en el mapa en una linea : ");
+                                for (Camion camion : DataLoader.camiones) {
+                                    System.out.println(
+                                            "Camion: " + camion.getCodigo() + " - Posicion: " + camion.getCoordenada());
+                                }
                             } catch (Exception e) {
                                 System.err.println("❌ Error en algoritmo genético en tiempo " + fechaActual + ": "
                                         + e.getMessage());
@@ -441,7 +442,7 @@ public class Simulacion {
                     .filter(pedido -> pedido.getFechaRegistro().isAfter(fechaInicioParche)
                             && pedido.getFechaRegistro().isBefore(fechaFinParche))
                     .collect(Collectors.toList());
-
+            Camion.imprimirDatosCamiones(DataLoader.camiones);
             // Numero de pedidos antes de filtrar
             System.out.println("NUmero de pedidos antes de filtrar: " + pedidosEnviar.size());
             // Filtra los pedidos con el estado ENTREGADO
@@ -464,7 +465,7 @@ public class Simulacion {
                         pedidosEnviar, bloqueosActivos, fechaActual);
 
                 // Aplicar el estado final de los camiones permanentemente
-                CamionStateApplier.aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
+                // CamionStateApplier.aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
 
                 // Agregar al historial para el frontend
                 GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
@@ -866,6 +867,7 @@ public class Simulacion {
      * @param pedidosEnviar Lista de pedidos a procesar en este ciclo
      */
     public static void actualizarEstadoGlobal(LocalDateTime fechaActual, List<Pedido> pedidosEnviar) {
+
         actualizarPedidos(pedidosEnviar);
         actualizarRepositorios(fechaActual);
         actualizarCamiones(fechaActual);

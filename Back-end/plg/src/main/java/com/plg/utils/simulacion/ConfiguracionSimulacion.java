@@ -89,8 +89,7 @@ public class ConfiguracionSimulacion {
         //2025-01-01T04:00- 6pm 
 
 
-        // pedidos semanales  6- fin de semana 
-        // pedididos que le mando del front 
+        //LISTA DE PEDIDOS SEMANALES 
         List<Pedido> pedidosSemanal = Simulacion.getPedidosSemanal();
         LocalDateTime fechaActual = Simulacion.getFechaActual();
 
