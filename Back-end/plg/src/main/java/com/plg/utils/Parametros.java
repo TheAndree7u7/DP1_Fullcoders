@@ -3,6 +3,11 @@ package com.plg.utils;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class Parametros {
 
     public static String dia = "01";
@@ -11,6 +16,7 @@ public class Parametros {
     public static DateTimeFormatter formatoFechaHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     public static LocalDateTime fecha_inicial = LocalDateTime.parse(dia + "/" + mes + "/" + anho + " 00:00",
             formatoFechaHora);
+    public static LocalDateTime fecha_final;
     public static int intervaloTiempo = 120; // !minutos
     private static Parametros instance;
     public static int contadorPrueba = 0;

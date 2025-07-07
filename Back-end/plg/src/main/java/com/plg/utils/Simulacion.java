@@ -31,6 +31,10 @@ import com.plg.utils.simulacion.ConfiguracionSimulacion;
 import com.plg.utils.simulacion.MantenimientoManager;
 import com.plg.utils.simulacion.AveriasManager;
 import com.plg.utils.simulacion.UtilesSimulacion;
+
+import lombok.Getter;
+import lombok.Setter;
+
 import com.plg.utils.simulacion.CamionStateApplier;
 import com.plg.utils.simulacion.IndividuoFactory;
 import com.plg.utils.simulacion.GestorHistorialSimulacion;
@@ -38,10 +42,13 @@ import com.plg.utils.simulacion.GestorHistorialSimulacion;
 /**
  * Clase principal que maneja la simulación de logística y algoritmos genéticos.
  */
+@Getter
+@Setter
 public class Simulacion {
 
     private static List<Pedido> pedidosSemanal;
     private static LocalDateTime fechaActual;
+    public static LocalDateTime fechaLimite;
     public static Set<Pedido> pedidosPorAtender = new LinkedHashSet<>();
     public static Set<Pedido> pedidosPlanificados = new LinkedHashSet<>();
     public static Set<Pedido> pedidosEntregados = new LinkedHashSet<>();
@@ -117,7 +124,7 @@ public class Simulacion {
         try {
             GestorHistorialSimulacion.setEnProceso(true);
             ConfiguracionSimulacion.imprimirDatosSimulacion();
-            LocalDateTime fechaLimite = fechaActual.plusDays(7);
+            fechaLimite = fechaActual.plusDays(7);
             System.out.println("🚀 Iniciando simulación hasta: " + fechaLimite);
             System.out.println("📅 Fecha de inicio (desde frontend): " + fechaActual);
             System.out.println("📦 Pedidos semanales iniciales: " + pedidosSemanal.size());
@@ -151,8 +158,8 @@ public class Simulacion {
                     System.out.println("Tiempo actual: " + fechaActual);
 
                     if (!pedidosPorAtender.isEmpty()) {
-                       // camiones 
-                        //almacenes      
+                        // camiones
+                        // almacenes
                         if (modoStandalone) {
                             // Modo standalone: ejecutar sin esperar semáforos
                             try {
