@@ -417,6 +417,7 @@ public class Simulacion {
     public static void crearPaqueteParche() {
         if (faltacrearparche) {
             // coloca todos los pedidos en el nuevo rango en del parche en pedidosSemanal
+            fechaActual = fechaInicioParche;
             System.out.println("🩹 GENERANDO PAQUETE PARCHE  : ");
             System.out.println("PEDIDOS DEL PARCHE: " + fechaInicioParche + " - " + fechaFinParche);
             List<Pedido> pedidosEnviar = pedidosSemanal.stream()
@@ -474,6 +475,7 @@ public class Simulacion {
             imprimirResumenEstados();
             System.out.println("ESPERANDO 1 HORA");
 
+            fechaActual = fechaFinParche;
             // ESPERA 1HORA
 
         }

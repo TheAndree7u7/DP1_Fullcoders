@@ -248,7 +248,12 @@ public class AveriaService {
             int paqueteActualNumero = GestorHistorialSimulacion.getPaqueteActual();
             IndividuoDto paqueteActual = GestorHistorialSimulacion.obtenerPaquetePorIndice(paqueteActualNumero);
             com.plg.utils.Simulacion.fechaFinParche = paqueteActual.getFechaHoraSimulacion();
-
+            // Suma a la fecha fin la fecha del intervalo de tiempo de la simulacion que
+            // esta en parametros
+            com.plg.utils.Simulacion.fechaFinParche = com.plg.utils.Simulacion.fechaFinParche.plusMinutes(
+                    com.plg.utils.Parametros.intervaloTiempo * 2);
+            //!actualiaz la fecha actual de la simulacion
+         
             System.out.println("🔄 BACKEND: Fecha inicio parche: " + com.plg.utils.Simulacion.fechaInicioParche);
             System.out.println("🔄 BACKEND: Fecha fin parche: " + com.plg.utils.Simulacion.fechaFinParche);
 
