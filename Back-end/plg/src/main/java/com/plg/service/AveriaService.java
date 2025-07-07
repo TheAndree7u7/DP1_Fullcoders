@@ -221,6 +221,9 @@ public class AveriaService {
             // Paso 1: Detener la generación de paquetes futuros inmediatamente
             System.out.println("🛑 BACKEND: Eliminando paquetes futuros...");
             int paquetesEliminados = com.plg.utils.Simulacion.eliminarPaquetesFuturos();
+
+            //PASO 1.1: camiar el # de los paquete agregados en el historial de simulacion
+        
             System.out.println("✅ BACKEND: Paquetes futuros eliminados: " + paquetesEliminados);
 
             // Obtener el timestamp de la avería para usar en múltiples pasos
