@@ -306,7 +306,7 @@ public class AveriaService {
             e.printStackTrace();
             // En caso de error, asegurar que la simulación se reanude
             System.out.println("🔄 BACKEND: Reanudando simulación debido a error...");
-            com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
+            // com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
         }
     }
 
