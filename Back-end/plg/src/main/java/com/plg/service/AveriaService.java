@@ -1,12 +1,14 @@
 package com.plg.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.springframework.stereotype.Service;
 
 import com.plg.dto.request.AveriaRequest;
+import com.plg.dto.IndividuoDto;
 import com.plg.dto.request.AveriaConEstadoRequest;
 import com.plg.entity.Averia;
 import com.plg.entity.Camion;
@@ -20,6 +22,7 @@ import com.plg.entity.TipoNodo;
 import com.plg.entity.TipoIncidente;
 import com.plg.repository.AveriaRepository;
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidInputException;
+import com.plg.utils.simulacion.GestorHistorialSimulacion;
 
 /**
  * Servicio para operaciones sobre averías.
@@ -217,18 +220,19 @@ public class AveriaService {
             int paquetesEliminados = com.plg.utils.Simulacion.eliminarPaquetesFuturos();
             System.out.println("✅ BACKEND: Paquetes futuros eliminados: " + paquetesEliminados);
 
-
-            // Paso 1.1: Actualizar los pedidos de la semana
-
-            // Paso 2: Generar paquete parche con el estado capturado
-            System.out.println("🩹 BACKEND: Generando paquete parche para manejar la avería...");
-            // Usar el timestamp de la avería enviado desde el frontend, no el del estado de
-            // simulación
+            // Obtener el timestamp de la avería para usar en múltiples pasos
             String timestampString = request.getFechaHoraReporte();
             if (timestampString.endsWith("Z")) {
                 timestampString = timestampString.substring(0, timestampString.length() - 1);
             }
             LocalDateTime timestampAveria = LocalDateTime.parse(timestampString);
+
+            // Paso 1.1: Actualizar los pedidos de la semana
+            System.out.println("🔄 BACKEND: Actualizando pedidos de la semana...");
+            actualizarPedidosSemanalesConBackup(timestampAveria, estadoSimulacion);
+
+            // Paso 2: Generar paquete parche con el estado capturado
+            System.out.println("🩹 BACKEND: Generando paquete parche para manejar la avería...");
 
             System.out.println("📅 BACKEND: Usando timestamp de avería correcto: " + timestampAveria);
             System.out.println("📅 BACKEND: (No el timestamp del estado: " + estadoSimulacion.getTimestamp() + ")");
@@ -523,5 +527,169 @@ public class AveriaService {
         LocalDateTime fecha2Truncada = fecha2.withSecond(0).withNano(0);
 
         return fecha1Truncada.isBefore(fecha2Truncada) || fecha1Truncada.isEqual(fecha2Truncada);
+    }
+
+    /**
+     * Actualiza la lista de pedidos semanales utilizando el backup y el estado
+     * capturado.
+     * 
+     * @param timestampAveria  timestamp cuando ocurrió la avería
+     * @param estadoSimulacion estado completo de la simulación capturado
+     */
+    private void actualizarPedidosSemanalesConBackup(LocalDateTime timestampAveria,
+            AveriaConEstadoRequest.EstadoSimulacion estadoSimulacion) {
+        try {
+            System.out.println("🔄 BACKEND: Iniciando actualización de pedidos semanales con backup...");
+
+            // Verificar que existe backup
+            if (!com.plg.utils.Simulacion.existeBackupSimulacion()) {
+                System.err.println("❌ BACKEND: No existe backup de simulación para restaurar pedidos");
+                return;
+            }
+
+            // Obtener información del backup
+            com.plg.utils.Simulacion.BackupInfo backupInfo = com.plg.utils.Simulacion.obtenerInfoBackup();
+            if (backupInfo == null) {
+                System.err.println("❌ BACKEND: No se pudo obtener información del backup");
+                return;
+            }
+
+            System.out.println("💾 BACKEND: Backup disponible - " + backupInfo.totalPedidosBackup + " pedidos, fecha: "
+                    + backupInfo.fechaBackup);
+
+            // La fecha actual es la fecha del paquete actual
+            int paqueteActualNumero = GestorHistorialSimulacion.getPaqueteActual();
+            IndividuoDto paqueteActual = GestorHistorialSimulacion.obtenerPaquetePorIndice(paqueteActualNumero);
+
+            LocalDateTime fechaActual = paqueteActual.getFechaHoraSimulacion();
+
+            LocalDateTime fechaBackup = backupInfo.fechaBackup;
+
+            System.out.println("📅 BACKEND: Rango de fechas para filtrar pedidos:");
+            System.out.println("   • Fecha backup: " + fechaBackup);
+            System.out.println("   • Fecha actual: " + fechaActual);
+            System.out.println("   • Timestamp avería: " + timestampAveria);
+
+            // Paso 1: Restaurar pedidos del backup
+            boolean restaurado = com.plg.utils.Simulacion.restaurarBackupSimulacion();
+            if (!restaurado) {
+                System.err.println("❌ BACKEND: No se pudo restaurar el backup de simulación");
+                return;
+            }
+
+            // Paso 2: Obtener pedidos restaurados
+            List<com.plg.entity.Pedido> pedidosRestaurados = com.plg.utils.Simulacion.getPedidosSemanal();
+            System.out.println("📦 BACKEND: Pedidos restaurados del backup: " + pedidosRestaurados.size());
+
+            // Paso 3: Filtrar pedidos que ya fueron procesados (entre fechaBackup y
+            // fechaActual)
+            List<com.plg.entity.Pedido> pedidosParaRemover = new ArrayList<>();
+            for (com.plg.entity.Pedido pedido : pedidosRestaurados) {
+                if (pedido.getFechaRegistro() != null &&
+                        !pedido.getFechaRegistro().isBefore(fechaBackup) &&
+                        !pedido.getFechaRegistro().isAfter(fechaActual)) {
+                    pedidosParaRemover.add(pedido);
+                }
+            }
+
+            pedidosRestaurados.removeAll(pedidosParaRemover);
+            System.out.println("🗑️ BACKEND: Pedidos filtrados (ya procesados): " + pedidosParaRemover.size());
+            System.out.println("📦 BACKEND: Pedidos restantes después del filtrado: " + pedidosRestaurados.size());
+
+            // Paso 4: Agregar pedidos del frontend que no se completaron
+            List<com.plg.entity.Pedido> pedidosDelFrontend = extraerPedidosDelEstadoCapturado(estadoSimulacion);
+            System.out.println("📱 BACKEND: Pedidos extraídos del frontend: " + pedidosDelFrontend.size());
+
+            // Unir pedidos evitando duplicados
+            List<com.plg.entity.Pedido> pedidosFinales = new ArrayList<>(pedidosRestaurados);
+            for (com.plg.entity.Pedido pedidoFrontend : pedidosDelFrontend) {
+                boolean yaExiste = pedidosFinales.stream()
+                        .anyMatch(p -> p.getCodigo() != null && p.getCodigo().equals(pedidoFrontend.getCodigo()));
+                if (!yaExiste) {
+                    pedidosFinales.add(pedidoFrontend);
+                }
+            }
+
+            System.out.println("📦 BACKEND: Total de pedidos después de unir: " + pedidosFinales.size());
+
+            // Paso 5: Actualizar la lista de pedidos semanales
+            com.plg.utils.Simulacion.setPedidosSemanal(pedidosFinales);
+
+            // Paso 6: Crear nuevo backup con el estado actualizado
+            com.plg.utils.Simulacion.crearBackupSimulacion();
+            System.out.println("💾 BACKEND: Nuevo backup creado con " + pedidosFinales.size() + " pedidos");
+
+            System.out.println("✅ BACKEND: Pedidos semanales actualizados exitosamente");
+
+        } catch (Exception e) {
+            System.err.println("❌ BACKEND: Error al actualizar pedidos semanales con backup: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Extrae pedidos del estado capturado del frontend que no se completaron.
+     * 
+     * @param estadoSimulacion estado completo de la simulación capturado
+     * @return lista de pedidos extraídos del frontend
+     */
+    private List<com.plg.entity.Pedido> extraerPedidosDelEstadoCapturado(
+            AveriaConEstadoRequest.EstadoSimulacion estadoSimulacion) {
+        List<com.plg.entity.Pedido> pedidosExtraidos = new ArrayList<>();
+
+        try {
+            if (estadoSimulacion.getRutasCamiones() != null) {
+                System.out.println("🚛 BACKEND: Extrayendo pedidos de " + estadoSimulacion.getRutasCamiones().size()
+                        + " rutas de camiones");
+
+                for (var rutaCamion : estadoSimulacion.getRutasCamiones()) {
+                    if (rutaCamion.getPedidos() != null) {
+                        System.out.println("📦 BACKEND: Procesando " + rutaCamion.getPedidos().size()
+                                + " pedidos de camión " + rutaCamion.getId());
+
+                        for (var pedidoFrontend : rutaCamion.getPedidos()) {
+                            try {
+                                // Crear pedido basado en los datos del frontend
+                                com.plg.entity.Pedido pedido = crearPedidoDesdeEstadoCapturado(pedidoFrontend);
+                                if (pedido != null) {
+                                    pedidosExtraidos.add(pedido);
+                                }
+                            } catch (Exception e) {
+                                System.err.println(
+                                        "❌ BACKEND: Error al crear pedido desde estado capturado: " + e.getMessage());
+                            }
+                        }
+                    }
+                }
+            }
+
+            System.out.println("📦 BACKEND: Total de pedidos extraídos del frontend: " + pedidosExtraidos.size());
+
+        } catch (Exception e) {
+            System.err.println("❌ BACKEND: Error al extraer pedidos del estado capturado: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return pedidosExtraidos;
+    }
+
+    /**
+     * Crea un pedido desde los datos capturados del frontend.
+     * 
+     * @param pedidoFrontend datos del pedido del frontend
+     * @return pedido creado o null si no se pudo crear
+     */
+    private com.plg.entity.Pedido crearPedidoDesdeEstadoCapturado(Object pedidoFrontend) {
+        try {
+            // Por ahora retornamos null ya que necesitaríamos más información
+            // sobre la estructura exacta de los datos del frontend
+            // Esta implementación se puede mejorar según la estructura real
+            System.out.println("🔄 BACKEND: Creando pedido desde estado capturado (implementación básica)");
+            return null;
+
+        } catch (Exception e) {
+            System.err.println("❌ BACKEND: Error al crear pedido desde estado capturado: " + e.getMessage());
+            return null;
+        }
     }
 }

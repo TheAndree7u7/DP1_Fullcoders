@@ -454,7 +454,7 @@ public class Simulacion {
             System.out.println("________________________________________________________");
             int paqueteActualNumero = GestorHistorialSimulacion.getPaqueteActual();
 
-            IndividuoDto paqueteActual = GestorHistorialSimulacion.obtenerPaquetePorIndice(paqueteActualNumero - 1);
+            IndividuoDto paqueteActual = GestorHistorialSimulacion.obtenerPaquetePorIndice(paqueteActualNumero );
             // System.out.println("🔄 Individuo del paquete actual: \n" + paqueteActual);
             System.out.println("________________________________________________________");
             if (paqueteActual == null) {
