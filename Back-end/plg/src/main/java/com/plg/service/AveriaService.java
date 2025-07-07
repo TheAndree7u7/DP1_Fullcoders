@@ -230,6 +230,9 @@ public class AveriaService {
             // Paso 1.1: Actualizar los pedidos de la semana
             System.out.println("🔄 BACKEND: Actualizando pedidos de la semana...");
             actualizarPedidosSemanalesConBackup(timestampAveria, estadoSimulacion);
+            // Paso 1.2: Actualizar los camiones almacenes con los datos enviados desde el
+            // frontend
+            System.out.println("🔄 BACKEND: Actualizando camiones y almacenes...");
 
             // Paso 2: Generar paquete parche con el estado capturado
             System.out.println("🩹 BACKEND: Generando paquete parche para manejar la avería...");
