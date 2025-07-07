@@ -62,7 +62,7 @@ public class Simulacion {
     public static LocalDateTime fechaFinParche;
     // Administrado por GestorHistorialSimulacion
     public static List<IndividuoDto> historialSimulacion = new ArrayList<>();
-    private static int indiceActualFrontend = 0;
+    public static int indiceActualFrontend = 0;
     private static boolean simulacionEnProceso = false;
     private static int contadorPaquetes = 0; // Contador secuencial de paquetes
 
@@ -236,6 +236,7 @@ public class Simulacion {
         try {
             GestorHistorialSimulacion.setEnProceso(true);
             ConfiguracionSimulacion.imprimirDatosSimulacion();
+            Parametros.fecha_inicial = fechaActual;
             fechaLimite = fechaActual.plusDays(7);
             System.out.println("🚀 Iniciando simulación hasta: " + fechaLimite);
             System.out.println("📅 Fecha de inicio (desde frontend): " + fechaActual);

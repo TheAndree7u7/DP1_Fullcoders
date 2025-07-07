@@ -14,8 +14,7 @@ public class Parametros {
     public static String mes = "02";
     public static String anho = "2025";
     public static DateTimeFormatter formatoFechaHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-    public static LocalDateTime fecha_inicial = LocalDateTime.parse(dia + "/" + mes + "/" + anho + " 00:00",
-            formatoFechaHora);
+    public static LocalDateTime fecha_inicial;
     public static LocalDateTime fecha_final;
     public static int intervaloTiempo = 120; // !minutos
     private static Parametros instance;

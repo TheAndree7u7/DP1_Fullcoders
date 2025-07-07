@@ -244,8 +244,11 @@ public class AveriaService {
             System.out.println("📅 BACKEND: Usando timestamp de avería correcto: " + timestampAveria);
             System.out.println("📅 BACKEND: (No el timestamp del estado: " + estadoSimulacion.getTimestamp() + ")");
             //ACTUalizar parametros de la simulacion
+            // Paso 4: Calcula el rango actul  dela simulacion usando el timestampAveria y el intervaloTiempo
+            // el numero del rango actual es segun la fechainicio  si la fechainicio  de parametrosde las simulacion es 1 de enero 2025 a las 00:00 entonces si el timestampAveria es 1 de enero 2025 a las  3 y el intervaloTiempo es 120 minutos el rango actual se obtiene  fechainicio + intervalo de tiempo en un for si el timestamp es mayor a la fechainicio + intervalo el rango actual se incrementa en 1 entonecs esto acaba hasta que el timestamp es menor a la fechainicio + intervalo 
+            // la fecha del fin del parche es la fecha final del rango actual de la simulacion + intervaloTiempo
             com.plg.utils.Simulacion.fechaInicioParche = timestampAveria;
-            com.plg.utils.Simulacion.fechaFinParche = fechadelultimopaqueteconsumido
+            com.plg.utils.Simulacion.fechaFinParche = fechadelultimopaqueteconsumido;
             // com.plg.dto.IndividuoDto paqueteParche = com.plg.utils.Simulacion.generarPaqueteParche(
             //         timestampAveria,
             //         estadoSimulacion);
