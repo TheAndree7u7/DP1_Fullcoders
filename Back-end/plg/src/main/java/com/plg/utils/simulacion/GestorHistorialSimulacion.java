@@ -5,16 +5,22 @@ import java.util.List;
 
 import com.plg.dto.IndividuoDto;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Gestiona el historial de paquetes generados por la simulación y proporciona
  * utilidades para el frontend.
  */
+@Getter
+@Setter
 public class GestorHistorialSimulacion {
 
     private static final List<IndividuoDto> historialSimulacion = new ArrayList<>();
     private static int indiceActualFrontend = 0;
     private static int contadorPaquetes = 0;
     private static boolean simulacionEnProceso = false;
+    private static boolean simulacionPausada = false; // Nuevo flag para pausa
 
     /* --------------------------- MARCA DE ESTADO --------------------------- */
     public static synchronized void setEnProceso(boolean enProceso) {
@@ -23,6 +29,16 @@ public class GestorHistorialSimulacion {
 
     public static synchronized boolean isEnProceso() {
         return simulacionEnProceso;
+    }
+
+    // Nuevos métodos para pausa
+    public static synchronized void setPausada(boolean pausada) {
+        simulacionPausada = pausada;
+        System.out.println("🔄 SIMULACIÓN " + (pausada ? "PAUSADA" : "REANUDADA"));
+    }
+
+    public static synchronized boolean isPausada() {
+        return simulacionPausada;
     }
 
     /* ------------------------ OPERACIONES DE HISTORIAL --------------------- */
@@ -146,8 +162,9 @@ public class GestorHistorialSimulacion {
         indiceActualFrontend = 0;
         contadorPaquetes = 0;
         simulacionEnProceso = false;
+        simulacionPausada = false; // Reiniciar también el flag de pausa
         System.out.println("🧹 HISTORIAL LIMPIADO COMPLETAMENTE | Paquetes eliminados: " + paquetesEliminados
-                + " | Estado reiniciado");
+                + " | Estado reiniciado | Pausa reiniciada");
     }
 
     /* ------------------------------ GETTERS -------------------------------- */

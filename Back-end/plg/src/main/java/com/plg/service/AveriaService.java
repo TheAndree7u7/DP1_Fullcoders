@@ -208,14 +208,17 @@ public class AveriaService {
             System.out.println("🔄 BACKEND: Request: " + request);
             System.out.println("🔄 BACKEND: Procesando estado completo de la simulación...");
 
-            // Paso 0: Detener la simulación inmediatamente para evitar más paquetes
-            System.out.println("🚨 BACKEND: Deteniendo simulación del backend por avería...");
-            com.plg.controller.SimulacionController.detenerSimulacionPorAveria();
+            // Paso 0: PAUSAR la simulación inmediatamente (en lugar de detener)
+            System.out.println("⏸️ BACKEND: Pausando simulación del backend por avería...");
+            com.plg.controller.SimulacionController.pausarSimulacionPorAveria();
 
             // Paso 1: Detener la generación de paquetes futuros inmediatamente
             System.out.println("🛑 BACKEND: Eliminando paquetes futuros...");
             int paquetesEliminados = com.plg.utils.Simulacion.eliminarPaquetesFuturos();
             System.out.println("✅ BACKEND: Paquetes futuros eliminados: " + paquetesEliminados);
+
+
+            // Paso 1.1: Actualizar los pedidos de la semana
 
             // Paso 2: Generar paquete parche con el estado capturado
             System.out.println("🩹 BACKEND: Generando paquete parche para manejar la avería...");
@@ -245,20 +248,29 @@ public class AveriaService {
                 System.out.println("   • Total paquetes: " + infoActual.totalPaquetes);
                 System.out.println("   • Paquete actual: " + infoActual.paqueteActual);
                 System.out.println("   • En proceso: " + infoActual.enProceso);
+
+                // Paso 4: REANUDAR la simulación después de procesar la avería
+                System.out.println("▶️ BACKEND: Reanudando simulación después de procesar avería...");
+                com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
             } else {
                 System.err.println("❌ BACKEND: No se pudo generar el paquete parche");
+                // En caso de error, asegurar que la simulación se reanude
+                System.out.println("⚠️ BACKEND: Reanudando simulación a pesar del error...");
+                com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
             }
 
-            // Paso 4: Análisis del estado para logs y reportes
+            // Paso 5: Análisis del estado para logs y reportes
             analizarEstadoCapturado(estadoSimulacion);
 
-            System.out.println("✅ BACKEND: Estado completo procesado y paquete parche generado exitosamente");
+            System.out.println("✅ BACKEND: Estado procesado y simulación reanudada exitosamente");
             System.out.println("==========================================================");
             System.out.println("==========================================================");
         } catch (Exception e) {
             System.err.println("⚠️ BACKEND: Error al procesar estado completo: " + e.getMessage());
             e.printStackTrace();
-            // No lanzamos excepción aquí para no fallar la creación de la avería
+            // En caso de error, asegurar que la simulación se reanude
+            System.out.println("🔄 BACKEND: Reanudando simulación debido a error...");
+            com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
         }
     }
 

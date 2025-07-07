@@ -144,6 +144,19 @@ public class Simulacion {
                     return;
                 }
 
+                // Verificar si la simulación está pausada por una avería
+                while (GestorHistorialSimulacion.isPausada()) {
+                    try {
+                        System.out.println("⏸️ Simulación pausada, esperando...");
+                        Thread.sleep(100); // Esperar 100ms antes de verificar de nuevo
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        System.out.println("🛑 Simulación interrumpida durante la pausa");
+                        GestorHistorialSimulacion.setEnProceso(false);
+                        return;
+                    }
+                }
+
                 Pedido pedido = pedidosSemanal.get(0);
                 // Voy agregando pedidos a la lista de pedidos
                 if (UtilesSimulacion.pedidoConFechaMenorAFechaActual(pedido, fechaActual)) {
