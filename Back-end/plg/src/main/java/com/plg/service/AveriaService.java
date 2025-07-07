@@ -252,64 +252,18 @@ public class AveriaService {
             // esta en parametros
             com.plg.utils.Simulacion.fechaFinParche = com.plg.utils.Simulacion.fechaFinParche.plusMinutes(
                     com.plg.utils.Parametros.intervaloTiempo * 2);
-            //!actualiaz la fecha actual de la simulacion
-         
+            // !actualiaz la fecha actual de la simulacion
+
             System.out.println("🔄 BACKEND: Fecha inicio parche: " + com.plg.utils.Simulacion.fechaInicioParche);
             System.out.println("🔄 BACKEND: Fecha fin parche: " + com.plg.utils.Simulacion.fechaFinParche);
 
             // Paso 2: Generar paquete parche con el estado capturado
             System.out.println("🩹 BACKEND: Generando paquete parche para manejar la avería...");
             com.plg.utils.Simulacion.faltacrearparche = true;
-            com.plg.utils.Simulacion.crearPaqueteParche();
+            com.plg.utils.Simulacion.crearPaqueteParche(request.getEstadoSimulacion());
             System.out.println("📅 BACKEND: Usando timestamp de avería correcto: " + timestampAveria);
             System.out.println("📅 BACKEND: (No el timestamp del estado: " + estadoSimulacion.getTimestamp() + ")");
-            // ACTUalizar parametros de la simulacion
-            // Paso 4: Calcula el rango actul dela simulacion usando el timestampAveria y el
-            // intervaloTiempo
-            // el numero del rango actual es segun la fechainicio si la fechainicio de
-            // parametrosde las simulacion es 1 de enero 2025 a las 00:00 entonces si el
-            // timestampAveria es 1 de enero 2025 a las 3 y el intervaloTiempo es 120
-            // minutos el rango actual se obtiene fechainicio + intervalo de tiempo en un
-            // for si el timestamp es mayor a la fechainicio + intervalo el rango actual se
-            // incrementa en 1 entonecs esto acaba hasta que el timestamp es menor a la
-            // fechainicio + intervalo
-            // la fecha del fin del parche es la fecha final del rango actual de la
-            // simulacion + intervaloTiempo
-
-            // com.plg.utils.Simulacion.fechaFinParche = fechadelultimopaqueteconsumido;
-            // com.plg.dto.IndividuoDto paqueteParche =
-            // com.plg.utils.Simulacion.generarPaqueteParche(
-            // timestampAveria,
-            // estadoSimulacion);
-
-            // if (paqueteParche != null) {
-            // // Paso 3: Insertar el paquete parche en el historial
-            // com.plg.utils.Simulacion.insertarPaqueteParche(paqueteParche);
-            // System.out.println("✅ BACKEND: Paquete parche insertado exitosamente");
-
-            // // Obtener información actualizada
-            // com.plg.utils.Simulacion.SimulacionInfo infoActual =
-            // com.plg.utils.Simulacion.obtenerInfoSimulacion();
-            // System.out.println("📊 BACKEND: Estado actual después del parche:");
-            // System.out.println(" • Total paquetes: " + infoActual.totalPaquetes);
-            // System.out.println(" • Paquete actual: " + infoActual.paqueteActual);
-            // System.out.println(" • En proceso: " + infoActual.enProceso);
-
-            // // Paso 4: REANUDAR la simulación después de procesar la avería
-            // // System.out.println("▶️ BACKEND: Reanudando simulación después de procesar
-            // // avería...");
-            // //
-            // com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
-            // } else {
-            // System.err.println("❌ BACKEND: No se pudo generar el paquete parche");
-            // // En caso de error, asegurar que la simulación se reanude
-            // // System.out.println("⚠️ BACKEND: Reanudando simulación a pesar del
-            // error...");
-            // //
-            // com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
-            // }
-
-            // Paso 4: REANUDAR la simulación después de procesar la avería
+ 
             // ! colocar QUE FALTA CREAR PARCHE
 
             System.out.println("▶️ BACKEND: Reanudando simulación después de procesaravería...");

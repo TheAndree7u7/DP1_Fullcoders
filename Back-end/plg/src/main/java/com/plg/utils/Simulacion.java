@@ -432,9 +432,21 @@ public class Simulacion {
         }
     }
 
-    public static void crearPaqueteParche() {
+    public static void crearPaqueteParche(AveriaConEstadoRequest.EstadoSimulacion estadoCapturado) {
         if (faltacrearparche) {
             // coloca todos los pedidos en el nuevo rango en del parche en pedidosSemanal
+            // Actualizar posiciones de camiones usando datos del frontend
+            if (estadoCapturado.getCamiones() != null) {
+                System.out
+                        .println("🚛 Actualizando posiciones de " + estadoCapturado.getCamiones().size() + " camiones");
+                actualizarCamionesDesdeEstadoCapturado(estadoCapturado.getCamiones());
+            }
+            // Actualizar almacenes usando datos del frontend
+            if (estadoCapturado.getAlmacenes() != null) {
+                System.out.println("🏪 Actualizando " + estadoCapturado.getAlmacenes().size() + " almacenes");
+                actualizarAlmacenesDesdeEstadoCapturado(estadoCapturado.getAlmacenes());
+            }
+
             fechaActual = fechaInicioParche;
             System.out.println("🩹 GENERANDO PAQUETE PARCHE  : ");
             System.out.println("PEDIDOS DEL PARCHE: " + fechaInicioParche + " - " + fechaFinParche);
@@ -531,103 +543,6 @@ public class Simulacion {
      */
     public static int eliminarPaquetesFuturos() {
         return GestorHistorialSimulacion.eliminarPaquetesFuturos();
-    }
-
-    /**
-     * Genera un paquete parche cuando ocurre una avería.
-     * Este paquete cubre desde el momento de la avería hasta completar la ventana
-     * temporal.
-     * 
-     * @param timestampAveria        Momento cuando ocurrió la avería
-     * @param estadoSimulacionActual Estado completo de la simulación capturado
-     *                               durante la avería
-     * @return El paquete parche generado
-     */
-    public static IndividuoDto generarPaqueteParche(LocalDateTime timestampAveria,
-            AveriaConEstadoRequest.EstadoSimulacion estadoSimulacionActual) {
-        try {
-            System.out.println("🩹 GENERANDO PAQUETE PARCHE para avería en: " + timestampAveria);
-
-            // Obtener información del paquete actual
-            System.out.println("🔄 Paquete actual: \n" + GestorHistorialSimulacion.getPaqueteActual());
-            System.out.println("________________________________________________________");
-            int paqueteActualNumero = GestorHistorialSimulacion.getPaqueteActual();
-
-            IndividuoDto paqueteActual = GestorHistorialSimulacion.obtenerPaquetePorIndice(paqueteActualNumero);
-            // System.out.println("🔄 Individuo del paquete actual: \n" + paqueteActual);
-            System.out.println("________________________________________________________");
-            if (paqueteActual == null) {
-                System.err.println("❌ No se pudo obtener el paquete actual para generar el parche");
-                return null;
-            }
-
-            System.out.println("📊 DATOS PARA PAQUETE PARCHE:");
-            System.out.println("   • Paquete actual número: " + paqueteActualNumero);
-            System.out.println("   • Timestamp avería: " + timestampAveria);
-            System.out.println("   • Paquete actual inicia: " + paqueteActual.getFechaHoraSimulacion());
-
-            // Calcular el tiempo de inicio del paquete parche = timestamp de la avería
-            LocalDateTime inicioParche = timestampAveria;
-
-            // Calcular el tiempo de fin = inicio del paquete actual + 4 horas (2 intervalos
-            // de 2 horas)
-            // El parche debe cubrir hasta el final del próximo paquete que habría empezado
-            // getFechaHoraSimulacion() devuelve un LocalDateTime directamente
-            LocalDateTime inicioPaqueteActual = paqueteActual.getFechaHoraSimulacion();
-            LocalDateTime finParche = inicioPaqueteActual.plusHours(4); // 2 intervalos de 2 horas cada uno
-
-            System.out.println("⏰ VENTANA TEMPORAL DEL PARCHE:");
-            System.out.println("   • Inicio parche: " + inicioParche);
-            System.out.println("   • Fin parche: " + finParche);
-            System.out.println(
-                    "   • Duración: " + java.time.Duration.between(inicioParche, finParche).toMinutes() + " minutos");
-
-            // Crear un individuo con el estado capturado durante la avería
-            Individuo individuoParche = crearIndividuoDesdeEstadoCapturado(estadoSimulacionActual);
-
-            // Obtener pedidos y bloqueos para el parche (usar los del estado capturado)
-            List<Pedido> pedidosParche = obtenerPedidosDesdeEstadoCapturado(estadoSimulacionActual);
-            List<Bloqueo> bloqueosParche = obtenerBloqueosDesdeEstadoCapturado(estadoSimulacionActual);
-
-            // Crear el paquete parche con la fecha de inicio de la avería
-            IndividuoDto paqueteParche = new IndividuoDto(
-                    individuoParche,
-                    pedidosParche,
-                    bloqueosParche,
-                    inicioParche);
-
-            System.out.println("✅ PAQUETE PARCHE GENERADO:");
-            System.out.println("   • Camiones: "
-                    + (individuoParche.getCromosoma() != null ? individuoParche.getCromosoma().size() : 0));
-            System.out.println("   • Pedidos: " + pedidosParche.size());
-            System.out.println("   • Bloqueos: " + bloqueosParche.size());
-            System.out.println("   • Fecha simulación: " + paqueteParche.getFechaHoraSimulacion());
-
-            return paqueteParche;
-
-        } catch (Exception e) {
-            System.err.println("❌ ERROR al generar paquete parche: " + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    /**
-     * Inserta un paquete parche en el historial en la posición correcta.
-     * 
-     * @param paqueteParche El paquete parche a insertar
-     */
-    public static void insertarPaqueteParche(IndividuoDto paqueteParche) {
-        if (paqueteParche == null) {
-            System.err.println("❌ No se puede insertar un paquete parche nulo");
-            return;
-        }
-
-        // Insertar en la posición paqueteActual + 1
-        int posicionInsercion = GestorHistorialSimulacion.getPaqueteActual() + 1;
-        GestorHistorialSimulacion.insertarPaqueteParche(paqueteParche, posicionInsercion);
-
-        System.out.println("🩹 Paquete parche insertado en posición: " + posicionInsercion);
     }
 
     /**
