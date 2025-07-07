@@ -689,14 +689,112 @@ public class AveriaService {
      */
     private com.plg.entity.Pedido crearPedidoDesdeEstadoCapturado(Object pedidoFrontend) {
         try {
-            // Por ahora retornamos null ya que necesitaríamos más información
-            // sobre la estructura exacta de los datos del frontend
-            // Esta implementación se puede mejorar según la estructura real
-            System.out.println("🔄 BACKEND: Creando pedido desde estado capturado (implementación básica)");
-            return null;
+            // Convertir el objeto a PedidoSimple
+            if (!(pedidoFrontend instanceof AveriaConEstadoRequest.PedidoSimple)) {
+                System.err.println("❌ BACKEND: Objeto no es del tipo PedidoSimple");
+                return null;
+            }
+
+            AveriaConEstadoRequest.PedidoSimple pedidoSimple = (AveriaConEstadoRequest.PedidoSimple) pedidoFrontend;
+
+            System.out.println("🔄 BACKEND: Creando pedido desde estado capturado: " + pedidoSimple.getCodigo());
+
+            // Validar datos esenciales
+            if (pedidoSimple.getCodigo() == null || pedidoSimple.getCodigo().trim().isEmpty()) {
+                System.err.println("❌ BACKEND: Pedido sin código válido");
+                return null;
+            }
+
+            if (pedidoSimple.getCoordenadaX() == null || pedidoSimple.getCoordenadaY() == null) {
+                System.err.println("❌ BACKEND: Pedido sin coordenadas válidas");
+                return null;
+            }
+
+            // Crear el pedido
+            com.plg.entity.Pedido pedido = new com.plg.entity.Pedido();
+
+            // Establecer código
+            pedido.setCodigo(pedidoSimple.getCodigo());
+
+            // Establecer coordenadas
+            Coordenada coordenada = new Coordenada(pedidoSimple.getCoordenadaX(), pedidoSimple.getCoordenadaY());
+            pedido.setCoordenada(coordenada);
+
+            // Establecer volumen GLP
+            if (pedidoSimple.getVolumenGLPAsignado() != null) {
+                pedido.setVolumenGLPAsignado(pedidoSimple.getVolumenGLPAsignado());
+            } else {
+                pedido.setVolumenGLPAsignado(0.0); // Valor por defecto
+            }
+
+            // Establecer horas límite
+            if (pedidoSimple.getHorasLimite() != null) {
+                pedido.setHorasLimite(pedidoSimple.getHorasLimite());
+            } else {
+                pedido.setHorasLimite(24.0); // Valor por defecto
+            }
+
+            // Establecer estado del pedido
+            if (pedidoSimple.getEstado() != null) {
+                try {
+                    EstadoPedido estado = EstadoPedido.valueOf(pedidoSimple.getEstado().toUpperCase());
+                    pedido.setEstado(estado);
+                } catch (IllegalArgumentException e) {
+                    // Mapear estados comunes del frontend
+                    switch (pedidoSimple.getEstado().toLowerCase()) {
+                        case "registrado":
+                        case "pendiente":
+                            pedido.setEstado(EstadoPedido.REGISTRADO);
+                            break;
+                        case "planificado":
+                            pedido.setEstado(EstadoPedido.PLANIFICADO);
+                            break;
+                        case "entregado":
+                            pedido.setEstado(EstadoPedido.ENTREGADO);
+                            break;
+                        default:
+                            System.err.println("⚠️ BACKEND: Estado no reconocido para pedido " +
+                                    pedidoSimple.getCodigo() + ": " + pedidoSimple.getEstado());
+                            pedido.setEstado(EstadoPedido.REGISTRADO); // Por defecto
+                    }
+                }
+            } else {
+                pedido.setEstado(EstadoPedido.REGISTRADO); // Por defecto
+            }
+
+            // Establecer fechas si están disponibles
+            if (pedidoSimple.getFechaRegistro() != null) {
+                try {
+                    LocalDateTime fechaRegistro = LocalDateTime.parse(pedidoSimple.getFechaRegistro());
+                    pedido.setFechaRegistro(fechaRegistro);
+                } catch (Exception e) {
+                    System.err.println("⚠️ BACKEND: Error al parsear fecha de registro para pedido " +
+                            pedidoSimple.getCodigo() + ": " + e.getMessage());
+                }
+            }
+
+            if (pedidoSimple.getFechaLimite() != null) {
+                try {
+                    LocalDateTime fechaLimite = LocalDateTime.parse(pedidoSimple.getFechaLimite());
+                    pedido.setFechaLimite(fechaLimite);
+                } catch (Exception e) {
+                    System.err.println("⚠️ BACKEND: Error al parsear fecha límite para pedido " +
+                            pedidoSimple.getCodigo() + ": " + e.getMessage());
+                }
+            }
+
+            // Establecer tipo de nodo
+            pedido.setTipoNodo(TipoNodo.PEDIDO);
+
+            System.out.println("✅ BACKEND: Pedido creado exitosamente: " + pedido.getCodigo() +
+                    " en (" + pedido.getCoordenada().getFila() + "," +
+                    pedido.getCoordenada().getColumna() + ") - Estado: " + pedido.getEstado());
+
+            return pedido;
 
         } catch (Exception e) {
             System.err.println("❌ BACKEND: Error al crear pedido desde estado capturado: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }
