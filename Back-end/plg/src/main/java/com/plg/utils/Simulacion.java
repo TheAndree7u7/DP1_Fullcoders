@@ -151,7 +151,8 @@ public class Simulacion {
                     System.out.println("Tiempo actual: " + fechaActual);
 
                     if (!pedidosPorAtender.isEmpty()) {
-
+                       // camiones 
+                        //almacenes      
                         if (modoStandalone) {
                             // Modo standalone: ejecutar sin esperar semáforos
                             try {

@@ -66,7 +66,7 @@ public class AveriaService {
     /**
      * Lista averías por camión y tipo de incidente.
      *
-     * @param codigoCamion código del camión
+     * @param codigoCamion  código del camión
      * @param tipoIncidente tipo de incidente ("TI1", "TI2", "TI3")
      * @return Lista de averías filtradas
      */
@@ -92,23 +92,26 @@ public class AveriaService {
         try {
             // Crear la avería solo con los campos requeridos
             Averia averia = request.toAveria();
-            //!CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE INCIDENTE
+            // !CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE
+            // INCIDENTE
             averia.calcularTurnoOcurrencia();
 
             averia.getTipoIncidente().initDefaultAverias();
             averia.setFechaHoraFinEsperaEnRuta(averia.calcularFechaHoraFinEsperaEnRuta());
             averia.setFechaHoraDisponible(averia.calcularFechaHoraDisponible());
             averia.setTiempoReparacionEstimado(averia.calcularTiempoInoperatividad());
-            //! CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE INCIDENTE            //?--------------------------------------
-            //! Ahora se actualiza el estado del camión a INMOVILIZADO_POR_AVERIA
+            // ! CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE
+            // INCIDENTE //?--------------------------------------
+            // ! Ahora se actualiza el estado del camión a INMOVILIZADO_POR_AVERIA
             camionService.cambiarEstado(request.getCodigoCamion(), EstadoCamion.INMOVILIZADO_POR_AVERIA);
 
-            //! Cambiar la posición del camión con la coordenada del request
+            // ! Cambiar la posición del camión con la coordenada del request
             if (request.getCoordenada() != null) {
                 camionService.cambiarCoordenada(request.getCodigoCamion(), request.getCoordenada());
             }
 
-            //! Si el tipo de incidente NO es TI1, cambiar el estado de los pedidos asociados a REGISTRADO
+            // ! Si el tipo de incidente NO es TI1, cambiar el estado de los pedidos
+            // asociados a REGISTRADO
             if (!"TI1".equals(averia.getTipoIncidente().getCodigo())) {
                 actualizarPedidosACamionAveriado(request.getCodigoCamion());
             }
@@ -151,18 +154,22 @@ public class AveriaService {
             System.out.println("📊 BACKEND: Tipo: " + request.getTipoIncidente());
             System.out.println("📊 BACKEND: Timestamp: " + request.getEstadoSimulacion().getTimestamp());
             System.out.println("📊 BACKEND: Hora simulación: " + request.getEstadoSimulacion().getHoraSimulacion());
-            System.out.println("📊 BACKEND: Camiones en estado: " + 
-                (request.getEstadoSimulacion().getCamiones() != null ? 
-                 request.getEstadoSimulacion().getCamiones().size() : 0));
-            System.out.println("📊 BACKEND: Rutas en estado: " + 
-                (request.getEstadoSimulacion().getRutasCamiones() != null ? 
-                 request.getEstadoSimulacion().getRutasCamiones().size() : 0));
-            System.out.println("📊 BACKEND: Almacenes en estado: " + 
-                (request.getEstadoSimulacion().getAlmacenes() != null ? 
-                 request.getEstadoSimulacion().getAlmacenes().size() : 0));
-            System.out.println("📊 BACKEND: Bloqueos en estado: " + 
-                (request.getEstadoSimulacion().getBloqueos() != null ? 
-                 request.getEstadoSimulacion().getBloqueos().size() : 0));
+            System.out.println("📊 BACKEND: Camiones en estado: " +
+                    (request.getEstadoSimulacion().getCamiones() != null
+                            ? request.getEstadoSimulacion().getCamiones().size()
+                            : 0));
+            System.out.println("📊 BACKEND: Rutas en estado: " +
+                    (request.getEstadoSimulacion().getRutasCamiones() != null
+                            ? request.getEstadoSimulacion().getRutasCamiones().size()
+                            : 0));
+            System.out.println("📊 BACKEND: Almacenes en estado: " +
+                    (request.getEstadoSimulacion().getAlmacenes() != null
+                            ? request.getEstadoSimulacion().getAlmacenes().size()
+                            : 0));
+            System.out.println("📊 BACKEND: Bloqueos en estado: " +
+                    (request.getEstadoSimulacion().getBloqueos() != null
+                            ? request.getEstadoSimulacion().getBloqueos().size()
+                            : 0));
 
             // Procesar el estado completo de la simulación
             procesarEstadoCompleto(request.getEstadoSimulacion(), request);
@@ -184,52 +191,54 @@ public class AveriaService {
 
     /**
      * Procesa el estado completo de la simulación capturado durante la avería.
-     * Este método maneja el análisis, almacenamiento del estado completo y 
+     * Este método maneja el análisis, almacenamiento del estado completo y
      * la generación del paquete parche para manejar la interrupción temporal.
      *
      * @param estadoSimulacion el estado completo de la simulación
-     * @param request el request completo con el timestamp correcto de la avería
+     * @param request          el request completo con el timestamp correcto de la
+     *                         avería
      */
-    private void procesarEstadoCompleto(AveriaConEstadoRequest.EstadoSimulacion estadoSimulacion, AveriaConEstadoRequest request) {
-        try { 
+    private void procesarEstadoCompleto(AveriaConEstadoRequest.EstadoSimulacion estadoSimulacion,
+            AveriaConEstadoRequest request) {
+        try {
             System.out.println("==========================================================");
             System.out.println("==========================================================");
             System.out.println("🔄 BACKEND: Procesando estado completo de la simulación...");
             System.out.println("🔄 BACKEND: Estado simulación: " + estadoSimulacion);
             System.out.println("🔄 BACKEND: Request: " + request);
             System.out.println("🔄 BACKEND: Procesando estado completo de la simulación...");
-            
+
             // Paso 0: Detener la simulación inmediatamente para evitar más paquetes
             System.out.println("🚨 BACKEND: Deteniendo simulación del backend por avería...");
             com.plg.controller.SimulacionController.detenerSimulacionPorAveria();
-            
+
             // Paso 1: Detener la generación de paquetes futuros inmediatamente
             System.out.println("🛑 BACKEND: Eliminando paquetes futuros...");
             int paquetesEliminados = com.plg.utils.Simulacion.eliminarPaquetesFuturos();
             System.out.println("✅ BACKEND: Paquetes futuros eliminados: " + paquetesEliminados);
-            
+
             // Paso 2: Generar paquete parche con el estado capturado
             System.out.println("🩹 BACKEND: Generando paquete parche para manejar la avería...");
-            // Usar el timestamp de la avería enviado desde el frontend, no el del estado de simulación
+            // Usar el timestamp de la avería enviado desde el frontend, no el del estado de
+            // simulación
             String timestampString = request.getFechaHoraReporte();
             if (timestampString.endsWith("Z")) {
                 timestampString = timestampString.substring(0, timestampString.length() - 1);
             }
             LocalDateTime timestampAveria = LocalDateTime.parse(timestampString);
-            
+
             System.out.println("📅 BACKEND: Usando timestamp de avería correcto: " + timestampAveria);
             System.out.println("📅 BACKEND: (No el timestamp del estado: " + estadoSimulacion.getTimestamp() + ")");
-            
+
             com.plg.dto.IndividuoDto paqueteParche = com.plg.utils.Simulacion.generarPaqueteParche(
-                timestampAveria, 
-                estadoSimulacion
-            );
-            
+                    timestampAveria,
+                    estadoSimulacion);
+
             if (paqueteParche != null) {
                 // Paso 3: Insertar el paquete parche en el historial
                 com.plg.utils.Simulacion.insertarPaqueteParche(paqueteParche);
                 System.out.println("✅ BACKEND: Paquete parche insertado exitosamente");
-                
+
                 // Obtener información actualizada
                 com.plg.utils.Simulacion.SimulacionInfo infoActual = com.plg.utils.Simulacion.obtenerInfoSimulacion();
                 System.out.println("📊 BACKEND: Estado actual después del parche:");
@@ -239,10 +248,10 @@ public class AveriaService {
             } else {
                 System.err.println("❌ BACKEND: No se pudo generar el paquete parche");
             }
-            
+
             // Paso 4: Análisis del estado para logs y reportes
             analizarEstadoCapturado(estadoSimulacion);
-            
+
             System.out.println("✅ BACKEND: Estado completo procesado y paquete parche generado exitosamente");
             System.out.println("==========================================================");
             System.out.println("==========================================================");
@@ -252,7 +261,7 @@ public class AveriaService {
             // No lanzamos excepción aquí para no fallar la creación de la avería
         }
     }
-    
+
     /**
      * Analiza el estado capturado durante la avería para generar logs y reportes.
      *
@@ -261,46 +270,46 @@ public class AveriaService {
     private void analizarEstadoCapturado(AveriaConEstadoRequest.EstadoSimulacion estadoSimulacion) {
         try {
             System.out.println("📊 BACKEND: ANÁLISIS DEL ESTADO CAPTURADO:");
-            
+
             // Análisis de camiones
             if (estadoSimulacion.getCamiones() != null) {
                 System.out.println("📈 BACKEND: Analizando " + estadoSimulacion.getCamiones().size() + " camiones");
                 long camionesEnCamino = estadoSimulacion.getCamiones().stream()
-                    .filter(c -> "En Camino".equals(c.getEstado()))
-                    .count();
+                        .filter(c -> "En Camino".equals(c.getEstado()))
+                        .count();
                 long camionesAveriados = estadoSimulacion.getCamiones().stream()
-                    .filter(c -> c.getEstado() != null && c.getEstado().contains("Averiado"))
-                    .count();
+                        .filter(c -> c.getEstado() != null && c.getEstado().contains("Averiado"))
+                        .count();
                 long camionesDisponibles = estadoSimulacion.getCamiones().stream()
-                    .filter(c -> "Disponible".equals(c.getEstado()))
-                    .count();
-                    
+                        .filter(c -> "Disponible".equals(c.getEstado()))
+                        .count();
+
                 System.out.println("   • Camiones en camino: " + camionesEnCamino);
                 System.out.println("   • Camiones averiados: " + camionesAveriados);
                 System.out.println("   • Camiones disponibles: " + camionesDisponibles);
             }
-            
+
             // Análisis de rutas y pedidos
             if (estadoSimulacion.getRutasCamiones() != null) {
                 System.out.println("📈 BACKEND: Analizando " + estadoSimulacion.getRutasCamiones().size() + " rutas");
                 int totalPedidos = estadoSimulacion.getRutasCamiones().stream()
-                    .mapToInt(ruta -> ruta.getPedidos() != null ? ruta.getPedidos().size() : 0)
-                    .sum();
+                        .mapToInt(ruta -> ruta.getPedidos() != null ? ruta.getPedidos().size() : 0)
+                        .sum();
                 System.out.println("   • Total de pedidos en rutas: " + totalPedidos);
             }
-            
+
             // Análisis de almacenes
             if (estadoSimulacion.getAlmacenes() != null) {
                 System.out.println("📈 BACKEND: Analizando " + estadoSimulacion.getAlmacenes().size() + " almacenes");
                 // Aquí se podría agregar más análisis de almacenes
             }
-            
+
             // Análisis temporal
             System.out.println("⏰ BACKEND: Datos temporales:");
             System.out.println("   • Timestamp avería: " + estadoSimulacion.getTimestamp());
             System.out.println("   • Hora simulación: " + estadoSimulacion.getHoraSimulacion());
             System.out.println("   • Hora actual: " + estadoSimulacion.getHoraActual());
-            
+
         } catch (Exception e) {
             System.err.println("❌ BACKEND: Error al analizar estado capturado: " + e.getMessage());
         }
@@ -349,7 +358,8 @@ public class AveriaService {
                     .orElse(null);
 
             if (camion != null && camion.getGen() != null && camion.getGen().getRutaFinal() != null) {
-                // Buscar todos los pedidos en la ruta del camión y cambiar su estado a REGISTRADO
+                // Buscar todos los pedidos en la ruta del camión y cambiar su estado a
+                // REGISTRADO
                 for (Nodo nodo : camion.getGen().getRutaFinal()) {
                     if (nodo.getTipoNodo() == TipoNodo.PEDIDO) {
                         Pedido pedido = (Pedido) nodo;
@@ -422,7 +432,8 @@ public class AveriaService {
             // Verificar si el camión aún está en el lugar de la avería
             if (esCamionEnLugarAveria(codigoCamion)) {
                 trasladarCamionAlTaller(codigoCamion);
-                System.out.println("🚛 Camión " + codigoCamion + " trasladado al taller - Estado: EN_MANTENIMIENTO_POR_AVERIA");
+                System.out.println(
+                        "🚛 Camión " + codigoCamion + " trasladado al taller - Estado: EN_MANTENIMIENTO_POR_AVERIA");
             }
         }
 
@@ -492,7 +503,7 @@ public class AveriaService {
      * @param fecha1 Primera fecha
      * @param fecha2 Segunda fecha
      * @return true si fecha1 es anterior o igual a fecha2 (sin considerar
-     * segundos)
+     *         segundos)
      */
     private boolean esFechaAnteriorSinSegundos(LocalDateTime fecha1, LocalDateTime fecha2) {
         // Truncar a minutos para ignorar segundos

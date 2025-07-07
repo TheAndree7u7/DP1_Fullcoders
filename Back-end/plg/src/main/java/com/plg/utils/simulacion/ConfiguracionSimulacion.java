@@ -86,6 +86,11 @@ public class ConfiguracionSimulacion {
      * Imprime un resumen actualizado de las métricas principales de la simulación.
      */
     public static void imprimirDatosSimulacion() {
+        //2025-01-01T04:00- 6pm 
+
+
+        // pedidos semanales  6- fin de semana 
+        // pedididos que le mando del front 
         List<Pedido> pedidosSemanal = Simulacion.getPedidosSemanal();
         LocalDateTime fechaActual = Simulacion.getFechaActual();
 
