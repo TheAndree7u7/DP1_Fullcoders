@@ -215,9 +215,10 @@ public class CamionService {
                 camion.setCombustibleActual(combustibleActual);
             }
 
-            System.out.println("🚛 Camión " + codigoCamion + " actualizado desde frontend: " +
-                    "ubicación=" + ubicacion + ", estado=" + estado +
-                    ", GLP=" + capacidadActualGLP + ", combustible=" + combustibleActual);
+            // System.out.println("🚛 Camión " + codigoCamion + " actualizado desde
+            // frontend: " +
+            // "ubicación=" + ubicacion + ", estado=" + estado +
+            // ", GLP=" + capacidadActualGLP + ", combustible=" + combustibleActual);
 
             return camion;
 

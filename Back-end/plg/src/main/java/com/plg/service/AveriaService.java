@@ -222,9 +222,13 @@ public class AveriaService {
             System.out.println("🛑 BACKEND: Eliminando paquetes futuros...");
             int paquetesEliminados = com.plg.utils.Simulacion.eliminarPaquetesFuturos();
 
-            //PASO 1.1: camiar el # de los paquete agregados en el historial de simulacion
-        
+            // PASO 1.1: Ajustar el número de los paquetes agregados en el historial de
+            // simulación
+            System.out.println("🔢 BACKEND: Ajustando contador de paquetes para numeración consecutiva...");
+            GestorHistorialSimulacion.ajustarContadorPaquetes();
+
             System.out.println("✅ BACKEND: Paquetes futuros eliminados: " + paquetesEliminados);
+            System.out.println("✅ BACKEND: Contador de paquetes ajustado correctamente");
 
             // Obtener el timestamp de la avería para usar en múltiples pasos
             String timestampString = request.getFechaHoraReporte();
@@ -240,10 +244,18 @@ public class AveriaService {
             // frontend
             System.out.println("🔄 BACKEND: Actualizando camiones y almacenes...");
             actualizarCamionesYAlmacenesConEstadoCapturado(estadoSimulacion);
+            com.plg.utils.Simulacion.fechaInicioParche = timestampAveria;
+            int paqueteActualNumero = GestorHistorialSimulacion.getPaqueteActual();
+            IndividuoDto paqueteActual = GestorHistorialSimulacion.obtenerPaquetePorIndice(paqueteActualNumero);
+            com.plg.utils.Simulacion.fechaFinParche = paqueteActual.getFechaHoraSimulacion();
+
+            System.out.println("🔄 BACKEND: Fecha inicio parche: " + com.plg.utils.Simulacion.fechaInicioParche);
+            System.out.println("🔄 BACKEND: Fecha fin parche: " + com.plg.utils.Simulacion.fechaFinParche);
 
             // Paso 2: Generar paquete parche con el estado capturado
             System.out.println("🩹 BACKEND: Generando paquete parche para manejar la avería...");
-
+            com.plg.utils.Simulacion.faltacrearparche = true;
+            com.plg.utils.Simulacion.crearPaqueteParche();
             System.out.println("📅 BACKEND: Usando timestamp de avería correcto: " + timestampAveria);
             System.out.println("📅 BACKEND: (No el timestamp del estado: " + estadoSimulacion.getTimestamp() + ")");
             // ACTUalizar parametros de la simulacion
@@ -258,10 +270,7 @@ public class AveriaService {
             // fechainicio + intervalo
             // la fecha del fin del parche es la fecha final del rango actual de la
             // simulacion + intervaloTiempo
-            com.plg.utils.Simulacion.fechaInicioParche = timestampAveria;
-            int paqueteActualNumero = GestorHistorialSimulacion.getPaqueteActual();
-            IndividuoDto paqueteActual = GestorHistorialSimulacion.obtenerPaquetePorIndice(paqueteActualNumero);
-            com.plg.utils.Simulacion.fechaFinParche = paqueteActual.getFechaHoraSimulacion();
+
             // com.plg.utils.Simulacion.fechaFinParche = fechadelultimopaqueteconsumido;
             // com.plg.dto.IndividuoDto paqueteParche =
             // com.plg.utils.Simulacion.generarPaqueteParche(
@@ -297,7 +306,7 @@ public class AveriaService {
 
             // Paso 4: REANUDAR la simulación después de procesar la avería
             // ! colocar QUE FALTA CREAR PARCHE
-            com.plg.utils.Simulacion.faltacrearparche = true;
+
             System.out.println("▶️ BACKEND: Reanudando simulación después de procesaravería...");
             com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
             // Paso 5: Análisis del estado para logs y reportes

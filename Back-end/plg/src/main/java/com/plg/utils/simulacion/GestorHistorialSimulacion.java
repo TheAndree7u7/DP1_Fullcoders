@@ -202,4 +202,21 @@ public class GestorHistorialSimulacion {
         }
         return null;
     }
+
+    /**
+     * Ajusta el contador de paquetes para que coincida con el número real de
+     * paquetes
+     * en el historial. Se usa después de eliminar paquetes futuros para mantener
+     * la numeración consecutiva.
+     */
+    public static synchronized void ajustarContadorPaquetes() {
+        int contadorAnterior = contadorPaquetes;
+        contadorPaquetes = historialSimulacion.size();
+
+        System.out.println("🔢 AJUSTANDO CONTADOR DE PAQUETES:");
+        System.out.println("   • Contador anterior: " + contadorAnterior);
+        System.out.println("   • Contador ajustado: " + contadorPaquetes);
+        System.out.println("   • Total paquetes en historial: " + historialSimulacion.size());
+        System.out.println("   • Próximo paquete será: #" + (contadorPaquetes + 1));
+    }
 }
