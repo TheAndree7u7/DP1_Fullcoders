@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronUp } from "lucide-react";
 import { useSimulacion,  } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
 import ControlSimulacion from "../components/ControlSimulacion";
+import IndicadorPaqueteActual from "../components/IndicadorPaqueteActual";
 
 // Constante que define cuánto tiempo (en segundos) representa cada nodo en la simulación
 const SEGUNDOS_POR_NODO = 36;
@@ -127,26 +128,32 @@ const SimulacionSemanal: React.FC = () => {
       <Navbar />
       <div className="bg-[#1E293B] text-white py-2 px-4 flex justify-between items-center">
         <h1 className="font-bold">Ejecución Semanal - {formatearTiempoTranscurrido(tiempoTranscurridoSimulado)}</h1>
-        {tiempoSimulado && (
-          <div className="text-sm flex items-center gap-4">
-            <div>
-              <span className="mr-2">Fecha de la simulación:</span>
-              <span className="font-bold text-blue-300">{fechaSimulada}</span>
-            </div>
-            <div>
-              <span className="mr-2">Hora de la simulacion:</span>
-              <span className="font-bold text-blue-300">{horaRealSimulada}</span>
-            </div>
-            <div>
-              <span className="mr-2">Nodo actual:</span>
-              <span className="font-bold text-blue-300">{horaActual}</span>
-            </div>
-            <div>
-              <span className="mr-2">Seg/nodo:</span>
-              <span className="font-bold text-blue-300">{SEGUNDOS_POR_NODO}</span>
-            </div>
+        <div className="flex items-center gap-4">
+          {/* Indicador compacto del paquete actual */}
+          <div className="bg-[#334155] rounded-lg px-3 py-1">
+            <IndicadorPaqueteActual variant="compact" showProgress={false} showTime={false} />
           </div>
-        )}
+          {tiempoSimulado && (
+            <div className="text-sm flex items-center gap-4">
+              <div>
+                <span className="mr-2">Fecha de la simulación:</span>
+                <span className="font-bold text-blue-300">{fechaSimulada}</span>
+              </div>
+              <div>
+                <span className="mr-2">Hora de la simulacion:</span>
+                <span className="font-bold text-blue-300">{horaRealSimulada}</span>
+              </div>
+              <div>
+                <span className="mr-2">Nodo actual:</span>
+                <span className="font-bold text-blue-300">{horaActual}</span>
+              </div>
+              <div>
+                <span className="mr-2">Seg/nodo:</span>
+                <span className="font-bold text-blue-300">{SEGUNDOS_POR_NODO}</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       
       {/* Panel de control de simulación */}
@@ -162,7 +169,20 @@ const SimulacionSemanal: React.FC = () => {
         
         {controlPanelExpandido && (
           <div className="transition-all duration-300">
-            <ControlSimulacion />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Control de simulación */}
+              <div className="lg:col-span-2">
+                <ControlSimulacion />
+              </div>
+              {/* Indicador detallado del paquete actual */}
+              <div className="lg:col-span-1">
+                <IndicadorPaqueteActual 
+                  variant="detailed" 
+                  showProgress={true} 
+                  showTime={true}
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>

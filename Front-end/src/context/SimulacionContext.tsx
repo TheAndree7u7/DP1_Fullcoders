@@ -110,6 +110,7 @@ interface SimulacionContextType {
   tiempoTranscurridoSimulado: string; // Tiempo transcurrido dentro de la simulación
   simulacionActiva: boolean; // Indica si la simulación está activa (contador funcionando)
   horaSimulacion: string; // Hora actual dentro de la simulación (HH:MM:SS)
+  paqueteActualConsumido: number; // Número del paquete que se está consumiendo actualmente
   avanzarHora: () => void;
   reiniciar: () => Promise<void>;
   iniciarContadorTiempo: () => void; // Nueva función para iniciar el contador manualmente
@@ -186,6 +187,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [simulacionActiva, setSimulacionActiva] = useState<boolean>(false);
   const [horaSimulacion, setHoraSimulacion] = useState<string>("00:00:00");
   const [pollingActivo, setPollingActivo] = useState<boolean>(false);
+  const [paqueteActualConsumido, setPaqueteActualConsumido] = useState<number>(0);
 
   // Efecto de polling activo DESHABILITADO - ahora usamos el polling específico más abajo
   // que maneja mejor el primer paquete sin consumir paquetes innecesarios
@@ -549,6 +551,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setEsperandoActualizacion(false);
       setSolicitudAnticipadaEnviada(false);
       setProximaSolucionCargada(null);
+      
+      // Incrementar el contador de paquetes consumidos
+      setPaqueteActualConsumido(prev => prev + 1);
+      console.log("📦 PAQUETE CONSUMIDO: Nuevo paquete aplicado, contador actualizado");
     } catch (error) {
       console.error("Error al cargar datos de simulación:", error);
       throw error; // Re-lanzar para que el caller pueda manejar el error
@@ -650,6 +656,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Asegurar que el estado de carga esté en false después de aplicar datos
       setCargando(false);
       console.log("✅ TRANSICIÓN: Estado de carga cambiado a false después de aplicar solución");
+      
+      // Incrementar el contador de paquetes consumidos
+      setPaqueteActualConsumido(prev => prev + 1);
+      console.log("📦 PAQUETE CONSUMIDO: Paquete precargado aplicado, contador actualizado");
       
     } catch (error) {
       console.error("❌ TRANSICIÓN: Error al aplicar solución precargada:", error);
@@ -951,6 +961,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     setEsperandoActualizacion(false);
     setSolicitudAnticipadaEnviada(false);
     setProximaSolucionCargada(null);
+    setPaqueteActualConsumido(0); // Resetear contador de paquetes
     
     // Iniciar contador de tiempo
     setInicioSimulacion(new Date());
@@ -996,6 +1007,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         tiempoTranscurridoSimulado,
         simulacionActiva,
         horaSimulacion,
+        paqueteActualConsumido,
         avanzarHora,
         reiniciar,
         iniciarContadorTiempo,
