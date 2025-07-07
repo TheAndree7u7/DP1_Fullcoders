@@ -300,7 +300,7 @@ public class Simulacion {
                         GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
                         faltacrearparche = false;
                         // pasar a la siguiente iteracion del while
-                        continue;
+
                     } catch (Exception e) {
                         System.err.println("❌ Error en algoritmo genético en tiempo " + fechaActual + ": "
                                 + e.getMessage());
@@ -318,6 +318,20 @@ public class Simulacion {
                             e2.printStackTrace();
                         }
                     }
+                    // ! ACA CAMBIA LA FECHA ACTUAL
+                    fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
+                    System.out.println("📊 Estado: Pedidos semanales restantes: " + pedidosSemanal.size() +
+                            ", Por atender: " + pedidosPorAtender.size() +
+                            ", Planificados: " + pedidosPlanificados.size());
+
+                    // Imprimir resumen detallado de estados
+                    imprimirResumenEstados();
+                    System.out.println("ESPERANDO 1 HORA");
+                    Thread.sleep(60 * 60 * 1000);
+
+                    continue;
+                    // ESPERA 1HORA
+
                 }
                 Pedido pedido = pedidosSemanal.get(0);
                 // Voy agregando pedidos a la lista de pedidos
@@ -370,14 +384,7 @@ public class Simulacion {
                             for (Bloqueo bloqueo : bloqueosActivos) {
                                 bloqueo.desactivarBloqueo();
                             }
-                            // ! ACA CAMBIA LA FECHA ACTUAL
-                            fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
-                            System.out.println("📊 Estado: Pedidos semanales restantes: " + pedidosSemanal.size() +
-                                    ", Por atender: " + pedidosPorAtender.size() +
-                                    ", Planificados: " + pedidosPlanificados.size());
 
-                            // Imprimir resumen detallado de estados
-                            imprimirResumenEstados();
                         } else {
                             // Modo web interactivo: esperar semáforos
                             try {
