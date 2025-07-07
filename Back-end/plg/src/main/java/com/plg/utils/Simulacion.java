@@ -424,10 +424,16 @@ public class Simulacion {
                     .filter(pedido -> pedido.getFechaRegistro().isAfter(fechaInicioParche)
                             && pedido.getFechaRegistro().isBefore(fechaFinParche))
                     .collect(Collectors.toList());
-            // Filtra los pedidos con el estado
-            pedidosEnviar.removeIf(pedido -> pedido.getEstado().equals(EstadoPedido.ENTREGADO));
-            // Filtra los pedidos con el estado de planificado
 
+            // Numero de pedidos antes de filtrar
+            System.out.println("NUmero de pedidos antes de filtrar: " + pedidosEnviar.size());
+            // Filtra los pedidos con el estado ENTREGADO
+            pedidosEnviar = pedidosEnviar.stream()
+                    .filter(pedido -> pedido.getEstado().equals(EstadoPedido.ENTREGADO))
+                    .collect(Collectors.toList());
+            // Filtra los pedidos con el estado de planificado
+            // NUmero de pedidos en el nuevo rango
+            System.out.println("NUmero de pedidos en el nuevo rango: " + pedidosEnviar.size());
             // todos los pedidos en el nuevo rango
             List<Bloqueo> bloqueosActivos = actualizarBloqueos(fechaActual);
             System.out.println("************************************************");
@@ -465,8 +471,7 @@ public class Simulacion {
                     e2.printStackTrace();
                 }
             }
-            // ! ACA CAMBIA LA FECHA ACTUAL
-            fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
+
             System.out.println("📊 Estado: Pedidos semanales restantes: " + pedidosSemanal.size() +
                     ", Por atender: " + pedidosPorAtender.size() +
                     ", Planificados: " + pedidosPlanificados.size());
