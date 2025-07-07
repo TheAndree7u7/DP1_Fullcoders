@@ -243,34 +243,39 @@ public class AveriaService {
 
             System.out.println("📅 BACKEND: Usando timestamp de avería correcto: " + timestampAveria);
             System.out.println("📅 BACKEND: (No el timestamp del estado: " + estadoSimulacion.getTimestamp() + ")");
+            //ACTUalizar parametros de la simulacion
+            com.plg.utils.Simulacion.fechaInicioParche = timestampAveria;
+            com.plg.utils.Simulacion.fechaFinParche = fechadelultimopaqueteconsumido
+            // com.plg.dto.IndividuoDto paqueteParche = com.plg.utils.Simulacion.generarPaqueteParche(
+            //         timestampAveria,
+            //         estadoSimulacion);
 
-            com.plg.dto.IndividuoDto paqueteParche = com.plg.utils.Simulacion.generarPaqueteParche(
-                    timestampAveria,
-                    estadoSimulacion);
+            // if (paqueteParche != null) {
+            //     // Paso 3: Insertar el paquete parche en el historial
+            //     com.plg.utils.Simulacion.insertarPaqueteParche(paqueteParche);
+            //     System.out.println("✅ BACKEND: Paquete parche insertado exitosamente");
 
-            if (paqueteParche != null) {
-                // Paso 3: Insertar el paquete parche en el historial
-                com.plg.utils.Simulacion.insertarPaqueteParche(paqueteParche);
-                System.out.println("✅ BACKEND: Paquete parche insertado exitosamente");
+            //     // Obtener información actualizada
+            //     com.plg.utils.Simulacion.SimulacionInfo infoActual = com.plg.utils.Simulacion.obtenerInfoSimulacion();
+            //     System.out.println("📊 BACKEND: Estado actual después del parche:");
+            //     System.out.println("   • Total paquetes: " + infoActual.totalPaquetes);
+            //     System.out.println("   • Paquete actual: " + infoActual.paqueteActual);
+            //     System.out.println("   • En proceso: " + infoActual.enProceso);
 
-                // Obtener información actualizada
-                com.plg.utils.Simulacion.SimulacionInfo infoActual = com.plg.utils.Simulacion.obtenerInfoSimulacion();
-                System.out.println("📊 BACKEND: Estado actual después del parche:");
-                System.out.println("   • Total paquetes: " + infoActual.totalPaquetes);
-                System.out.println("   • Paquete actual: " + infoActual.paqueteActual);
-                System.out.println("   • En proceso: " + infoActual.enProceso);
+            //     // Paso 4: REANUDAR la simulación después de procesar la avería
+            //     // System.out.println("▶️ BACKEND: Reanudando simulación después de procesar
+            //     // avería...");
+            //     // com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
+            // } else {
+            //     System.err.println("❌ BACKEND: No se pudo generar el paquete parche");
+            //     // En caso de error, asegurar que la simulación se reanude
+            //     // System.out.println("⚠️ BACKEND: Reanudando simulación a pesar del error...");
+            //     // com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
+            // }
 
-                // Paso 4: REANUDAR la simulación después de procesar la avería
-                // System.out.println("▶️ BACKEND: Reanudando simulación después de procesar
-                // avería...");
-                // com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
-            } else {
-                System.err.println("❌ BACKEND: No se pudo generar el paquete parche");
-                // En caso de error, asegurar que la simulación se reanude
-                // System.out.println("⚠️ BACKEND: Reanudando simulación a pesar del error...");
-                // com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
-            }
-
+            //   Paso 4: REANUDAR la simulación después de procesar la avería
+            // System.out.println("▶️ BACKEND: Reanudando simulación después de procesar avería...");
+            // com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
             // Paso 5: Análisis del estado para logs y reportes
             analizarEstadoCapturado(estadoSimulacion);
 
