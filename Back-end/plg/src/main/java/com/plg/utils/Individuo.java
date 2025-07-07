@@ -1,5 +1,6 @@
 package com.plg.utils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,47 +40,67 @@ public class Individuo {
 
     private void inicializarCromosoma() {
         List<Almacen> almacenes = DataLoader.almacenes;
-        // Obtener camiones disponibles (no en mantenimiento)
         List<Camion> camionesDisponibles = obtenerCamionesDisponibles();
 
         cromosoma = new ArrayList<>();
         for (Camion camion : camionesDisponibles) {
             cromosoma.add(new Gen(camion, new ArrayList<>()));
         }
-        // Asignación: si un pedido supera la capacidad, se asigna a varios camiones (misma instancia)
         Almacen almacenCentral = almacenes.get(0);
-        List<Nodo> pedidosMezclados = new ArrayList<>();
+        List<Pedido> pedidosMezclados = new ArrayList<>();
         pedidosMezclados.addAll(pedidos);
         Collections.shuffle(pedidosMezclados, new Random(Parametros.semillaAleatoria));
-        double capacidadDivisionPedido = 25.0; // parametrizable si lo deseas
-        Random random = new Random(Parametros.semillaAleatoria + 42);
-        for (Nodo pedidoNodo : pedidosMezclados) {
-            if (!(pedidoNodo instanceof Pedido)) {
-                continue;
-            }
-            Pedido pedido = (Pedido) pedidoNodo;
-            double cantidad = pedido.getVolumenGLPAsignado();
-            if (cantidad > capacidadDivisionPedido) {
-                int partes = (int) Math.ceil(cantidad / capacidadDivisionPedido);
-                List<Integer> indices = new ArrayList<>();
-                for (int i = 0; i < cromosoma.size(); i++) indices.add(i);
-                Collections.shuffle(indices, random);
-                for (int i = 0; i < partes; i++) {
-                    int idx = indices.get(i % indices.size());
-                    Gen gen = cromosoma.get(idx);
-                    gen.getPedidos().add(pedido);
-                    gen.getNodos().add(pedido);
-                }
-            } else {
-                int idx = random.nextInt(cromosoma.size());
-                Gen gen = cromosoma.get(idx);
-                gen.getPedidos().add(pedido);
-                gen.getNodos().add(pedido);
-            }
-        }
+
+        LocalDateTime fechaActual = Parametros.fecha_inicial;
+
+        asignarPedidosACamiones(camionesDisponibles, pedidosMezclados, cromosoma, fechaActual);
+
         for (Gen gen : cromosoma) {
             gen.getNodos().add(almacenCentral);
         }
+    }
+
+    /**
+     * Asigna pedidos a camiones según la lógica definida.
+     * Valida la asignación usando un Gen temporal y calcularFitness.
+     */
+    private void asignarPedidosACamiones(List<Camion> camionesDisponibles, List<Pedido> pedidosMezclados, List<Gen> cromosoma, LocalDateTime fechaActual) {
+        int maxPedidosPorCamion = 3;
+        Random random = new Random(Parametros.semillaAleatoria + 2);
+        guardarEstadoActual();
+        Collections.shuffle(camionesDisponibles, new Random(Parametros.semillaAleatoria + 1));
+        for (Camion camion : camionesDisponibles) {
+            int intentos = 0;
+            boolean asignado = false;
+            while (intentos < 10 && !asignado && !pedidosMezclados.isEmpty()) {
+                List<Pedido> seleccionados = new ArrayList<>();
+                List<Pedido> copiaPedidos = new ArrayList<>(pedidosMezclados);
+                Collections.shuffle(copiaPedidos, random);
+                for (Pedido pedido : copiaPedidos) {
+                    if (pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado() > 0) {
+                        seleccionados.add(pedido);
+                        if (seleccionados.size() == maxPedidosPorCamion) break;
+                    }
+                }
+                if (seleccionados.isEmpty()) break;
+                // Asignar pedidos al camión y simular entrega de GLP
+                double glpPorPedido = camion.getCapacidadActualGLP() / seleccionados.size();
+                for (Pedido pedido : seleccionados) {
+                    double pendiente = pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado();
+                    double entregar = Math.min(glpPorPedido, pendiente);
+                    pedido.setVolumenGLPEntregado(pedido.getVolumenGLPEntregado() + entregar);
+                    Gen gen = cromosoma.stream().filter(g -> g.getCamion().equals(camion)).findFirst().orElse(null);
+                    if (gen != null) {
+                        gen.getPedidos().add(pedido);
+                        gen.getNodos().add(pedido);
+                    }
+                }
+                pedidosMezclados.removeIf(p -> p.getVolumenGLPAsignado() - p.getVolumenGLPEntregado() == 0);
+                asignado = true;
+                intentos++;
+            }
+        }
+        restaurarEstadoActual();
     }
 
     /**
@@ -216,4 +237,6 @@ public class Individuo {
         }
         return sb.toString();
     }
+
+
 }

@@ -2,6 +2,7 @@ package com.plg.controller;
 
 import com.plg.utils.Simulacion;
 import com.plg.utils.AlgoritmoGenetico;
+import com.plg.utils.Parametros;
 import com.plg.dto.IndividuoDto;
 import com.plg.dto.request.SimulacionRequest;
 import com.plg.dto.request.MejorIndividuoRequest;
@@ -64,8 +65,8 @@ public class SimulacionController {
             return null;
         }
         LocalDateTime fecha = request.getFecha();
+        Parametros.fecha_inicial = fecha; // Actualizar la fecha inicial de la simulación
         System.out.println("🔄 Actualizando estado global para la fecha: " + fecha);
-
         // Obtener pedidos en el rango de dos horas y unir con pedidos planificados
         List<Pedido> pedidosAT = Simulacion.obtenerPedidosEnRango(fecha);
         List<Pedido> pedidosEnviar = UtilesSimulacion.unirPedidosSinRepetidos(
