@@ -818,7 +818,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                 </div>
 
                 {/* Info adicional para almacenes secundarios */}
-                {almacen.tipo === 'INTERMEDIO' && (
+                {almacen.tipo === 'SECUNDARIO' && (
                   <div className="mb-3 p-2 bg-green-50 rounded text-center">
                     <div className="text-xs text-green-700">
                       🔄 Recarga automática a las 00:00

@@ -27,4 +27,15 @@ public class AlmacenRepository {
         DataLoader.almacenes.add(almacen);
         return almacen;
     }
+
+    // actualizar
+    public void update(Almacen almacen) {
+        for (int i = 0; i < DataLoader.almacenes.size(); i++) {
+            if (DataLoader.almacenes.get(i).getNombre().equals(almacen.getNombre())) {
+                DataLoader.almacenes.set(i, almacen);
+                return;
+            }
+        }
+        throw new RuntimeException("Almacen no encontrado: " + almacen.getNombre());
+    }
 }

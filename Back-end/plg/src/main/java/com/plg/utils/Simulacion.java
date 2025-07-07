@@ -27,6 +27,8 @@ import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
 import com.plg.entity.TipoAlmacen;
 import com.plg.entity.TipoNodo;
+import com.plg.repository.AlmacenRepository;
+import com.plg.repository.CamionRepository;
 import com.plg.utils.simulacion.ConfiguracionSimulacion;
 import com.plg.utils.simulacion.MantenimientoManager;
 import com.plg.utils.simulacion.AveriasManager;
@@ -74,6 +76,11 @@ public class Simulacion {
     public static BlockingQueue<IndividuoDto> gaResultQueue = new SynchronousQueue<>();
     public static Semaphore iniciar = new Semaphore(0);
     public static Semaphore continuar = new Semaphore(0);
+
+    // repostory camion
+    public static CamionRepository camionRepository = new CamionRepository();
+    // repostory almacen
+    public static AlmacenRepository almacenRepository = new AlmacenRepository();
 
     /**
      * Obtiene la lista de pedidos semanales actual.
@@ -546,54 +553,6 @@ public class Simulacion {
     }
 
     /**
-     * Crea un individuo desde el estado capturado durante la avería.
-     * 
-     * @param estadoCapturado Estado de la simulación capturado
-     * @return Individuo con los datos del estado capturado
-     */
-    private static Individuo crearIndividuoDesdeEstadoCapturado(
-            AveriaConEstadoRequest.EstadoSimulacion estadoCapturado) {
-        try {
-            System.out.println("🔄 Creando individuo parche desde estado capturado...");
-
-            // Crear individuo vacío como base
-            Individuo individuo = IndividuoFactory.crearIndividuoVacio();
-
-            // Actualizar posiciones de camiones usando datos del frontend
-            if (estadoCapturado.getCamiones() != null) {
-                System.out
-                        .println("🚛 Actualizando posiciones de " + estadoCapturado.getCamiones().size() + " camiones");
-                actualizarCamionesDesdeEstadoCapturado(estadoCapturado.getCamiones());
-            }
-
-            // Actualizar almacenes usando datos del frontend
-            if (estadoCapturado.getAlmacenes() != null) {
-                System.out.println("🏪 Actualizando " + estadoCapturado.getAlmacenes().size() + " almacenes");
-                actualizarAlmacenesDesdeEstadoCapturado(estadoCapturado.getAlmacenes());
-            }
-
-            // Regenerar el individuo con el estado actualizado
-            // Por ahora usamos el individuo vacío, pero se podría mejorar
-            // individuo = IndividuoFactory.crearIndividuoVacio();
-
-            // Calcular fitness del paquete parche
-            if (individuo != null) {
-                double fitness = individuo.calcularFitness();
-                System.out.println("📊 Fitness paquete parche calculado: " + fitness);
-            }
-
-            System.out.println("✅ Individuo parche creado exitosamente desde estado capturado");
-            return individuo;
-
-        } catch (Exception e) {
-            System.err.println("❌ Error al crear individuo desde estado capturado: " + e.getMessage());
-            e.printStackTrace();
-            // Fallback: crear individuo vacío
-            return IndividuoFactory.crearIndividuoVacio();
-        }
-    }
-
-    /**
      * Actualiza las posiciones de los camiones usando los datos del frontend.
      * 
      * @param camionesEstado Lista de estados de camiones del frontend
@@ -621,7 +580,8 @@ public class Simulacion {
                             if (camionEstado.getCombustibleActual() != null) {
                                 camion.setCombustibleActual(camionEstado.getCombustibleActual());
                             }
-
+                            // Usar repository para actualizar el camion
+                            camionRepository.update(camion);
                             System.out.println("🚛 Camión " + camion.getCodigo() + " actualizado a posición (" + x + ","
                                     + y + ")");
                         }
@@ -655,7 +615,8 @@ public class Simulacion {
                         if (almacenEstado.getCapacidadActualCombustible() != null) {
                             almacen.setCapacidadCombustible(almacenEstado.getCapacidadActualCombustible());
                         }
-
+                        // Usar repository para actualizar el almacén
+                        almacenRepository.update(almacen);
                         System.out.println("🏪 Almacén en (" + almacen.getCoordenada().getFila() + ","
                                 + almacen.getCoordenada().getColumna() + ") actualizado");
                         break;
