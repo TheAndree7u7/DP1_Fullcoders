@@ -1,10 +1,24 @@
 import type { Individuo } from "../types";
 import { API_URLS } from "../config/api";
 
-export async function getMejorIndividuo(): Promise<Individuo> {
+export async function getMejorIndividuo(fecha?: string): Promise<Individuo> {
   try {
     console.log("Iniciando solicitud al servidor...");
-    const response = await fetch(`${API_URLS.MEJOR_INDIVIDUO}`);
+    
+    // Si no se proporciona fecha, usar la fecha actual
+    const fechaRequest = fecha || new Date().toISOString();
+    console.log("Enviando solicitud con fecha:", fechaRequest);
+    
+    const response = await fetch(`${API_URLS.MEJOR_INDIVIDUO}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fecha: fechaRequest
+      })
+    });
+    
     console.log("Respuesta recibida:", {
       status: response.status,
       statusText: response.statusText,

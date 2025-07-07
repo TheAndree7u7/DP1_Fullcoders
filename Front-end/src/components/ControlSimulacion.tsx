@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Play, RotateCcw, Clock, Calendar } from 'lucide-react';
-import { iniciarSimulacion /*, obtenerInfoSimulacion */ } from '../services/simulacionApiService';
 import { useSimulacion } from '../context/SimulacionContext';
 
 
@@ -12,7 +11,7 @@ const ControlSimulacion: React.FC = () => {
   const [mensaje, setMensaje] = useState<string>('');
   const [tipoMensaje, setTipoMensaje] = useState<'success' | 'error' | 'info'>('info');
   // const [infoSimulacion, setInfoSimulacion] = useState<InfoSimulacion | null>(null);
-  const { reiniciar, limpiarEstadoParaNuevaSimulacion, iniciarPollingPrimerPaquete } = useSimulacion();
+  const { reiniciar, iniciarSimulacion } = useSimulacion();
 
   // Establecer fecha por defecto (hoy)
   useEffect(() => {
@@ -51,24 +50,14 @@ const ControlSimulacion: React.FC = () => {
     try {
       const fechaHoraISO = `${fechaInicio}T${horaInicio}:00`;
       
-      // Primero iniciar la simulación en el backend
-      setMensaje('Configurando simulación en el backend...');
+      console.log("🚀 FRONTEND: Iniciando nueva simulación con fecha:", fechaHoraISO);
+      
+      // Usar la nueva función del contexto que maneja todo el proceso
       await iniciarSimulacion(fechaHoraISO);
+      console.log("🎉 FRONTEND: Simulación iniciada exitosamente");
       
-      setMensaje('Simulación iniciada exitosamente. Cargando datos...');
+      setMensaje('¡Simulación iniciada exitosamente!');
       setTipoMensaje('success');
-      
-      console.log("🚀 FRONTEND: Simulación iniciada en backend, limpiando estado...");
-      
-      // Limpiar el estado y cargar nuevos datos
-      await limpiarEstadoParaNuevaSimulacion();
-      console.log("🧹 FRONTEND: Estado limpiado y datos cargados para nueva simulación");
-      
-      setMensaje('Iniciando visualización automática...');
-      
-      // Iniciar el polling para obtener el primer paquete automáticamente
-      iniciarPollingPrimerPaquete();
-      console.log("🔄 FRONTEND: Polling iniciado para obtener primer paquete automáticamente");
       
       // Comentado: Actualizar información después de unos segundos para dar tiempo al backend
       // setTimeout(async () => {

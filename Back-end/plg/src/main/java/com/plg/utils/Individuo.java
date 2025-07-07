@@ -141,21 +141,7 @@ public class Individuo {
                 restaurarEstadoActual();
                 return Double.POSITIVE_INFINITY; // Si algún gen tiene fitness máximo, el individuo es inválido
             }
-            fitness += fitnessGen; // Sumar el fitness de cada gen
-        }
-        // Comprobar que todos los pedidos están ENTREGADOS
-        boolean todosEntregados = true;
-        StringBuilder errores = new StringBuilder();
-        for (Pedido pedido : pedidos) {
-            if (pedido.getEstado() != EstadoPedido.ENTREGADO) {
-                todosEntregados = false;
-                errores.append("Pedido no entregado: ").append(pedido.getCodigo()).append("\n");
-            }
-        }
-        if (!todosEntregados) {
-            this.descripcion = errores.toString();
-            restaurarEstadoActual();
-            return Double.POSITIVE_INFINITY;
+            fitness += fitnessGen; 
         }
         restaurarEstadoActual();
         return fitness;

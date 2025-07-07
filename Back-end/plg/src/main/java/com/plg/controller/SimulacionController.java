@@ -7,6 +7,7 @@ import com.plg.dto.IndividuoDto;
 import com.plg.dto.request.SimulacionRequest;
 import com.plg.dto.request.MejorIndividuoRequest;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import com.plg.entity.Bloqueo;
 import com.plg.entity.Mapa;
@@ -65,6 +66,8 @@ public class SimulacionController {
             return null;
         }
         LocalDateTime fecha = request.getFecha();
+        // Calcular el intervalo de tiempo en minutos entre la fecha inicial y la fecha actual
+        Parametros.intervaloTiempo = (int) ChronoUnit.MINUTES.between(Parametros.fecha_inicial, fecha);
         Parametros.fecha_inicial = fecha; // Actualizar la fecha inicial de la simulación
         System.out.println("🔄 Actualizando estado global para la fecha: " + fecha);
         // Obtener pedidos en el rango de dos horas y unir con pedidos planificados
