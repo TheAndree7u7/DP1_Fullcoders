@@ -163,13 +163,28 @@ public class Camion extends Nodo {
                 if (pedido.getEstado() == EstadoPedido.ENTREGADO) {
                     continue;
                 }
-                // Calcular cuánto GLP puede entregar este camión en este paso
+                
+                // Verificar que el pedido pertenece a este camión
+                if (gen.getPedidos() == null || !gen.getPedidos().contains(pedido)) {
+                    continue; // Si el pedido no pertenece a este camión, no entregar
+                }
+                
+                // Calcular la cantidad de GLP a entregar basada en la distribución proporcional
+                int cantidadPedidosAsignados = gen.getPedidos().size();
+                if (cantidadPedidosAsignados == 0) {
+                    continue; // No hay pedidos asignados, no debería pasar
+                }
+                
+                double glpPorPedido = (double) this.capacidadMaximaGLP / cantidadPedidosAsignados;
                 double volumenRestante = pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado();
-                double volumenAEntregar = Math.min(this.capacidadActualGLP, volumenRestante);
+                double volumenAEntregar = Math.min(glpPorPedido, volumenRestante);
+                volumenAEntregar = Math.min(volumenAEntregar, this.capacidadActualGLP);
+                
                 if (volumenAEntregar > 0) {
                     entregarVolumenGLP(volumenAEntregar);
                     pedido.setVolumenGLPEntregado(pedido.getVolumenGLPEntregado() + volumenAEntregar);
                 }
+                
                 // Si ya se entregó todo el GLP, marcar como entregado y actualizar sets
                 if (Math.abs(pedido.getVolumenGLPEntregado() - pedido.getVolumenGLPAsignado()) < 1e-6) {
                     pedido.setEstado(EstadoPedido.ENTREGADO);
