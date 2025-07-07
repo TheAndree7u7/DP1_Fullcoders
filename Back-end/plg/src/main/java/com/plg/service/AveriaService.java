@@ -32,10 +32,13 @@ public class AveriaService {
 
     private final AveriaRepository averiaRepository;
     private final CamionService camionService;
+    private final AlmacenService almacenService;
 
-    public AveriaService(AveriaRepository averiaRepository, CamionService camionService) {
+    public AveriaService(AveriaRepository averiaRepository, CamionService camionService,
+            AlmacenService almacenService) {
         this.averiaRepository = averiaRepository;
         this.camionService = camionService;
+        this.almacenService = almacenService;
     }
 
     /**
@@ -233,6 +236,7 @@ public class AveriaService {
             // Paso 1.2: Actualizar los camiones almacenes con los datos enviados desde el
             // frontend
             System.out.println("🔄 BACKEND: Actualizando camiones y almacenes...");
+            actualizarCamionesYAlmacenesConEstadoCapturado(estadoSimulacion);
 
             // Paso 2: Generar paquete parche con el estado capturado
             System.out.println("🩹 BACKEND: Generando paquete parche para manejar la avería...");
@@ -694,6 +698,74 @@ public class AveriaService {
         } catch (Exception e) {
             System.err.println("❌ BACKEND: Error al crear pedido desde estado capturado: " + e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Actualiza camiones y almacenes usando los datos del estado capturado del
+     * frontend.
+     * 
+     * @param estadoSimulacion estado completo de la simulación capturado
+     */
+    private void actualizarCamionesYAlmacenesConEstadoCapturado(
+            AveriaConEstadoRequest.EstadoSimulacion estadoSimulacion) {
+        try {
+            System.out.println("🔄 BACKEND: Iniciando actualización de camiones y almacenes desde estado frontend...");
+
+            // Actualizar camiones
+            if (estadoSimulacion.getCamiones() != null) {
+                System.out.println("🚛 BACKEND: Actualizando " + estadoSimulacion.getCamiones().size() + " camiones");
+
+                for (AveriaConEstadoRequest.CamionEstado camionEstado : estadoSimulacion.getCamiones()) {
+                    try {
+                        camionService.actualizarDesdeEstadoFrontend(
+                                camionEstado.getId(),
+                                camionEstado.getUbicacion(),
+                                camionEstado.getEstado(),
+                                camionEstado.getCapacidadActualGLP(),
+                                camionEstado.getCombustibleActual());
+                    } catch (Exception e) {
+                        System.err.println("❌ BACKEND: Error al actualizar camión " + camionEstado.getId() +
+                                ": " + e.getMessage());
+                        // Continuar con el siguiente camión
+                    }
+                }
+
+                System.out.println("✅ BACKEND: Camiones actualizados desde estado frontend");
+            } else {
+                System.out.println("⚠️ BACKEND: No hay datos de camiones en el estado capturado");
+            }
+
+            // Actualizar almacenes
+            if (estadoSimulacion.getAlmacenes() != null) {
+                System.out.println("🏪 BACKEND: Actualizando " + estadoSimulacion.getAlmacenes().size() + " almacenes");
+
+                for (AveriaConEstadoRequest.AlmacenSimple almacenEstado : estadoSimulacion.getAlmacenes()) {
+                    try {
+                        almacenService.actualizarDesdeEstadoFrontend(
+                                almacenEstado.getCoordenadaX(),
+                                almacenEstado.getCoordenadaY(),
+                                almacenEstado.getCapacidadActualGLP(),
+                                almacenEstado.getCapacidadActualCombustible());
+                    } catch (Exception e) {
+                        System.err.println("❌ BACKEND: Error al actualizar almacén en (" +
+                                almacenEstado.getCoordenadaX() + "," + almacenEstado.getCoordenadaY() +
+                                "): " + e.getMessage());
+                        // Continuar con el siguiente almacén
+                    }
+                }
+
+                System.out.println("✅ BACKEND: Almacenes actualizados desde estado frontend");
+            } else {
+                System.out.println("⚠️ BACKEND: No hay datos de almacenes en el estado capturado");
+            }
+
+            System.out.println("✅ BACKEND: Actualización de camiones y almacenes completada exitosamente");
+
+        } catch (Exception e) {
+            System.err.println("❌ BACKEND: Error general al actualizar camiones y almacenes desde estado frontend: " +
+                    e.getMessage());
+            e.printStackTrace();
         }
     }
 }

@@ -257,7 +257,7 @@ public class Simulacion {
                 while (GestorHistorialSimulacion.isPausada()) {
                     try {
                         System.out.println("⏸️ Simulación pausada, esperando...");
-                        Thread.sleep(100); // Esperar 100ms antes de verificar de nuevo
+                        Thread.sleep(10000); // Esperar 100ms antes de verificar de nuevo
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         System.out.println("🛑 Simulación interrumpida durante la pausa");
@@ -454,7 +454,7 @@ public class Simulacion {
             System.out.println("________________________________________________________");
             int paqueteActualNumero = GestorHistorialSimulacion.getPaqueteActual();
 
-            IndividuoDto paqueteActual = GestorHistorialSimulacion.obtenerPaquetePorIndice(paqueteActualNumero );
+            IndividuoDto paqueteActual = GestorHistorialSimulacion.obtenerPaquetePorIndice(paqueteActualNumero);
             // System.out.println("🔄 Individuo del paquete actual: \n" + paqueteActual);
             System.out.println("________________________________________________________");
             if (paqueteActual == null) {
