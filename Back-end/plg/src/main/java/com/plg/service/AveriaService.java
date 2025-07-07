@@ -257,13 +257,14 @@ public class AveriaService {
                 System.out.println("   • En proceso: " + infoActual.enProceso);
 
                 // Paso 4: REANUDAR la simulación después de procesar la avería
-                System.out.println("▶️ BACKEND: Reanudando simulación después de procesar avería...");
-                com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
+                // System.out.println("▶️ BACKEND: Reanudando simulación después de procesar
+                // avería...");
+                // com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
             } else {
                 System.err.println("❌ BACKEND: No se pudo generar el paquete parche");
                 // En caso de error, asegurar que la simulación se reanude
-                System.out.println("⚠️ BACKEND: Reanudando simulación a pesar del error...");
-                com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
+                // System.out.println("⚠️ BACKEND: Reanudando simulación a pesar del error...");
+                // com.plg.controller.SimulacionController.reanudarSimulacionDespuesDeAveria();
             }
 
             // Paso 5: Análisis del estado para logs y reportes
