@@ -7,7 +7,12 @@ He configurado el sistema de logging para que **todos los logs se guarden en un 
 ## 📁 **Ubicación del Archivo de Logs**
 
 ```
-Back-end/logs/application.log
+[DIRECTORIO_PROYECTO]/Back-end/logs/application.log
+```
+
+**Ejemplo:**
+```
+E:/PROYECTOS/DP1/DP1_2025/DP1_Fullcoders_PRUEBAS/Back-end/logs/application.log
 ```
 
 ## 🔧 **Características del Sistema**
@@ -37,17 +42,26 @@ Back-end/logs/application.log
 
 ## 🛠️ **Archivos Modificados**
 
-### 1. **logback-spring.xml**
+### 1. **logback-spring.xml** (✅ Corregido)
 ```xml
+<!-- Definir la ruta del archivo de logs relativa al directorio del proyecto -->
+<property name="LOG_FILE" value="${user.dir}/Back-end/logs/application.log"/>
+
 <!-- Appender para archivo que se borra en cada ejecución -->
 <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <file>logs/application.log</file>
+    <file>${LOG_FILE}</file>
     <append>false</append> <!-- false = sobrescribe en cada ejecución -->
     <encoder>
+        <charset>UTF-8</charset>
         <pattern>${FILE_LOG_PATTERN}</pattern>
     </encoder>
 </appender>
 ```
+
+**Mejoras aplicadas:**
+- ✅ Ruta absoluta basada en `${user.dir}` (directorio desde donde se ejecuta Java)
+- ✅ Codificación UTF-8 para manejar emojis correctamente
+- ✅ Creación automática del directorio de logs
 
 ### 2. **LoggingConfig.java** (Nuevo)
 - Redirige `System.out` y `System.err` al sistema de logging
@@ -57,6 +71,16 @@ Back-end/logs/application.log
 ### 3. **Directorio logs/**
 - Creado automáticamente
 - Contiene `.gitignore` para evitar subir logs al repositorio
+
+### 4. **ver_logs.bat** (Nuevo)
+```batch
+@echo off
+echo 📄 Mostrando archivo de logs...
+echo 📁 Ubicación: %CD%\Back-end\logs\application.log
+type "Back-end\logs\application.log"
+```
+
+**Utilidad:** Script para Windows que muestra el contenido del archivo de logs
 
 ## 🚀 **Uso**
 
@@ -91,9 +115,30 @@ mvn spring-boot:run
 Para verificar que funciona correctamente:
 
 1. **Ejecuta la aplicación**
-2. **Verifica que existe el archivo**: `Back-end/logs/application.log`
-3. **Ejecuta una operación** (como crear una avería)
-4. **Revisa el archivo** para confirmar que los logs se están guardando
+```bash
+cd Back-end/plg
+mvn spring-boot:run
+```
+
+2. **Verifica la ubicación del archivo** (se muestra al iniciar)
+```
+📄 Todos los logs se guardarán en: E:/PROYECTOS/DP1/DP1_2025/DP1_Fullcoders_PRUEBAS/Back-end/logs/application.log
+```
+
+3. **Usa el script de verificación** (Windows)
+```bash
+# Desde el directorio raíz del proyecto
+ver_logs.bat
+```
+
+4. **O revisa manualmente el archivo**
+```bash
+# Verificar que el archivo existe
+ls -la Back-end/logs/application.log
+
+# Ver el contenido
+cat Back-end/logs/application.log
+```
 
 ## ⚠️ **Notas Importantes**
 

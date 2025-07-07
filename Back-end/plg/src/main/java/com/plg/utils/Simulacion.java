@@ -276,11 +276,25 @@ public class Simulacion {
                     pedidosSemanal.remove(0);
                     pedidosPorAtender.add(pedido);
                 } else {
+                    System.out.println("************************************************");
+                    // ! Quiero saber las posiciones actuales de los camiones en el mapa
+                    System.out.println("Posiciones anteriores de los camiones en el mapa en una linea : ");
+                    for (Camion camion : DataLoader.camiones) {
+                        System.out.println("Camion: " + camion.getCodigo() + " - Posicion: " + camion.getCoordenada());
+                    }
+
                     List<Pedido> pedidosEnviar = UtilesSimulacion.unirPedidosSinRepetidos(pedidosPlanificados,
                             pedidosPorAtender);
                     actualizarEstadoGlobal(fechaActual, pedidosEnviar);
+
+                    // ! Quiero saber las posiciones actuales de los camiones en el mapa
+                    System.out.println("Posiciones actuales de los camiones en el mapa en una linea : ");
+                    for (Camion camion : DataLoader.camiones) {
+                        System.out.println("Camion: " + camion.getCodigo() + " - Posicion: " + camion.getCoordenada());
+                    }
+
                     List<Bloqueo> bloqueosActivos = actualizarBloqueos(fechaActual);
-                    System.out.println("************************************************");
+
                     System.out.println("Tiempo actual: " + fechaActual);
 
                     if (!pedidosPorAtender.isEmpty()) {
@@ -301,6 +315,7 @@ public class Simulacion {
 
                                 // Agregar al historial para el frontend
                                 GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
+
                             } catch (Exception e) {
                                 System.err.println("❌ Error en algoritmo genético en tiempo " + fechaActual + ": "
                                         + e.getMessage());
@@ -373,7 +388,9 @@ public class Simulacion {
                             ", Planificados: " + pedidosPlanificados.size());
 
                     // Imprimir resumen detallado de estados
+
                     imprimirResumenEstados();
+                    System.out.println("************************************************");
                 }
             }
 

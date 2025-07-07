@@ -14,15 +14,20 @@
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <withJansi>true</withJansi> <!-- ¡Esto es clave en Windows! -->
         <encoder>
+            <charset>UTF-8</charset>
             <pattern>${CONSOLE_LOG_PATTERN}</pattern>
         </encoder>
     </appender>
 
+    <!-- Definir la ruta del archivo de logs relativa al directorio del proyecto -->
+    <property name="LOG_FILE" value="${user.dir}/Back-end/logs/application.log"/>
+    
     <!-- Appender para archivo que se borra en cada ejecución -->
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>logs/application.log</file>
+        <file>${LOG_FILE}</file>
         <append>false</append> <!-- false = sobrescribe el archivo en cada ejecución -->
         <encoder>
+            <charset>UTF-8</charset>
             <pattern>${FILE_LOG_PATTERN}</pattern>
         </encoder>
     </appender>

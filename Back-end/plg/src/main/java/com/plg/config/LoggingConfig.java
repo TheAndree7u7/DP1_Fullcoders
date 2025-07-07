@@ -97,6 +97,21 @@ public class LoggingConfig {
         System.setErr(logErr);
 
         logger.info("✅ Redirección de System.out y System.err configurada exitosamente");
-        logger.info("📄 Todos los logs se guardarán en: logs/application.log");
+
+        // Mostrar la ruta completa del archivo de logs
+        String logPath = System.getProperty("user.dir") + "/Back-end/logs/application.log";
+        logger.info("📄 Todos los logs se guardarán en: " + logPath);
+
+        // Verificar que el directorio existe
+        java.io.File logDir = new java.io.File(System.getProperty("user.dir") + "/Back-end/logs");
+        if (!logDir.exists()) {
+            if (logDir.mkdirs()) {
+                logger.info("📁 Directorio de logs creado: " + logDir.getAbsolutePath());
+            } else {
+                logger.error("❌ No se pudo crear el directorio de logs: " + logDir.getAbsolutePath());
+            }
+        } else {
+            logger.info("📁 Directorio de logs existe: " + logDir.getAbsolutePath());
+        }
     }
 }
