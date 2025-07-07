@@ -596,6 +596,7 @@ public class Simulacion {
                             System.out.println("🔧 Coordenadas parseadas: x=" + x + ", y=" + y);
                             System.out.println("🔧 Posición ANTES de actualizar: " + camion.getCoordenada());
 
+                            // 🔧 REVERTIDO: El orden original era correcto
                             camion.setCoordenada(new Coordenada(x, y));
 
                             System.out.println("🔧 Posición DESPUÉS de setCoordenada: " + camion.getCoordenada());
@@ -608,11 +609,48 @@ public class Simulacion {
                                 camion.setCombustibleActual(camionEstado.getCombustibleActual());
                             }
 
+                            // 🔧 NUEVO: Verificar el estado del camión en DataLoader ANTES del update
+                            Camion camionEnDataLoader = DataLoader.camiones.stream()
+                                    .filter(c -> c.getCodigo().equals(camion.getCodigo()))
+                                    .findFirst()
+                                    .orElse(null);
+
+                            if (camionEnDataLoader != null) {
+                                System.out.println("🔧 ANTES del update - Camión en DataLoader: "
+                                        + camionEnDataLoader.getCoordenada());
+                                System.out.println("🔧 ANTES del update - ¿Es la misma instancia? "
+                                        + (camion == camionEnDataLoader));
+                            }
+
                             // Usar repository para actualizar el camion
                             System.out.println("🔧 Llamando a repository.update() para camión: " + camion.getCodigo());
-                            camionRepository.update(camion);
+                            Camion camionActualizado = camionRepository.update(camion);
 
-                            System.out.println("🔧 Posición DESPUÉS de repository.update(): " + camion.getCoordenada());
+                            System.out.println(
+                                    "🔧 Posición DESPUÉS de repository.update(): " + camionActualizado.getCoordenada());
+
+                            // 🔧 NUEVO: Verificar el estado del camión en DataLoader DESPUÉS del update
+                            Camion camionEnDataLoaderDespues = DataLoader.camiones.stream()
+                                    .filter(c -> c.getCodigo().equals(camion.getCodigo()))
+                                    .findFirst()
+                                    .orElse(null);
+
+                            if (camionEnDataLoaderDespues != null) {
+                                System.out.println("🔧 DESPUÉS del update - Camión en DataLoader: "
+                                        + camionEnDataLoaderDespues.getCoordenada());
+                                System.out.println("🔧 DESPUÉS del update - ¿Es la misma instancia? "
+                                        + (camionActualizado == camionEnDataLoaderDespues));
+                            }
+
+                            // 🔧 NUEVO: Verificar directamente en el índice de la lista
+                            for (int i = 0; i < DataLoader.camiones.size(); i++) {
+                                Camion c = DataLoader.camiones.get(i);
+                                if (c.getCodigo().equals(camion.getCodigo())) {
+                                    System.out.println("🔧 Camión en DataLoader[" + i + "]: " + c.getCoordenada());
+                                    break;
+                                }
+                            }
+
                             System.out.println("🚛 Camión " + camion.getCodigo() + " actualizado a posición (" + x + ","
                                     + y + ")");
                         } else {
