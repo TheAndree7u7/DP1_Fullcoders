@@ -1,15 +1,21 @@
-import { Route, Routes } from 'react-router-dom';
-import './App.css';
-import SimulacionSemanal from './views/SimulacionSemanal';
-import { SimulacionProvider } from './context/SimulacionContext';
-import { ToastContainer, Bounce } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { Route, Routes } from "react-router-dom";
+import "./App.css";
+import SimulacionSemanal from "./views/SimulacionSemanal";
+import GestionPedidos from "./views/GestionPedidos";
+import EjecucionTiempoReal from "./views/EjecucionTiempoReal";
+import { SimulacionProvider } from "./context/SimulacionContext";
+import { ToastContainer, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import SeleccionVista from "./views/SeleccionVista";
 
 function App() {
   return (
     <SimulacionProvider>
       <Routes>
-        <Route path="/" element={<SimulacionSemanal />} />
+        <Route path="/" element={<SeleccionVista />} />
+        <Route path="/simulacion-semanal" element={<SimulacionSemanal />} />
+        <Route path="/ejecucion-tiempo-real" element={<EjecucionTiempoReal />} />
+        <Route path="/pedidos" element={<GestionPedidos />} />
       </Routes>
       <ToastContainer
         position="top-right"

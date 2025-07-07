@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.plg.dto.request.PedidoRequest;
+import com.plg.dto.request.PedidosLoteRequest;
 import com.plg.service.PedidoService;
+import jakarta.validation.Valid;
 
 /**
  * Controlador REST para pedidos.
@@ -92,6 +94,51 @@ public class PedidoController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Error al actualizar estado del pedido: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Endpoint para cargar un lote de pedidos desde el frontend.
+     * Reemplaza la carga desde archivos planos.
+     */
+    @PostMapping("/cargar-lote")
+    public ResponseEntity<?> cargarLotePedidos(@Valid @RequestBody PedidosLoteRequest request) {
+        try {
+            System.out.println("🌐 ENDPOINT LLAMADO: /api/pedidos/cargar-lote");
+            System.out.println("📦 Recibidos " + request.getPedidos().size() + " pedidos para procesar");
+            System.out.println("📅 Fecha inicio: " + request.getFechaInicio());
+            
+            var resultado = pedidoService.cargarLotePedidos(request);
+            
+            System.out.println("✅ ENDPOINT RESPUESTA: Lote procesado exitosamente");
+            return ResponseEntity.ok(resultado);
+            
+        } catch (Exception e) {
+            String errorMsg = "Error al cargar lote de pedidos: " + e.getMessage();
+            System.err.println("❌ " + errorMsg);
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMsg);
+        }
+    }
+
+    /**
+     * Endpoint para validar el formato de un lote de pedidos sin procesarlos.
+     */
+    @PostMapping("/validar-lote")
+    public ResponseEntity<?> validarLotePedidos(@Valid @RequestBody PedidosLoteRequest request) {
+        try {
+            System.out.println("🌐 ENDPOINT LLAMADO: /api/pedidos/validar-lote");
+            System.out.println("🔍 Validando " + request.getPedidos().size() + " pedidos");
+            
+            var resultado = pedidoService.validarLotePedidos(request);
+            
+            System.out.println("✅ ENDPOINT RESPUESTA: Validación completada");
+            return ResponseEntity.ok(resultado);
+            
+        } catch (Exception e) {
+            String errorMsg = "Error al validar lote de pedidos: " + e.getMessage();
+            System.err.println("❌ " + errorMsg);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMsg);
         }
     }
 }

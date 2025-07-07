@@ -24,4 +24,30 @@ public class Parametros {
         }
         return instance;
     }
+
+    /**
+     * Actualiza la fecha inicial de la simulación y recalcula los parámetros dependientes.
+     * 
+     * @param nuevaFecha Nueva fecha inicial para la simulación
+     */
+    public static void setFechaInicial(LocalDateTime nuevaFecha) {
+        fecha_inicial = nuevaFecha;
+        
+        // Actualizar día, mes y año para mantener compatibilidad
+        dia = String.format("%02d", nuevaFecha.getDayOfMonth());
+        mes = String.format("%02d", nuevaFecha.getMonthValue());
+        anho = String.valueOf(nuevaFecha.getYear());
+        
+        System.out.println("📅 Parámetros actualizados - Fecha inicial: " + fecha_inicial);
+        System.out.println("📅 Día: " + dia + ", Mes: " + mes + ", Año: " + anho);
+    }
+
+    /**
+     * Obtiene la fecha inicial actual de la simulación.
+     * 
+     * @return Fecha inicial de la simulación
+     */
+    public static LocalDateTime getFechaInicial() {
+        return fecha_inicial;
+    }
 }

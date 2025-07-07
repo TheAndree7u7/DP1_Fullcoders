@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.plg.config.DataLoader;
 import com.plg.dto.request.PedidoRequest;
+import com.plg.dto.request.PedidosLoteRequest;
 import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
 import com.plg.entity.EstadoCamion;
@@ -235,5 +236,271 @@ public class PedidoService {
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado: " + request.getCodigo()));
         pedido.setEstado(request.getEstado());
         return pedido;
+    }
+
+    /**
+     * Cargar un lote de pedidos desde el frontend.
+     * Reemplaza la funcionalidad de carga desde archivos planos.
+     * 
+     * @param request Lote de pedidos a procesar
+     * @return Resultado del procesamiento
+     */
+    public Map<String, Object> cargarLotePedidos(PedidosLoteRequest request) {
+        try {
+            System.out.println("🔄 SERVICIO: Iniciando procesamiento de lote de pedidos...");
+            System.out.println("📦 Total de pedidos recibidos: " + request.getPedidos().size());
+            System.out.println("📅 Fecha de inicio: " + request.getFechaInicio());
+            
+            List<Pedido> pedidosCreados = new ArrayList<>();
+            List<String> errores = new ArrayList<>();
+            int pedidosExitosos = 0;
+            int pedidosDivididos = 0;
+            
+            // Actualizar parámetros del sistema con la fecha recibida
+            actualizarParametrosSimulacion(request.getFechaInicio());
+            
+            // Procesar cada pedido del lote
+            for (int i = 0; i < request.getPedidos().size(); i++) {
+                PedidosLoteRequest.PedidoLoteItem item = request.getPedidos().get(i);
+                try {
+                    // Crear coordenada
+                    Coordenada coordenada = new Coordenada(item.getY(), item.getX());
+                    
+                    // Generar código único para el pedido
+                    String codigoPedido = generarCodigoPedido(item, i);
+                    
+                    // Verificar si necesita división
+                    if (necesitaDivision(item.getVolumenGLP())) {
+                        List<Pedido> pedidosDivididos_temp = dividirPedidoLote(
+                            coordenada, 
+                            item.getVolumenGLP(), 
+                            item.getHorasLimite(),
+                            item.getFechaPedido(),
+                            codigoPedido,
+                            item.getCliente()
+                        );
+                        pedidosCreados.addAll(pedidosDivididos_temp);
+                        pedidosDivididos += pedidosDivididos_temp.size() - 1; // -1 porque contamos solo las divisiones adicionales
+                        pedidosExitosos++;
+                    } else {
+                        // Crear pedido normal
+                        Pedido pedido = crearPedidoDesdeItem(item, coordenada, codigoPedido);
+                        pedidosCreados.add(pedidoRepository.save(pedido));
+                        pedidosExitosos++;
+                    }
+                    
+                } catch (Exception e) {
+                    String error = "Error en pedido " + (i + 1) + ": " + e.getMessage();
+                    errores.add(error);
+                    System.err.println("❌ " + error);
+                }
+            }
+            
+            // Sincronizar con DataLoader para que la simulación use los nuevos pedidos
+            sincronizarConDataLoader(pedidosCreados);
+            
+            // Preparar respuesta
+            Map<String, Object> resultado = new HashMap<>();
+            resultado.put("totalRecibidos", request.getPedidos().size());
+            resultado.put("pedidosExitosos", pedidosExitosos);
+            resultado.put("pedidosDivididos", pedidosDivididos);
+            resultado.put("totalPedidosCreados", pedidosCreados.size());
+            resultado.put("errores", errores);
+            resultado.put("fechaInicio", request.getFechaInicio());
+            resultado.put("descripcion", request.getDescripcion());
+            
+            System.out.println("✅ SERVICIO: Lote procesado exitosamente");
+            System.out.println("📊 Resumen: " + pedidosExitosos + " exitosos, " + errores.size() + " errores, " + pedidosCreados.size() + " pedidos creados");
+            
+            return resultado;
+            
+        } catch (Exception e) {
+            System.err.println("💥 Error crítico al procesar lote de pedidos: " + e.getMessage());
+            e.printStackTrace();
+            throw new InvalidInputException("Error al procesar lote de pedidos", e);
+        }
+    }
+
+    /**
+     * Validar un lote de pedidos sin procesarlos.
+     * 
+     * @param request Lote de pedidos a validar
+     * @return Resultado de la validación
+     */
+    public Map<String, Object> validarLotePedidos(PedidosLoteRequest request) {
+        System.out.println("🔍 SERVICIO: Iniciando validación de lote de pedidos...");
+        
+        List<String> errores = new ArrayList<>();
+        List<String> advertencias = new ArrayList<>();
+        int pedidosValidos = 0;
+        int pedidosQueDividirian = 0;
+        
+        // Validaciones generales del lote
+        if (request.getFechaInicio() == null) {
+            errores.add("La fecha de inicio es obligatoria");
+        }
+        
+        if (request.getPedidos() == null || request.getPedidos().isEmpty()) {
+            errores.add("La lista de pedidos no puede estar vacía");
+        } else {
+            // Validar cada pedido individualmente
+            for (int i = 0; i < request.getPedidos().size(); i++) {
+                PedidosLoteRequest.PedidoLoteItem item = request.getPedidos().get(i);
+                List<String> erroresPedido = validarPedidoIndividual(item, i + 1);
+                errores.addAll(erroresPedido);
+                
+                if (erroresPedido.isEmpty()) {
+                    pedidosValidos++;
+                    
+                    // Verificar si necesitaría división
+                    if (necesitaDivision(item.getVolumenGLP())) {
+                        pedidosQueDividirian++;
+                        advertencias.add("Pedido " + (i + 1) + " será dividido (volumen: " + item.getVolumenGLP() + " m³)");
+                    }
+                }
+            }
+        }
+        
+        // Preparar respuesta
+        Map<String, Object> resultado = new HashMap<>();
+        resultado.put("valido", errores.isEmpty());
+        resultado.put("totalPedidos", request.getPedidos() != null ? request.getPedidos().size() : 0);
+        resultado.put("pedidosValidos", pedidosValidos);
+        resultado.put("pedidosQueDividirian", pedidosQueDividirian);
+        resultado.put("errores", errores);
+        resultado.put("advertencias", advertencias);
+        
+        System.out.println("✅ SERVICIO: Validación completada - " + pedidosValidos + " válidos de " + 
+                          (request.getPedidos() != null ? request.getPedidos().size() : 0));
+        
+        return resultado;
+    }
+
+    /**
+     * Validar un pedido individual
+     */
+    private List<String> validarPedidoIndividual(PedidosLoteRequest.PedidoLoteItem item, int numeroPedido) {
+        List<String> errores = new ArrayList<>();
+        
+        if (item.getFechaPedido() == null) {
+            errores.add("Pedido " + numeroPedido + ": fecha es obligatoria");
+        }
+        
+        if (item.getX() == null || item.getX() < 0) {
+            errores.add("Pedido " + numeroPedido + ": coordenada X inválida");
+        }
+        
+        if (item.getY() == null || item.getY() < 0) {
+            errores.add("Pedido " + numeroPedido + ": coordenada Y inválida");
+        }
+        
+        if (item.getVolumenGLP() == null || item.getVolumenGLP() <= 0) {
+            errores.add("Pedido " + numeroPedido + ": volumen de GLP debe ser mayor a 0");
+        }
+        
+        if (item.getHorasLimite() == null || item.getHorasLimite() <= 0) {
+            errores.add("Pedido " + numeroPedido + ": horas límite debe ser mayor a 0");
+        }
+        
+        return errores;
+    }
+
+    /**
+     * Crear un pedido desde un item del lote
+     */
+    private Pedido crearPedidoDesdeItem(PedidosLoteRequest.PedidoLoteItem item, Coordenada coordenada, String codigo) {
+        return Pedido.builder()
+                .coordenada(coordenada)
+                .bloqueado(false)
+                .gScore(0)
+                .fScore(0)
+                .tipoNodo(com.plg.entity.TipoNodo.PEDIDO)
+                .codigo(codigo)
+                .horasLimite(item.getHorasLimite())
+                .volumenGLPAsignado(item.getVolumenGLP())
+                .estado(com.plg.entity.EstadoPedido.REGISTRADO)
+                .fechaRegistro(item.getFechaPedido())
+                .build();
+    }
+
+    /**
+     * Generar código único para un pedido
+     */
+    private String generarCodigoPedido(PedidosLoteRequest.PedidoLoteItem item, int indice) {
+        String codigoCliente = item.getCliente() != null ? item.getCliente() : ("c-" + (indice + 1));
+        return "PEDIDO-" + item.getY() + "-" + item.getX() + "-" + codigoCliente;
+    }
+
+    /**
+     * Dividir pedido grande desde el lote
+     */
+    private List<Pedido> dividirPedidoLote(Coordenada coordenada, double volumenTotal, double horasLimite,
+                                          LocalDateTime fechaPedido, String codigoBase, String cliente) {
+        List<Pedido> pedidosDivididos = new ArrayList<>();
+        
+        // Obtener capacidades de camiones
+        List<Double> capacidadesCamiones = obtenerCapacidadesCamiones();
+        if (capacidadesCamiones.isEmpty()) {
+            throw new InvalidInputException("No hay camiones disponibles para dividir el pedido");
+        }
+        
+        // Calcular división óptima
+        List<Double> volumenePorPedido = calcularDivisionOptima(volumenTotal, capacidadesCamiones);
+        
+        // Crear pedidos divididos
+        for (int i = 0; i < volumenePorPedido.size(); i++) {
+            double volumenPedido = volumenePorPedido.get(i);
+            String codigoCompleto = codigoBase + "-DIV" + (i + 1);
+            
+            Pedido pedido = Pedido.builder()
+                    .coordenada(coordenada)
+                    .bloqueado(false)
+                    .gScore(0)
+                    .fScore(0)
+                    .tipoNodo(com.plg.entity.TipoNodo.PEDIDO)
+                    .codigo(codigoCompleto)
+                    .horasLimite(horasLimite)
+                    .volumenGLPAsignado(volumenPedido)
+                    .estado(com.plg.entity.EstadoPedido.REGISTRADO)
+                    .fechaRegistro(fechaPedido)
+                    .build();
+            
+            pedidosDivididos.add(pedidoRepository.save(pedido));
+        }
+        
+        System.out.println("📦 Pedido dividido: " + volumenTotal + " m³ en " + pedidosDivididos.size() + " pedidos");
+        return pedidosDivididos;
+    }
+
+    /**
+     * Actualizar parámetros de simulación con la nueva fecha
+     */
+    private void actualizarParametrosSimulacion(LocalDateTime fechaInicio) {
+        try {
+            // Actualizar los parámetros globales del sistema
+            com.plg.utils.Parametros.setFechaInicial(fechaInicio);
+            System.out.println("📅 Parámetros de simulación actualizados con fecha: " + fechaInicio);
+        } catch (Exception e) {
+            System.err.println("⚠️ Error al actualizar parámetros de simulación: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Sincronizar con DataLoader para que la simulación use los nuevos pedidos
+     */
+    private void sincronizarConDataLoader(List<Pedido> pedidosCreados) {
+        try {
+            // Actualizar la lista de pedidos en DataLoader para que la simulación los use
+            if (DataLoader.pedidos == null) {
+                DataLoader.pedidos = new ArrayList<>();
+            } else {
+                DataLoader.pedidos.clear();
+            }
+            DataLoader.pedidos.addAll(pedidosCreados);
+            
+            System.out.println("🔄 DataLoader sincronizado con " + pedidosCreados.size() + " pedidos");
+        } catch (Exception e) {
+            System.err.println("⚠️ Error al sincronizar con DataLoader: " + e.getMessage());
+        }
     }
 }
