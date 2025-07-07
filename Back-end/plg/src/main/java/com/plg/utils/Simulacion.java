@@ -47,7 +47,9 @@ import com.plg.utils.simulacion.GestorHistorialSimulacion;
 public class Simulacion {
 
     private static List<Pedido> pedidosSemanal;
+    private static List<Pedido> pedidosSemanralBackup; // Backup de pedidosSemanal
     private static LocalDateTime fechaActual;
+    private static LocalDateTime fechaActualBackup; // Backup de fechaActual
     public static LocalDateTime fechaLimite;
     public static Set<Pedido> pedidosPorAtender = new LinkedHashSet<>();
     public static Set<Pedido> pedidosPlanificados = new LinkedHashSet<>();
@@ -107,12 +109,119 @@ public class Simulacion {
     }
 
     /**
+     * Crea un backup del estado actual de la simulación.
+     * Incluye pedidosSemanal y fechaActual.
+     */
+    public static void crearBackupSimulacion() {
+        try {
+            // Crear backup de pedidosSemanal
+            if (pedidosSemanal != null) {
+                pedidosSemanralBackup = new ArrayList<>(pedidosSemanal);
+                System.out
+                        .println("💾 Backup de pedidosSemanal creado con " + pedidosSemanralBackup.size() + " pedidos");
+            } else {
+                pedidosSemanralBackup = new ArrayList<>();
+                System.out.println("💾 Backup de pedidosSemanal creado vacío (pedidosSemanal era null)");
+            }
+
+            // Crear backup de fechaActual
+            fechaActualBackup = fechaActual;
+            System.out.println("💾 Backup de fechaActual creado: " + fechaActualBackup);
+
+            System.out.println("✅ Backup de simulación creado exitosamente");
+        } catch (Exception e) {
+            System.err.println("❌ Error al crear backup de simulación: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Restaura el estado de la simulación desde el backup.
+     * Restaura pedidosSemanal y fechaActual a su estado inicial.
+     * 
+     * @return true si se restauró exitosamente, false en caso contrario
+     */
+    public static boolean restaurarBackupSimulacion() {
+        try {
+            if (pedidosSemanralBackup == null) {
+                System.err.println("❌ No existe backup de pedidosSemanal para restaurar");
+                return false;
+            }
+
+            if (fechaActualBackup == null) {
+                System.err.println("❌ No existe backup de fechaActual para restaurar");
+                return false;
+            }
+
+            // Restaurar pedidosSemanal
+            pedidosSemanal = new ArrayList<>(pedidosSemanralBackup);
+            System.out.println("🔄 pedidosSemanal restaurado con " + pedidosSemanal.size() + " pedidos");
+
+            // Restaurar fechaActual
+            fechaActual = fechaActualBackup;
+            System.out.println("🔄 fechaActual restaurada a: " + fechaActual);
+
+            // Limpiar sets de pedidos en curso
+            pedidosPorAtender.clear();
+            pedidosPlanificados.clear();
+            pedidosEntregados.clear();
+            System.out.println("🔄 Sets de pedidos limpiados");
+
+            System.out.println("✅ Simulación restaurada exitosamente desde backup");
+            return true;
+
+        } catch (Exception e) {
+            System.err.println("❌ Error al restaurar backup de simulación: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Verifica si existe un backup válido de la simulación.
+     * 
+     * @return true si existe backup, false en caso contrario
+     */
+    public static boolean existeBackupSimulacion() {
+        return pedidosSemanralBackup != null && fechaActualBackup != null;
+    }
+
+    /**
+     * Obtiene información del backup actual.
+     * 
+     * @return Información del backup o null si no existe
+     */
+    public static BackupInfo obtenerInfoBackup() {
+        if (!existeBackupSimulacion()) {
+            return null;
+        }
+
+        return new BackupInfo(
+                pedidosSemanralBackup.size(),
+                fechaActualBackup,
+                System.currentTimeMillis());
+    }
+
+    /**
+     * Limpia el backup actual de la simulación.
+     */
+    public static void limpiarBackupSimulacion() {
+        pedidosSemanralBackup = null;
+        fechaActualBackup = null;
+        System.out.println("🗑️ Backup de simulación limpiado");
+    }
+
+    /**
      * Configura los parámetros iniciales de la simulación.
      * 
      * @param startDate Fecha de inicio de la simulación
      */
     public static void configurarSimulacion(LocalDateTime startDate) {
         ConfiguracionSimulacion.configurarSimulacion(startDate);
+
+        // Crear backup del estado inicial después de la configuración
+        crearBackupSimulacion();
+        System.out.println("🔒 Backup inicial de simulación creado tras configuración");
     }
 
     /**
@@ -292,7 +401,7 @@ public class Simulacion {
                     "   • Pedidos semanales restantes: " + (pedidosSemanal != null ? pedidosSemanal.size() : "null"));
             System.err.println(
                     "   • Pedidos por atender: " + (pedidosPorAtender != null ? pedidosPorAtender.size() : "null"));
-            System.err.println("   • Pedidos planificados: "
+            System.out.println("   • Pedidos planificados: "
                     + (pedidosPlanificados != null ? pedidosPlanificados.size() : "null"));
         }
     }
@@ -635,6 +744,19 @@ public class Simulacion {
             this.paqueteActual = paqueteActual;
             this.enProceso = enProceso;
             this.tiempoActual = tiempoActual;
+        }
+    }
+
+    // Clase auxiliar para información del backup
+    public static class BackupInfo {
+        public final int totalPedidosBackup;
+        public final LocalDateTime fechaBackup;
+        public final long timestampCreacion;
+
+        public BackupInfo(int totalPedidosBackup, LocalDateTime fechaBackup, long timestampCreacion) {
+            this.totalPedidosBackup = totalPedidosBackup;
+            this.fechaBackup = fechaBackup;
+            this.timestampCreacion = timestampCreacion;
         }
     }
 
