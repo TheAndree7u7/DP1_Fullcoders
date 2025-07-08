@@ -130,12 +130,12 @@ public class Camion extends Nodo {
         // El tiempo de parada está representado en la rutaFinal como nodos duplicados
         // No necesitamos lógica adicional aquí
 
-        // Actualizar el nodo en el que se encuentra el camión
-        int cantNodos = (int) (intervaloTiempo * velocidadPromedio / 60);
+        // Actualizar el nodo en el que se encuentra el camión (numero de kilometros que
+        // avanza)
+        int cantNodosRecorridos = (int) (intervaloTiempo * velocidadPromedio / 60);
         int antiguo = gen.getPosNodo();
-        gen.setPosNodo(antiguo + cantNodos);
-        int distanciaRecorrida = gen.getPosNodo() - antiguo;
-        actualizarCombustible(distanciaRecorrida);
+        gen.setPosNodo(antiguo + cantNodosRecorridos);
+        actualizarCombustible(cantNodosRecorridos);
 
         // En el tiempo transcurrido donde se puede encontrar el camión
         // Verificar que la ruta final no esté vacía
