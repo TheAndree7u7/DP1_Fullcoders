@@ -58,12 +58,7 @@ public class Camion extends Nodo {
     @Override
     public String toString() {
         return String.format(
-                "Camión %s [%s] - %s%n"
-                        + "  - Coordenada:    %s%n"
-                        + "  - GLP (m3):       %.2f / %.2f%n"
-                        + "  - Carga (t):      %.2f (tara) + %.2f (carga)%n"
-                        + "  - Combustible:    %.2f / %.2f galones%n"
-                        + "  - Distancia máx.: %.2f km%n",
+                "Camión %s [%s] - %s | Coordenada: %s | GLP (m3): %.2f/%.2f | Carga (t): %.2f(tara) + %.2f(carga) | Combustible: %.2f/%.2f gal | Distancia máx.: %.2f km",
                 codigo,
                 tipo,
                 estado != null ? estado.name() : "N/A",

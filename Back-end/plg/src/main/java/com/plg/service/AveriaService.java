@@ -210,7 +210,7 @@ public class AveriaService {
             System.out.println("==========================================================");
             System.out.println("==========================================================");
             System.out.println("🔄 BACKEND: Procesando estado completo de la simulación...");
-            System.out.println("🔄 BACKEND: Estado simulación: " + estadoSimulacion);
+            // System.out.println("🔄 BACKEND: Estado simulación: " + estadoSimulacion);
             System.out.println("🔄 BACKEND: Request: " + request);
             System.out.println("🔄 BACKEND: Procesando estado completo de la simulación...");
 
@@ -263,7 +263,7 @@ public class AveriaService {
             com.plg.utils.Simulacion.crearPaqueteParche(request.getEstadoSimulacion());
             System.out.println("📅 BACKEND: Usando timestamp de avería correcto: " + timestampAveria);
             System.out.println("📅 BACKEND: (No el timestamp del estado: " + estadoSimulacion.getTimestamp() + ")");
- 
+
             // ! colocar QUE FALTA CREAR PARCHE
 
             System.out.println("▶️ BACKEND: Reanudando simulación después de procesaravería...");

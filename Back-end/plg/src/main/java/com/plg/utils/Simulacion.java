@@ -236,11 +236,12 @@ public class Simulacion {
                     } else {
                         // ! Aca se agregaron todos los pedidos que tienen una fecha de registro
                         // ! menor a la fecha actual
-                        System.out.println("******************INICIO DE LA ITERACION**************");
-                        System.out.println("Tiempo actual: " + fechaActual);
+
                         List<Pedido> pedidosEnviar = UtilesSimulacion.unirPedidosSinRepetidos(pedidosPlanificados,
                                 pedidosPorAtender);
-
+                        System.out.println("******************INICIO DE LA ITERACION**************");
+                        System.out.println("Tiempo actual: " + fechaActual);
+                        System.out.println("Pedidos por enviar al algoritmo genetico: " + pedidosEnviar.size());
                         Camion.imprimirDatosCamiones(DataLoader.camiones);
 
                         // !ojito esta funcion--> parece que no actualiza bien los estados de los
@@ -248,9 +249,7 @@ public class Simulacion {
                         EstadoManager.actualizarEstadoGlobal(fechaActual, pedidosEnviar);
                         List<Bloqueo> bloqueosActivos = EstadoManager.actualizarBloqueos(fechaActual);
 
-                        System.out.println("Tiempo actual: " + fechaActual);
-                        System.out.println("Pedidos por enviar al algoritmo genetico: " + pedidosEnviar.size());
-                        if (!pedidosPorAtender.isEmpty()) {
+                        if (!pedidosEnviar.isEmpty()) {
                             // camiones
                             // almacenes
                             if (modoStandalone) {
@@ -274,13 +273,7 @@ public class Simulacion {
                                     // Agregar al historial para el frontend
                                     GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
                                     // ! Quiero saber las posiciones actuales de los camiones en el mapa
-                                    System.out
-                                            .println("Posiciones actuales de los camiones en el mapa en una linea : ");
-                                    for (Camion camion : DataLoader.camiones) {
-                                        System.out.println(
-                                                "Camion: " + camion.getCodigo() + " - Posicion: "
-                                                        + camion.getCoordenada());
-                                    }
+
                                 } catch (Exception e) {
                                     System.err.println("❌ Error en algoritmo genético en tiempo " + fechaActual + ": "
                                             + e.getMessage());
@@ -331,14 +324,24 @@ public class Simulacion {
                             // Crear paquete vacío para las horas sin pedidos
                             if (modoStandalone) {
                                 try {
-                                    // Crear un individuo vacío con rutas de retorno al almacén
-                                    Individuo individuoVacio = IndividuoFactory.crearIndividuoVacio();
+                                    // ! Quiero saber las posiciones actuales de los camiones en el mapa
+                                    Camion.imprimirDatosCamiones(DataLoader.camiones);
+                                    // ?====Crear el algoritmo genetico====
+                                    AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(),
+                                            pedidosEnviar);
+                                    // ? Ejecutar el algoritmo genetico
+                                    algoritmoGenetico.ejecutarAlgoritmo();
+                                    // ? Crear el paquete de mejor individuo
+                                    IndividuoDto mejorIndividuoDto = new IndividuoDto(
+                                            algoritmoGenetico.getMejorIndividuo(),
+                                            pedidosEnviar, bloqueosActivos, fechaActual);
 
-                                    IndividuoDto paqueteVacio = new IndividuoDto(individuoVacio,
-                                            new ArrayList<>(), bloqueosActivos, fechaActual);
+                                    // Aplicar el estado final de los camiones permanentemente
+                                    // CamionStateApplier.aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
 
                                     // Agregar al historial para el frontend
-                                    GestorHistorialSimulacion.agregarPaquete(paqueteVacio);
+                                    GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
+                                    // ! Quiero saber las posiciones actuales de los camiones en el mapa
                                 } catch (Exception e) {
                                     System.err.println("❌ Error creando paquete vacío en tiempo " + fechaActual + ": "
                                             + e.getMessage());
@@ -358,7 +361,7 @@ public class Simulacion {
                         // Imprimir resumen detallado de estados
 
                         EstadoManager.imprimirResumenEstados();
-                        System.out.println("************************************************");
+                        System.out.println("********************FIN DE ITERACION****************************");
                     }
                 }
 

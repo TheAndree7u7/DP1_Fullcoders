@@ -25,6 +25,8 @@ public class BackupManager {
     public static void crearBackupSimulacion(List<Pedido> pedidosSemanal, LocalDateTime fechaActual) {
         try {
             // Crear backup de pedidosSemanal
+            // ! PARTE 1
+            System.out.println("=======================1-BACKUP DE PEDIDOS SEMANALES=======================");
             if (pedidosSemanal != null) {
                 pedidosSemanralBackup = new ArrayList<>(pedidosSemanal);
                 System.out
@@ -39,6 +41,7 @@ public class BackupManager {
             System.out.println("💾 Backup de fechaActual creado: " + fechaActualBackup);
 
             System.out.println("✅ Backup de simulación creado exitosamente");
+            System.out.println("=======================1-FIN=======================");
         } catch (Exception e) {
             System.err.println("❌ Error al crear backup de simulación: " + e.getMessage());
             e.printStackTrace();

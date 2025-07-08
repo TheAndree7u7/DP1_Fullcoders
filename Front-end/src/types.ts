@@ -198,7 +198,7 @@ export interface Gen {
 }
 
 export interface Individuo {
-  cromosoma: Gen[];
+  cromosoma: Gen[]; //!LIsta de genes
   fechaHoraSimulacion: string; // LocalDateTime como string ISO
   fitness?: number;
 }
