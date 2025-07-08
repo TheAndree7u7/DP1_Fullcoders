@@ -10,6 +10,7 @@ import com.plg.config.DataLoader;
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
+import com.plg.entity.EstadoCamion;
 import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
@@ -43,6 +44,20 @@ public class AlgoritmoGenetico {
     }
 
     public void ejecutarAlgoritmo() {
+        // Si no hay pedidos, crear una ruta simple al almacén central para todos los camiones
+        if (pedidos == null || pedidos.isEmpty()) {
+            System.out.println("🏭 No hay pedidos para procesar. Creando rutas hacia el almacén central.");
+            mejorIndividuo = crearIndividuoRetornoAlmacen();
+            actualizarParametrosGlobales(mejorIndividuo);
+            
+            // Actualizar los genes de los camiones
+            for (Gen gen : mejorIndividuo.getCromosoma()) {
+                Camion camion = gen.getCamion();
+                camion.setGen(gen);
+            }
+            return;
+        }
+        
         List<Individuo> poblacion = inicializarPoblacion();
         double mejorFitness = Double.MIN_VALUE;
         int generacionesSinMejora = 0;
@@ -283,6 +298,64 @@ public class AlgoritmoGenetico {
             LoggerUtil.logError("❌ Error al crear individuo de emergencia: " + e.getMessage());
             // Si falla, devolver el individuo original
             return mejorIndividuo;
+        }
+    }
+
+    /**
+     * Crea un individuo con rutas que dirigen cada camión al almacén central.
+     * Se usa cuando no hay pedidos que procesar.
+     * 
+     * @return Un individuo con rutas al almacén central
+     */
+    private Individuo crearIndividuoRetornoAlmacen() {
+        try {
+            System.out.println("🚚 Creando rutas de retorno al almacén central para todos los camiones.");
+            
+            // Crear un individuo con lista vacía de pedidos
+            Individuo individuoRetorno = new Individuo(new ArrayList<>());
+            
+            // Asegurarse de que el cromosoma esté inicializado
+            if (individuoRetorno.getCromosoma() == null) {
+                individuoRetorno.setCromosoma(new ArrayList<>());
+                
+                // Crear un gen para cada camión
+                for (Camion camion : com.plg.config.DataLoader.camiones) {
+                    if (camion.getEstado() != EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO) {
+                        Gen gen = new Gen(camion, new ArrayList<>());
+                        gen.setRutaFinal(new ArrayList<>());
+                        gen.setPedidos(new ArrayList<>());
+                        individuoRetorno.getCromosoma().add(gen);
+                    }
+                }
+            }
+            
+            // Para cada gen (camión), establecer ruta solo al almacén central
+            for (Gen gen : individuoRetorno.getCromosoma()) {
+                gen.getNodos().clear();
+                
+                // Obtener el almacén central (primero en la lista)
+                if (!com.plg.config.DataLoader.almacenes.isEmpty()) {
+                    Almacen almacenCentral = com.plg.config.DataLoader.almacenes.get(0);
+                    gen.getNodos().add(almacenCentral);
+                    
+                    // Calcular ruta usando A* desde la posición actual del camión al almacén
+                    List<Nodo> rutaAStar = Mapa.getInstance().aStar(gen.getCamion(), almacenCentral);
+                    gen.setRutaFinal(rutaAStar);
+                }
+            }
+            
+            // Calcular el fitness del individuo (debería ser bajo ya que solo va al almacén)
+            individuoRetorno.setFitness(0.0); // Fitness óptimo para esta situación
+            individuoRetorno.setDescripcion("Rutas directas al almacén central");
+            
+            return individuoRetorno;
+            
+        } catch (Exception e) {
+            System.out.println("❌ Error al crear rutas al almacén central: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Devolver un individuo vacío como fallback
+            return new Individuo(new ArrayList<>());
         }
     }
 }
