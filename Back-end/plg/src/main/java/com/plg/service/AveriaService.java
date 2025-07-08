@@ -211,7 +211,7 @@ public class AveriaService {
             System.out.println("==========================================================");
             System.out.println("🔄 BACKEND: Procesando estado completo de la simulación...");
             // System.out.println("🔄 BACKEND: Estado simulación: " + estadoSimulacion);
-            System.out.println("🔄 BACKEND: Request: " + request);
+            // System.out.println("🔄 BACKEND: Request: " + request);
             System.out.println("🔄 BACKEND: Procesando estado completo de la simulación...");
 
             // Paso 0: PAUSAR la simulación inmediatamente (en lugar de detener)

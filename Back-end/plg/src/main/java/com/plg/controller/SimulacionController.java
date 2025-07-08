@@ -6,6 +6,7 @@ import com.plg.dto.request.SimulacionRequest;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/simulacion")
@@ -316,6 +318,107 @@ public class SimulacionController {
 
         } catch (Exception e) {
             String errorMsg = "Error al eliminar paquetes futuros: " + e.getMessage();
+            System.err.println("❌ " + errorMsg);
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMsg);
+        }
+    }
+
+    /*
+     * ------------------------ NUEVOS ENDPOINTS PARA HISTORIAL DE CONSUMIDOS
+     * ---------------------
+     */
+
+    @GetMapping("/historial-consumidos")
+    public List<IndividuoDto> obtenerHistorialConsumidos() {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/historial-consumidos");
+        List<IndividuoDto> historial = com.plg.utils.simulacion.GestorHistorialSimulacion.getHistorialConsumidos();
+        System.out.println("✅ ENDPOINT RESPUESTA: " + historial.size() + " paquetes consumidos");
+        return historial;
+    }
+
+    @GetMapping("/info-consumo")
+    public ResponseEntity<String> obtenerInfoConsumo() {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/info-consumo");
+        String info = com.plg.utils.simulacion.GestorHistorialSimulacion.obtenerInfoConsumo();
+        System.out.println("✅ ENDPOINT RESPUESTA: " + info);
+        return ResponseEntity.ok(info);
+    }
+
+    @GetMapping("/exportar-consumidos")
+    public ResponseEntity<String> exportarHistorialConsumidos() {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/exportar-consumidos");
+        String exportacion = com.plg.utils.simulacion.GestorHistorialSimulacion.exportarHistorialConsumidos();
+        System.out.println("✅ ENDPOINT RESPUESTA: Historial exportado");
+        return ResponseEntity.ok(exportacion);
+    }
+
+    @GetMapping("/ultimo-consumido")
+    public ResponseEntity<IndividuoDto> obtenerUltimoPaqueteConsumido() {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/ultimo-consumido");
+        IndividuoDto ultimo = com.plg.utils.simulacion.GestorHistorialSimulacion.obtenerUltimoPaqueteConsumido();
+        if (ultimo != null) {
+            System.out.println("✅ ENDPOINT RESPUESTA: Último paquete consumido encontrado");
+            return ResponseEntity.ok(ultimo);
+        } else {
+            System.out.println("⚠️ ENDPOINT RESPUESTA: No hay paquetes consumidos");
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/consumido/{indice}")
+    public ResponseEntity<IndividuoDto> obtenerPaqueteConsumidoPorIndice(@PathVariable int indice) {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/consumido/" + indice);
+        IndividuoDto paquete = com.plg.utils.simulacion.GestorHistorialSimulacion
+                .obtenerPaqueteConsumidoPorIndice(indice);
+        if (paquete != null) {
+            System.out.println("✅ ENDPOINT RESPUESTA: Paquete consumido #" + indice + " encontrado");
+            return ResponseEntity.ok(paquete);
+        } else {
+            System.out.println("❌ ENDPOINT RESPUESTA: Paquete consumido #" + indice + " no encontrado");
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/total-consumidos")
+    public ResponseEntity<Integer> obtenerTotalConsumidos() {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/total-consumidos");
+        int total = com.plg.utils.simulacion.GestorHistorialSimulacion.getTotalConsumidos();
+        System.out.println("✅ ENDPOINT RESPUESTA: Total consumidos = " + total);
+        return ResponseEntity.ok(total);
+    }
+
+    @DeleteMapping("/limpiar-consumidos")
+    public ResponseEntity<String> limpiarHistorialConsumidos() {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/limpiar-consumidos");
+
+        try {
+            int totalAntes = com.plg.utils.simulacion.GestorHistorialSimulacion.getTotalConsumidos();
+            com.plg.utils.simulacion.GestorHistorialSimulacion.limpiarHistorialConsumidos();
+
+            String mensaje = "Historial de consumidos limpiado exitosamente. Paquetes eliminados: " + totalAntes;
+            System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
+            return ResponseEntity.ok(mensaje);
+
+        } catch (Exception e) {
+            String errorMsg = "Error al limpiar historial de consumidos: " + e.getMessage();
+            System.err.println("❌ " + errorMsg);
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMsg);
+        }
+    }
+
+    @GetMapping("/estadisticas-consumidos")
+    public ResponseEntity<String> obtenerEstadisticasConsumidos() {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/estadisticas-consumidos");
+
+        try {
+            String estadisticas = com.plg.utils.simulacion.GestorHistorialSimulacion.obtenerEstadisticasConsumidos();
+            System.out.println("✅ ENDPOINT RESPUESTA: Estadísticas generadas");
+            return ResponseEntity.ok(estadisticas);
+
+        } catch (Exception e) {
+            String errorMsg = "Error al obtener estadísticas: " + e.getMessage();
             System.err.println("❌ " + errorMsg);
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMsg);

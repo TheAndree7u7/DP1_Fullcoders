@@ -2,6 +2,7 @@ package com.plg.utils.simulacion;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 
 import com.plg.dto.IndividuoDto;
 
@@ -17,6 +18,8 @@ import lombok.Setter;
 public class GestorHistorialSimulacion {
 
     private static final List<IndividuoDto> historialSimulacion = new ArrayList<>();
+    // NUEVO: Historial de paquetes ya consumidos
+    private static final List<IndividuoDto> historialConsumidos = new ArrayList<>();
     private static int indiceActualFrontend = 0;
     private static int contadorPaquetes = 0;
     private static boolean simulacionEnProceso = false;
@@ -142,9 +145,15 @@ public class GestorHistorialSimulacion {
         if (indiceActualFrontend < historialSimulacion.size()) {
             IndividuoDto paquete = historialSimulacion.get(indiceActualFrontend);
             int paqueteConsumido = indiceActualFrontend; // Guardar el índice antes de incrementar
+
+            // NUEVO: Agregar el paquete al historial de consumidos ANTES de incrementar el
+            // índice
+            historialConsumidos.add(paquete);
+
             indiceActualFrontend++;
             System.out.println("🔥 PAQUETE CONSUMIDO #" + paqueteConsumido + " | Tiempo: "
-                    + paquete.getFechaHoraSimulacion() + " | Total disponibles: " + historialSimulacion.size());
+                    + paquete.getFechaHoraSimulacion() + " | Total disponibles: " + historialSimulacion.size()
+                    + " | Total consumidos: " + historialConsumidos.size());
             return paquete;
         }
         return null;
@@ -153,18 +162,23 @@ public class GestorHistorialSimulacion {
     public static synchronized void reiniciarReproduccion() {
         int total = historialSimulacion.size();
         indiceActualFrontend = 0;
-        System.out.println("🔄 REPRODUCCIÓN REINICIADA | Volviendo al paquete #1 | Total disponibles: " + total);
+        // NO limpiar el historial de consumidos al reiniciar - mantener el registro
+        // histórico
+        System.out.println("🔄 REPRODUCCIÓN REINICIADA | Volviendo al paquete #1 | Total disponibles: " + total
+                + " | Historial de consumidos preservado (" + historialConsumidos.size() + " paquetes)");
     }
 
     public static synchronized void limpiarHistorialCompleto() {
         int paquetesEliminados = historialSimulacion.size();
         historialSimulacion.clear();
+        // NUEVO: Limpiar también el historial de consumidos
+        historialConsumidos.clear();
         indiceActualFrontend = 0;
         contadorPaquetes = 0;
         simulacionEnProceso = false;
         simulacionPausada = false; // Reiniciar también el flag de pausa
         System.out.println("🧹 HISTORIAL LIMPIADO COMPLETAMENTE | Paquetes eliminados: " + paquetesEliminados
-                + " | Estado reiniciado | Pausa reiniciada");
+                + " | Estado reiniciado | Pausa reiniciada | Historial de consumidos limpiado");
     }
 
     /* ------------------------------ GETTERS -------------------------------- */
@@ -218,5 +232,171 @@ public class GestorHistorialSimulacion {
         System.out.println("   • Contador ajustado: " + contadorPaquetes);
         System.out.println("   • Total paquetes en historial: " + historialSimulacion.size());
         System.out.println("   • Próximo paquete será: #" + (contadorPaquetes + 1));
+    }
+
+    /**
+     * NUEVO: Limpia solo el historial de paquetes consumidos.
+     * Útil cuando se quiere mantener el historial de simulación pero limpiar
+     * el registro de consumo.
+     */
+    public static synchronized void limpiarHistorialConsumidos() {
+        int consumidosEliminados = historialConsumidos.size();
+        historialConsumidos.clear();
+        System.out.println("🧹 HISTORIAL DE CONSUMIDOS LIMPIADO | Paquetes eliminados: " + consumidosEliminados);
+    }
+
+    /**
+     * NUEVO: Obtiene estadísticas del historial de consumidos.
+     * 
+     * @return String con estadísticas detalladas del historial de consumidos
+     */
+    public static synchronized String obtenerEstadisticasConsumidos() {
+        if (historialConsumidos.isEmpty()) {
+            return "📊 ESTADÍSTICAS: No hay paquetes consumidos";
+        }
+
+        StringBuilder stats = new StringBuilder();
+        stats.append("📊 ESTADÍSTICAS DEL HISTORIAL DE CONSUMIDOS\n");
+        stats.append("==========================================\n");
+        stats.append("Total paquetes consumidos: ").append(historialConsumidos.size()).append("\n");
+
+        // Calcular estadísticas de pedidos
+        int totalPedidos = 0;
+        int minPedidos = Integer.MAX_VALUE;
+        int maxPedidos = 0;
+
+        for (IndividuoDto paquete : historialConsumidos) {
+            int pedidosEnPaquete = paquete.getPedidos().size();
+            totalPedidos += pedidosEnPaquete;
+            minPedidos = Math.min(minPedidos, pedidosEnPaquete);
+            maxPedidos = Math.max(maxPedidos, pedidosEnPaquete);
+        }
+
+        double promedioPedidos = (double) totalPedidos / historialConsumidos.size();
+
+        stats.append("Total pedidos procesados: ").append(totalPedidos).append("\n");
+        stats.append("Promedio pedidos por paquete: ").append(String.format("%.1f", promedioPedidos)).append("\n");
+        stats.append("Mínimo pedidos en paquete: ").append(minPedidos).append("\n");
+        stats.append("Máximo pedidos en paquete: ").append(maxPedidos).append("\n");
+
+        // Rango de fechas
+        if (!historialConsumidos.isEmpty()) {
+            LocalDateTime primeraFecha = historialConsumidos.get(0).getFechaHoraSimulacion();
+            LocalDateTime ultimaFecha = historialConsumidos.get(historialConsumidos.size() - 1)
+                    .getFechaHoraSimulacion();
+            stats.append("Primera fecha: ").append(primeraFecha).append("\n");
+            stats.append("Última fecha: ").append(ultimaFecha).append("\n");
+        }
+
+        stats.append("==========================================");
+
+        return stats.toString();
+    }
+
+    /*
+     * ------------------------ NUEVOS MÉTODOS PARA HISTORIAL DE CONSUMIDOS
+     * ---------------------
+     */
+
+    /**
+     * NUEVO: Obtiene el historial completo de paquetes ya consumidos.
+     * 
+     * @return Lista de todos los paquetes que han sido consumidos por el frontend
+     */
+    public static synchronized List<IndividuoDto> getHistorialConsumidos() {
+        return new ArrayList<>(historialConsumidos);
+    }
+
+    /**
+     * NUEVO: Obtiene el número total de paquetes consumidos.
+     * 
+     * @return Número de paquetes que han sido consumidos
+     */
+    public static synchronized int getTotalConsumidos() {
+        return historialConsumidos.size();
+    }
+
+    /**
+     * NUEVO: Obtiene un paquete específico del historial de consumidos.
+     * 
+     * @param indice La posición del paquete en el historial de consumidos
+     * @return El paquete consumido en la posición especificada, o null si no existe
+     */
+    public static synchronized IndividuoDto obtenerPaqueteConsumidoPorIndice(int indice) {
+        if (indice >= 0 && indice < historialConsumidos.size()) {
+            return historialConsumidos.get(indice);
+        }
+        return null;
+    }
+
+    /**
+     * NUEVO: Obtiene el último paquete consumido.
+     * 
+     * @return El último paquete que fue consumido, o null si no hay ninguno
+     */
+    public static synchronized IndividuoDto obtenerUltimoPaqueteConsumido() {
+        if (!historialConsumidos.isEmpty()) {
+            return historialConsumidos.get(historialConsumidos.size() - 1);
+        }
+        return null;
+    }
+
+    /**
+     * NUEVO: Obtiene información detallada del estado de consumo.
+     * 
+     * @return Información completa sobre paquetes disponibles y consumidos
+     */
+    public static synchronized String obtenerInfoConsumo() {
+        return String.format("📊 ESTADO DE CONSUMO: Disponibles=%d, Consumidos=%d, Próximo=%d, Total=%d",
+                historialSimulacion.size() - indiceActualFrontend,
+                historialConsumidos.size(),
+                indiceActualFrontend,
+                historialSimulacion.size());
+    }
+
+    /**
+     * NUEVO: Busca paquetes consumidos por rango de fechas.
+     * 
+     * @param fechaInicio Fecha de inicio del rango
+     * @param fechaFin    Fecha de fin del rango
+     * @return Lista de paquetes consumidos en el rango de fechas especificado
+     */
+    public static synchronized List<IndividuoDto> buscarPaquetesConsumidosPorFecha(LocalDateTime fechaInicio,
+            LocalDateTime fechaFin) {
+        List<IndividuoDto> paquetesEnRango = new ArrayList<>();
+
+        for (IndividuoDto paquete : historialConsumidos) {
+            LocalDateTime fechaPaquete = paquete.getFechaHoraSimulacion();
+            if (fechaPaquete.isAfter(fechaInicio) && fechaPaquete.isBefore(fechaFin)) {
+                paquetesEnRango.add(paquete);
+            }
+        }
+
+        return paquetesEnRango;
+    }
+
+    /**
+     * NUEVO: Exporta el historial de consumidos a un formato legible.
+     * 
+     * @return String con información detallada de todos los paquetes consumidos
+     */
+    public static synchronized String exportarHistorialConsumidos() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("📋 HISTORIAL DE PAQUETES CONSUMIDOS\n");
+        sb.append("=====================================\n");
+
+        for (int i = 0; i < historialConsumidos.size(); i++) {
+            IndividuoDto paquete = historialConsumidos.get(i);
+            sb.append(String.format("#%d | Tiempo: %s | Pedidos: %d | Cromosoma: %d genes\n",
+                    i + 1,
+                    paquete.getFechaHoraSimulacion(),
+                    paquete.getPedidos().size(),
+                    paquete.getCromosoma().size()));
+        }
+
+        sb.append("=====================================\n");
+        sb.append("Total consumidos: ").append(historialConsumidos.size());
+
+        return sb.toString();
     }
 }

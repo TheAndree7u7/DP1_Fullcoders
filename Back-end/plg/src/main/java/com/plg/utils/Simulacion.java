@@ -266,7 +266,9 @@ public class Simulacion {
                                     IndividuoDto mejorIndividuoDto = new IndividuoDto(
                                             algoritmoGenetico.getMejorIndividuo(),
                                             pedidosEnviar, bloqueosActivos, fechaActual);
-
+                                    mejorIndividuoDto.setFechaHoraInicioIntervalo(
+                                            fechaActual.minusMinutes(Parametros.intervaloTiempo));
+                                    mejorIndividuoDto.setFechaHoraFinIntervalo(fechaActual);
                                     // Aplicar el estado final de los camiones permanentemente
                                     // CamionStateApplier.aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
 
@@ -308,6 +310,9 @@ public class Simulacion {
                                     IndividuoDto mejorIndividuoDto = new IndividuoDto(
                                             algoritmoGenetico.getMejorIndividuo(),
                                             pedidosEnviar, bloqueosActivos, fechaActual);
+                                    mejorIndividuoDto.setFechaHoraInicioIntervalo(
+                                            fechaActual.minusMinutes(Parametros.intervaloTiempo));
+                                    mejorIndividuoDto.setFechaHoraFinIntervalo(fechaActual);
                                     gaResultQueue.offer(mejorIndividuoDto);
                                     continuar.acquire();
 
@@ -338,7 +343,9 @@ public class Simulacion {
 
                                     // Aplicar el estado final de los camiones permanentemente
                                     // CamionStateApplier.aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
-
+                                    mejorIndividuoDto.setFechaHoraInicioIntervalo(
+                                            fechaActual.minusMinutes(Parametros.intervaloTiempo));
+                                    mejorIndividuoDto.setFechaHoraFinIntervalo(fechaActual);
                                     // Agregar al historial para el frontend
                                     GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
                                     // ! Quiero saber las posiciones actuales de los camiones en el mapa

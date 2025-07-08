@@ -17,6 +17,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,6 +31,8 @@ public class Individuo {
     private List<Pedido> pedidos; // Lista de pedidos
     @Builder.Default
     private double porcentajeAsignacionCercana = 0.9; // Porcentaje de camiones a usar para asignación por cercanía
+    private LocalDateTime fechaHoraInicioIntervalo;
+    private LocalDateTime fechaHoraFinIntervalo;
 
     // Constructor para el algoritmo genético
     // Inicializa el cromosoma con los camiones disponibles y los almacenes
@@ -51,7 +55,7 @@ public class Individuo {
                 .filter(camion -> camion.getEstado() != com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO
                         && camion.getEstado() != com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_CORRECTIVO)
                 .collect(java.util.stream.Collectors.toList());
-        
+
         // Verificar que tengamos camiones disponibles
         if (camionesDisponibles.isEmpty()) {
             LoggerUtil.logError("⚠️  ADVERTENCIA: No hay camiones disponibles (todos en mantenimiento)");
