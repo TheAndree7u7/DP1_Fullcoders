@@ -419,7 +419,7 @@ public class Simulacion {
             fechaActual = fechaInicioParche;
             AveriaManager.crearPaqueteParche(estadoCapturado, fechaInicioParche, fechaFinParche, pedidosSemanal,
                     fechaActual);
-            faltacrearparche = false;
+            
             fechaActual = fechaFinParche;
         }
     }

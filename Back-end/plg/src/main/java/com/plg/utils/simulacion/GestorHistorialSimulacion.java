@@ -173,8 +173,10 @@ public class GestorHistorialSimulacion {
             IndividuoDto paquete = historialSimulacion.get(i);
             LocalDateTime fechaInicioPaquete = paquete.getFechaHoraInicioIntervalo();
 
+            boolean esFechaIgual = fechaInicioPaquete != null && fechaInicioPaquete.isEqual(fechaActual);
+            boolean esFechaPosterior = fechaInicioPaquete != null && fechaInicioPaquete.isAfter(fechaActual);
             // Si la fecha de inicio del paquete es posterior a la fecha actual, eliminarlo
-            if (fechaInicioPaquete != null && fechaInicioPaquete.isAfter(fechaActual)) {
+            if (esFechaIgual || esFechaPosterior) {
                 historialSimulacion.remove(i);
                 paquetesEliminados++;
 

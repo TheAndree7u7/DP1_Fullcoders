@@ -208,6 +208,8 @@ public class AveriaService {
             AveriaConEstadoRequest request) {
         try {
             // Obtener el timestamp de la avería para usar en múltiples pasos
+            com.plg.utils.Simulacion.faltacrearparche = true;
+            com.plg.controller.SimulacionController.pausarSimulacionPorAveria();
             String timestampString = request.getFechaHoraReporte();
             if (timestampString.endsWith("Z")) {
                 timestampString = timestampString.substring(0, timestampString.length() - 1);
@@ -222,7 +224,6 @@ public class AveriaService {
 
             // Paso 0: PAUSAR la simulación inmediatamente (en lugar de detener)
             System.out.println("⏸️ BACKEND: Pausando simulación del backend por avería...");
-            com.plg.controller.SimulacionController.pausarSimulacionPorAveria();
 
             // Paso 1: Detener la generación de paquetes futuros inmediatamente
             System.out.println("🛑 BACKEND: Eliminando paquetes futuros...");
@@ -259,11 +260,11 @@ public class AveriaService {
 
             // Paso 2: Generar paquete parche con el estado capturado
             System.out.println("🩹 BACKEND: Generando paquete parche para manejar la avería...");
-            com.plg.utils.Simulacion.faltacrearparche = true;
+
             com.plg.utils.Simulacion.crearPaqueteParche(request.getEstadoSimulacion());
             System.out.println("📅 BACKEND: Usando timestamp de avería correcto: " + timestampAveria);
             System.out.println("📅 BACKEND: (No el timestamp del estado: " + estadoSimulacion.getTimestamp() + ")");
-            
+
             // ! colocar QUE FALTA CREAR PARCHE
 
             System.out.println("▶️ BACKEND: Reanudando simulación después de procesaravería...");

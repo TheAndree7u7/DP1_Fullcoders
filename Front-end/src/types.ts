@@ -202,7 +202,14 @@ export interface Individuo {
   fechaHoraSimulacion: string; // LocalDateTime como string ISO
   fechaHoraInicioIntervalo?: string;
   fechaHoraFinIntervalo?: string;
+  tipoIndividuo: TipoIndividuo;
   fitness?: number;
+}
+
+export enum TipoIndividuo {
+  NORMAL = 'NORMAL',
+  PARCHE = 'PARCHE',
+  AVERIA = 'EMERGENCIA'
 }
 
 export interface Simulacion {
