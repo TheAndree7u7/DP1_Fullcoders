@@ -156,9 +156,7 @@ public class Simulacion {
         DataLoader.bloqueos.clear();
         DataLoader.mantenimientos.clear();
         
-        // Reiniciar contadores de las factories
-        AlmacenFactory.reiniciarContadores();
-        CamionFactory.reiniciarContadores();
+        
         
         // Reinicializar el mapa
         Mapa.initializeInstance();

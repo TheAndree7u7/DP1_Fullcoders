@@ -58,7 +58,7 @@ public class SimulacionController {
             fechaDateTime = LocalDateTime.parse(fecha);
         } catch (Exception e) {
             System.out.println("❌ Error: Formato de fecha inválido: " + fecha);
-            throw new IllegalArgumentException("Formato de fecha inválido. Use el formato ISO: yyyy-MM-ddTHH:mm:ss");
+            return null;
         }
         // Calcular el intervalo de tiempo en minutos entre la fecha inicial y la fecha actual
         Parametros.intervaloTiempo = (int) ChronoUnit.MINUTES.between(Parametros.fecha_inicial, fechaDateTime);
@@ -105,7 +105,7 @@ public class SimulacionController {
                 return ResponseEntity.badRequest().body("Error: La fecha de inicio no puede ser nula");
             }
             Simulacion.detenerSimulacion();
-            
+
             // Resetear el estado de simulación iniciada
             simulacionIniciada = false;
 
@@ -137,10 +137,7 @@ public class SimulacionController {
             System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
             return ResponseEntity.ok(mensaje);
         } catch (Exception e) {
-            String errorMsg = "Error al iniciar simulación: " + e.getMessage();
-            System.err.println("❌ " + errorMsg);
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMsg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fatal inicializar");
         }
     }
 
