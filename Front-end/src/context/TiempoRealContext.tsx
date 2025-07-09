@@ -202,12 +202,12 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
       
       console.log("🔄 TIEMPO REAL: Cargando datos de simulación...");
       console.log("📅 TIEMPO REAL: Fecha simulada para endpoint:", fechaSimulada);
-      console.log("🌐 TIEMPO REAL: URL que se llamaría:", `http://localhost:8085/api/simulacion/obtenerMejorIndividuo?fecha=${fechaSimulada}`);
+      console.log("🌐 TIEMPO REAL: URL que se llamaría:", `http://localhost:8085/api/simulacion/mejor?fecha=${fechaSimulada}`);
 
       // Llamar al nuevo endpoint con la fecha simulada
       let data: IndividuoConBloqueos;
       try {
-        const response = await fetch(`http://localhost:8085/api/simulacion/obtenerMejorIndividuo?fecha=${fechaSimulada}`);
+        const response = await fetch(`http://localhost:8085/api/simulacion/mejor?fecha=${fechaSimulada}`);
         
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);

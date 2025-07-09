@@ -3,9 +3,9 @@ package com.plg.controller;
 import com.plg.utils.Simulacion;
 import com.plg.utils.AlgoritmoGenetico;
 import com.plg.utils.Parametros;
+import com.plg.config.DataLoader;
 import com.plg.dto.IndividuoDto;
 import com.plg.dto.request.SimulacionRequest;
-import com.plg.dto.request.MejorIndividuoRequest;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -18,6 +18,7 @@ import java.util.LinkedHashSet;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -36,8 +37,8 @@ public class SimulacionController {
     private static boolean simulacionIniciada = false;
 
 
-    @PostMapping("/mejor")
-    public IndividuoDto obtenerMejorIndividuoPorFecha(@RequestBody MejorIndividuoRequest request) {
+    @GetMapping("/mejor")
+    public IndividuoDto obtenerMejorIndividuoPorFecha(@RequestParam String fecha) {
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/mejor (por fecha)");
         
         // Verificar si la simulación ha sido iniciada
@@ -46,39 +47,47 @@ public class SimulacionController {
             throw new IllegalStateException("La simulación debe ser iniciada antes de poder obtener el mejor individuo. Llame primero al endpoint /api/simulacion/iniciar");
         }
         
-        if (request == null || request.getFecha() == null) {
+        if (fecha == null || fecha.isEmpty()) {
             System.out.println("❌ Error: Fecha no proporcionada en la solicitud");
             return null;
         }
-        LocalDateTime fecha = request.getFecha();
+        
+        LocalDateTime fechaDateTime;
+        try {
+            // Parsear la fecha del parámetro
+            fechaDateTime = LocalDateTime.parse(fecha);
+        } catch (Exception e) {
+            System.out.println("❌ Error: Formato de fecha inválido: " + fecha);
+            throw new IllegalArgumentException("Formato de fecha inválido. Use el formato ISO: yyyy-MM-ddTHH:mm:ss");
+        }
         // Calcular el intervalo de tiempo en minutos entre la fecha inicial y la fecha actual
-        Parametros.intervaloTiempo = (int) ChronoUnit.MINUTES.between(Parametros.fecha_inicial, fecha);
-        Parametros.fecha_inicial = fecha; // Actualizar la fecha inicial de la simulación
-        System.out.println("🔄 Actualizando estado global para la fecha: " + fecha);
+        Parametros.intervaloTiempo = (int) ChronoUnit.MINUTES.between(Parametros.fecha_inicial, fechaDateTime);
+        Parametros.fecha_inicial = fechaDateTime; // Actualizar la fecha inicial de la simulación
+        System.out.println("🔄 Actualizando estado global para la fecha: " + fechaDateTime);
         // Obtener pedidos en el rango de dos horas y unir con pedidos planificados
-        List<Pedido> pedidosAT = Simulacion.obtenerPedidosEnRango(fecha);
+        List<Pedido> pedidosAT = Simulacion.obtenerPedidosEnRango(fechaDateTime);
         List<Pedido> pedidosEnviar = UtilesSimulacion.unirPedidosSinRepetidos(
                 Simulacion.pedidosPlanificados,
                 new LinkedHashSet<>(pedidosAT));
         Simulacion.pedidosEnviar = pedidosEnviar; // Actualizar la lista de pedidos a enviar
-        Simulacion.actualizarEstadoGlobal(fecha);
-        List<Bloqueo> bloqueosActivos = Simulacion.actualizarBloqueos(fecha);
+        Simulacion.actualizarEstadoGlobal(fechaDateTime);
+        List<Bloqueo> bloqueosActivos = Simulacion.actualizarBloqueos(fechaDateTime);
 
         System.out.println("🧩 Pedidos a enviar unidos para la fecha: " + pedidosEnviar.size());
-        System.out.println("🧬 Ejecutando algoritmo genético para la fecha: " + fecha);
+        System.out.println("🧬 Ejecutando algoritmo genético para la fecha: " + fechaDateTime);
         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(), pedidosEnviar);
         algoritmoGenetico.ejecutarAlgoritmo();
         IndividuoDto mejorIndividuoDto = new IndividuoDto(
                 algoritmoGenetico.getMejorIndividuo(),
                 pedidosEnviar,
                 bloqueosActivos,
-                fecha);
+                fechaDateTime);
 
         for (Bloqueo bloqueo : bloqueosActivos) {
             bloqueo.desactivarBloqueo();
         }
 
-        System.out.println("✅ Mejor individuo generado y retornado para la fecha: " + fecha);
+        System.out.println("✅ Mejor individuo generado y retornado para la fecha: " + fechaDateTime);
         return mejorIndividuoDto;
     }
 
@@ -104,12 +113,12 @@ public class SimulacionController {
 
             // Verificar estado del sistema antes de iniciar
             System.out.println("🔍 DIAGNÓSTICO DEL SISTEMA:");
-            System.out.println("   • Almacenes disponibles: " + com.plg.config.DataLoader.almacenes.size());
-            System.out.println("   • Camiones disponibles: " + com.plg.config.DataLoader.camiones.size());
-            System.out.println("   • Mapa inicializado: " + (com.plg.entity.Mapa.getInstance() != null));
+            System.out.println("   • Almacenes disponibles: " + DataLoader.almacenes.size());
+            System.out.println("   • Camiones disponibles: " + DataLoader.camiones.size());
+            System.out.println("   • Mapa inicializado: " + (Mapa.getInstance() != null));
 
             // Verificar camiones disponibles (no en mantenimiento)
-            long camionesDisponibles = com.plg.config.DataLoader.camiones.stream()
+            long camionesDisponibles = DataLoader.camiones.stream()
                     .filter(camion -> camion.getEstado() != com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
                     .count();
             System.out.println("   • Camiones no en mantenimiento: " + camionesDisponibles);
