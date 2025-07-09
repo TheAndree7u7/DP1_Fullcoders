@@ -16,6 +16,8 @@ import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
 import com.plg.entity.TipoAlmacen;
 import com.plg.entity.TipoNodo;
+import com.plg.factory.AlmacenFactory;
+import com.plg.factory.CamionFactory;
 import com.plg.utils.simulacion.ConfiguracionSimulacion;
 import com.plg.utils.simulacion.MantenimientoManager;
 import com.plg.utils.simulacion.AveriasManager;
@@ -133,6 +135,38 @@ public class Simulacion {
             }
         }
         return pedidosEnRango;
+    }
+
+    public static void detenerSimulacion() {
+        System.out.println("🛑 Deteniendo simulación y limpiando datos...");
+        
+        // Limpiar pedidos de la simulación
+        pedidosSemanal = null;
+        pedidosEnviar.clear();
+        pedidosPorAtender.clear();
+        pedidosPlanificados.clear();
+        pedidosEntregados.clear();
+        mejorIndividuo = null;
+        
+        // Limpiar DataLoader
+        DataLoader.pedidos.clear();
+        DataLoader.almacenes.clear();
+        DataLoader.camiones.clear();
+        DataLoader.averias.clear();
+        DataLoader.bloqueos.clear();
+        DataLoader.mantenimientos.clear();
+        
+        // Reiniciar contadores de las factories
+        AlmacenFactory.reiniciarContadores();
+        CamionFactory.reiniciarContadores();
+        
+        // Reinicializar el mapa
+        Mapa.initializeInstance();
+        
+        // Resetear fecha actual
+        fechaActual = null;
+        
+        System.out.println("✅ Simulación detenida y datos limpiados correctamente");
     }
 
 }

@@ -8,16 +8,14 @@ import { ChevronLeft, ChevronUp } from "lucide-react";
 import { useSimulacion,  } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
 import ControlSimulacion from "../components/ControlSimulacion";
-import { 
-  TIEMPO_ACTUALIZACION_MIN, 
-  TIEMPO_ACTUALIZACION_MAX, 
-  TIEMPO_ACTUALIZACION_STEP 
-} from "../config/tiempoSimulacion";
+
+// Constante que define cuánto tiempo (en segundos) representa cada nodo en la simulación
+const SEGUNDOS_POR_NODO = 36;
 
 const SimulacionSemanal: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
   const [bottomMenuExpandido, setBottomMenuExpandido] = useState(false);
-  const { fechaHoraSimulacion, horaActual, tiempoTranscurridoSimulado, tiempoActualizacionSegundos, cambiarTiempoActualizacion } = useSimulacion();
+  const { fechaHoraSimulacion, horaActual, tiempoTranscurridoSimulado } = useSimulacion();
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
   // Estado para alternar paneles
   const [panel, setPanel] = useState<'camiones' | 'bloqueos'>('camiones');
@@ -28,7 +26,10 @@ const SimulacionSemanal: React.FC = () => {
   // Estado para el panel de control
   const [controlPanelExpandido, setControlPanelExpandido] = useState(false);
 
-  // Estado para guardar el tiempo en la simulación (actualizado por el tiempo transcurrido)
+  // Constante que indica cada cuántas horas se reciben datos del backend
+  const HORAS_POR_ACTUALIZACION = 2;
+  
+  // Estado para guardar el tiempo en la simulación (actualizado por nodos)
   const [tiempoReal, setTiempoReal] = useState<Date | null>(null);
   
   // Actualizar la hora simulada solo cuando cambia la fecha del backend
@@ -39,19 +40,28 @@ const SimulacionSemanal: React.FC = () => {
     }
   }, [fechaHoraSimulacion]);
   
-  // Actualizar la hora en tiempo real basado en el tiempo transcurrido
+  // Actualizar la hora en tiempo real basado en los nodos actuales
   useEffect(() => {
     if (fechaHoraSimulacion && horaActual >= 0) {
       const fechaBase = new Date(fechaHoraSimulacion);
       
-      // Calculamos los segundos transcurridos desde la última actualización del backend
-      // horaActual representa el progreso dentro del intervalo actual de simulación
-      const segundosTranscurridos = (horaActual / 100) * tiempoActualizacionSegundos;
-
-      const nuevaFecha = new Date(fechaBase.getTime() + segundosTranscurridos * 1000);
+      // Número total de nodos para una actualización completa (cada 4 horas)
+      const NODOS_POR_ACTUALIZACION = 100;
+      
+      // Calculamos qué nodo estamos dentro del ciclo actual (0-99)
+      const nodoEnCicloActual = horaActual % NODOS_POR_ACTUALIZACION;
+      
+      // Calculamos el avance por nodo (segundos totales de 4 horas divididos por nodos totales)
+      const segundosPorNodo = (HORAS_POR_ACTUALIZACION * 60 * 60) / NODOS_POR_ACTUALIZACION; // 4 horas / 100 nodos
+      
+      // Calculamos segundos adicionales solo para el incremento local dentro del ciclo actual
+      const segundosAdicionales = nodoEnCicloActual * segundosPorNodo;
+      
+      // Crea nueva fecha sumando los segundos (no debe pasarse del próximo intervalo de 4 horas)
+      const nuevaFecha = new Date(fechaBase.getTime() + segundosAdicionales * 1000);
       setTiempoReal(nuevaFecha);
     }
-  }, [horaActual, fechaHoraSimulacion, tiempoActualizacionSegundos]);
+  }, [horaActual, fechaHoraSimulacion]);
 
   // Formato para la fecha y hora de simulación (del backend)
   const fechaSimulada = tiempoSimulado ? 
@@ -66,7 +76,7 @@ const SimulacionSemanal: React.FC = () => {
       second: '2-digit'
     }) : '';
     
-  // Formato para la hora en tiempo real (actualizada por intervalos de tiempo)
+  // Formato para la hora en tiempo real (actualizada por nodos)
   const horaRealSimulada = tiempoReal ? 
     tiempoReal.toLocaleTimeString('es-ES', {
       hour: '2-digit',
@@ -112,18 +122,6 @@ const SimulacionSemanal: React.FC = () => {
     }
   }, [bottomMenuExpandido]);
 
-  // Efecto para actualizar la fecha simulada cada intervalo
-  useEffect(() => {
-    const intervalo = setInterval(() => {
-      if (tiempoSimulado) {
-        const nuevaFecha = new Date(tiempoSimulado.getTime() + tiempoActualizacionSegundos * 1000);
-        setTiempoSimulado(nuevaFecha);
-      }
-    }, tiempoActualizacionSegundos * 1000);
-
-    return () => clearInterval(intervalo);
-  }, [tiempoSimulado, tiempoActualizacionSegundos]);
-
   return (
     <div className="bg-[#F5F5F5] w-screen h-screen flex flex-col pt-16">
       <Navbar />
@@ -140,12 +138,12 @@ const SimulacionSemanal: React.FC = () => {
               <span className="font-bold text-blue-300">{horaRealSimulada}</span>
             </div>
             <div>
-              <span className="mr-2">Progreso:</span>
-              <span className="font-bold text-blue-300">{horaActual}%</span>
+              <span className="mr-2">Nodo actual:</span>
+              <span className="font-bold text-blue-300">{horaActual}</span>
             </div>
             <div>
-              <span className="mr-2">Intervalo:</span>
-              <span className="font-bold text-blue-300">{tiempoActualizacionSegundos}s</span>
+              <span className="mr-2">Seg/nodo:</span>
+              <span className="font-bold text-blue-300">{SEGUNDOS_POR_NODO}</span>
             </div>
           </div>
         )}
@@ -160,25 +158,6 @@ const SimulacionSemanal: React.FC = () => {
           >
             {controlPanelExpandido ? '🔼 Ocultar Control' : '🔽 Mostrar Control de Simulación'}
           </button>
-          
-          {/* Control de tiempo de simulación */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">
-              Tiempo simulación (segundos):
-            </label>
-            <input
-              type="number"
-              min={TIEMPO_ACTUALIZACION_MIN}
-              max={TIEMPO_ACTUALIZACION_MAX}
-              step={TIEMPO_ACTUALIZACION_STEP}
-              value={tiempoActualizacionSegundos}
-              onChange={(e) => cambiarTiempoActualizacion(Number(e.target.value))}
-              className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
-            />
-            <span className="text-xs text-gray-500">
-              (cada {tiempoActualizacionSegundos}s se simula un paquete)
-            </span>
-          </div>
         </div>
         
         {controlPanelExpandido && (

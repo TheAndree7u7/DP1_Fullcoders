@@ -163,4 +163,15 @@ public class CamionFactory {
                 .orElse(null);
                 
     }
+
+    /**
+     * Reinicia los contadores de camiones a sus valores iniciales.
+     * Útil para reiniciar la simulación desde cero.
+     */
+    public static void reiniciarContadores() {
+        for (TipoCamion tipo : TipoCamion.values()) {
+            contadorCamiones.put(tipo, 0);
+        }
+        camiones.clear();
+    }
 }

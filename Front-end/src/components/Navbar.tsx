@@ -1,5 +1,7 @@
 
 import { useState, useRef, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Package } from "lucide-react";
 import logo from "../assets/logo.png";
 import { useSimulacion,  } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
@@ -8,6 +10,8 @@ const Navbar: React.FC = () => {
   const [, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { tiempoTranscurridoSimulado, tiempoRealSimulacion } = useSimulacion();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -29,11 +33,26 @@ const Navbar: React.FC = () => {
         <img src={logo} alt="logo" className="w-[24px] h-[24px]" />
         <div className="font-bold text-[14px] text-[#1890FF]">GLPSoft</div>
         <div className="text-black font-bold text-xl">
-          Ejecución Semanal - {formatearTiempoTranscurrido(tiempoTranscurridoSimulado)}
+          {location.pathname === '/ejecucion-tiempo-real' 
+            ? 'Ejecución en Tiempo Real'
+            : `Ejecución Semanal - ${formatearTiempoTranscurrido(tiempoTranscurridoSimulado)}`
+          }
         </div>
       </div>
       
       <div className="flex items-center space-x-4">
+        {/* Botón para gestión de pedidos */}
+        {(location.pathname === '/' || location.pathname === '/simulacion-semanal') && (
+          <button
+            onClick={() => navigate('/pedidos')}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg transition-colors text-sm font-medium"
+            title="Gestionar pedidos"
+          >
+            <Package size={16} />
+            Gestionar Pedidos
+          </button>
+        )}
+        
         <div className="flex items-center space-x-2">
           <div className="text-gray-600 text-sm">⏱️ Duracion de la simulacion:</div>
           <div className="font-mono font-bold text-[#1890FF] text-lg bg-gray-100 px-3 py-1 rounded">

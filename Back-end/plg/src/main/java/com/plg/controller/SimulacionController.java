@@ -32,35 +32,20 @@ import org.springframework.http.HttpStatus;
 
 public class SimulacionController {
 
-    // Referencia al hilo actual de simulación para poder detenerlo
-    private static Thread hiloSimulacionActual = null;
+    // Variable de control para verificar si la simulación ha sido iniciada
+    private static boolean simulacionIniciada = false;
 
-    /**
-     * Detiene la simulación actual si está en progreso
-     */
-    private static void detenerSimulacionActual() {
-        if (hiloSimulacionActual != null && hiloSimulacionActual.isAlive()) {
-            System.out.println("🛑 Deteniendo simulación anterior...");
-            hiloSimulacionActual.interrupt();
-            try {
-                // Esperar un poco para que el hilo termine
-                hiloSimulacionActual.join(2000); // Esperar máximo 2 segundos
-                if (hiloSimulacionActual.isAlive()) {
-                    System.out.println("⚠️ El hilo de simulación no terminó completamente");
-                } else {
-                    System.out.println("✅ Simulación anterior detenida correctamente");
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                System.out.println("❌ Error al esperar que termine la simulación anterior");
-            }
-        }
-        hiloSimulacionActual = null;
-    }
 
     @PostMapping("/mejor")
     public IndividuoDto obtenerMejorIndividuoPorFecha(@RequestBody MejorIndividuoRequest request) {
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/mejor (por fecha)");
+        
+        // Verificar si la simulación ha sido iniciada
+        if (!simulacionIniciada) {
+            System.out.println("❌ Error: No se puede obtener el mejor individuo sin antes iniciar la simulación");
+            throw new IllegalStateException("La simulación debe ser iniciada antes de poder obtener el mejor individuo. Llame primero al endpoint /api/simulacion/iniciar");
+        }
+        
         if (request == null || request.getFecha() == null) {
             System.out.println("❌ Error: Fecha no proporcionada en la solicitud");
             return null;
@@ -97,33 +82,7 @@ public class SimulacionController {
         return mejorIndividuoDto;
     }
 
-    @GetMapping("/reiniciar")
-    public ResponseEntity<String> reiniciarSimulacion() {
-        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/reiniciar");
 
-        try {
-            // Detener la simulación anterior si existe
-            detenerSimulacionActual();
-
-            // Usar la fecha actual para reiniciar la simulación
-            LocalDateTime fechaActual = LocalDateTime.now();
-            System.out.println("🔧 Reiniciando simulación con fecha: " + fechaActual);
-
-            // Configurar nueva simulación
-            Simulacion.configurarSimulacion(fechaActual);
-
-            String mensaje = "Simulación reiniciada y nueva simulación generándose con fecha: " + fechaActual;
-            System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
-
-            return ResponseEntity.ok(mensaje);
-
-        } catch (Exception e) {
-            String errorMsg = "Error al reiniciar simulación: " + e.getMessage();
-            System.err.println("❌ " + errorMsg);
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMsg);
-        }
-    }
 
     @PostMapping("/iniciar")
     public ResponseEntity<String> iniciarSimulacion(@RequestBody SimulacionRequest request) {
@@ -136,9 +95,11 @@ public class SimulacionController {
                 System.out.println("❌ Error: Fecha de inicio es nula");
                 return ResponseEntity.badRequest().body("Error: La fecha de inicio no puede ser nula");
             }
+            Simulacion.detenerSimulacion();
+            
+            // Resetear el estado de simulación iniciada
+            simulacionIniciada = false;
 
-            // Detener cualquier simulación anterior
-            detenerSimulacionActual();
             System.out.println("🛑 Simulación anterior detenida (si existía)");
 
             // Verificar estado del sistema antes de iniciar
@@ -156,22 +117,32 @@ public class SimulacionController {
             if (camionesDisponibles == 0) {
                 System.out.println("⚠️ ADVERTENCIA: Todos los camiones están en mantenimiento");
             }
-
             System.out.println("🔧 Configurando simulación con fecha: " + request.getFechaInicio());
-
             // Configurar la simulación con la fecha enviada desde el frontend
             Simulacion.configurarSimulacion(request.getFechaInicio());
-
+            
+            // Marcar que la simulación ha sido iniciada exitosamente
+            simulacionIniciada = true;
+            
             String mensaje = "Simulación iniciada correctamente con fecha: " + request.getFechaInicio();
             System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
-
             return ResponseEntity.ok(mensaje);
-
         } catch (Exception e) {
             String errorMsg = "Error al iniciar simulación: " + e.getMessage();
             System.err.println("❌ " + errorMsg);
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMsg);
+        }
+    }
+
+    @GetMapping("/estado")
+    public ResponseEntity<String> obtenerEstadoSimulacion() {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/estado");
+        
+        if (simulacionIniciada) {
+            return ResponseEntity.ok("Simulación iniciada y lista para procesar solicitudes");
+        } else {
+            return ResponseEntity.ok("Simulación no iniciada. Debe llamar al endpoint /iniciar primero");
         }
     }
 }

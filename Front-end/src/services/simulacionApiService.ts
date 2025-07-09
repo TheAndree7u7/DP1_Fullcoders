@@ -1,24 +1,10 @@
 import type { Individuo } from "../types";
 import { API_URLS } from "../config/api";
 
-export async function getMejorIndividuo(fecha?: string): Promise<Individuo> {
+export async function getMejorIndividuo(): Promise<Individuo> {
   try {
     console.log("Iniciando solicitud al servidor...");
-    
-    // Si no se proporciona fecha, usar la fecha actual
-    const fechaRequest = fecha || new Date().toISOString();
-    console.log("Enviando solicitud con fecha:", fechaRequest);
-    
-    const response = await fetch(`${API_URLS.MEJOR_INDIVIDUO}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        fecha: fechaRequest
-      })
-    });
-    
+    const response = await fetch(`${API_URLS.MEJOR_INDIVIDUO}`);
     console.log("Respuesta recibida:", {
       status: response.status,
       statusText: response.statusText,
@@ -146,6 +132,77 @@ export async function obtenerInfoSimulacion(): Promise<{
     return info;
   } catch (error) {
     console.error("Error al obtener información de simulación:", error);
+    throw error;
+  }
+}
+
+/**
+ * Elimina los paquetes futuros de la simulación, manteniendo solo el actual
+ * @returns Promise con el mensaje de confirmación
+ */
+export async function eliminarPaquetesFuturos(): Promise<string> {
+  try {
+    console.log("🗑️ PAQUETES: Eliminando paquetes futuros de la simulación...");
+    
+    const response = await fetch(`${API_URLS.ELIMINAR_PAQUETES_FUTUROS}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ PAQUETES: Error al eliminar paquetes futuros:", errorText);
+      throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+
+    const mensaje = await response.text();
+    console.log("✅ PAQUETES: Paquetes futuros eliminados exitosamente:", mensaje);
+    return mensaje;
+  } catch (error) {
+    console.error("Error al eliminar paquetes futuros:", error);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene el siguiente paquete disponible en la simulación
+ * @returns Promise con el siguiente paquete o null si no hay más paquetes
+ */
+export async function obtenerSiguientePaquete(): Promise<Individuo | null> {
+  try {
+    console.log("📦 PAQUETES: Obteniendo siguiente paquete de la simulación...");
+    
+    const response = await fetch(`${API_URLS.MEJOR_INDIVIDUO}`, {
+      method: 'GET'
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ PAQUETES: Error al obtener siguiente paquete:", errorText);
+      throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.error("❌ PAQUETES: Tipo de contenido inválido:", contentType);
+      throw new Error("La respuesta del servidor no es JSON válido");
+    }
+
+    if (response.status === 204) {
+      console.log("⏳ PAQUETES: No hay más paquetes disponibles (204)");
+      return null;
+    }
+
+    const data = await response.json();
+    
+    if (!data) {
+      console.log("⏳ PAQUETES: Respuesta vacía - no hay más paquetes");
+      return null;
+    }
+
+    console.log("✅ PAQUETES: Siguiente paquete obtenido exitosamente");
+    return data;
+  } catch (error) {
+    console.error("❌ PAQUETES: Error al obtener siguiente paquete:", error);
     throw error;
   }
 }

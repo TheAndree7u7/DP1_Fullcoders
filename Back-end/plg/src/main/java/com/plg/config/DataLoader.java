@@ -56,7 +56,7 @@ public class DataLoader {
 
     public static List<Camion> initializeCamiones() {
         for (int i = 0; i < 2; i++) {
-            CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);
+            CamionFactory.crearCamionesPorTipo(TipoCamion.TA, true, coordenadaCentral);
         }
         for (int i = 0; i < 4; i++) {
             CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);
@@ -75,8 +75,6 @@ public class DataLoader {
         List<String> lines = Herramientas.readAllLines(pathAverias);
         for (String line : lines) {
             Averia averia = new Averia(line);
-            
- 
         }
         return averias;
     }

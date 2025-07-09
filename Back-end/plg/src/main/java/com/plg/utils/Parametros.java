@@ -15,7 +15,6 @@ public class Parametros {
     public static int contadorPrueba = 0;
     public static double kilometrosRecorridos = 0;
     public static double fitnessGlobal = 0;
-    public static long semillaAleatoria = 12345L;
     public static Parametros getInstance( ) {
         if (instance == null) {
             instance = new Parametros();

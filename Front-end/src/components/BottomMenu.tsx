@@ -147,7 +147,7 @@ const BottomMenu: React.FC<BottomMenuProps> = ({ expanded, setExpanded, camionSe
   // Activar seguimiento automático por defecto cuando se selecciona un camión
   useEffect(() => {
     if (camionSeleccionado) {
-      console.log('🎯 SEGUIMIENTO: Activando seguimiento automático por defecto para camión', camionSeleccionado);
+      // console.log('🎯 SEGUIMIENTO: Activando seguimiento automático por defecto para camión', camionSeleccionado);
       setSeguimientoAutomatico(true);
     } else {
       setSeguimientoAutomatico(false);

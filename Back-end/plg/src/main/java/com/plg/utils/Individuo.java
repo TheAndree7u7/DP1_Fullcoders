@@ -49,7 +49,7 @@ public class Individuo {
         Almacen almacenCentral = almacenes.get(0);
         List<Pedido> pedidosMezclados = new ArrayList<>();
         pedidosMezclados.addAll(pedidos);
-        Collections.shuffle(pedidosMezclados, new Random(Parametros.semillaAleatoria));
+        Collections.shuffle(pedidosMezclados);
 
         LocalDateTime fechaActual = Parametros.fecha_inicial;
 
@@ -66,9 +66,9 @@ public class Individuo {
      */
     private void asignarPedidosACamiones(List<Camion> camionesDisponibles, List<Pedido> pedidosMezclados, List<Gen> cromosoma, LocalDateTime fechaActual) {
         int maxPedidosPorCamion = 3;
-        Random random = new Random(Parametros.semillaAleatoria + 2);
+        Random random = new Random();
         guardarEstadoActual();
-        Collections.shuffle(camionesDisponibles, new Random(Parametros.semillaAleatoria + 1));
+        Collections.shuffle(camionesDisponibles);
         for (Camion camion : camionesDisponibles) {
             int intentos = 0;
             boolean asignado = false;
@@ -172,7 +172,7 @@ public class Individuo {
     }
 
     public void mutar() {
-        Random rnd = new Random(Parametros.semillaAleatoria + 3);
+        Random rnd = new Random();
         int g1 = rnd.nextInt(cromosoma.size());
         int g2 = rnd.nextInt(cromosoma.size());
         while (g2 == g1) {

@@ -87,4 +87,15 @@ public class AlmacenFactory {
     public static int getCantidadAlmacenesPorTipo(TipoAlmacen tipoAlmacen) {
         return contadorAlmacenes.getOrDefault(tipoAlmacen, 0);
     }
+
+    /**
+     * Reinicia los contadores de almacenes a sus valores iniciales.
+     * Útil para reiniciar la simulación desde cero.
+     */
+    public static void reiniciarContadores() {
+        for (TipoAlmacen tipo : TipoAlmacen.values()) {
+            contadorAlmacenes.put(tipo, 0);
+        }
+        almacenes.clear();
+    }
 }

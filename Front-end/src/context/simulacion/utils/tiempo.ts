@@ -42,4 +42,43 @@ export const formatearTiempoTranscurrido = (tiempoHMS: string): string => {
   }
 
   return resultado + partes_resultado.join(' y ');
+};
+
+/**
+ * @function calcularTimestampSimulacion
+ * @description Calcula el timestamp correcto de simulación usando la fecha base con hora 00:00:00 y la horaSimulacion calculada
+ * @param {string | null} fechaHoraSimulacion - Fecha y hora base de la simulación del backend
+ * @param {string} horaSimulacion - Hora actual de la simulación ya calculada (formato HH:MM:SS)
+ * @returns {string} Timestamp ISO de la simulación combinada
+ */
+export const calcularTimestampSimulacion = (
+  fechaHoraSimulacion: string | null,
+  horaSimulacion: string
+): string => {
+  // Si no hay fecha de simulación, devolver timestamp actual como fallback
+  if (!fechaHoraSimulacion) {
+    console.warn("⚠️ No hay fechaHoraSimulacion disponible, usando timestamp actual como fallback");
+    return new Date().toISOString();
+  }
+
+  // Extraer solo la fecha (sin hora) de fechaHoraSimulacion de manera más directa
+  const fechaOriginal = fechaHoraSimulacion.split('T')[0]; // Obtener solo la parte de fecha "2025-01-01"
+  
+  // Parsear la horaSimulacion (formato HH:MM:SS)
+  const partesHora = horaSimulacion.split(':');
+  const horas = parseInt(partesHora[0]);
+  const minutos = parseInt(partesHora[1]);
+  const segundos = parseInt(partesHora[2]);
+  
+  // Crear el timestamp completo combinando fecha + hora de simulación
+  const fechaSimulacionCompleta = `${fechaOriginal}T${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}.000Z`;
+  
+  console.log("📅 TIMESTAMP SIMULACIÓN:", {
+    fechaHoraSimulacionOriginal: fechaHoraSimulacion,
+    fechaExtraida: fechaOriginal,
+    horaSimulacion: horaSimulacion,
+    fechaFinal: fechaSimulacionCompleta
+  });
+  
+  return fechaSimulacionCompleta;
 }; 

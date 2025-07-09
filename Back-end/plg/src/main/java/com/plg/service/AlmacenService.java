@@ -47,17 +47,5 @@ public class AlmacenService {
         return datos;
     }
 
-    /**
-     * Crea un almacén nuevo.
-     */
-    public Almacen agregar(AlmacenRequest request) {
-        try {
-            Coordenada coord = new Coordenada(request.getY(), request.getX());
-            TipoAlmacen tipo = request.getTipo();
-            Almacen almacen = AlmacenFactory.crearAlmacen(tipo, coord, request.getCapacidadMaxGLP(), request.getCapacidadMaxCombustible());
-            return almacenRepository.save(almacen);
-        } catch (Exception e) {
-            throw new InvalidInputException("No se pudo crear el almacén", e);
-        }
-    }
+    
 }
