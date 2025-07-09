@@ -9,6 +9,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.SynchronousQueue;
 import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.plg.config.DataLoader;
 import com.plg.dto.IndividuoDto;
@@ -49,7 +50,7 @@ public class Simulacion {
     public static Set<Pedido> pedidosPlanificados = new LinkedHashSet<>();
     public static Set<Pedido> pedidosEntregados = new LinkedHashSet<>();
     public static Individuo mejorIndividuo = null;
-    public static boolean faltacrearparche = false;
+    private static final AtomicBoolean faltacrearparche = new AtomicBoolean(false);
     // Queue de paquetes generados para el frontend
     // rango de fechas del parche
     public static LocalDateTime fechaInicioParche;
@@ -215,7 +216,7 @@ public class Simulacion {
                 while (!pedidosSemanal.isEmpty()
                         && (fechaActual.isBefore(fechaLimite) || fechaActual.isEqual(fechaLimite))) {
                     // Verificar si la simulación está pausada por una avería O FALTA PARCHE
-                    while (GestorHistorialSimulacion.isPausada() || faltacrearparche) {
+                    while (GestorHistorialSimulacion.isPausada() || isFaltaCrearParche()) {
                         try {
                             System.out.println("⏸️ Simulación pausada, esperando...");
                             Thread.sleep(10000); // Esperar 100ms antes de verificar de nuevo
@@ -247,7 +248,7 @@ public class Simulacion {
                         // !ojito esta funcion--> parece que no actualiza bien los estados de los
                         // camiones
                         List<Bloqueo> bloqueosActivos = EstadoManager.actualizarBloqueos(fechaActual);
-                        if (!faltacrearparche) {
+                        if (!isFaltaCrearParche()) {
                             EstadoManager.actualizarEstadoGlobal(fechaActual, pedidosEnviar);
                         }
                         if (!pedidosEnviar.isEmpty()) {
@@ -256,7 +257,7 @@ public class Simulacion {
                             if (modoStandalone) {
                                 // Modo standalone: ejecutar sin esperar semáforos
                                 try {
-                                    if (!faltacrearparche) {
+                                    if (!isFaltaCrearParche()) {
 
                                         // ! Quiero saber las posiciones actuales de los camiones en el mapa
                                         Camion.imprimirDatosCamiones(DataLoader.camiones);
@@ -311,7 +312,7 @@ public class Simulacion {
                             } else {
                                 // Modo web interactivo: esperar semáforos
                                 try {
-                                    if (!faltacrearparche) {
+                                    if (!isFaltaCrearParche()) {
                                         iniciar.acquire();
                                         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(),
                                                 pedidosEnviar);
@@ -338,7 +339,7 @@ public class Simulacion {
                             System.out.println("No hay pedidos por atender en este momento.");
 
                             // Crear paquete vacío para las horas sin pedidos
-                            if (modoStandalone || !faltacrearparche) {
+                            if (modoStandalone || !isFaltaCrearParche()) {
                                 try {
                                     // ! Quiero saber las posiciones actuales de los camiones en el mapa
                                     Camion.imprimirDatosCamiones(DataLoader.camiones);
@@ -358,7 +359,7 @@ public class Simulacion {
                                     mejorIndividuoDto.setFechaHoraFinIntervalo(
                                             fechaActual.plusMinutes(Parametros.intervaloTiempo));
                                     // Agregar al historial para el frontend
-                                    if (!faltacrearparche) {
+                                    if (!isFaltaCrearParche()) {
                                         GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
                                     }
 
@@ -425,7 +426,7 @@ public class Simulacion {
     }
 
     public static void crearPaqueteParche(AveriaConEstadoRequest.EstadoSimulacion estadoCapturado) {
-        if (faltacrearparche) {
+        if (isFaltaCrearParche()) {
             fechaActual = fechaInicioParche;
             AveriaManager.crearPaqueteParche(estadoCapturado, fechaInicioParche, fechaFinParche, pedidosSemanal,
                     fechaActual);
@@ -475,6 +476,46 @@ public class Simulacion {
     public static SimulacionInfo obtenerInfoSimulacion() {
         PaqueteManager.SimulacionInfo info = PaqueteManager.obtenerInfoSimulacion();
         return new SimulacionInfo(info.totalPaquetes, info.paqueteActual, info.enProceso, info.tiempoActual);
+    }
+
+    /**
+     * Obtiene el valor de faltacrearparche de forma thread-safe.
+     * 
+     * @return true si falta crear parche, false en caso contrario
+     */
+    public static boolean isFaltaCrearParche() {
+        boolean value = faltacrearparche.get();
+        System.out.println("🔍 [" + Thread.currentThread().getName() + "] Leyendo faltacrearparche: " + value);
+        return value;
+    }
+
+    /**
+     * Establece el valor de faltacrearparche de forma thread-safe.
+     * 
+     * @param value el nuevo valor a establecer
+     */
+    public static void setFaltaCrearParche(boolean value) {
+        boolean oldValue = faltacrearparche.getAndSet(value);
+        System.out.println("✏️ [" + Thread.currentThread().getName() + "] Cambiando faltacrearparche: " + oldValue
+                + " → " + value);
+    }
+
+    /**
+     * Establece faltacrearparche a true de forma thread-safe.
+     */
+    public static void activarFaltaCrearParche() {
+        boolean oldValue = faltacrearparche.getAndSet(true);
+        System.out.println(
+                "🚨 [" + Thread.currentThread().getName() + "] ACTIVANDO faltacrearparche: " + oldValue + " → true");
+    }
+
+    /**
+     * Establece faltacrearparche a false de forma thread-safe.
+     */
+    public static void desactivarFaltaCrearParche() {
+        boolean oldValue = faltacrearparche.getAndSet(false);
+        System.out.println(
+                "✅ [" + Thread.currentThread().getName() + "] DESACTIVANDO faltacrearparche: " + oldValue + " → false");
     }
 
     // Clase auxiliar para información de la simulación

@@ -122,7 +122,7 @@ public class AveriaManager {
 
                 System.out.println("🔍 DIAGNÓSTICO: Posiciones DESPUÉS de crear paquete de emergencia:");
                 Camion.imprimirDatosCamiones(DataLoader.camiones);
-                Simulacion.faltacrearparche = false;
+                Simulacion.desactivarFaltaCrearParche();
             } catch (Exception e2) {
                 System.err.println("❌ Error al crear paquete de emergencia:  de paquete parche 🩹" + e2.getMessage());
                 e2.printStackTrace();
@@ -137,7 +137,7 @@ public class AveriaManager {
 
         System.out.println("🔍 DIAGNÓSTICO: Posiciones FINALES antes de salir de crearPaqueteParche:");
         Camion.imprimirDatosCamiones(DataLoader.camiones);
-        Simulacion.faltacrearparche = false;
+        Simulacion.desactivarFaltaCrearParche();
         System.out.println("====================FIN PAQUTETE PARCHE=======================");
     }
 

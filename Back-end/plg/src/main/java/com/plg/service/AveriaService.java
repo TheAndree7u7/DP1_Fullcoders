@@ -208,7 +208,7 @@ public class AveriaService {
             AveriaConEstadoRequest request) {
         try {
             // Obtener el timestamp de la avería para usar en múltiples pasos
-            com.plg.utils.Simulacion.faltacrearparche = true;
+            com.plg.utils.Simulacion.activarFaltaCrearParche();
             com.plg.controller.SimulacionController.pausarSimulacionPorAveria();
             String timestampString = request.getFechaHoraReporte();
             if (timestampString.endsWith("Z")) {
