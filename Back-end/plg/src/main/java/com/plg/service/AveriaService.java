@@ -207,12 +207,18 @@ public class AveriaService {
     private void procesarEstadoCompleto(AveriaConEstadoRequest.EstadoSimulacion estadoSimulacion,
             AveriaConEstadoRequest request) {
         try {
+            // Obtener el timestamp de la avería para usar en múltiples pasos
+            String timestampString = request.getFechaHoraReporte();
+            if (timestampString.endsWith("Z")) {
+                timestampString = timestampString.substring(0, timestampString.length() - 1);
+            }
+            LocalDateTime timestampAveria = LocalDateTime.parse(timestampString);
             System.out.println("==========================================================");
             System.out.println("==========================================================");
+            System.out.println("Averia registrada en el backend: " + request.getFechaHoraReporte());
             System.out.println("🔄 BACKEND: Procesando estado completo de la simulación...");
             // System.out.println("🔄 BACKEND: Estado simulación: " + estadoSimulacion);
             // System.out.println("🔄 BACKEND: Request: " + request);
-            System.out.println("🔄 BACKEND: Procesando estado completo de la simulación...");
 
             // Paso 0: PAUSAR la simulación inmediatamente (en lugar de detener)
             System.out.println("⏸️ BACKEND: Pausando simulación del backend por avería...");
@@ -220,7 +226,8 @@ public class AveriaService {
 
             // Paso 1: Detener la generación de paquetes futuros inmediatamente
             System.out.println("🛑 BACKEND: Eliminando paquetes futuros...");
-            int paquetesEliminados = com.plg.utils.Simulacion.eliminarPaquetesFuturos();
+            int paquetesEliminados = com.plg.utils.Simulacion
+                    .eliminarPaquetesFuturosPorFecha(timestampAveria);
 
             // PASO 1.1: Ajustar el número de los paquetes agregados en el historial de
             // simulación
@@ -229,13 +236,6 @@ public class AveriaService {
 
             System.out.println("✅ BACKEND: Paquetes futuros eliminados: " + paquetesEliminados);
             System.out.println("✅ BACKEND: Contador de paquetes ajustado correctamente");
-
-            // Obtener el timestamp de la avería para usar en múltiples pasos
-            String timestampString = request.getFechaHoraReporte();
-            if (timestampString.endsWith("Z")) {
-                timestampString = timestampString.substring(0, timestampString.length() - 1);
-            }
-            LocalDateTime timestampAveria = LocalDateTime.parse(timestampString);
 
             // Paso 1.1: Actualizar los pedidos de la semana
             System.out.println("🔄 BACKEND: Actualizando pedidos de la semana...");
@@ -263,7 +263,7 @@ public class AveriaService {
             com.plg.utils.Simulacion.crearPaqueteParche(request.getEstadoSimulacion());
             System.out.println("📅 BACKEND: Usando timestamp de avería correcto: " + timestampAveria);
             System.out.println("📅 BACKEND: (No el timestamp del estado: " + estadoSimulacion.getTimestamp() + ")");
-
+            
             // ! colocar QUE FALTA CREAR PARCHE
 
             System.out.println("▶️ BACKEND: Reanudando simulación después de procesaravería...");

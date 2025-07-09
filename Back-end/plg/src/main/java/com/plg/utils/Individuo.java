@@ -33,6 +33,7 @@ public class Individuo {
     private double porcentajeAsignacionCercana = 0.9; // Porcentaje de camiones a usar para asignación por cercanía
     private LocalDateTime fechaHoraInicioIntervalo;
     private LocalDateTime fechaHoraFinIntervalo;
+    private TipoIndividuo tipoIndividuo;
 
     // Constructor para el algoritmo genético
     // Inicializa el cromosoma con los camiones disponibles y los almacenes

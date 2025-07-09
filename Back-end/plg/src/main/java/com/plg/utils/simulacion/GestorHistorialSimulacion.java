@@ -49,8 +49,11 @@ public class GestorHistorialSimulacion {
     public static synchronized void agregarPaquete(IndividuoDto paquete) {
         contadorPaquetes++;
         historialSimulacion.add(paquete);
-        System.out.println("📦 PAQUETE AGREGADO #" + contadorPaquetes + " | Tiempo: "
-                + paquete.getFechaHoraSimulacion() + " | Pedidos: " + paquete.getPedidos().size());
+        System.out.println("📦 PAQUETE AGREGADO #" + contadorPaquetes
+                + " | Tiempo: " + paquete.getFechaHoraSimulacion()
+                + " | Pedidos: " + paquete.getPedidos().size()
+                + " | Fecha inicio: " + paquete.getFechaHoraInicioIntervalo()
+                + " | Fecha fin: " + paquete.getFechaHoraFinIntervalo());
     }
 
     /**
@@ -107,11 +110,11 @@ public class GestorHistorialSimulacion {
      * @return Número de paquetes eliminados
      */
     public static synchronized int eliminarPaquetesFuturos() {
-        int paquetesAntesDeEliminar = historialSimulacion.size();
+        int tamanio_historial_paquetesAntesDeEliminar = historialSimulacion.size();
         int paqueteActualIndex = indiceActualFrontend;
 
-        System.out.println("🗑️ ELIMINANDO PAQUETES FUTUROS:");
-        System.out.println("   • Total paquetes antes: " + paquetesAntesDeEliminar);
+        System.out.println(" ==================🗑️ ELIMINANDO PAQUETES FUTUROS:=========================");
+        System.out.println("   • Total paquetes antes: " + tamanio_historial_paquetesAntesDeEliminar);
         System.out.println("   • Índice actual frontend (próximo a consumir): " + paqueteActualIndex);
         System.out.println(
                 "   • Paquete actual siendo consumido: "
@@ -141,6 +144,64 @@ public class GestorHistorialSimulacion {
         return paquetesAEliminar;
     }
 
+    /**
+     * Elimina todos los paquetes futuros cuya fecha de inicio del individuo sea
+     * superior a la fecha actual.
+     * Mantiene solo los paquetes cuya fecha de inicio sea menor o igual a la fecha
+     * actual.
+     * 
+     * @param fechaActual La fecha actual de referencia para la comparación
+     * @return Número de paquetes eliminados
+     */
+    public static synchronized int eliminarPaquetesFuturosPorFecha(LocalDateTime fechaActual) {
+        int tamanio_historial_paquetesAntesDeEliminar = historialSimulacion.size();
+        int paquetesEliminados = 0;
+
+        System.out.println(" ==================🗑️ ELIMINANDO PAQUETES FUTUROS POR FECHA:=========================");
+        System.out.println("   • Total paquetes antes: " + tamanio_historial_paquetesAntesDeEliminar);
+        System.out.println("   • Fecha actual de referencia: " + fechaActual);
+        System.out.println("   • Índice actual frontend: " + indiceActualFrontend);
+
+        if (historialSimulacion.isEmpty()) {
+            System.out.println("⚠️ No hay paquetes en el historial para eliminar");
+            return 0;
+        }
+
+        // Recorrer el historial desde el final hacia el principio para evitar problemas
+        // con índices
+        for (int i = historialSimulacion.size() - 1; i >= 0; i--) {
+            IndividuoDto paquete = historialSimulacion.get(i);
+            LocalDateTime fechaInicioPaquete = paquete.getFechaHoraInicioIntervalo();
+
+            // Si la fecha de inicio del paquete es posterior a la fecha actual, eliminarlo
+            if (fechaInicioPaquete != null && fechaInicioPaquete.isAfter(fechaActual)) {
+                historialSimulacion.remove(i);
+                paquetesEliminados++;
+
+                System.out.println("   • Eliminado paquete #" + i +
+                        " | Fecha inicio: " + fechaInicioPaquete +
+                        " | Es posterior a: " + fechaActual);
+
+                // Si eliminamos un paquete que está antes o igual al índice actual del
+                // frontend,
+                // necesitamos ajustar el índice
+                if (i <= indiceActualFrontend) {
+                    indiceActualFrontend--;
+                    System.out.println("   • Ajustado índice frontend a: " + indiceActualFrontend);
+                }
+            }
+        }
+
+        int paquetesDespuesDeEliminar = historialSimulacion.size();
+
+        System.out.println("✅ PAQUETES FUTUROS POR FECHA ELIMINADOS:");
+        System.out.println("   • Paquetes eliminados: " + paquetesEliminados);
+        System.out.println("   • Total paquetes después: " + paquetesDespuesDeEliminar);
+        System.out.println("   • Índice frontend ajustado: " + indiceActualFrontend);
+
+        return paquetesEliminados;
+    }
+
     public static synchronized IndividuoDto obtenerSiguientePaquete() {
         if (indiceActualFrontend < historialSimulacion.size()) {
             IndividuoDto paquete = historialSimulacion.get(indiceActualFrontend);
@@ -151,8 +212,11 @@ public class GestorHistorialSimulacion {
             historialConsumidos.add(paquete);
 
             indiceActualFrontend++;
-            System.out.println("🔥 PAQUETE CONSUMIDO #" + paqueteConsumido + " | Tiempo: "
-                    + paquete.getFechaHoraSimulacion() + " | Total disponibles: " + historialSimulacion.size()
+            System.out.println("🔥 PAQUETE CONSUMIDO #" + paqueteConsumido
+                    + " | Hora de simulación: " + paquete.getFechaHoraSimulacion()
+                    + " | Inicio intervalo: " + paquete.getFechaHoraInicioIntervalo()
+                    + " | Fin intervalo: " + paquete.getFechaHoraFinIntervalo()
+                    + " | Total disponibles: " + historialSimulacion.size()
                     + " | Total consumidos: " + historialConsumidos.size());
             return paquete;
         }

@@ -131,7 +131,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
         
         // Asegurar que hay al menos una coordenada válida
         if (rutaCoords.length === 0) {
-          console.warn('🚨 Ruta vacía para camión:', info.id);
+          // console.warn('🚨 Ruta vacía para camión:', info.id);
           rutaCoords.push({ x: 0, y: 0 }); // Coordenada por defecto
         }
         

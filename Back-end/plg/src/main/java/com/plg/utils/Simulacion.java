@@ -438,6 +438,10 @@ public class Simulacion {
         PaqueteManager.reiniciarReproduccion();
     }
 
+    public static int eliminarPaquetesFuturosPorFecha(LocalDateTime fechaActual) {
+        return PaqueteManager.eliminarPaquetesFuturosPorFecha(fechaActual);
+    }
+
     /**
      * Elimina todos los paquetes futuros mantiendo solo el paquete actual.
      * Se utiliza cuando ocurre una avería para detener la simulación futura.

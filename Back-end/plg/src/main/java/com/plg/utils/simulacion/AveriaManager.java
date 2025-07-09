@@ -20,6 +20,7 @@ import com.plg.utils.AlgoritmoGenetico;
 import com.plg.utils.Individuo;
 import com.plg.utils.Parametros;
 import com.plg.utils.Simulacion;
+import com.plg.utils.TipoIndividuo;
 
 /**
  * Clase para manejar las averías y la creación de paquetes parche.
@@ -97,6 +98,9 @@ public class AveriaManager {
             System.out.println("🔍 DIAGNÓSTICO: Posiciones DESPUÉS de ejecutar algoritmo genético:");
             Camion.imprimirDatosCamiones(DataLoader.camiones);
 
+            mejorIndividuoDto.setFechaHoraInicioIntervalo(fechaInicioParche);
+            mejorIndividuoDto.setFechaHoraFinIntervalo(fechaFinParche);
+            mejorIndividuoDto.setTipoIndividuo(TipoIndividuo.PARCHE_AVERIA);
             // Agregar al historial para el frontend
             GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
 

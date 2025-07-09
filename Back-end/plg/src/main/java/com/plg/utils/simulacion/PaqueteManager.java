@@ -40,6 +40,10 @@ public class PaqueteManager {
         return GestorHistorialSimulacion.eliminarPaquetesFuturos();
     }
 
+    public static int eliminarPaquetesFuturosPorFecha(LocalDateTime fechaActual) {
+        return GestorHistorialSimulacion.eliminarPaquetesFuturosPorFecha(fechaActual);
+    }
+
     /**
      * Obtiene información del estado actual de la simulación.
      * 

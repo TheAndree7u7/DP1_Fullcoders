@@ -13,6 +13,7 @@ import com.plg.entity.Bloqueo;
 import com.plg.entity.Pedido;
 import com.plg.utils.Gen;
 import com.plg.utils.Individuo;
+import com.plg.utils.TipoIndividuo;
 
 import lombok.Data;
 import lombok.Getter;
@@ -30,6 +31,7 @@ public class IndividuoDto {
     private LocalDateTime fechaHoraSimulacion;
     private LocalDateTime fechaHoraInicioIntervalo;
     private LocalDateTime fechaHoraFinIntervalo;
+    private TipoIndividuo tipoIndividuo = TipoIndividuo.NORMAL;
 
     public IndividuoDto(Individuo individuo, List<Pedido> pedidos, List<Bloqueo> bloqueos) {
         this(individuo, pedidos, bloqueos, LocalDateTime.now());
