@@ -179,6 +179,20 @@ public class Mapa {
     }
 
     public Nodo getNodo(int fila, int columna) {
+        // Validar que las coordenadas estén dentro del rango del mapa
+        if (fila < 0 || fila >= filas || columna < 0 || columna >= columnas) {
+            System.err.println("⚠️ ADVERTENCIA: Coordenadas fuera del rango del mapa: (" + fila + "," + columna + ")");
+            System.err.println("⚠️ Rango válido: filas [0-" + (filas - 1) + "], columnas [0-" + (columnas - 1) + "]");
+
+            // Ajustar coordenadas al rango válido
+            int filaAjustada = Math.max(0, Math.min(fila, filas - 1));
+            int columnaAjustada = Math.max(0, Math.min(columna, columnas - 1));
+
+            System.err.println("⚠️ Coordenadas ajustadas a: (" + filaAjustada + "," + columnaAjustada + ")");
+
+            return matriz.get(filaAjustada).get(columnaAjustada);
+        }
+
         return matriz.get(fila).get(columna);
     }
 
@@ -187,6 +201,10 @@ public class Mapa {
     }
 
     public Nodo getNodo(Coordenada coordenada) {
+        if (coordenada == null) {
+            System.err.println("⚠️ ADVERTENCIA: Coordenada nula recibida en getNodo()");
+            return matriz.get(0).get(0); // Retornar el nodo (0,0) como fallback
+        }
         return getNodo(coordenada.getFila(), coordenada.getColumna());
     }
 
@@ -218,11 +236,65 @@ public class Mapa {
                 Math.abs(a.getCoordenada().getFila() - b.getCoordenada().getFila());
     }
 
+    /**
+     * Valida si una coordenada está dentro del rango del mapa.
+     * 
+     * @param coordenada La coordenada a validar
+     * @return true si está dentro del rango, false si está fuera
+     */
+    public boolean validarCoordenada(Coordenada coordenada) {
+        if (coordenada == null)
+            return false;
+        return coordenada.getFila() >= 0 && coordenada.getFila() < filas &&
+                coordenada.getColumna() >= 0 && coordenada.getColumna() < columnas;
+    }
+
+    /**
+     * Obtiene las dimensiones del mapa.
+     * 
+     * @return Array con [filas, columnas]
+     */
+    public int[] getDimensiones() {
+        return new int[] { filas, columnas };
+    }
+
+    /**
+     * Obtiene el número de filas del mapa.
+     * 
+     * @return El número de filas
+     */
+    public int getFilas() {
+        return filas;
+    }
+
+    /**
+     * Obtiene el número de columnas del mapa.
+     * 
+     * @return El número de columnas
+     */
+    public int getColumnas() {
+        return columnas;
+    }
+
     public List<Nodo> aStar(Nodo nodo1, Nodo nodo2) {
         // Validaciones de entrada
         if (nodo1 == null || nodo2 == null || nodo1.getCoordenada() == null || nodo2.getCoordenada() == null) {
             System.err.println("⚠️ A*: Nodos de entrada inválidos");
             return Collections.emptyList();
+        }
+
+        // Validar que las coordenadas estén dentro del rango antes de proceder
+        Coordenada coord1 = nodo1.getCoordenada();
+        Coordenada coord2 = nodo2.getCoordenada();
+
+        if (coord1.getFila() < 0 || coord1.getFila() >= filas ||
+                coord1.getColumna() < 0 || coord1.getColumna() >= columnas) {
+            System.err.println("⚠️ A*: Coordenada de inicio fuera del rango: " + coord1);
+        }
+
+        if (coord2.getFila() < 0 || coord2.getFila() >= filas ||
+                coord2.getColumna() < 0 || coord2.getColumna() >= columnas) {
+            System.err.println("⚠️ A*: Coordenada de destino fuera del rango: " + coord2);
         }
 
         Nodo inicio = getNodo(nodo1.getCoordenada());
