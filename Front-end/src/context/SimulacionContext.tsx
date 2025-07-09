@@ -145,6 +145,8 @@ type IndividuoConBloqueos = Individuo & {
   bloqueos?: Bloqueo[];
   almacenes?: Almacen[];
   fechaHoraSimulacion?: string;
+  fechaHoraInicioIntervalo?: string;
+  fechaHoraFinIntervalo?: string; 
 };
 
 // Creación del contexto con valor inicial undefined
@@ -437,7 +439,9 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         "✅ RESPUESTA: Datos de nueva solución recibidos del servidor:",
         data,
       );
-
+      //!ACTUALIZA LOS DATOS DE LA SIMULACION EN EL MAPA
+      console.log("Fecha de inicio de datos en el  mapa: ", data.fechaHoraInicioIntervalo);
+      console.log("Fecha de inicio de datos en el mapa : ", data.fechaHoraFinIntervalo);
       // Actualizar fecha y hora de la simulación
       if (data.fechaHoraSimulacion) {
         setFechaHoraSimulacion(data.fechaHoraSimulacion);
@@ -585,7 +589,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const aplicarSolucionPrecargada = async (data: IndividuoConBloqueos) => {
     try {
       console.log("⚡ TRANSICIÓN: Aplicando solución precargada...");
-
+      console.log("Fecha de inicio de datos precargados intervalo del mapa: ", data.fechaHoraInicioIntervalo);
+      console.log("Fecha de inicio de datos precargados intervalo mapa: ", data.fechaHoraFinIntervalo);
       // Actualizar fecha y hora de la simulación
       if (data.fechaHoraSimulacion) {
         setFechaHoraSimulacion(data.fechaHoraSimulacion);

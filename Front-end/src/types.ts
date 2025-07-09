@@ -200,11 +200,14 @@ export interface Gen {
 export interface Individuo {
   cromosoma: Gen[]; //!LIsta de genes
   fechaHoraSimulacion: string; // LocalDateTime como string ISO
+  fechaHoraInicioIntervalo?: string;
+  fechaHoraFinIntervalo?: string;
   fitness?: number;
 }
 
 export interface Simulacion {
   fechaHoraSimulacion: string; // LocalDateTime como string ISO
+  fechaHoraInicioIntervalo?: string;
   individuos: Individuo[];
   mejorIndividuo?: Individuo;
   generacion: number;

@@ -266,9 +266,9 @@ public class Simulacion {
                                     IndividuoDto mejorIndividuoDto = new IndividuoDto(
                                             algoritmoGenetico.getMejorIndividuo(),
                                             pedidosEnviar, bloqueosActivos, fechaActual);
-                                    mejorIndividuoDto.setFechaHoraInicioIntervalo(
-                                            fechaActual.minusMinutes(Parametros.intervaloTiempo));
-                                    mejorIndividuoDto.setFechaHoraFinIntervalo(fechaActual);
+                                    mejorIndividuoDto.setFechaHoraInicioIntervalo(fechaActual);
+                                    mejorIndividuoDto.setFechaHoraFinIntervalo(
+                                            fechaActual.plusMinutes(Parametros.intervaloTiempo));
                                     // Aplicar el estado final de los camiones permanentemente
                                     // CamionStateApplier.aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
 
@@ -288,6 +288,10 @@ public class Simulacion {
                                         Individuo individuoEmergencia = IndividuoFactory.crearIndividuoVacio();
                                         IndividuoDto paqueteEmergencia = new IndividuoDto(individuoEmergencia,
                                                 pedidosEnviar, bloqueosActivos, fechaActual);
+
+                                        paqueteEmergencia.setFechaHoraInicioIntervalo(fechaActual);
+                                        paqueteEmergencia.setFechaHoraFinIntervalo(
+                                                fechaActual.plusMinutes(Parametros.intervaloTiempo));
                                         GestorHistorialSimulacion.agregarPaquete(paqueteEmergencia);
                                     } catch (Exception e2) {
                                         System.err
@@ -310,9 +314,9 @@ public class Simulacion {
                                     IndividuoDto mejorIndividuoDto = new IndividuoDto(
                                             algoritmoGenetico.getMejorIndividuo(),
                                             pedidosEnviar, bloqueosActivos, fechaActual);
-                                    mejorIndividuoDto.setFechaHoraInicioIntervalo(
-                                            fechaActual.minusMinutes(Parametros.intervaloTiempo));
-                                    mejorIndividuoDto.setFechaHoraFinIntervalo(fechaActual);
+                                    mejorIndividuoDto.setFechaHoraInicioIntervalo(fechaActual);
+                                    mejorIndividuoDto.setFechaHoraFinIntervalo(
+                                            fechaActual.plusMinutes(Parametros.intervaloTiempo));
                                     gaResultQueue.offer(mejorIndividuoDto);
                                     continuar.acquire();
 
@@ -343,9 +347,9 @@ public class Simulacion {
 
                                     // Aplicar el estado final de los camiones permanentemente
                                     // CamionStateApplier.aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
-                                    mejorIndividuoDto.setFechaHoraInicioIntervalo(
-                                            fechaActual.minusMinutes(Parametros.intervaloTiempo));
-                                    mejorIndividuoDto.setFechaHoraFinIntervalo(fechaActual);
+                                    mejorIndividuoDto.setFechaHoraInicioIntervalo(fechaActual);
+                                    mejorIndividuoDto.setFechaHoraFinIntervalo(
+                                            fechaActual.plusMinutes(Parametros.intervaloTiempo));
                                     // Agregar al historial para el frontend
                                     GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
                                     // ! Quiero saber las posiciones actuales de los camiones en el mapa

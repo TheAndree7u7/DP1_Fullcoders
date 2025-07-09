@@ -47,7 +47,7 @@ public class AveriaManager {
             LocalDateTime fechaFinParche,
             List<Pedido> pedidosSemanal,
             LocalDateTime fechaActual) {
-
+        System.out.println("🩹 ===================GENERANDO PAQUETE PARCHE  : ===================");
         // Actualizar posiciones de camiones usando datos del frontend
         if (estadoCapturado.getCamiones() != null) {
             System.out.println("🚛 Actualizando posiciones de " + estadoCapturado.getCamiones().size() + " camiones");
@@ -60,7 +60,6 @@ public class AveriaManager {
             actualizarAlmacenesDesdeEstadoCapturado(estadoCapturado.getAlmacenes());
         }
 
-        System.out.println("🩹 GENERANDO PAQUETE PARCHE  : ");
         System.out.println("PEDIDOS DEL PARCHE: " + fechaInicioParche + " - " + fechaFinParche);
 
         List<Pedido> pedidosEnviar = pedidosSemanal.stream()
@@ -84,7 +83,7 @@ public class AveriaManager {
 
         // todos los pedidos en el nuevo rango
         List<Bloqueo> bloqueosActivos = EstadoManager.actualizarBloqueos(fechaActual);
-        System.out.println("************************************************");
+
         System.out.println("Tiempo actual: " + fechaActual);
 
         try {
@@ -105,7 +104,7 @@ public class AveriaManager {
             GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
 
         } catch (Exception e) {
-            System.err.println("❌ Error en algoritmo genético en tiempo " + fechaActual + ": "
+            System.err.println("❌ Error al crear paquete parche en tiempo " + fechaActual + ": "
                     + e.getMessage());
             e.printStackTrace();
 
@@ -115,12 +114,16 @@ public class AveriaManager {
                 Individuo individuoEmergencia = IndividuoFactory.crearIndividuoVacio();
                 IndividuoDto paqueteEmergencia = new IndividuoDto(individuoEmergencia,
                         pedidosEnviar, bloqueosActivos, fechaActual);
+                paqueteEmergencia.setFechaHoraInicioIntervalo(fechaInicioParche);
+                paqueteEmergencia.setFechaHoraFinIntervalo(
+                        fechaFinParche);
+                paqueteEmergencia.setTipoIndividuo(TipoIndividuo.EMERGENCIA);
                 GestorHistorialSimulacion.agregarPaquete(paqueteEmergencia);
 
                 System.out.println("🔍 DIAGNÓSTICO: Posiciones DESPUÉS de crear paquete de emergencia:");
                 Camion.imprimirDatosCamiones(DataLoader.camiones);
             } catch (Exception e2) {
-                System.err.println("❌ Error al crear paquete de emergencia: " + e2.getMessage());
+                System.err.println("❌ Error al crear paquete de emergencia:  de paquete parche 🩹" + e2.getMessage());
                 e2.printStackTrace();
             }
         }
@@ -133,6 +136,7 @@ public class AveriaManager {
 
         System.out.println("🔍 DIAGNÓSTICO: Posiciones FINALES antes de salir de crearPaqueteParche:");
         Camion.imprimirDatosCamiones(DataLoader.camiones);
+        System.out.println("====================FIN PAQUTETE PARCHE=======================");
     }
 
     /**
