@@ -201,16 +201,16 @@ public class Simulacion {
             System.out.println("📅 Fecha de inicio (desde frontend): " + fechaActual);
             System.out.println("📦 Pedidos semanales iniciales: " + pedidosSemanal.size());
             // ! ACA SE SIMULA LA SEMANA COMPLETA
+            int contadorIteraciones = 0;
 
             while (!simulacionTerminadaporelfront) {
                 // ! ACA SE SIMULA LA SEMANA COMPLETA
                 // !TAMAÑO DE PEDIDPOS SEMANALES fecha actual y fecha limite
-                int contadorIteraciones = 0;
+                contadorIteraciones++;
                 if (contadorIteraciones <= 1 && pedidosSemanal.size() > 0) {
                     System.out.println("Tamaño de pedidos semanales: " + pedidosSemanal.size());
                     System.out.println("Fecha actual: " + fechaActual);
                     System.out.println("Fecha limite: " + fechaLimite);
-                    contadorIteraciones++;
                 }
 
                 while (!pedidosSemanal.isEmpty()
