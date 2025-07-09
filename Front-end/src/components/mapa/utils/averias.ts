@@ -231,13 +231,33 @@ const pasarAlSiguientePaquete = async (
       transition: Bounce,
     });
     
-    // Esperar un tiempo fijo para dar tiempo al backend a generar el nuevo paquete
-    // Basándome en los logs, veo que el sistema SÍ está generando los datos
-    console.log("⏳ ESPERANDO: Dando tiempo al backend para generar el nuevo paquete...");
-    await new Promise(resolve => setTimeout(resolve, 5000)); // 5 segundos
-    
-    // Verificar si ahora hay más paquetes disponibles
-    const infoActualizada = await obtenerInfoSimulacion();
+    // Esperar consultando periódicamente hasta que haya un nuevo paquete o el parche haya sido creado
+    console.log("⏳ ESPERANDO: Consultando información de simulación hasta que se genere el nuevo paquete...");
+
+    const MAX_INTENTOS = 10; // evitar bucles infinitos
+    let intentos = 0;
+    let infoActualizada = infoActual;
+
+    while (intentos < MAX_INTENTOS) {
+      await new Promise(resolve => setTimeout(resolve, 1000)); // ~1 segundo
+      infoActualizada = await obtenerInfoSimulacion();
+
+      const aumentoPaquetes = infoActualizada.totalPaquetes > infoActual.totalPaquetes;
+      const parcheCreado = infoActualizada.faltacrearparche === false;
+
+      console.log(`🔄 INTENTO ${intentos + 1}: total=${infoActualizada.totalPaquetes}, faltacrearparche=${infoActualizada.faltacrearparche}`);
+
+      if (aumentoPaquetes || parcheCreado) {
+        break;
+      }
+
+      intentos++;
+    }
+
+    if (intentos === MAX_INTENTOS) {
+      console.warn("⚠️ Se alcanzó el número máximo de intentos esperando nuevo paquete");
+    }
+
     console.log(`📊 INFORMACIÓN ACTUALIZADA: Paquete actual=${infoActualizada.paqueteActual}, Total=${infoActualizada.totalPaquetes}`);
     
     // Reactivar el polling y la simulación automáticamente
