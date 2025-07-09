@@ -219,7 +219,7 @@ public class Simulacion {
                     while (GestorHistorialSimulacion.isPausada() || isFaltaCrearParche()) {
                         try {
                             System.out.println("⏸️ Simulación pausada, esperando...");
-                            Thread.sleep(10000); // Esperar 100ms antes de verificar de nuevo
+                            Thread.sleep(10000); // Esperar 10s antes de verificar de nuevo
 
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
