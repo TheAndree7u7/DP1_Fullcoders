@@ -23,6 +23,7 @@ import com.plg.entity.TipoIncidente;
 import com.plg.repository.AveriaRepository;
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidInputException;
 import com.plg.utils.simulacion.GestorHistorialSimulacion;
+import com.plg.utils.simulacion.UtilesSimulacion;
 
 /**
  * Servicio para operaciones sobre averías.
@@ -245,14 +246,14 @@ public class AveriaService {
             // frontend
             System.out.println("🔄 BACKEND: Actualizando camiones y almacenes...");
             actualizarCamionesYAlmacenesConEstadoCapturado(estadoSimulacion);
-            com.plg.utils.Simulacion.fechaInicioParche = timestampAveria;
-            int paqueteActualNumero = GestorHistorialSimulacion.getPaqueteActual();
-            IndividuoDto paqueteActual = GestorHistorialSimulacion.obtenerPaquetePorIndice(paqueteActualNumero);
-            com.plg.utils.Simulacion.fechaFinParche = paqueteActual.getFechaHoraSimulacion();
+            com.plg.utils.Simulacion.fechaInicioParche = timestampAveria; 
+
+            com.plg.utils.Simulacion.fechaFinParche = UtilesSimulacion
+                    .calcularFechaFinDelPaqueteQuePertenece(timestampAveria);
             // Suma a la fecha fin la fecha del intervalo de tiempo de la simulacion que
             // esta en parametros
             com.plg.utils.Simulacion.fechaFinParche = com.plg.utils.Simulacion.fechaFinParche.plusMinutes(
-                    com.plg.utils.Parametros.intervaloTiempo * 2);
+                    com.plg.utils.Parametros.intervaloTiempo);
             // !actualiaz la fecha actual de la simulacion
 
             System.out.println("🔄 BACKEND: Fecha inicio parche: " + com.plg.utils.Simulacion.fechaInicioParche);

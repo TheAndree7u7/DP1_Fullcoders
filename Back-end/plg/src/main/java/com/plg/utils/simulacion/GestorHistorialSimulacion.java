@@ -204,7 +204,7 @@ public class GestorHistorialSimulacion {
 
         return paquetesEliminados;
     }
-
+ 
     public static synchronized IndividuoDto obtenerSiguientePaquete() {
         if (indiceActualFrontend < historialSimulacion.size()) {
             IndividuoDto paquete = historialSimulacion.get(indiceActualFrontend);
