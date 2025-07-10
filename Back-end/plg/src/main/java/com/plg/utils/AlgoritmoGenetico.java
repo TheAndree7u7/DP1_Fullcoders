@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import com.plg.config.DataLoader;
+import com.plg.utils.Parametros;
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
@@ -29,17 +29,13 @@ public class AlgoritmoGenetico {
     private int poblacionTamano;
     private int generaciones;
     private Mapa mapa;
-    private List<Pedido> pedidos;
     private Individuo mejorIndividuo;
     private final Random random = new Random();
 
-    public AlgoritmoGenetico(Mapa mapa, List<Pedido> pedidos) {
+    public AlgoritmoGenetico(Mapa mapa) {
         this.mapa = mapa;
-        this.pedidos = pedidos;
         generaciones = 50;
         poblacionTamano = 300;
-        
-
     }
 
     public void ejecutarAlgoritmo() {
@@ -112,7 +108,7 @@ public class AlgoritmoGenetico {
     private List<Individuo> inicializarPoblacion() {
         List<Individuo> poblacion = new ArrayList<>();
         for (int i = 0; i < poblacionTamano; i++) {
-            Individuo individuo = new Individuo(pedidos);
+            Individuo individuo = new Individuo(Parametros.dataLoader.getPedidosEnviar());
             poblacion.add(individuo);
         }
         return poblacion;
@@ -176,7 +172,7 @@ public class AlgoritmoGenetico {
             List<Nodo> ruta1 = new ArrayList<>(gen1.getNodos());
             List<Nodo> ruta2 = new ArrayList<>(gen2.getNodos());
 
-            Almacen almacenCentral = DataLoader.almacenes.get(0);
+            Almacen almacenCentral = Parametros.dataLoader.almacenes.get(0);
             ruta1.remove(almacenCentral);
             ruta2.remove(almacenCentral);
 
@@ -268,8 +264,8 @@ public class AlgoritmoGenetico {
                 gen.getPedidos().clear();
                 
                 // Solo agregar el almacén central como destino
-                if (!DataLoader.almacenes.isEmpty()) {
-                    gen.getNodos().add(DataLoader.almacenes.get(0));
+                if (!Parametros.dataLoader.almacenes.isEmpty()) {
+                    gen.getNodos().add(Parametros.dataLoader.almacenes.get(0));
                 }
             }
             

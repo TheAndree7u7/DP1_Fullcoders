@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.plg.config.DataLoader;
+import com.plg.utils.Parametros;
 import com.plg.entity.Almacen;
 import com.plg.entity.Bloqueo;
 import com.plg.entity.Pedido;
@@ -50,7 +50,7 @@ public class IndividuoDto {
 
         // Agregar almacenes desde DataLoader
         this.almacenes = new ArrayList<>();
-        for (Almacen almacen : DataLoader.almacenes) {
+        for (Almacen almacen : Parametros.dataLoader.almacenes) {
             this.almacenes.add(new AlmacenDto(almacen));
         }
     }

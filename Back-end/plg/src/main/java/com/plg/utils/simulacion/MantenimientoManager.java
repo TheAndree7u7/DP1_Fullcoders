@@ -72,7 +72,7 @@ public class MantenimientoManager {
             }
 
             // Buscar el primer mantenimiento registrado para este camión
-            return com.plg.config.DataLoader.mantenimientos.stream()
+            return com.plg.utils.Parametros.dataLoader.mantenimientos.stream()
                     .filter(m -> m.getCamion() != null && m.getCamion().getCodigo().equals(camion.getCodigo()))
                     .findFirst()
                     .map(primerMantenimiento -> {

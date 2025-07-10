@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.plg.config.DataLoader;
+import com.plg.utils.Parametros;
 import com.plg.dto.request.PedidoRequest;
 import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
@@ -99,12 +99,12 @@ public class PedidoService {
      * Obtiene la capacidad máxima de GLP de todos los camiones disponibles.
      */
     private double obtenerCapacidadMaximaCamion() {
-        List<Camion> camionesDisponibles = DataLoader.camiones.stream()
+        List<Camion> camionesDisponibles = Parametros.dataLoader.camiones.stream()
                 .filter(camion -> camion.getEstado() != EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
                 .collect(Collectors.toList());
         
         if (camionesDisponibles.isEmpty()) {
-            camionesDisponibles = DataLoader.camiones;
+            camionesDisponibles = Parametros.dataLoader.camiones;
         }
         
         return camionesDisponibles.stream()
@@ -171,12 +171,12 @@ public class PedidoService {
      * Obtiene las capacidades de todos los camiones disponibles.
      */
     private List<Double> obtenerCapacidadesCamiones() {
-        List<Camion> camionesDisponibles = DataLoader.camiones.stream()
+        List<Camion> camionesDisponibles = Parametros.dataLoader.camiones.stream()
                 .filter(camion -> camion.getEstado() != EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
                 .collect(Collectors.toList());
         
         if (camionesDisponibles.isEmpty()) {
-            camionesDisponibles = DataLoader.camiones;
+            camionesDisponibles = Parametros.dataLoader.camiones;
         }
         
         return camionesDisponibles.stream()

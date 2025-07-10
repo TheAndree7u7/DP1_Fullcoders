@@ -277,7 +277,7 @@ public class AveriaService {
      */
     private Coordenada obtenerCoordenadaAlmacenCentral() {
         // Buscar en los almacenes el de tipo CENTRAL
-        return com.plg.config.DataLoader.almacenes.stream()
+        return com.plg.utils.Parametros.dataLoader.almacenes.stream()
                 .filter(almacen -> almacen.getTipo() == TipoAlmacen.CENTRAL)
                 .map(almacen -> almacen.getCoordenada())
                 .findFirst()

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.plg.config.DataLoader;
 import com.plg.entity.Almacen;
@@ -16,60 +17,67 @@ import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
 import com.plg.entity.TipoAlmacen;
 import com.plg.entity.TipoNodo;
-import com.plg.factory.AlmacenFactory;
-import com.plg.factory.CamionFactory;
-import com.plg.utils.simulacion.ConfiguracionSimulacion;
 import com.plg.utils.simulacion.MantenimientoManager;
 import com.plg.utils.simulacion.AveriasManager;
 import com.plg.utils.simulacion.UtilesSimulacion;
 
 
+
 public class Simulacion {
 
-    private static List<Pedido> pedidosSemanal;
-    private static LocalDateTime fechaActual;
     public static Set<Pedido> pedidosPorAtender = new LinkedHashSet<>();
     public static Set<Pedido> pedidosPlanificados = new LinkedHashSet<>();
     public static Set<Pedido> pedidosEntregados = new LinkedHashSet<>();
+    public static List<Bloqueo> bloqueosActivos = new ArrayList<>();
     public static Individuo mejorIndividuo = null;
 
     // Variable global para pedidosEnviar
     public static List<Pedido> pedidosEnviar = new ArrayList<>();
 
-    // Getters y setters para permitir acceso desde clases auxiliares
-    public static List<Pedido> getPedidosSemanal() {
-        return pedidosSemanal;
+
+
+    public static void configurarSimulacionDiaria(LocalDateTime startDate) {
+        // Aun no implementado
     }
 
-    public static void setPedidosSemanal(List<Pedido> pedidos) {
-        pedidosSemanal = pedidos;
-    }
+    public static void configurarSimulacionSemanal(LocalDateTime startDate) {
 
-    public static LocalDateTime getFechaActual() {
-        return fechaActual;
-    }
+        // 1. Actualizar parámetros globales antes de cargar datos
+        Parametros.actualizarParametrosGlobales(startDate);
 
-    public static void setFechaActual(LocalDateTime fecha) {
-        fechaActual = fecha;
-    }
+        // 2. Limpiamos el mapa antes de iniciar la simulación
+        Mapa.getInstance().limpiarMapa();
 
-    public static void configurarSimulacion(LocalDateTime startDate) {
-        ConfiguracionSimulacion.configurarSimulacion(startDate);
-    }
-
-    public static void ejecutarSimulacion() {
-        // Contenido eliminado por solicitud del usuario
+        // 3. Creamos un nuevo dataLoader para la simulación semanal
+        Parametros.dataLoader = new DataLoader();
     }
 
     public static void actualizarEstadoGlobal(LocalDateTime fechaActual) {
-        actualizarPedidos(pedidosEnviar);
         actualizarRepositorios(fechaActual);
         actualizarCamiones(fechaActual);
-        MantenimientoManager.verificarYActualizarMantenimientos(DataLoader.camiones, fechaActual);
+        MantenimientoManager.verificarYActualizarMantenimientos(Parametros.dataLoader.camiones, fechaActual);
         AveriasManager.actualizarCamionesEnAveria(fechaActual);
+        Simulacion.bloqueosActivos = Simulacion.actualizarBloqueos(fechaActual);
+        actualizarPedidos();
     }
 
-    private static void actualizarPedidos(List<Pedido> pedidos) {
+    public static List<Pedido> actualizarPedidosEnRango(List<Pedido> pedidos) {
+        // 1. Obtenemos todos los pedidos del fechaActual < x < fechaActual + intervaloTiempo
+        LocalDateTime fechaLimite = Parametros.fecha_inicial.plusMinutes(Parametros.intervaloTiempo);
+        List<Pedido> pedidosEnRango = Parametros.dataLoader.pedidos.stream()
+                .filter(pedido -> pedido.getFechaRegistro().isAfter(Parametros.fecha_inicial)
+                        && pedido.getFechaRegistro().isBefore(fechaLimite))
+                .collect(Collectors.toList());
+        
+        // 2. Unimos pedidosEnRango con pedidosPlanificados
+        List<Pedido> pedidosUnidos = UtilesSimulacion.unirPedidosSinRepetidos(
+                new LinkedHashSet<>(pedidosPlanificados), 
+                new LinkedHashSet<>(pedidosEnRango));
+        return pedidosUnidos;
+    }
+
+    private static void actualizarPedidos() {
+        List<Pedido> pedidosActualizados = actualizarPedidosEnRango(Parametros.dataLoader.pedidos);
         // Borramos los pedidos del mapa
         for (int i = 0; i < Mapa.getInstance().getFilas(); i++) {
             for (int j = 0; j < Mapa.getInstance().getColumnas(); j++) {
@@ -81,13 +89,13 @@ public class Simulacion {
             }
         }
         // Colocamos todos los nuevos pedidos en el mapa
-        for (Pedido pedido : pedidos) {
+        for (Pedido pedido : pedidosActualizados) {
             Mapa.getInstance().setNodo(pedido.getCoordenada(), pedido);
         }
     }
 
     public static List<Bloqueo> actualizarBloqueos(LocalDateTime fechaActual) {
-        List<Bloqueo> bloqueos = DataLoader.bloqueos;
+        List<Bloqueo> bloqueos = Parametros.dataLoader.bloqueos;
         List<Bloqueo> bloqueosActivos = new ArrayList<>();
         for (Bloqueo bloqueo : bloqueos) {
             if (bloqueo.getFechaInicio().isBefore(fechaActual) && bloqueo.getFechaFin().isAfter(fechaActual)) {
@@ -99,7 +107,7 @@ public class Simulacion {
     }
 
     private static void actualizarRepositorios(LocalDateTime fechaActual) {
-        List<Almacen> almacenes = DataLoader.almacenes;
+        List<Almacen> almacenes = Parametros.dataLoader.almacenes;
         if (fechaActual.getHour() == 0 && fechaActual.getMinute() == 0) {
             for (Almacen almacen : almacenes) {
                 if (almacen.getTipo() == TipoAlmacen.SECUNDARIO) {
@@ -111,60 +119,11 @@ public class Simulacion {
     }
 
     private static void actualizarCamiones(LocalDateTime fechaActual) {
-        List<Camion> camiones = DataLoader.camiones;
+        List<Camion> camiones = Parametros.dataLoader.camiones;
 
         for (Camion camion : camiones) {
             camion.actualizarEstado(Parametros.intervaloTiempo, pedidosPorAtender, pedidosPlanificados,
                     pedidosEntregados, fechaActual);
         }
     }
-
-    public static List<Pedido> obtenerPedidosEnRango(LocalDateTime fecha) {
-        List<Pedido> pedidosEnRango = new ArrayList<>();
-        LocalDateTime fechaLimite = fecha.plusHours(2);
-
-        if (pedidosSemanal == null) {
-            return pedidosEnRango; // Devuelve lista vacía si no hay pedidos
-        }
-
-        for (Pedido pedido : pedidosSemanal) {
-            LocalDateTime fechaRegistro = pedido.getFechaRegistro();
-            // Comprueba si la fecha de registro está en el intervalo [fecha, fecha + 2h)
-            if (!fechaRegistro.isBefore(fecha) && UtilesSimulacion.pedidoConFechaMenorAFechaActual(pedido, fechaLimite)) {
-                pedidosEnRango.add(pedido);
-            }
-        }
-        return pedidosEnRango;
-    }
-
-    public static void detenerSimulacion() {
-        System.out.println("🛑 Deteniendo simulación y limpiando datos...");
-        
-        // Limpiar pedidos de la simulación
-        pedidosSemanal = null;
-        pedidosEnviar.clear();
-        pedidosPorAtender.clear();
-        pedidosPlanificados.clear();
-        pedidosEntregados.clear();
-        mejorIndividuo = null;
-        
-        // Limpiar DataLoader
-        DataLoader.pedidos.clear();
-        DataLoader.almacenes.clear();
-        DataLoader.camiones.clear();
-        DataLoader.averias.clear();
-        DataLoader.bloqueos.clear();
-        DataLoader.mantenimientos.clear();
-        
-        
-        
-        // Reinicializar el mapa
-        Mapa.initializeInstance();
-        
-        // Resetear fecha actual
-        fechaActual = null;
-        
-        System.out.println("✅ Simulación detenida y datos limpiados correctamente");
-    }
-
 }

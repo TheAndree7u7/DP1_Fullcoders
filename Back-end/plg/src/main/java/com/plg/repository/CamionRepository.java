@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Repository;
 
-import com.plg.config.DataLoader;
+import com.plg.utils.Parametros;
 import com.plg.dto.CamionDto;
 import com.plg.entity.Camion;
 
@@ -19,14 +19,14 @@ public class CamionRepository {
      * Obtiene la lista completa de camiones.
      */
     public List<Camion> findAll() {
-        return DataLoader.camiones;
+        return Parametros.dataLoader.camiones;
     }
 
     /**
      * Guarda un nuevo camión en memoria.
      */
     public Camion save(Camion camion) {
-        DataLoader.camiones.add(camion);
+        Parametros.dataLoader.camiones.add(camion);
         return camion;
     }
 
@@ -35,9 +35,9 @@ public class CamionRepository {
      */
     public Camion update(Camion camion) {
         // Busca el camión por código y reemplaza los datos principales
-        for (int i = 0; i < DataLoader.camiones.size(); i++) {
-            if (DataLoader.camiones.get(i).getCodigo().equals(camion.getCodigo())) {
-                DataLoader.camiones.set(i, camion);
+        for (int i = 0; i < Parametros.dataLoader.camiones.size(); i++) {
+            if (Parametros.dataLoader.camiones.get(i).getCodigo().equals(camion.getCodigo())) {
+                Parametros.dataLoader.camiones.set(i, camion);
                 return camion;
             }
         }

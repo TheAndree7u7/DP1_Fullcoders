@@ -9,52 +9,59 @@ import com.plg.utils.Parametros;
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidDataFormatException;
 
 import org.springframework.stereotype.Component;
-
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 @Component
 public class DataLoader {
 
-    private static String pathAverias = "data/averias/averias.v1.txt";
-    private static String pathMantenimientos = "data/mantenimientos/mantpreventivo.txt";
-    
+    private String pathAverias = "data/averias/averias.v1.txt";
+    private String pathMantenimientos = "data/mantenimientos/mantpreventivo.txt";
+
     // Métodos para generar paths dinámicamente basándose en parámetros actuales
-    private static String getPathPedidos() {
+    private String getPathPedidos() {
         return "data/pedidos/ventas" + Parametros.anho + Parametros.mes + ".txt";
     }
-    
-    private static String getPathBloqueos() {
+
+    private String getPathBloqueos() {
         return "data/bloqueos/" + Parametros.anho + Parametros.mes + ".bloqueos.txt";
     }
 
-    private static Coordenada coordenadaCentral = new Coordenada(8, 12);
+    private Coordenada coordenadaCentral = new Coordenada(8, 12);
 
-    public static final List<Mantenimiento> mantenimientos = new ArrayList<>();
-    public static List<Pedido> pedidos = new ArrayList<>();
-    public static List<Almacen> almacenes = new ArrayList<>();
-    public static List<Camion> camiones = new ArrayList<>();
-    public static List<Averia> averias = new ArrayList<>();
-    public static List<Bloqueo> bloqueos = new ArrayList<>();
+    public final List<Mantenimiento> mantenimientos = new ArrayList<>();
+    public List<Pedido> pedidos = new ArrayList<>();
+    public List<Almacen> almacenes = new ArrayList<>();
+    public List<Camion> camiones = new ArrayList<>();
+    public List<Averia> averias = new ArrayList<>();
+    public List<Bloqueo> bloqueos = new ArrayList<>();
 
-    public static List<Almacen> initializeAlmacenes() {
+    public DataLoader() {
+        initializeAlmacenes();
+        initializeCamiones();
+        try {
+            initializePedidos();
+            initializeMantenimientos();
+            initializeAverias();
+            initializeBloqueos();
+        } catch (InvalidDataFormatException | IOException e) {
+            // Manejo simple: imprimir el error, puedes personalizar según tus necesidades
+            e.printStackTrace();
+        }
+    }
+
+    public List<Almacen> initializeAlmacenes() {
         AlmacenFactory.crearAlmacen(TipoAlmacen.CENTRAL, coordenadaCentral, 1_000_000_000,
                 1_000_000_000);
         AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(42, 42), 160.0, 50);
         AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(3, 63), 160.0, 50);
-        almacenes = AlmacenFactory.almacenes;
-        return almacenes;
+
+        return this.almacenes;
     }
 
-    public static List<Camion> initializeCamiones() {
+    public List<Camion> initializeCamiones() {
         for (int i = 0; i < 2; i++) {
             CamionFactory.crearCamionesPorTipo(TipoCamion.TA, true, coordenadaCentral);
         }
@@ -67,48 +74,31 @@ public class DataLoader {
         for (int i = 0; i < 10; i++) {
             CamionFactory.crearCamionesPorTipo(TipoCamion.TD, true, coordenadaCentral);
         }
-        camiones = CamionFactory.camiones;
-        return camiones;
+        return this.camiones;
     }
 
-    public static List<Averia> initializeAverias() throws InvalidDataFormatException, IOException {
+    public List<Averia> initializeAverias() throws InvalidDataFormatException, IOException {
         List<String> lines = Herramientas.readAllLines(pathAverias);
         for (String line : lines) {
             Averia averia = new Averia(line);
+            this.averias.add(averia);
         }
-        return averias;
+        return this.averias;
     }
 
-    public static List<Pedido> initializePedidos() throws InvalidDataFormatException, IOException {
-        // Limpiar la lista de pedidos antes de cargar nuevos
-        PedidoFactory.pedidos.clear();
-        
+    public List<Pedido> initializePedidos() throws InvalidDataFormatException, IOException {
         List<String> lines = Herramientas.readAllLines(getPathPedidos());
         List<Pedido> pedidosOriginales = new ArrayList<>();
-        
-        // Primero crear todos los pedidos originales
+
         for (String line : lines) {
             Pedido pedido = PedidoFactory.crearPedido(line);
-            pedido.setFechaLimite(pedido.getFechaRegistro().plusHours((long) pedido.getHorasLimite()));
             pedidosOriginales.add(pedido);
         }
-        
-        PedidoFactory.pedidos.addAll(pedidosOriginales);
-        pedidos = PedidoFactory.pedidos;
-        return pedidos;
+
+        return pedidosOriginales;
     }
 
-
-
-
-    /**
-     * Inicializa la lista de mantenimientos a partir del archivo de mantenimientos.
-     *
-     * @return Lista de mantenimientos inicializados.
-     * @throws IOException                si ocurre un error al leer el archivo.
-     * @throws InvalidDataFormatException si el formato de los datos es inválido.
-     */
-    public static List<Mantenimiento> initializeMantenimientos()
+    public List<Mantenimiento> initializeMantenimientos()
             throws IOException, InvalidDataFormatException {
         List<String> lines = Herramientas.readAllLines(pathMantenimientos); // Propaga IOException si ocurre
 
@@ -148,7 +138,7 @@ public class DataLoader {
             Camion camion;
             try {
                 camion = CamionFactory.getCamionPorCodigo(codigoTipoCamion);
- 
+
             } catch (NoSuchElementException e) {
                 throw new InvalidDataFormatException(
                         "Error en línea de mantenimiento: " + line + ". Detalles: " + e.getMessage());
@@ -169,17 +159,17 @@ public class DataLoader {
                         .mes(i)
                         .camion(camion)
                         .build();
-                mantenimientos.add(mantenimiento);
+                this.mantenimientos.add(mantenimiento);
             }
         }
-        return mantenimientos;
+        return this.mantenimientos;
     }
 
-    public static void initializeBloqueos() throws InvalidDataFormatException, IOException {
+    public void initializeBloqueos() throws InvalidDataFormatException, IOException {
         List<String> lines = Herramientas.readAllLines(getPathBloqueos());
         for (String line : lines) {
             Bloqueo bloqueo = new Bloqueo(line);
-            bloqueos.add(bloqueo);
+            this.bloqueos.add(bloqueo);
         }
     }
 }

@@ -3,7 +3,7 @@ package com.plg.utils.simulacion;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.plg.config.DataLoader;
+import com.plg.utils.Parametros;
 import com.plg.entity.Averia;
 import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
@@ -107,11 +107,11 @@ public class AveriasManager {
     /* ----------------------------- UTILIDADES ----------------------------- */
 
     private static Camion buscarCamionPorCodigo(String codigoCamion) {
-        return DataLoader.camiones.stream().filter(c -> c.getCodigo().equals(codigoCamion)).findFirst().orElse(null);
+        return Parametros.dataLoader.camiones.stream().filter(c -> c.getCodigo().equals(codigoCamion)).findFirst().orElse(null);
     }
 
     private static Coordenada obtenerCoordenadaAlmacenCentral() {
-        return DataLoader.almacenes.stream().filter(a -> a.getTipo() == com.plg.entity.TipoAlmacen.CENTRAL)
+        return Parametros.dataLoader.almacenes.stream().filter(a -> a.getTipo() == com.plg.entity.TipoAlmacen.CENTRAL)
                 .map(a -> a.getCoordenada()).findFirst().orElse(new Coordenada(8, 12));
     }
 

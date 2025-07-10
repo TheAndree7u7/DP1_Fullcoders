@@ -1,7 +1,7 @@
 package com.plg.factory;
 
 
-import java.util.ArrayList;
+import com.plg.utils.Parametros;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +17,7 @@ import com.plg.entity.TipoNodo;
  */
 public class CamionFactory {
 
-    public static final List<Camion> camiones = new ArrayList<>();
+    
     private static final Map<TipoCamion, Integer> contadorCamiones = new HashMap<>();
 
     static {
@@ -131,7 +131,7 @@ public class CamionFactory {
         if (operativo) {
             Camion camion = crearCamionOperativo(codigo, tipo, capacidadGLP, tara, coordenada, 25.0, pesoCarga);
             camion.calcularDistanciaMaxima(); // Calculamos la distancia máxima
-            camiones.add(camion); // Agregamos el camión operativo a la lista
+            Parametros.dataLoader.camiones.add(camion); // Agregamos el camión operativo a la lista
             return camion;
         } else {
             return crearCamionAveriado(codigo, tipo, capacidadGLP, tara, coordenada, pesoCarga);
@@ -157,7 +157,7 @@ public class CamionFactory {
      * @return Camion correspondiente al código, o null si no se encuentra
      */
     public static Camion getCamionPorCodigo(String codigo) {
-        return camiones.stream()
+        return Parametros.dataLoader.camiones.stream()
                 .filter(c -> c.getCodigo().equals(codigo))
                 .findFirst()
                 .orElse(null);
@@ -172,6 +172,6 @@ public class CamionFactory {
         for (TipoCamion tipo : TipoCamion.values()) {
             contadorCamiones.put(tipo, 0);
         }
-        camiones.clear();
+        Parametros.dataLoader.camiones.clear();
     }
 }

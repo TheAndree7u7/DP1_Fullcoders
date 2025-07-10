@@ -3,7 +3,7 @@ package com.plg.utils.simulacion;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.plg.config.DataLoader;
+import com.plg.utils.Parametros;
 import com.plg.entity.Camion;
 import com.plg.entity.EstadoCamion;
 import com.plg.entity.Nodo;
@@ -25,7 +25,7 @@ public class IndividuoFactory {
         Individuo individuoVacio = new Individuo(pedidosVacios);
 
         List<Gen> cromosoma = new ArrayList<>();
-        for (Camion camion : DataLoader.camiones) {
+        for (Camion camion : Parametros.dataLoader.camiones) {
             if (camion.getEstado() == EstadoCamion.DISPONIBLE) {
                 Gen gen = new Gen(camion, new ArrayList<>());
                 List<Nodo> rutaActual = new ArrayList<>();

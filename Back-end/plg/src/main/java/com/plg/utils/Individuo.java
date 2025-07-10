@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import com.plg.config.DataLoader;
+import com.plg.utils.Parametros;
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
 import com.plg.entity.Nodo;
@@ -39,7 +39,7 @@ public class Individuo {
     }
 
     private void inicializarCromosoma() {
-        List<Almacen> almacenes = DataLoader.almacenes;
+        List<Almacen> almacenes = Parametros.dataLoader.almacenes;
         List<Camion> camionesDisponibles = obtenerCamionesDisponibles();
 
         cromosoma = new ArrayList<>();
@@ -110,7 +110,7 @@ public class Individuo {
      * @return Lista de camiones disponibles para asignación
      */
     private List<Camion> obtenerCamionesDisponibles() {
-        List<Camion> camiones = DataLoader.camiones;
+        List<Camion> camiones = Parametros.dataLoader.camiones;
         
         // FILTRAR CAMIONES EN MANTENIMIENTO - Ubicación más eficiente
         List<Camion> camionesDisponibles = camiones.stream()
@@ -151,10 +151,10 @@ public class Individuo {
         for (Pedido pedido : pedidos) {
             pedido.guardarCopia();
         }
-        for (Almacen almacen : DataLoader.almacenes) {
+        for (Almacen almacen : Parametros.dataLoader.almacenes) {
             almacen.guardarCopia();
         }
-        for (Camion camion : DataLoader.camiones) {
+        for (Camion camion : Parametros.dataLoader.camiones) {
             camion.guardarCopia();
         }
     }
@@ -163,10 +163,10 @@ public class Individuo {
         for (Pedido pedido : pedidos) {
             pedido.restaurarCopia();
         }
-        for (Almacen almacen : DataLoader.almacenes) {
+        for (Almacen almacen : Parametros.dataLoader.almacenes) {
             almacen.restaurarCopia();
         }
-        for (Camion camion : DataLoader.camiones) {
+        for (Camion camion : Parametros.dataLoader.camiones) {
             camion.restaurarCopia();
         }
     }

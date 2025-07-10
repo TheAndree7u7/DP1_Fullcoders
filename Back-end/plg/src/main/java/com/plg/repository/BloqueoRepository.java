@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
-import com.plg.config.DataLoader;
+import com.plg.utils.Parametros;
 import com.plg.entity.Bloqueo;
 
 /**
@@ -21,7 +21,7 @@ public class BloqueoRepository {
      * @return Lista de todos los bloqueos
      */
     public List<Bloqueo> findAll() {
-        return DataLoader.bloqueos;
+        return Parametros.dataLoader.bloqueos;
     }
 
     /**
@@ -32,7 +32,7 @@ public class BloqueoRepository {
      * @return lista de bloqueos en el rango
      */
     public List<Bloqueo> findAllBetween(LocalDateTime inicio, LocalDateTime fin) {
-        return DataLoader.bloqueos.stream()
+        return Parametros.dataLoader.bloqueos.stream()
                 .filter(b -> {
                     LocalDateTime fechaInicio = b.getFechaInicio();
                     LocalDateTime fechaFin = b.getFechaFin();
@@ -49,7 +49,7 @@ public class BloqueoRepository {
      * @return Lista de bloqueos activos
      */
     public List<Bloqueo> findAllActive() {
-        return DataLoader.bloqueos.stream()
+        return Parametros.dataLoader.bloqueos.stream()
                 .filter(Bloqueo::getActivo)
                 .collect(Collectors.toList());
     }
@@ -61,7 +61,7 @@ public class BloqueoRepository {
      * @return el bloqueo guardado
      */
     public Bloqueo save(Bloqueo bloqueo) {
-        DataLoader.bloqueos.add(bloqueo);
+        Parametros.dataLoader.bloqueos.add(bloqueo);
         return bloqueo;
     }
 }

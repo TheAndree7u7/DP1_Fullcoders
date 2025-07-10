@@ -1,6 +1,6 @@
 package com.plg.factory;
 
-import java.util.ArrayList;
+import com.plg.utils.Parametros;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +16,7 @@ import com.plg.entity.TipoNodo;
  */
 public class AlmacenFactory {
 
-    public static final List<Almacen> almacenes = new ArrayList<>();
+    
     private static final Map<TipoAlmacen, Integer> contadorAlmacenes = new HashMap<>();
 
     // Mapa que representa el entorno de entrega
@@ -72,7 +72,7 @@ public class AlmacenFactory {
                 .build();
 
         // Agregar el almacén a la lista y al mapa
-        almacenes.add(almacen);
+        Parametros.dataLoader.almacenes.add(almacen);
         mapa.setNodo(coordenada, almacen);
 
         return almacen;
@@ -96,6 +96,6 @@ public class AlmacenFactory {
         for (TipoAlmacen tipo : TipoAlmacen.values()) {
             contadorAlmacenes.put(tipo, 0);
         }
-        almacenes.clear();
+        Parametros.dataLoader.almacenes.clear();
     }
 }

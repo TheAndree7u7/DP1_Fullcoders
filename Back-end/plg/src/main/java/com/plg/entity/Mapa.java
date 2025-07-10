@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -60,6 +59,15 @@ public class Mapa {
                 fila.add(nodo);
             }
             this.matriz.add(fila);
+        }
+    }
+
+    public void limpiarMapa() {
+        for (int i = 0; i < filas; i++) {
+            for (int j = 0; j < columnas; j++) {
+                Nodo nodo = Nodo.builder().coordenada(new Coordenada(i, j)).tipoNodo(TipoNodo.NORMAL).build();
+                this.matriz.get(i).set(j, nodo);
+            }
         }
     }
 
