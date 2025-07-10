@@ -1,7 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import './App.css';
 import SeleccionVista from './views/SeleccionVista';
-import SimulacionSemanal from './views/SimulacionSemanal';
+import SimulacionSemanalConCarga from './views/SimulacionSemanalConCarga';
 import SimulacionAlColapso from './views/SimulacionAlColapso';
 import SimulacionDiaria from './views/SimulacionDiaria';
 import { SimulacionProvider } from './context/SimulacionContext';
@@ -13,7 +13,7 @@ function App() {
     <SimulacionProvider>
       <Routes>
         <Route path="/" element={<SeleccionVista />} />
-        <Route path="/simulacion-semanal" element={<SimulacionSemanal />} />
+        <Route path="/simulacion-semanal" element={<SimulacionSemanalConCarga />} />
         <Route path="/colapso-logistico" element={<SimulacionAlColapso />} />
         <Route path="/ejecucion-tiempo-real" element={<SimulacionDiaria />} />
       </Routes>

@@ -546,3 +546,73 @@ export type PedidoLegacy = {
   fechaRegistro?: string;
   fechaLimite?: string;
 };
+
+// ============================
+// TIPOS PARA CARGA DE ARCHIVOS DE SIMULACIÓN
+// ============================
+
+export interface ArchivoCarga {
+  nombre: string;
+  contenido: string;
+  tipo: 'ventas' | 'bloqueos' | 'camiones';
+  fechaCreacion: Date;
+  tamano: number;
+}
+
+export interface DatosVentas {
+  fechaHora: string; // Formato: "01d00h24m"
+  coordenadaX: number;
+  coordenadaY: number;
+  codigoCliente: string; // Formato: "c-198"
+  volumenGLP: number; // Formato: "3m3"
+  horasLimite: number; // Formato: "4h"
+}
+
+export interface DatosBloqueo {
+  fechaInicio: string; // Formato: "01d00h31m"
+  fechaFin: string; // Formato: "01d21h35m"
+  coordenadas: Array<{x: number, y: number}>; // Formato: "15,10,30,10,30,18"
+}
+
+export interface DatosCamion {
+  codigo: string;
+  tipo: TipoCamion;
+  coordenadaX: number;
+  coordenadaY: number;
+  capacidadMaximaGLP: number;
+  combustibleMaximo: number;
+  velocidadPromedio: number;
+}
+
+export interface EstadoCargaArchivos {
+  ventas: {
+    cargado: boolean;
+    archivo?: ArchivoCarga;
+    errores: string[];
+  };
+  bloqueos: {
+    cargado: boolean;
+    archivo?: ArchivoCarga;
+    errores: string[];
+  };
+  camiones: {
+    cargado: boolean;
+    archivo?: ArchivoCarga;
+    errores: string[];
+  };
+}
+
+export interface EjemploArchivo {
+  nombre: string;
+  descripcion: string;
+  contenido: string;
+  tipo: 'ventas' | 'bloqueos' | 'camiones';
+  formato: string;
+}
+
+export interface ValidacionArchivo {
+  esValido: boolean;
+  errores: string[];
+  advertencias: string[];
+  datosParseados?: DatosVentas[] | DatosBloqueo[] | DatosCamion[];
+}
