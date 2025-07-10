@@ -645,7 +645,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    */
   const aplicarSolucionPrecargada = async (data: IndividuoConBloqueos) => {
     try {
-      console.log("⚡ TRANSICIÓN: Aplicando solución precargada...");
+      console.log("⚡============================= TRANSICIÓN: Aplicando solución precargada======================================");
       console.log("Fecha de inicio de datos precargados intervalo del mapa: ", data.fechaHoraInicioIntervalo);
       console.log("Fecha de inicio de datos precargados intervalo mapa: ", data.fechaHoraFinIntervalo);
       
@@ -733,7 +733,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Incrementar el contador de paquetes consumidos
       setPaqueteActualConsumido(prev => prev + 1);
       console.log(`📦 PAQUETE CONSUMIDO: Paquete precargado aplicado, contador actualizado a ${paqueteActualConsumido + 1}`);
-
+      console.log("===============================================FIN========================================================");
     } catch (error) {
       console.error("❌ TRANSICIÓN: Error al aplicar solución precargada:", error);
     }
