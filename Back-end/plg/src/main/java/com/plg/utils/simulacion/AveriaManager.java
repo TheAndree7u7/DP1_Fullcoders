@@ -103,6 +103,8 @@ public class AveriaManager {
             // Agregar al historial para el frontend
             GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
 
+            // !Actualizar
+            EstadoManager.actualizarEstadoGlobal(fechaActual, pedidosEnviar);
         } catch (Exception e) {
             System.err.println("❌ Error al crear paquete parche en tiempo " + fechaActual + ": "
                     + e.getMessage());
@@ -150,16 +152,16 @@ public class AveriaManager {
             List<AveriaConEstadoRequest.CamionEstado> camionesEstado) {
         try {
             System.out.println("🔧 Iniciando actualización de camiones...");
-            
+
             for (AveriaConEstadoRequest.CamionEstado camionEstado : camionesEstado) {
                 System.out.println("🔧 Procesando camión: " + camionEstado.getId());
-                
+
                 // Buscar el camión directamente en la lista de DataLoader
                 Camion camion = DataLoader.camiones.stream()
-                    .filter(c -> c.getCodigo().equals(camionEstado.getId()))
-                    .findFirst()
-                    .orElse(null);
-                    
+                        .filter(c -> c.getCodigo().equals(camionEstado.getId()))
+                        .findFirst()
+                        .orElse(null);
+
                 if (camion != null) {
                     // Actualizar posición si está presente
                     String ubicacion = camionEstado.getUbicacion();
@@ -168,14 +170,14 @@ public class AveriaManager {
                             String[] partes = ubicacion.replaceAll("[()]", "").split(",");
                             int x = Integer.parseInt(partes[0].trim());
                             int y = Integer.parseInt(partes[1].trim());
-                            
+
                             // Crear nueva coordenada (y = fila, x = columna)
                             Coordenada nuevaCoordenada = new Coordenada(y, x);
                             camion.setCoordenada(nuevaCoordenada);
-                            
-                            System.out.println("✅ Camión " + camion.getCodigo() + 
-                                             " actualizado a posición: " + nuevaCoordenada);
-                            
+
+                            System.out.println("✅ Camión " + camion.getCodigo() +
+                                    " actualizado a posición: " + nuevaCoordenada);
+
                             // Actualizar otros campos si es necesario
                             if (camionEstado.getCapacidadActualGLP() != null) {
                                 camion.setCapacidadActualGLP(camionEstado.getCapacidadActualGLP());
@@ -183,21 +185,21 @@ public class AveriaManager {
                             if (camionEstado.getCombustibleActual() != null) {
                                 camion.setCombustibleActual(camionEstado.getCombustibleActual());
                             }
-                            
+
                         } catch (Exception e) {
-                            System.err.println("❌ Error al actualizar posición del camión " + 
-                                             camion.getCodigo() + ": " + e.getMessage());
+                            System.err.println("❌ Error al actualizar posición del camión " +
+                                    camion.getCodigo() + ": " + e.getMessage());
                         }
                     } else {
-                        System.out.println("ℹ️ Ubicación no válida o faltante para camión: " + 
-                                         camionEstado.getId());
+                        System.out.println("ℹ️ Ubicación no válida o faltante para camión: " +
+                                camionEstado.getId());
                     }
                 } else {
                     System.out.println("⚠️ Camión no encontrado: " + camionEstado.getId());
-                    System.out.println("   Camiones disponibles: " + 
-                                     DataLoader.camiones.stream()
-                                         .map(Camion::getCodigo)
-                                         .collect(Collectors.joining(", ")));
+                    System.out.println("   Camiones disponibles: " +
+                            DataLoader.camiones.stream()
+                                    .map(Camion::getCodigo)
+                                    .collect(Collectors.joining(", ")));
                 }
             }
         } catch (Exception e) {
