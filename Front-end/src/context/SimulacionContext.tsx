@@ -249,7 +249,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (!inicioSimulacion || !simulacionActiva) return;
 
-    console.log("⏱️ CONTADOR: Iniciando useEffect del contador con fecha:", inicioSimulacion);
+    // console.log("⏱️ CONTADOR: Iniciando useEffect del contador con fecha:", inicioSimulacion);
 
     const interval = setInterval(() => {
       const ahora = new Date();
@@ -329,14 +329,14 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         setHoraSimulacionAcumulada(horaAcumuladaFormateada);
         setFechaHoraAcumulada(fechaHoraAcumuladaFormateada);
         
-        console.log("🕒 HORA ACUMULADA:", {
-          horaActual,
-          nodoEnCicloActual,
-          segundosAdicionales,
-          horaFormateada,
-          horaAcumuladaFormateada,
-          fechaHoraAcumuladaFormateada
-        });
+        // console.log("🕒 HORA ACUMULADA:", {
+        //   horaActual,
+        //   nodoEnCicloActual,
+        //   segundosAdicionales,
+        //   horaFormateada,
+        //   horaAcumuladaFormateada,
+        //   fechaHoraAcumuladaFormateada
+        // });
       }
     }
   }, [horaActual, fechaHoraSimulacion, fechaInicioSimulacion]);

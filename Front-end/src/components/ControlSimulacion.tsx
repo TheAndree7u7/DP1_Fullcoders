@@ -42,12 +42,12 @@ const ControlSimulacion: React.FC = () => {
           tiempoActual: info.tiempoActual
         });
         
-        console.log("🔒 DIAGNÓSTICO: Estado del botón 'Iniciar Simulación':", {
-          cargando: cargando,
-          simulacionEnProceso: info.enProceso,
-          botonBloqueado: cargando || info.enProceso,
-          razonBloqueo: cargando ? 'Cargando activo' : info.enProceso ? 'Simulación en proceso' : 'No bloqueado'
-        });
+        // console.log("🔒 DIAGNÓSTICO: Estado del botón 'Iniciar Simulación':", {
+        //   cargando: cargando,
+        //   simulacionEnProceso: info.enProceso,
+        //   botonBloqueado: cargando || info.enProceso,
+        //   razonBloqueo: cargando ? 'Cargando activo' : info.enProceso ? 'Simulación en proceso' : 'No bloqueado'
+        // });
         
       } catch (error) {
         console.error('Error al obtener info de simulación:', error);
@@ -66,12 +66,12 @@ const ControlSimulacion: React.FC = () => {
         tiempoActual: info.tiempoActual
       });
       
-      console.log("🔒 DIAGNÓSTICO: Estado inicial del botón 'Iniciar Simulación':", {
-        cargando: cargando,
-        simulacionEnProceso: info.enProceso,
-        botonBloqueado: cargando || info.enProceso,
-        razonBloqueo: cargando ? 'Cargando activo' : info.enProceso ? 'Simulación en proceso' : 'No bloqueado'
-      });
+      // console.log("🔒 DIAGNÓSTICO: Estado inicial del botón 'Iniciar Simulación':", {
+      //   cargando: cargando,
+      //   simulacionEnProceso: info.enProceso,
+      //   botonBloqueado: cargando || info.enProceso,
+      //   razonBloqueo: cargando ? 'Cargando activo' : info.enProceso ? 'Simulación en proceso' : 'No bloqueado'
+      // });
       
     }).catch(console.error);
 

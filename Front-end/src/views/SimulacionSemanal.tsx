@@ -19,8 +19,7 @@ const SimulacionSemanal: React.FC = () => {
   const { 
     fechaHoraSimulacion, 
     horaActual, 
-    tiempoTranscurridoSimulado,
-    horaSimulacionAcumulada,
+    tiempoTranscurridoSimulado, 
     fechaHoraAcumulada
   } = useSimulacion();
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
