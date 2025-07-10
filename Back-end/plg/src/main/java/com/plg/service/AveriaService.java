@@ -246,7 +246,7 @@ public class AveriaService {
             // frontend
             System.out.println("🔄 BACKEND: Actualizando camiones y almacenes...");
             actualizarCamionesYAlmacenesConEstadoCapturado(estadoSimulacion);
-            com.plg.utils.Simulacion.fechaInicioParche = timestampAveria; 
+            com.plg.utils.Simulacion.fechaInicioParche = timestampAveria;
 
             com.plg.utils.Simulacion.fechaFinParche = UtilesSimulacion
                     .calcularFechaFinDelPaqueteQuePertenece(timestampAveria);
@@ -715,8 +715,8 @@ public class AveriaService {
             // Establecer código
             pedido.setCodigo(pedidoSimple.getCodigo());
 
-            // Establecer coordenadas
-            Coordenada coordenada = new Coordenada(pedidoSimple.getCoordenadaX(), pedidoSimple.getCoordenadaY());
+            // Establecer coordenadas (coordenadaY -> fila, coordenadaX -> columna)
+            Coordenada coordenada = new Coordenada(pedidoSimple.getCoordenadaY(), pedidoSimple.getCoordenadaX());
             pedido.setCoordenada(coordenada);
 
             // Establecer volumen GLP

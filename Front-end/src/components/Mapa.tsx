@@ -85,28 +85,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
   //console.log('👥 MAPA: Pedidos pendientes (clientes):', pedidosPendientes);
   //console.log('🚚 MAPA: Estado de camiones:', camiones);
 
-  useEffect(() => {
-    const iniciales = rutasCamiones.map((info, idx) => {
-      // Filtrar valores undefined o null de la ruta
-      const rutaValida = info.ruta.filter(nodo => nodo && typeof nodo === 'string');
-      const ruta = rutaValida.map(parseCoord);
-      
-      // Asegurar que hay al menos una coordenada válida
-      if (ruta.length === 0) {
-        // console.warn('🚨 Ruta vacía para camión:', info.id);
-        ruta.push({ x: 0, y: 0 }); // Coordenada por defecto
-      }
-      
-      return {
-        id: info.id,
-        color: CAMION_COLORS[idx % CAMION_COLORS.length],
-        ruta,
-        posicion: ruta[0],
-        rotacion: 0,
-      };
-    });
-    setCamionesVisuales(iniciales);
-  }, [rutasCamiones]);
+  // Removido: useEffect duplicado que causaba conflictos
 
   useEffect(() => {
     if (running && simulacionActiva) {
@@ -123,58 +102,63 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
 
   useEffect(() => {
     // Rebuild visuals whenever routes or truck states change
-    setCamionesVisuales(() =>
-      rutasCamiones.map((info, idx) => {
-        // Filtrar valores undefined o null de la ruta
-        const rutaValida = info.ruta.filter(nodo => nodo && typeof nodo === 'string');
-        const rutaCoords = rutaValida.map(parseCoord);
+    const nuevosVisuales = rutasCamiones.map((info, idx) => {
+      // Filtrar valores undefined o null de la ruta
+      const rutaValida = info.ruta.filter(nodo => nodo && typeof nodo === 'string');
+      const rutaCoords = rutaValida.map(parseCoord);
+      
+      // Asegurar que hay al menos una coordenada válida
+      if (rutaCoords.length === 0) {
+        // console.warn('🚨 Ruta vacía para camión:', info.id);
+        rutaCoords.push({ x: 0, y: 0 }); // Coordenada por defecto
+      }
+      
+      const estadoCamion = camiones.find(c => c.id === info.id);
+      
+      // Determinar posición actual y dirección
+      let currentPos = rutaCoords[0]; // Posición por defecto
+      
+      if (estadoCamion && estadoCamion.ubicacion && typeof estadoCamion.ubicacion === 'string') {
+        currentPos = parseCoord(estadoCamion.ubicacion);
+      }
+      
+      let rotacion = 0;
+      
+      if (estadoCamion && rutaCoords.length > 1) {
+        const porcentaje = estadoCamion.porcentaje;
+        const currentIdx = Math.floor(porcentaje);
         
-        // Asegurar que hay al menos una coordenada válida
-        if (rutaCoords.length === 0) {
-          // console.warn('🚨 Ruta vacía para camión:', info.id);
-          rutaCoords.push({ x: 0, y: 0 }); // Coordenada por defecto
+        // Si hay un siguiente nodo en la ruta, calcular dirección hacia él
+        if (currentIdx + 1 < rutaCoords.length) {
+          const nextPos = rutaCoords[currentIdx + 1];
+          rotacion = calcularRotacion(currentPos, nextPos);
+        } else if (currentIdx > 0) {
+          // Si estamos en el último nodo, usar la dirección del último movimiento
+          const prevPos = rutaCoords[currentIdx - 1];
+          rotacion = calcularRotacion(prevPos, currentPos);
         }
-        
-        const estadoCamion = camiones.find(c => c.id === info.id);
-        
-        // Determinar posición actual y dirección
-        let currentPos = rutaCoords[0]; // Posición por defecto
-        
-        if (estadoCamion && estadoCamion.ubicacion && typeof estadoCamion.ubicacion === 'string') {
-          currentPos = parseCoord(estadoCamion.ubicacion);
-        }
-        
-        let rotacion = 0;
-        
-        if (estadoCamion && rutaCoords.length > 1) {
-          const porcentaje = estadoCamion.porcentaje;
-          const currentIdx = Math.floor(porcentaje);
-          
-          // Si hay un siguiente nodo en la ruta, calcular dirección hacia él
-          if (currentIdx + 1 < rutaCoords.length) {
-            const nextPos = rutaCoords[currentIdx + 1];
-            rotacion = calcularRotacion(currentPos, nextPos);
-          } else if (currentIdx > 0) {
-            // Si estamos en el último nodo, usar la dirección del último movimiento
-            const prevPos = rutaCoords[currentIdx - 1];
-            rotacion = calcularRotacion(prevPos, currentPos);
-          }
-        }
-        
-        // Compute remaining path
-        const porcentaje = estadoCamion ? estadoCamion.porcentaje : 0;
-        const idxRest = Math.ceil(porcentaje);
-        const rutaRestante = rutaCoords.slice(idxRest);
-        
-        return {
-          id: info.id,
-          color: CAMION_COLORS[idx % CAMION_COLORS.length],
-          ruta: rutaRestante,
-          posicion: currentPos,
-          rotacion: rotacion
-        } as CamionVisual;
-      })
+      }
+      
+      // Compute remaining path
+      const porcentaje = estadoCamion ? estadoCamion.porcentaje : 0;
+      const idxRest = Math.ceil(porcentaje);
+      const rutaRestante = rutaCoords.slice(idxRest);
+      
+      return {
+        id: info.id,
+        color: CAMION_COLORS[idx % CAMION_COLORS.length],
+        ruta: rutaRestante,
+        posicion: currentPos,
+        rotacion: rotacion
+      } as CamionVisual;
+    });
+
+    // Eliminar duplicados basándose en el ID
+    const visualesUnicos = nuevosVisuales.filter((visual, index, array) => 
+      array.findIndex(v => v.id === visual.id) === index
     );
+
+    setCamionesVisuales(visualesUnicos);
   }, [camiones, rutasCamiones]);
 
   // Función handleAveriar movida a mapa/utils/averias.ts
@@ -445,9 +429,9 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                        estadoCamion?.estado !== 'Averiado' && 
                        camion.ruta.length > 1;
               })
-              .map(camion => (
+              .map((camion, index) => (
                 <polyline
-                  key={`ruta-${camion.id}`}
+                  key={`ruta-${camion.id}-${index}`}
                   fill="none"
                   stroke={camion.color}
                   strokeWidth={2}
@@ -459,7 +443,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
             {/* Camiones */}
             {camionesVisuales
               .filter(camion => camiones.find(c => c.id === camion.id)?.estado !== 'Entregado')
-              .map(camion => {
+              .map((camion, index) => {
                  const estadoCamion = camiones.find(c => c.id === camion.id);
                  const esAveriado = estadoCamion?.estado === 'Averiado';
                  const esEnMantenimiento = estadoCamion?.estado === 'En Mantenimiento';
@@ -470,7 +454,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                  const cx = posicion.x * CELL_SIZE;
                  const cy = posicion.y * CELL_SIZE;
                  return (
-                   <g key={camion.id}>
+                   <g key={`camion-${camion.id}-${index}`}>
                      <g
                        transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
                        style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}

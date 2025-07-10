@@ -175,7 +175,8 @@ public class AveriaManager {
                             System.out.println("🔧 Coordenadas parseadas: x=" + x + ", y=" + y);
                             System.out.println("🔧 Posición ANTES de actualizar: " + camion.getCoordenada());
 
-                            camion.setCoordenada(new Coordenada(x, y));
+                            // Corrección: y -> fila, x -> columna
+                            camion.setCoordenada(new Coordenada(y, x));
 
                             System.out.println("🔧 Posición DESPUÉS de setCoordenada: " + camion.getCoordenada());
 
@@ -195,7 +196,7 @@ public class AveriaManager {
                                     "🔧 Posición DESPUÉS de repository.update(): " + camionActualizado.getCoordenada());
 
                             System.out.println("🚛 Camión " + camion.getCodigo() + " actualizado a posición (" + x + ","
-                                    + y + ")");
+                                    + y + ") -> coordenada(fila=" + y + ", columna=" + x + ")");
                         } else {
                             System.out.println(
                                     "🔧 ❌ Ubicación inválida para camión " + camionEstado.getId() + ": " + ubicacion);
@@ -229,8 +230,9 @@ public class AveriaManager {
             for (AveriaConEstadoRequest.AlmacenSimple almacenEstado : almacenesEstado) {
                 // Buscar el almacén en la lista de almacenes del sistema
                 for (Almacen almacen : DataLoader.almacenes) {
-                    if (almacen.getCoordenada().getFila() == almacenEstado.getCoordenadaX() &&
-                            almacen.getCoordenada().getColumna() == almacenEstado.getCoordenadaY()) {
+                    // Corrección: coordenadaY -> fila, coordenadaX -> columna
+                    if (almacen.getCoordenada().getFila() == almacenEstado.getCoordenadaY() &&
+                            almacen.getCoordenada().getColumna() == almacenEstado.getCoordenadaX()) {
 
                         // Actualizar capacidades del almacén
                         if (almacenEstado.getCapacidadActualGLP() != null) {

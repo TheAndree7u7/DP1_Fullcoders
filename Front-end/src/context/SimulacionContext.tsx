@@ -550,11 +550,15 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       });
 
-      setRutasCamiones(nuevasRutas);
+      // Eliminar duplicados antes de establecer las rutas
+      const rutasUnicas = nuevasRutas.filter((ruta, index, array) => 
+        array.findIndex(r => r.id === ruta.id) === index
+      );
+      setRutasCamiones(rutasUnicas);
       console.log(
         "📋 ACTUALIZACIÓN: Rutas de camiones actualizadas en el mapa con",
-        nuevasRutas.length,
-        "camiones",
+        rutasUnicas.length,
+        "camiones únicos",
       );
 
       const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
@@ -583,7 +587,11 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         };
       });
 
-      setCamiones(nuevosCamiones);
+      // Eliminar duplicados antes de establecer los camiones
+      const camionesUnicos = nuevosCamiones.filter((camion, index, array) => 
+        array.findIndex(c => c.id === camion.id) === index
+      );
+      setCamiones(camionesUnicos);
       // Extraer bloqueos si existen
       if (data.bloqueos) {
         setBloqueos(data.bloqueos);

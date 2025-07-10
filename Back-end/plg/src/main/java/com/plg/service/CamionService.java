@@ -175,7 +175,8 @@ public class CamionService {
                 String[] parts = coords.split(",");
                 int x = Integer.parseInt(parts[0]);
                 int y = Integer.parseInt(parts[1]);
-                camion.setCoordenada(new Coordenada(x, y));
+                // Corrección: y -> fila, x -> columna
+                camion.setCoordenada(new Coordenada(y, x));
             }
 
             // Actualizar estado del camión
@@ -220,7 +221,8 @@ public class CamionService {
             // "ubicación=" + ubicacion + ", estado=" + estado +
             // ", GLP=" + capacidadActualGLP + ", combustible=" + combustibleActual);
 
-            return camion;
+            // Guardar cambios en el repositorio
+            return camionRepository.save(camion);
 
         } catch (Exception e) {
             System.err.println("❌ Error al actualizar camión " + codigoCamion + " desde frontend: " + e.getMessage());
