@@ -105,6 +105,8 @@ interface SimulacionContextType {
   almacenes: Almacen[];
   fechaHoraSimulacion: string | null; // Fecha y hora de la simulación del backend
   fechaInicioSimulacion: string | null; // Fecha y hora de inicio de la simulación
+  fechaHoraInicioIntervalo: string | null; // Fecha y hora de inicio del intervalo actual
+  fechaHoraFinIntervalo: string | null; // Fecha y hora de fin del intervalo actual
   diaSimulacion: number | null; // Día extraído de fechaHoraSimulacion
   tiempoRealSimulacion: string; // Tiempo real transcurrido desde el inicio de la simulación
   tiempoTranscurridoSimulado: string; // Tiempo transcurrido dentro de la simulación
@@ -182,6 +184,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     null,
   );
   const [fechaInicioSimulacion, setFechaInicioSimulacion] = useState<string | null>(null);
+  const [fechaHoraInicioIntervalo, setFechaHoraInicioIntervalo] = useState<string | null>(null);
+  const [fechaHoraFinIntervalo, setFechaHoraFinIntervalo] = useState<string | null>(null);
   const [diaSimulacion, setDiaSimulacion] = useState<number | null>(null);
   const [tiempoRealSimulacion, setTiempoRealSimulacion] = useState<string>("00:00:00");
   const [tiempoTranscurridoSimulado, setTiempoTranscurridoSimulado] = useState<string>("00:00:00");
@@ -442,6 +446,17 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       //!ACTUALIZA LOS DATOS DE LA SIMULACION EN EL MAPA
       console.log("Fecha de inicio de datos en el  mapa: ", data.fechaHoraInicioIntervalo);
       console.log("Fecha de inicio de datos en el mapa : ", data.fechaHoraFinIntervalo);
+      
+      // Actualizar intervalos de fecha si están disponibles
+      if (data.fechaHoraInicioIntervalo) {
+        setFechaHoraInicioIntervalo(data.fechaHoraInicioIntervalo);
+        console.log("📅 INTERVALO: Fecha de inicio del intervalo establecida:", data.fechaHoraInicioIntervalo);
+      }
+      if (data.fechaHoraFinIntervalo) {
+        setFechaHoraFinIntervalo(data.fechaHoraFinIntervalo);
+        console.log("📅 INTERVALO: Fecha de fin del intervalo establecida:", data.fechaHoraFinIntervalo);
+      }
+      
       // Actualizar fecha y hora de la simulación
       if (data.fechaHoraSimulacion) {
         setFechaHoraSimulacion(data.fechaHoraSimulacion);
@@ -591,6 +606,17 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("⚡ TRANSICIÓN: Aplicando solución precargada...");
       console.log("Fecha de inicio de datos precargados intervalo del mapa: ", data.fechaHoraInicioIntervalo);
       console.log("Fecha de inicio de datos precargados intervalo mapa: ", data.fechaHoraFinIntervalo);
+      
+      // Actualizar intervalos de fecha si están disponibles
+      if (data.fechaHoraInicioIntervalo) {
+        setFechaHoraInicioIntervalo(data.fechaHoraInicioIntervalo);
+        console.log("📅 TRANSICIÓN: Fecha de inicio del intervalo establecida:", data.fechaHoraInicioIntervalo);
+      }
+      if (data.fechaHoraFinIntervalo) {
+        setFechaHoraFinIntervalo(data.fechaHoraFinIntervalo);
+        console.log("📅 TRANSICIÓN: Fecha de fin del intervalo establecida:", data.fechaHoraFinIntervalo);
+      }
+      
       // Actualizar fecha y hora de la simulación
       if (data.fechaHoraSimulacion) {
         setFechaHoraSimulacion(data.fechaHoraSimulacion);
@@ -957,6 +983,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     setBloqueos([]);
     setFechaHoraSimulacion(null);
     setFechaInicioSimulacion(null);
+    setFechaHoraInicioIntervalo(null);
+    setFechaHoraFinIntervalo(null);
     setDiaSimulacion(null);
     setTiempoTranscurridoSimulado("00:00:00");
 
@@ -1007,6 +1035,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         almacenes,
         fechaHoraSimulacion,
         fechaInicioSimulacion,
+        fechaHoraInicioIntervalo,
+        fechaHoraFinIntervalo,
         diaSimulacion,
         tiempoRealSimulacion,
         tiempoTranscurridoSimulado,

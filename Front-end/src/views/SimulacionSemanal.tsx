@@ -64,17 +64,12 @@ const SimulacionSemanal: React.FC = () => {
     }
   }, [horaActual, fechaHoraSimulacion]);
 
-  // Formato para la fecha y hora de simulación (del backend)
+  // Formato para la fecha de simulación (del backend) - solo fecha sin hora
   const fechaSimulada = tiempoSimulado ? 
     tiempoSimulado.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: 'numeric',
       year: 'numeric'
-    }) + ' ' + 
-    tiempoSimulado.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
     }) : '';
     
   // Formato para la hora en tiempo real (actualizada por nodos)
