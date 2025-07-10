@@ -149,72 +149,59 @@ public class AveriaManager {
     private static void actualizarCamionesDesdeEstadoCapturado(
             List<AveriaConEstadoRequest.CamionEstado> camionesEstado) {
         try {
-            System.out.println("🔧 DEPURACIÓN: Iniciando actualización de camiones desde estado capturado");
+            System.out.println("🔧 Iniciando actualización de camiones...");
+            
             for (AveriaConEstadoRequest.CamionEstado camionEstado : camionesEstado) {
-                System.out.println("🔧 Procesando camión: " + camionEstado.getId() + " con ubicación: "
-                        + camionEstado.getUbicacion());
-                // Buscar el camión en la lista de camiones del sistema
-                boolean camionEncontrado = false;
-                for (Camion camion : DataLoader.camiones) {
-                    if (camion.getCodigo().equals(camionEstado.getId())) {
-                        camionEncontrado = true;
-                        System.out.println("🔧 Camión encontrado: " + camion.getCodigo() + ", posición actual: "
-                                + camion.getCoordenada());
-                        // Actualizar posición del camión
-                        String ubicacion = camionEstado.getUbicacion();
-                        System.out.println("🔧 Validando ubicación: '" + ubicacion + "'");
-                        System.out.println("🔧 Ubicación no nula: " + (ubicacion != null));
-                        System.out.println("🔧 Ubicación match regex: "
-                                + (ubicacion != null && ubicacion.matches("\\(\\d+,\\d+\\)")));
-                        if (ubicacion != null && ubicacion.matches("\\(\\d+,\\d+\\)")) {
-                            String coords = ubicacion.substring(1, ubicacion.length() - 1);
-                            String[] parts = coords.split(",");
-                            int x = Integer.parseInt(parts[0]);
-                            int y = Integer.parseInt(parts[1]);
-
-                            System.out.println("🔧 Coordenadas parseadas: x=" + x + ", y=" + y);
-                            System.out.println("🔧 Posición ANTES de actualizar: " + camion.getCoordenada());
-
-                            // Corrección: y -> fila, x -> columna
-                            camion.setCoordenada(new Coordenada(y, x));
-
-                            System.out.println("🔧 Posición DESPUÉS de setCoordenada: " + camion.getCoordenada());
-
-                            // Actualizar otros estados del camión
+                System.out.println("🔧 Procesando camión: " + camionEstado.getId());
+                
+                // Buscar el camión directamente en la lista de DataLoader
+                Camion camion = DataLoader.camiones.stream()
+                    .filter(c -> c.getCodigo().equals(camionEstado.getId()))
+                    .findFirst()
+                    .orElse(null);
+                    
+                if (camion != null) {
+                    // Actualizar posición si está presente
+                    String ubicacion = camionEstado.getUbicacion();
+                    if (ubicacion != null && ubicacion.matches("\\(\\d+,\\d+\\)")) {
+                        try {
+                            String[] partes = ubicacion.replaceAll("[()]", "").split(",");
+                            int x = Integer.parseInt(partes[0].trim());
+                            int y = Integer.parseInt(partes[1].trim());
+                            
+                            // Crear nueva coordenada (y = fila, x = columna)
+                            Coordenada nuevaCoordenada = new Coordenada(y, x);
+                            camion.setCoordenada(nuevaCoordenada);
+                            
+                            System.out.println("✅ Camión " + camion.getCodigo() + 
+                                             " actualizado a posición: " + nuevaCoordenada);
+                            
+                            // Actualizar otros campos si es necesario
                             if (camionEstado.getCapacidadActualGLP() != null) {
                                 camion.setCapacidadActualGLP(camionEstado.getCapacidadActualGLP());
                             }
                             if (camionEstado.getCombustibleActual() != null) {
                                 camion.setCombustibleActual(camionEstado.getCombustibleActual());
                             }
-
-                            // Usar repository para actualizar el camion
-                            System.out.println("🔧 Llamando a repository.update() para camión: " + camion.getCodigo());
-                            Camion camionActualizado = camionRepository.update(camion);
-
-                            System.out.println(
-                                    "🔧 Posición DESPUÉS de repository.update(): " + camionActualizado.getCoordenada());
-
-                            System.out.println("🚛 Camión " + camion.getCodigo() + " actualizado a posición (" + x + ","
-                                    + y + ") -> coordenada(fila=" + y + ", columna=" + x + ")");
-                        } else {
-                            System.out.println(
-                                    "🔧 ❌ Ubicación inválida para camión " + camionEstado.getId() + ": " + ubicacion);
+                            
+                        } catch (Exception e) {
+                            System.err.println("❌ Error al actualizar posición del camión " + 
+                                             camion.getCodigo() + ": " + e.getMessage());
                         }
-                        break;
+                    } else {
+                        System.out.println("ℹ️ Ubicación no válida o faltante para camión: " + 
+                                         camionEstado.getId());
                     }
-                }
-
-                if (!camionEncontrado) {
-                    System.out.println("🔧 ❌ Camión NO encontrado en DataLoader.camiones: " + camionEstado.getId());
-                    System.out.println("🔧 Camiones disponibles en DataLoader:");
-                    for (Camion c : DataLoader.camiones) {
-                        System.out.println("🔧   - " + c.getCodigo());
-                    }
+                } else {
+                    System.out.println("⚠️ Camión no encontrado: " + camionEstado.getId());
+                    System.out.println("   Camiones disponibles: " + 
+                                     DataLoader.camiones.stream()
+                                         .map(Camion::getCodigo)
+                                         .collect(Collectors.joining(", ")));
                 }
             }
         } catch (Exception e) {
-            System.err.println("❌ Error al actualizar camiones desde estado capturado: " + e.getMessage());
+            System.err.println("❌ Error en actualizarCamionesDesdeEstadoCapturado: " + e.getMessage());
             e.printStackTrace();
         }
     }
