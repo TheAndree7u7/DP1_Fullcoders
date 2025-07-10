@@ -112,6 +112,8 @@ interface SimulacionContextType {
   tiempoTranscurridoSimulado: string; // Tiempo transcurrido dentro de la simulación
   simulacionActiva: boolean; // Indica si la simulación está activa (contador funcionando)
   horaSimulacion: string; // Hora actual dentro de la simulación (HH:MM:SS)
+  horaSimulacionAcumulada: string; // Hora acumulada desde el inicio de la simulación (HH:MM:SS)
+  fechaHoraAcumulada: string; // Fecha y hora acumulada desde el inicio de la simulación
   paqueteActualConsumido: number; // Número del paquete que se está consumiendo actualmente
   avanzarHora: () => void;
   reiniciar: () => Promise<void>;
@@ -192,6 +194,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [inicioSimulacion, setInicioSimulacion] = useState<Date | null>(null);
   const [simulacionActiva, setSimulacionActiva] = useState<boolean>(false);
   const [horaSimulacion, setHoraSimulacion] = useState<string>("00:00:00");
+  const [horaSimulacionAcumulada, setHoraSimulacionAcumulada] = useState<string>("00:00:00");
+  const [fechaHoraAcumulada, setFechaHoraAcumulada] = useState<string>("");
   const [pollingActivo, setPollingActivo] = useState<boolean>(false);
   const [paqueteActualConsumido, setPaqueteActualConsumido] = useState<number>(0);
 
@@ -296,8 +300,46 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       setHoraSimulacion(horaFormateada);
+
+      // Calcular hora acumulada desde el inicio de la simulación
+      if (fechaInicioSimulacion) {
+        const fechaInicio = new Date(fechaInicioSimulacion);
+        
+        // Calcular el tiempo total transcurrido desde el inicio
+        const tiempoTotalTranscurrido = nuevaFecha.getTime() - fechaInicio.getTime();
+        const fechaAcumulada = new Date(fechaInicio.getTime() + tiempoTotalTranscurrido);
+        
+        // Formatear hora acumulada
+        const horaAcumuladaFormateada = fechaAcumulada.toLocaleTimeString('es-ES', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        
+        // Formatear fecha y hora acumulada completa
+        const fechaHoraAcumuladaFormateada = fechaAcumulada.toLocaleString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        
+        setHoraSimulacionAcumulada(horaAcumuladaFormateada);
+        setFechaHoraAcumulada(fechaHoraAcumuladaFormateada);
+        
+        console.log("🕒 HORA ACUMULADA:", {
+          horaActual,
+          nodoEnCicloActual,
+          segundosAdicionales,
+          horaFormateada,
+          horaAcumuladaFormateada,
+          fechaHoraAcumuladaFormateada
+        });
+      }
     }
-  }, [horaActual, fechaHoraSimulacion]);
+  }, [horaActual, fechaHoraSimulacion, fechaInicioSimulacion]);
 
   // Calcular tiempo transcurrido simulado
   useEffect(() => {
@@ -987,6 +1029,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     setFechaHoraFinIntervalo(null);
     setDiaSimulacion(null);
     setTiempoTranscurridoSimulado("00:00:00");
+    setHoraSimulacionAcumulada("00:00:00");
+    setFechaHoraAcumulada("");
 
     // Resetear contadores
     setHoraActual(HORA_INICIAL);
@@ -1042,6 +1086,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         tiempoTranscurridoSimulado,
         simulacionActiva,
         horaSimulacion,
+        horaSimulacionAcumulada,
+        fechaHoraAcumulada,
         paqueteActualConsumido,
         avanzarHora,
         reiniciar,
