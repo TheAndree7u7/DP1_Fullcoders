@@ -76,7 +76,7 @@ public class PedidoService {
                 return dividirPedido(coordenada, request.getVolumenGLP(), request.getHorasLimite());
             } else {
                 // Crear pedido normal
-                Pedido pedido = PedidoFactory.crearPedido(coordenada, request.getVolumenGLP(), request.getHorasLimite());
+                Pedido pedido = PedidoFactory.crearPedido(coordenada, request.getVolumenGLP(), request.getHorasLimite(), request.getFechaRegistro());
                 return List.of(pedidoRepository.save(pedido));
             }
         } catch (Exception e) {

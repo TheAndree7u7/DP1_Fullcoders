@@ -108,7 +108,7 @@ public class AlgoritmoGenetico {
     private List<Individuo> inicializarPoblacion() {
         List<Individuo> poblacion = new ArrayList<>();
         for (int i = 0; i < poblacionTamano; i++) {
-            Individuo individuo = new Individuo(Parametros.dataLoader.getPedidosEnviar());
+            Individuo individuo = new Individuo(Simulacion.pedidosEnviar);
             poblacion.add(individuo);
         }
         return poblacion;

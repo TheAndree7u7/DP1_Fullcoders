@@ -1,5 +1,7 @@
 package com.plg.dto.request;
 
+import java.time.LocalDateTime;
+
 import lombok.Data;
 
 /**
@@ -11,4 +13,5 @@ public class PedidoRequest {
     private int y; // fila
     private double volumenGLP;
     private double horasLimite;
+    private LocalDateTime fechaRegistro;
 }

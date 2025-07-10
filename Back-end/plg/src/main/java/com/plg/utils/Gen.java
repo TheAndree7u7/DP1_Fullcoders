@@ -63,7 +63,7 @@ public class Gen {
         double fitness = 0.0;
         Nodo posicionActual = camion;
         List<Nodo> rutaEntradaBloqueada = null;
-        LocalDateTime fechaActual = Simulacion.getFechaActual();
+        LocalDateTime fechaActual = Parametros.fecha_inicial;
         LocalDateTime fechaLlegada = fechaActual;
         for (int i = 0; i < nodos.size(); i++) {
             Nodo destino = nodos.get(i);
