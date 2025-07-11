@@ -25,6 +25,7 @@ public class IndividuoDto {
     private List<BloqueoDto> bloqueos;
     private List<AlmacenDto> almacenes;
     private LocalDateTime fechaHoraSimulacion;
+    
 
     public IndividuoDto(Individuo individuo, List<Pedido> pedidos, List<Bloqueo> bloqueos) {
         this(individuo, pedidos, bloqueos, LocalDateTime.now());

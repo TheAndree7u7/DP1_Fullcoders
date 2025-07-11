@@ -53,10 +53,31 @@ public class Individuo {
 
         LocalDateTime fechaActual = Parametros.fecha_inicial;
 
-        asignarPedidosACamiones(camionesDisponibles, pedidosMezclados, cromosoma, fechaActual);
+        asignarPedidosACamiones(camionesDisponibles, pedidosMezclados, cromosoma, fechaActual);        
+        asignarAlmacenesIntermediosEntrePedidos();
 
         for (Gen gen : cromosoma) {
             gen.getNodos().add(almacenCentral);
+        }
+    }
+
+    private void asignarAlmacenesIntermediosEntrePedidos() {
+        List<Almacen> almacenes = Parametros.dataLoader.almacenes;
+        Random selectorDeGen = new Random();
+        for (Gen gen : cromosoma) {
+            List<Nodo> nodos = gen.getNodos();
+            if (nodos.size() > 3) { // al menos dos pedidos y un almacén central
+                // Insertar almacén intermedio con cierta probabilidad entre dos pedidos
+                for (int i = 1; i < nodos.size() - 2; i++) { // entre el primer pedido y el penúltimo
+                    if (selectorDeGen.nextDouble() < 0.5) { // 50% de probabilidad
+                        // Elegir aleatoriamente entre almacén 1 o 2 si existen
+                        Almacen almacenIntermedio = almacenes.size() > 2 ? almacenes.get(1 + selectorDeGen.nextInt(2))
+                                : almacenes.get(1);
+                        nodos.add(i + 1, almacenIntermedio);
+                        i++; // saltar el almacén recién insertado para evitar inserciones consecutivas
+                    }
+                }
+            }
         }
     }
 
