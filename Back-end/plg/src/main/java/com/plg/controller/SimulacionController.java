@@ -65,7 +65,7 @@ public class SimulacionController {
         }
 
         // Calcular el intervalo de tiempo en minutos entre la fecha inicial y la fecha actual
-        Parametros.intervaloTiempo = (int) ChronoUnit.MINUTES.between(Parametros.fecha_inicial, fechaDateTime);
+        Parametros.diferenciaTiempoMinRequest = (int) ChronoUnit.MINUTES.between(Parametros.fecha_inicial, fechaDateTime);
         Parametros.actualizarParametrosGlobales(fechaDateTime);
         
         // Obtener pedidos en el rango de dos horas y unir con pedidos planificados

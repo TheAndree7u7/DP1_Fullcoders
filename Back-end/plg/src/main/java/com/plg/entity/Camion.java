@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.plg.utils.Gen;
+import com.plg.utils.Parametros;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -118,8 +119,8 @@ public class Camion extends Nodo {
         capacidadActualGLP -= volumenGLP;
     }
 
-    public void actualizarEstado(int intervaloTiempo, Set<Pedido> pedidosPorAtender, Set<Pedido> pedidosPlanificados,
-            Set<Pedido> pedidosEntregados, LocalDateTime fechaActual) {
+    public void actualizarEstado(Set<Pedido> pedidosPorAtender, Set<Pedido> pedidosPlanificados,
+            Set<Pedido> pedidosEntregados) {
         if (this.gen == null) {
             // Primera vez que se llama no existen pedidos por atender
             return;
@@ -129,7 +130,7 @@ public class Camion extends Nodo {
         // No necesitamos lógica adicional aquí
 
         // Actualizar el nodo en el que se encuentra el camión
-        int cantNodos = (int) (intervaloTiempo * velocidadPromedio / 60);
+        int cantNodos = (int) (Parametros.diferenciaTiempoMinRequest * velocidadPromedio / 60);
         int antiguo = gen.getPosNodo();
         gen.setPosNodo(antiguo + cantNodos);
         int distanciaRecorrida = gen.getPosNodo() - antiguo;

@@ -114,8 +114,8 @@ public class Simulacion {
         List<Camion> camiones = Parametros.dataLoader.camiones;
 
         for (Camion camion : camiones) {
-            camion.actualizarEstado(Parametros.intervaloTiempo, pedidosPorAtender, pedidosPlanificados,
-                    pedidosEntregados, fechaActual);
+            camion.actualizarEstado(pedidosPorAtender, pedidosPlanificados,
+                    pedidosEntregados);
         }
     }
 }

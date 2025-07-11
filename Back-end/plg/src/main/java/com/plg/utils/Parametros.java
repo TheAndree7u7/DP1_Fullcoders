@@ -11,7 +11,8 @@ public class Parametros {
     public static String anho = "2025";
     public static DateTimeFormatter formatoFechaHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     public static LocalDateTime fecha_inicial = LocalDateTime.parse(dia + "/" + mes + "/" + anho + " 00:00", formatoFechaHora);
-    public static int intervaloTiempo = 120; // minutos
+    public static int intervaloTiempo = 30; // minutos
+    public static int diferenciaTiempoMinRequest = 0; // Es la diferencia entre request
     private static Parametros instance;
     public static int contadorPrueba = 0;
     public static double kilometrosRecorridos = 0;
