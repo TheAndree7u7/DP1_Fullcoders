@@ -39,14 +39,4 @@ export const iniciarContadorTiempo = (
   setTiempoRealSimulacion("00:00:00");
   setSimulacionActiva(true);
   console.log("⏱️ CONTADOR: Iniciando contador de tiempo real de simulación...");
-};
-
-/**
- * Función para iniciar el polling para obtener el primer paquete
- * @param {(value: boolean) => void} setPollingActivo - Función para activar el polling
- * @returns {void}
- */
-export const iniciarPollingPrimerPaquete = (setPollingActivo: (value: boolean) => void): void => {
-  console.log("🚀 POLLING: Activando polling para obtener primer paquete...");
-  setPollingActivo(true);
 }; 

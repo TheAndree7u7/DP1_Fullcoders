@@ -16,8 +16,7 @@ export { formatearTiempoTranscurrido, calcularTimestampSimulacion } from './tiem
 export { 
   pausarSimulacion, 
   reanudarSimulacion, 
-  iniciarContadorTiempo, 
-  iniciarPollingPrimerPaquete 
+  iniciarContadorTiempo
 } from './controles';
 
 // Exportar utilidades de estado

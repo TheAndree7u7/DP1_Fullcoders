@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, RotateCcw, Clock, Calendar, Info } from 'lucide-react';
+import { Play, RotateCcw, Clock, Calendar, Info, TestTube } from 'lucide-react';
 import { iniciarSimulacion, obtenerInfoSimulacion } from '../services/simulacionApiService';
 import { useSimulacion } from '../context/SimulacionContext';
 import { reanudarSimulacion as reanudarSimulacionUtil } from '../context/simulacion/utils/controles';
@@ -18,7 +18,14 @@ const ControlSimulacion: React.FC = () => {
   const [mensaje, setMensaje] = useState<string>('');
   const [tipoMensaje, setTipoMensaje] = useState<'success' | 'error' | 'info'>('info');
   const [infoSimulacion, setInfoSimulacion] = useState<InfoSimulacion | null>(null);
-  const { reiniciar, limpiarEstadoParaNuevaSimulacion, iniciarPollingPrimerPaquete, setSimulacionActiva, simulacionActiva } = useSimulacion();
+  const { 
+    reiniciar, 
+    limpiarEstadoParaNuevaSimulacion, 
+    setSimulacionActiva, 
+    simulacionActiva,
+    cargarMejorIndividuoConFecha,
+    fechaHoraSimulacion
+  } = useSimulacion();
 
   // Establecer fecha por defecto (hoy)
   useEffect(() => {
@@ -71,11 +78,7 @@ const ControlSimulacion: React.FC = () => {
       await limpiarEstadoParaNuevaSimulacion();
       console.log("🧹 FRONTEND: Estado limpiado y datos cargados para nueva simulación");
       
-      setMensaje('Iniciando visualización automática...');
-      
-      // Iniciar el polling para obtener el primer paquete automáticamente
-      iniciarPollingPrimerPaquete();
-      console.log("🔄 FRONTEND: Polling iniciado para obtener primer paquete automáticamente");
+      setMensaje('Simulación iniciada exitosamente');
       
       // Actualizar información después de unos segundos para dar tiempo al backend
       setTimeout(async () => {
@@ -150,6 +153,42 @@ const ControlSimulacion: React.FC = () => {
     if (!infoSimulacion) return 'Desconocido';
     if (!infoSimulacion.enProceso) return 'Detenida';
     return simulacionActiva ? 'En Proceso' : 'Pausada';
+  };
+
+  // Función para probar la carga de nueva ruta
+  const probarCargaNuevaRuta = async () => {
+    if (!fechaHoraSimulacion) {
+      setMensaje('No hay fecha de simulación disponible. Inicia una simulación primero.');
+      setTipoMensaje('error');
+      return;
+    }
+
+    setCargando(true);
+    setMensaje('🧪 Probando carga de nueva ruta automática...');
+    setTipoMensaje('info');
+
+    try {
+      // Calcular la próxima fecha (avanzar 2 horas)
+      const fechaActual = new Date(fechaHoraSimulacion);
+      const proximaFecha = new Date(fechaActual.getTime() + 2 * 60 * 60 * 1000); // +2 horas
+      const proximaFechaISO = proximaFecha.toISOString().slice(0, 19); // Formato YYYY-MM-DDTHH:MM:SS
+      
+      setMensaje(`🧪 Solicitando mejor individuo para fecha: ${proximaFechaISO}`);
+      
+      // Solicitar nueva solución
+      await cargarMejorIndividuoConFecha(proximaFechaISO);
+      
+      setMensaje('✅ ¡Prueba exitosa! Nueva ruta cargada en el mapa.');
+      setTipoMensaje('success');
+      
+    } catch (error) {
+      console.error('Error en prueba de carga:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      setMensaje(`❌ Error en prueba: ${errorMessage}`);
+      setTipoMensaje('error');
+    } finally {
+      setCargando(false);
+    }
   };
 
   // Manejador para el cambio de hora que garantiza el formato correcto
@@ -283,6 +322,17 @@ const ControlSimulacion: React.FC = () => {
           <RotateCcw className="w-4 h-4" />
           Reiniciar
         </button>
+        
+        {/* Botón de prueba de nueva ruta */}
+        <button
+          onClick={probarCargaNuevaRuta}
+          disabled={cargando || !fechaHoraSimulacion}
+          className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          title="Probar carga automática de nueva ruta (simula fin de ruta actual)"
+        >
+          <TestTube className="w-4 h-4" />
+          Probar Nueva Ruta
+        </button>
       </div>
 
       {/* Mensaje de estado */}
@@ -301,4 +351,4 @@ const ControlSimulacion: React.FC = () => {
   );
 };
 
-export default ControlSimulacion; 
+export default ControlSimulacion;

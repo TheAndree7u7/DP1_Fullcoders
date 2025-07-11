@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, CheckCircle, AlertTriangle } from 'lucide-react';
 import CargaPedidos from '../components/CargaPedidos';
-import { PedidosLoteResponse } from '../services/pedidosApiService';
+import type { PedidosLoteResponse } from '../services/pedidosApiService';
 import { toast } from 'react-toastify';
 
 const GestionPedidos: React.FC = () => {

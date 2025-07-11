@@ -3,7 +3,7 @@ import { API_URLS } from "../config/api";
 
 export async function getMejorIndividuo(): Promise<Individuo> {
   try {
-    console.log("Iniciando solicitud al servidor...");
+    console.log("Iniciando solicitud al servidor (sin fecha específica)...");
     const response = await fetch(`${API_URLS.MEJOR_INDIVIDUO}`);
     console.log("Respuesta recibida:", {
       status: response.status,
@@ -42,6 +42,57 @@ export async function getMejorIndividuo(): Promise<Individuo> {
     return data as Individuo;
   } catch (error) {
     console.error("Error al obtener el mejor individuo:", error);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene el mejor individuo para una fecha específica
+ * @param fecha - Fecha en formato ISO (YYYY-MM-DDTHH:MM:SS)
+ * @returns Promise con el mejor individuo para esa fecha
+ */
+export async function getMejorIndividuoPorFecha(fecha: string): Promise<Individuo> {
+  try {
+    console.log("🌐 SIMULACION: Solicitando mejor individuo para fecha:", fecha);
+    
+    const url = `${API_URLS.MEJOR_INDIVIDUO}?fecha=${encodeURIComponent(fecha)}`;
+    const response = await fetch(url);
+    
+    console.log("🌐 SIMULACION: Respuesta recibida:", {
+      status: response.status,
+      statusText: response.statusText,
+      url: url
+    });
+    
+    const contentType = response.headers.get("content-type");
+    
+    if (!contentType || !contentType.includes("application/json")) {
+      console.error("❌ SIMULACION: Tipo de contenido inválido:", contentType);
+      throw new Error("La respuesta del servidor no es JSON válido");
+    }
+
+    if (response.status === 204) {
+      console.log("⏳ SIMULACION: No hay datos disponibles para esta fecha (204)");
+      throw new Error("No hay datos disponibles para esta fecha");
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("❌ SIMULACION: Error en la respuesta:", errorData);
+      throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("✅ SIMULACION: Mejor individuo obtenido exitosamente para fecha:", fecha);
+    
+    if (!data) {
+      console.error("❌ SIMULACION: Respuesta vacía");
+      throw new Error("La respuesta está vacía");
+    }
+
+    return data as Individuo;
+  } catch (error) {
+    console.error("❌ SIMULACION: Error al obtener el mejor individuo por fecha:", error);
     throw error;
   }
 }

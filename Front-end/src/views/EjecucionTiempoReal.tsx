@@ -9,7 +9,6 @@ const EjecucionTiempoRealContent: React.FC = () => {
     ejecutando,
     cargando,
     tiempoReal,
-    horaSimulacion,
     tiempoTranscurrido,
     camionesCargados,
     pedidosPendientes,
