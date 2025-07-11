@@ -221,6 +221,8 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
           const nodosAvanzadosEnCiclo = tiempoEnCicloActual * nodosAvanzadosPorSegundo;
           
           const totalNodos = ruta.ruta.length;
+          if (totalNodos <= 1) return camion; // Si solo hay un nodo, no cambiar
+          
           const nuevoIndice = Math.min(Math.floor(nodosAvanzadosEnCiclo), Math.min(24, totalNodos - 1)); // Máximo 24 nodos (índice 0-24)
 
           return {
@@ -269,14 +271,24 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
         }
 
         // Actualizar rutas
-        const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => ({
-          id: gen.camion.codigo,
-          ruta: gen.nodos.map(
-            (n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`,
-          ),
-          puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
-          pedidos: gen.pedidos,
-        }));
+        const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => {
+          // Si el camión no tiene nodos, crear una ruta mínima con su posición actual
+          let ruta: string[];
+          if (gen.nodos.length === 0) {
+            // Usar la posición actual del camión (fila, columna)
+            const posicionActual = `(${gen.camion.columna},${gen.camion.fila})`;
+            ruta = [posicionActual];
+          } else {
+            ruta = gen.nodos.map((n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`);
+          }
+          
+          return {
+            id: gen.camion.codigo,
+            ruta: ruta,
+            puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
+            pedidos: gen.pedidos,
+          };
+        });
         setRutasCamiones(nuevasRutas);
 
         // Actualizar estado de camiones
@@ -302,7 +314,7 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
             const nodosAvanzadosEnCiclo = tiempoEnCicloActual * nodosAvanzadosPorSegundo;
             
             const totalNodos = ruta.ruta.length;
-            if (totalNodos <= 1) return 0;
+            if (totalNodos <= 1) return 0; // Si solo hay un nodo, permanecer en el índice 0
             
             // Retornar el índice del nodo actual (máximo: 24 nodos = índice 0-24)
             return Math.min(Math.floor(nodosAvanzadosEnCiclo), Math.min(24, totalNodos - 1));
