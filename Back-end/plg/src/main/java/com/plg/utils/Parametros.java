@@ -16,12 +16,14 @@ public class Parametros {
     public static DateTimeFormatter formatoFechaHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     public static LocalDateTime fecha_inicial;
     public static LocalDateTime fecha_final;
-    public static int intervaloTiempo = 120; // !minutos
+    public static int intervaloTiempo = 200; // !minutos
     private static Parametros instance;
     public static int contadorPrueba = 0;
     public static double kilometrosRecorridos = 0;
     public static double fitnessGlobal = 0;
     public static long semillaAleatoria = 12345L;
+    public static boolean primera_llamada = true;
+    public static TipoSimulacion tipoSimulacion = TipoSimulacion.SEMANAL;
 
     public static Parametros getInstance() {
         if (instance == null) {
