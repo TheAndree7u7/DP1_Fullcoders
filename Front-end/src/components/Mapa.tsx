@@ -246,7 +246,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
 
   // Memoizar los bloqueos para evitar recalculos innecesarios
   const bloqueosRenderizados = useMemo(() => {
-    return bloqueos && bloqueos.map((bloqueo, idx) => (
+    return bloqueos ? bloqueos.map((bloqueo, idx) => (
       <polyline
         key={`bloqueo-${idx}`}
         fill="none"
@@ -256,15 +256,16 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
         strokeLinejoin="round"
         points={bloqueo.coordenadas.map(coord => `${coord.x * CELL_SIZE},${coord.y * CELL_SIZE}`).join(' ')}
       />
-    ));
+    )) : [];
   }, [bloqueos]);
 
   // Memoizar los pedidos/clientes para evitar recalculos innecesarios
   const clientesRenderizados = useMemo(() => {
     return pedidosPendientes.map(pedido => {
       const esResaltado = elementoResaltado?.tipo === 'pedido' && elementoResaltado?.id === pedido.codigo;
+      const identificadorUnico = `${pedido.codigo}-${pedido.coordenada.x}-${pedido.coordenada.y}`;
       return (
-        <g key={pedido.codigo}>
+        <g key={identificadorUnico}>
           {/* Círculo de resaltado para pedidos */}
           {esResaltado && (
             <circle
@@ -313,9 +314,10 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
   // Memoizar los almacenes para evitar recalculos innecesarios
   const almacenesRenderizados = useMemo(() => {
     return almacenes.map(almacen => {
-      const esResaltado = elementoResaltado?.tipo === 'almacen' && elementoResaltado?.id === almacen.id;
+      const almacenId = almacen.id || `almacen-${almacen.coordenada.x}-${almacen.coordenada.y}`;
+      const esResaltado = elementoResaltado?.tipo === 'almacen' && elementoResaltado?.id === almacenId;
       return (
-        <g key={almacen.id} style={{ cursor: 'pointer' }}>
+        <g key={almacenId} style={{ cursor: 'pointer' }}>
           {/* Círculo de resaltado para almacenes */}
           {esResaltado && (
             <circle
@@ -566,7 +568,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
       rutasCamiones.map((info, idx) => {
         // Filtrar valores undefined o null de la ruta
         const rutaValida = info.ruta.filter(nodo => nodo && typeof nodo === 'string');
-        const rutaCoords = rutaValida.map(parseCoord);
+        const rutaCoords = rutaValida.map(parseCoord).filter(coord => coord && typeof coord.x === 'number' && typeof coord.y === 'number');
         
         // Asegurar que hay al menos una coordenada válida
         if (rutaCoords.length === 0) {
@@ -580,13 +582,20 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
         let currentPos = rutaCoords[0]; // Posición por defecto
         
         if (estadoCamion && estadoCamion.ubicacion && typeof estadoCamion.ubicacion === 'string') {
-          currentPos = parseCoord(estadoCamion.ubicacion);
+          try {
+            const parsedPos = parseCoord(estadoCamion.ubicacion);
+            if (parsedPos && typeof parsedPos.x === 'number' && typeof parsedPos.y === 'number') {
+              currentPos = parsedPos;
+            }
+          } catch (error) {
+            console.warn('🚨 Error al parsear ubicación del camión:', estadoCamion.ubicacion);
+          }
         }
         
         let rotacion = 0;
         
         if (estadoCamion && rutaCoords.length > 1) {
-          const porcentaje = estadoCamion.porcentaje;
+          const porcentaje = estadoCamion.porcentaje || 0;
           const currentIdx = Math.floor(porcentaje);
           
           // Si hay un siguiente nodo en la ruta, calcular dirección hacia él
