@@ -213,12 +213,15 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
           const tiempoTranscurridoMs = ahora.getTime() - inicioEjecucion.getTime();
           const tiempoTranscurridoSegundos = tiempoTranscurridoMs / 1000;
           
+          // Calcular en qué ciclo de 10 segundos estamos
+          const tiempoEnCicloActual = tiempoTranscurridoSegundos % 10;
+          
           // 25 nodos en 10 segundos = 2.5 nodos por segundo
           const nodosAvanzadosPorSegundo = 25 / 10;
-          const nodosAvanzados = tiempoTranscurridoSegundos * nodosAvanzadosPorSegundo;
+          const nodosAvanzadosEnCiclo = tiempoEnCicloActual * nodosAvanzadosPorSegundo;
           
           const totalNodos = ruta.ruta.length;
-          const nuevoIndice = Math.min(Math.floor(nodosAvanzados), totalNodos - 1);
+          const nuevoIndice = Math.min(Math.floor(nodosAvanzadosEnCiclo), Math.min(24, totalNodos - 1)); // Máximo 24 nodos (índice 0-24)
 
           return {
             ...camion,
@@ -226,7 +229,7 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
           };
         });
       });
-    }, 1000); // Actualizar cada segundo para animación suave
+    }, 100); // Actualizar cada 100ms para animación más suave
 
     return () => {
       console.log("🛑 TIEMPO REAL: Deteniendo animación continua de camiones");
@@ -291,19 +294,18 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
             const tiempoTranscurridoMs = ahora.getTime() - inicioEjecucion.getTime();
             const tiempoTranscurridoSegundos = tiempoTranscurridoMs / 1000;
             
-            // Cada 10 segundos reales = 30 minutos simulados
-            // En 30 minutos simulados, deben avanzar 25 nodos
-            // Entonces en 1 segundo real = 25/10 = 2.5 nodos
-            const nodosAvanzadosPorSegundo = 25 / 10; // 2.5 nodos por segundo real
+            // Calcular en qué ciclo de 10 segundos estamos
+            const tiempoEnCicloActual = tiempoTranscurridoSegundos % 10;
+            
+            // 25 nodos en 10 segundos = 2.5 nodos por segundo
+            const nodosAvanzadosPorSegundo = 25 / 10;
+            const nodosAvanzadosEnCiclo = tiempoEnCicloActual * nodosAvanzadosPorSegundo;
             
             const totalNodos = ruta.ruta.length;
             if (totalNodos <= 1) return 0;
             
-            // Calcular cuántos nodos ha avanzado
-            const nodosAvanzados = tiempoTranscurridoSegundos * nodosAvanzadosPorSegundo;
-            
-            // Retornar el índice del nodo actual (máximo: totalNodos - 1)
-            return Math.min(Math.floor(nodosAvanzados), totalNodos - 1);
+            // Retornar el índice del nodo actual (máximo: 24 nodos = índice 0-24)
+            return Math.min(Math.floor(nodosAvanzadosEnCiclo), Math.min(24, totalNodos - 1));
           };
 
           return {
