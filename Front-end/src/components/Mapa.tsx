@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSimulacion } from '../context/SimulacionContext';
-import { useMapaWithSimulacion, useMapaWithTiempoReal, type MapaContextInterface } from '../hooks/useMapaContext';
+import { useMapaWithSimulacion } from '../hooks/useMapaContext';
+import { CONFIGURACION_TIEMPO } from '../config/simulacion';
 import type { Coordenada } from '../types';
 import almacenCentralIcon from '../assets/almacen_central.svg';
 import almacenIntermedioIcon from '../assets/almacen_intermedio.svg';
@@ -11,8 +12,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { 
   parseCoord, 
   calcularRotacion, 
-  getPedidosPendientes,
-  handleAveriar 
+  getPedidosPendientes
 } from './mapa/utils';
 
 interface CamionVisual {
@@ -32,10 +32,6 @@ const SVG_HEIGHT = GRID_HEIGHT * CELL_SIZE;
 // Parametrización del grosor de línea de bloqueos
 const BLOQUEO_STROKE_WIDTH = 4;
 
-
-
-
-
 interface MapaProps {
   elementoResaltado?: {tipo: 'camion' | 'pedido' | 'almacen', id: string} | null;
   contextType?: 'simulacion' | 'tiempo-real';
@@ -44,11 +40,15 @@ interface MapaProps {
 const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacion' }) => {
   const [camionesVisuales, setCamionesVisuales] = useState<CamionVisual[]>([]);
   const [running, setRunning] = useState(false);
-  const [intervalo, setIntervalo] = useState(300);
+  const [intervalo, setIntervalo] = useState(CONFIGURACION_TIEMPO.INTERVALO_ACTUALIZACION_MS); // Usar configuración parametrizable
   const intervalRef = useRef<number | null>(null);
   
-  // Usar el contexto apropiado basado en el tipo
-  const mapaContext = contextType === 'simulacion' ? useMapaWithSimulacion() : useMapaWithTiempoReal();
+  // Siempre usar contexto de simulación por ahora
+  const simulacionMapa = useMapaWithSimulacion();
+  const simulacionContext = useSimulacion();
+  
+  // Usar el contexto de simulación
+  const mapaContext = simulacionMapa;
   
   const { 
     camiones, 
@@ -56,56 +56,34 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
     almacenes, 
     cargando, 
     bloqueos, 
-    horaSimulacion,
-    fechaHoraSimulacion,
     simulacionActiva,
-    onTruckBreakdown,
-    onTimeToggle,
-    contextType: currentContextType
+    onTimeToggle
   } = mapaContext;
   
-  // Mantener acceso al contexto de simulación original para funciones específicas
-  const simulacionContext = contextType === 'simulacion' ? useSimulacion() : null;
-  
   // Extraer funciones específicas de simulación cuando sea necesario
-  const actualizarAlmacenes = simulacionContext?.actualizarAlmacenes;
-  const iniciarContadorTiempo = simulacionContext?.iniciarContadorTiempo;
-  const setSimulacionActiva = simulacionContext?.setSimulacionActiva;
-  const horaActual = simulacionContext?.horaActual;
-  const fechaInicioSimulacion = simulacionContext?.fechaInicioSimulacion;
-  const diaSimulacion = simulacionContext?.diaSimulacion;
-  const tiempoRealSimulacion = simulacionContext?.tiempoRealSimulacion;
-  const tiempoTranscurridoSimulado = simulacionContext?.tiempoTranscurridoSimulado;
-  // Estado para el tooltip (hover)
+  const actualizarAlmacenes = contextType === 'simulacion' ? simulacionContext?.actualizarAlmacenes : undefined;
+  const iniciarContadorTiempo = contextType === 'simulacion' ? simulacionContext?.iniciarContadorTiempo : undefined;
+  
+  // Estados del componente
   const [tooltipCamion, setTooltipCamion] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{x: number, y: number} | null>(null);
-  // Estado para el modal fijo (click)
   const [clickedCamion, setClickedCamion] = useState<string | null>(null);
   const [clickedPos, setClickedPos] = useState<{x: number, y: number} | null>(null);
-  const [averiando, setAveriando] = useState<string | null>(null);
-  // Estado para la leyenda desplegable
   const [leyendaVisible, setLeyendaVisible] = useState(false);
-  // Estados para el modal de almacenes
   const [clickedAlmacen, setClickedAlmacen] = useState<string | null>(null);
   const [clickedAlmacenPos, setClickedAlmacenPos] = useState<{x: number, y: number} | null>(null);
 
-  // DEBUG: Verificar que almacenes llega al componente
-  // console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
-
   const pedidosPendientes = getPedidosPendientes(rutasCamiones, camiones);
-  //console.log('👥 MAPA: Pedidos pendientes (clientes):', pedidosPendientes);
-  //console.log('🚚 MAPA: Estado de camiones:', camiones);
 
+  // Inicializar camiones visuales cuando cambien las rutas
   useEffect(() => {
-    const iniciales = rutasCamiones.map((info, idx) => {
-      // Filtrar valores undefined o null de la ruta
-      const rutaValida = info.ruta.filter(nodo => nodo && typeof nodo === 'string');
+    const iniciales = rutasCamiones.map((info: any, idx: number) => {
+      const rutaValida = info.ruta.filter((nodo: any) => nodo && typeof nodo === 'string');
       const ruta = rutaValida.map(parseCoord);
       
-      // Asegurar que hay al menos una coordenada válida
       if (ruta.length === 0) {
         console.warn('🚨 Ruta vacía para camión:', info.id);
-        ruta.push({ x: 0, y: 0 }); // Coordenada por defecto
+        ruta.push({ x: 0, y: 0 });
       }
       
       return {
@@ -119,10 +97,13 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
     setCamionesVisuales(iniciales);
   }, [rutasCamiones]);
 
+  // Controlar el intervalo de animación
   useEffect(() => {
     if (running && simulacionActiva) {
       intervalRef.current = window.setInterval(() => {
-        onTimeToggle && onTimeToggle();
+        if (onTimeToggle) {
+          onTimeToggle();
+        }
       }, intervalo);
     } else {
       if (intervalRef.current) window.clearInterval(intervalRef.current);
@@ -132,48 +113,48 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
     };
   }, [running, intervalo, onTimeToggle, simulacionActiva]);
 
+  // Actualizar posiciones de camiones cuando cambien sus estados
   useEffect(() => {
-    // Rebuild visuals whenever routes or truck states change
-    setCamionesVisuales(() =>
+    setCamionesVisuales(
       rutasCamiones.map((info, idx) => {
-        // Filtrar valores undefined o null de la ruta
         const rutaValida = info.ruta.filter(nodo => nodo && typeof nodo === 'string');
         const rutaCoords = rutaValida.map(parseCoord);
         
-        // Asegurar que hay al menos una coordenada válida
         if (rutaCoords.length === 0) {
           console.warn('🚨 Ruta vacía para camión:', info.id);
-          rutaCoords.push({ x: 0, y: 0 }); // Coordenada por defecto
+          rutaCoords.push({ x: 0, y: 0 });
         }
         
         const estadoCamion = camiones.find(c => c.id === info.id);
         
-        // Determinar posición actual y dirección
-        let currentPos = rutaCoords[0]; // Posición por defecto
+        // Determinar posición actual
+        let currentPos = rutaCoords[0];
         
         if (estadoCamion && estadoCamion.ubicacion && typeof estadoCamion.ubicacion === 'string') {
-          currentPos = parseCoord(estadoCamion.ubicacion);
+          try {
+            currentPos = parseCoord(estadoCamion.ubicacion);
+          } catch (error) {
+            console.warn('Error parsing location:', estadoCamion.ubicacion, error);
+          }
         }
         
+        // Calcular rotación basada en el movimiento
         let rotacion = 0;
-        
         if (estadoCamion && rutaCoords.length > 1) {
-          const porcentaje = estadoCamion.porcentaje;
+          const porcentaje = estadoCamion.porcentaje || 0;
           const currentIdx = Math.floor(porcentaje);
           
-          // Si hay un siguiente nodo en la ruta, calcular dirección hacia él
           if (currentIdx + 1 < rutaCoords.length) {
             const nextPos = rutaCoords[currentIdx + 1];
             rotacion = calcularRotacion(currentPos, nextPos);
           } else if (currentIdx > 0) {
-            // Si estamos en el último nodo, usar la dirección del último movimiento
             const prevPos = rutaCoords[currentIdx - 1];
             rotacion = calcularRotacion(prevPos, currentPos);
           }
         }
         
-        // Compute remaining path
-        const porcentaje = estadoCamion ? estadoCamion.porcentaje : 0;
+        // Calcular ruta restante
+        const porcentaje = estadoCamion ? estadoCamion.porcentaje || 0 : 0;
         const idxRest = Math.ceil(porcentaje);
         const rutaRestante = rutaCoords.slice(idxRest);
         
@@ -188,10 +169,16 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
     );
   }, [camiones, rutasCamiones]);
 
-  // Función handleAveriar movida a mapa/utils/averias.ts
-
   if (cargando) {
-    return <p>Cargando simulación...</p>;
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-lg font-semibold text-gray-700">Cargando nueva solución...</p>
+          <p className="text-sm text-gray-500">Los camiones iniciarán sus rutas en breve</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -209,25 +196,18 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
           
           {leyendaVisible && (
             <div className="space-y-1.5">
-              {/* Almacén Central */}
               <div className="flex items-center gap-1.5">
                 <img src={almacenCentralIcon} alt="Almacén Central" className="w-4 h-4" />
                 <span className="text-xs text-gray-700">A. Central</span>
               </div>
-              
-              {/* Almacén Intermedio */}
               <div className="flex items-center gap-1.5">
                 <img src={almacenIntermedioIcon} alt="Almacén Intermedio" className="w-4 h-4" />
                 <span className="text-xs text-gray-700">A. Intermedio</span>
               </div>
-              
-              {/* Cliente */}
               <div className="flex items-center gap-1.5">
                 <img src={clienteIcon} alt="Cliente" className="w-4 h-4" />
                 <span className="text-xs text-gray-700">Cliente</span>
               </div>
-              
-              {/* Camión */}
               <div className="flex items-center gap-1.5">
                 <svg width="16" height="12" viewBox="0 0 16 12" className="border border-gray-300 rounded">
                   <rect x="2" y="4" width="10" height="4" rx="0.5" fill="#3b82f6" stroke="black" strokeWidth="0.3" />
@@ -239,20 +219,14 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
                 </svg>
                 <span className="text-xs text-gray-700">Camión</span>
               </div>
-              
-              {/* Ruta */}
               <div className="flex items-center gap-1.5">
                 <div className="w-4 h-0.5 border-t border-dashed border-blue-500"></div>
                 <span className="text-xs text-gray-700">Ruta</span>
               </div>
-              
-              {/* Bloqueos */}
               <div className="flex items-center gap-1.5">
                 <div className="w-4 h-0.5 bg-red-600 rounded-full"></div>
                 <span className="text-xs text-gray-700">Bloqueos</span>
               </div>
-              
-              {/* Estados de camiones */}
               <div className="pt-1 border-t border-gray-200">
                 <div className="text-xs font-medium text-gray-600 mb-1">Estados:</div>
                 <div className="space-y-1">
@@ -322,17 +296,15 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
                 strokeWidth={BLOQUEO_STROKE_WIDTH}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                points={bloqueo.coordenadas.map(coord => `${coord.x * CELL_SIZE},${coord.y * CELL_SIZE}`).join(' ')}
+                points={bloqueo.coordenadas.map((coord: Coordenada) => `${coord.x * CELL_SIZE},${coord.y * CELL_SIZE}`).join(' ')}
               />
             ))}
 
             {/* Clientes/Pedidos */}
             {pedidosPendientes.map(pedido => {
-              //console.log('👤 MAPA: Renderizando cliente:', pedido.codigo, 'en posición:', pedido.coordenada);
               const esResaltado = elementoResaltado?.tipo === 'pedido' && elementoResaltado?.id === pedido.codigo;
               return (
                 <g key={pedido.codigo}>
-                  {/* Círculo de resaltado para pedidos */}
                   {esResaltado && (
                     <circle
                       cx={pedido.coordenada.x * CELL_SIZE}
@@ -378,11 +350,9 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
 
             {/* Almacenes */}
             {almacenes.map(almacen => {
-              // console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
               const esResaltado = elementoResaltado?.tipo === 'almacen' && elementoResaltado?.id === almacen.id;
               return (
                 <g key={almacen.id} style={{ cursor: 'pointer' }}>
-                  {/* Círculo de resaltado para almacenes */}
                   {esResaltado && (
                     <circle
                       cx={almacen.coordenada.x * CELL_SIZE}
@@ -419,8 +389,9 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
                       if (!clickedAlmacen) {
                         setClickedAlmacen(almacen.id);
                         setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
-                        // Actualizar información de almacenes para tener datos frescos
-                        actualizarAlmacenes();
+                        if (actualizarAlmacenes) {
+                          actualizarAlmacenes();
+                        }
                       }
                     }}
                   />
@@ -437,8 +408,9 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
                       if (!clickedAlmacen) {
                         setClickedAlmacen(almacen.id);
                         setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
-                        // Actualizar información de almacenes para tener datos frescos
-                        actualizarAlmacenes();
+                        if (actualizarAlmacenes) {
+                          actualizarAlmacenes();
+                        }
                       }
                     }}
                   >
@@ -453,7 +425,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
               .filter(camion => {
                 const estadoCamion = camiones.find(c => c.id === camion.id);
                 return estadoCamion?.estado !== 'Entregado' && 
-                       estadoCamion?.estado !== 'Averiado' && 
                        camion.ruta.length > 1;
               })
               .map(camion => (
@@ -472,21 +443,28 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
               .filter(camion => camiones.find(c => c.id === camion.id)?.estado !== 'Entregado')
               .map(camion => {
                  const estadoCamion = camiones.find(c => c.id === camion.id);
-                 const esAveriado = estadoCamion?.estado === 'Averiado';
-                 const esEnMantenimiento = estadoCamion?.estado === 'En Mantenimiento';
+                 const esAveriado = estadoCamion?.estado?.includes('Averiado') || false;
+                 const esEnMantenimiento = estadoCamion?.estado?.includes('Mantenimiento') || false;
                  const esResaltado = elementoResaltado?.tipo === 'camion' && elementoResaltado?.id === camion.id;
                  const { posicion, rotacion, color } = camion;
-                 // Rojo para averiados, negro para mantenimiento, color original para otros estados
-                 const colorFinal = esAveriado ? ESTADO_COLORS.AVERIADO : esEnMantenimiento ? ESTADO_COLORS.MANTENIMIENTO : color;
+                 
+                 // Determinar color basado en estado
+                 const colorFinal = esAveriado ? ESTADO_COLORS.AVERIADO : 
+                                   esEnMantenimiento ? ESTADO_COLORS.MANTENIMIENTO : 
+                                   color;
+                 
                  const cx = posicion.x * CELL_SIZE;
                  const cy = posicion.y * CELL_SIZE;
+                 
                  return (
                    <g key={camion.id}>
                      <g
                        transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
-                       style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}
+                       style={{ 
+                         transition: 'transform 0.8s ease-in-out', 
+                         cursor: 'pointer' 
+                       }}
                        onMouseEnter={evt => {
-                         // Solo mostrar tooltip si no hay modal activo
                          if (!clickedCamion) {
                            setTooltipCamion(camion.id);
                            setTooltipPos({ x: evt.clientX, y: evt.clientY });
@@ -501,19 +479,15 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
                          setTooltipCamion(null);
                        }}
                        onClick={evt => {
-                         // Solo abrir el modal si no hay otro modal ya abierto
                          if (!clickedCamion) {
                            setClickedCamion(camion.id);
                            setClickedPos({ x: evt.clientX, y: evt.clientY });
-                           // Ocultar el tooltip de hover
                            setTooltipCamion(null);
                          }
                        }}
                      >
-                       {/* Círculo de resaltado que se mueve con el camión */}
                        {esResaltado && (
                          <circle
-                           key={`resaltado-${camion.id}`}
                            cx={0}
                            cy={0}
                            r={25}
@@ -522,7 +496,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
                            strokeWidth={3}
                            strokeDasharray="8 4"
                            opacity={0.9}
-                           style={{ transition: 'all 0.8s linear' }}
                          >
                            <animateTransform
                              attributeName="transform"
@@ -540,32 +513,17 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
                          </circle>
                        )}
                        
-                       {/* Cuerpo principal del camión */}
-                       <rect key={`cuerpo-${camion.id}`} x={-8} y={-3} width={16} height={6} rx={1} fill={colorFinal} stroke="black" strokeWidth={0.5} />
-                       
-                       {/* Cabina del camión (frente) */}
-                       <rect key={`cabina-${camion.id}`} x={6} y={-2} width={4} height={4} rx={0.5} fill={colorFinal} stroke="black" strokeWidth={0.5} />
-                       
-                       {/* Ruedas */}
-                       <circle key={`rueda1-${camion.id}`} cx={-5} cy={4} r={1.5} fill="black" />
-                       <circle key={`rueda2-${camion.id}`} cx={2} cy={4} r={1.5} fill="black" />
-                       <circle key={`rueda3-${camion.id}`} cx={7} cy={4} r={1.5} fill="black" />
-                       
-                       {/* Indicador de dirección (flecha) */}
-                       <polygon 
-                         key={`flecha-${camion.id}`}
-                         points="10,0 8,-1.5 8,1.5" 
-                         fill="white" 
-                         stroke="black" 
-                         strokeWidth={0.3}
-                       />
-                       
-                       {/* Líneas de detalle del camión */}
-                       <line key={`linea1-${camion.id}`} x1={-6} y1={-1} x2={4} y2={-1} stroke="black" strokeWidth={0.3} opacity={0.6} />
-                       <line key={`linea2-${camion.id}`} x1={-6} y1={1} x2={4} y2={1} stroke="black" strokeWidth={0.3} opacity={0.6} />
+                       <rect x={-8} y={-3} width={16} height={6} rx={1} fill={colorFinal} stroke="black" strokeWidth={0.5} />
+                       <rect x={6} y={-2} width={4} height={4} rx={0.5} fill={colorFinal} stroke="black" strokeWidth={0.5} />
+                       <circle cx={-5} cy={4} r={1.5} fill="black" />
+                       <circle cx={2} cy={4} r={1.5} fill="black" />
+                       <circle cx={7} cy={4} r={1.5} fill="black" />
+                       <polygon points="10,0 8,-1.5 8,1.5" fill="white" stroke="black" strokeWidth={0.3} />
+                       <line x1={-6} y1={-1} x2={4} y2={-1} stroke="black" strokeWidth={0.3} opacity={0.6} />
+                       <line x1={-6} y1={1} x2={4} y2={1} stroke="black" strokeWidth={0.3} opacity={0.6} />
                        
                        {esAveriado && (
-                         <text key={`averia-${camion.id}`} x={0} y={-10} textAnchor="middle" fontSize="8" fill="#dc2626" fontWeight="bold">
+                         <text x={0} y={-10} textAnchor="middle" fontSize="8" fill="#dc2626" fontWeight="bold">
                            💥
                          </text>
                        )}
@@ -604,16 +562,10 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
                 <div className="text-xs mb-2">
                   Estado: {camion.estado}<br />
                   Pedidos asignados: {numPedidos}<br />
-                  Capacidad GLP: {camion.capacidadActualGLP.toFixed(2)} / {camion.capacidadMaximaGLP}<br />
-                  Combustible: {camion.combustibleActual.toFixed(2)} / {camion.combustibleMaximo}<br />
-                  Distancia máxima: {camion.distanciaMaxima.toFixed(2)} km<br />
-                  Peso carga: {camion.pesoCarga.toFixed(2)}<br />
-                  Peso combinado: {camion.pesoCombinado.toFixed(2)}<br />
-                  Tara: {camion.tara}<br />
-                  Tipo: {camion.tipo}<br />
-                  Velocidad: {camion.velocidadPromedio} km/h<br />
+                  Capacidad GLP: {camion.capacidadActualGLP?.toFixed(2) || 'N/A'} / {camion.capacidadMaximaGLP || 'N/A'}<br />
+                  Combustible: {camion.combustibleActual?.toFixed(2) || 'N/A'} / {camion.combustibleMaximo || 'N/A'}<br />
                   Ubicación: {camion.ubicacion}<br />
-                  Progreso: {camion.porcentaje}
+                  Progreso: {camion.porcentaje || 0}%
                 </div>
               )}
             </div>
@@ -627,7 +579,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
           const camion = camiones.find(c => c.id === clickedCamion);
           const ruta = rutasCamiones.find(r => r.id === clickedCamion);
           const numPedidos = ruta?.pedidos?.length || 0;
-          const esAveriado = camion?.estado === 'Averiado';
+          const esAveriado = camion?.estado?.includes('Averiado') || false;
           
           return (
             <div
@@ -648,16 +600,10 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
                 <div className="text-xs mb-2">
                   Estado: {camion.estado}<br />
                   Pedidos asignados: {numPedidos}<br />
-                  Capacidad GLP: {camion.capacidadActualGLP.toFixed(2)} / {camion.capacidadMaximaGLP}<br />
-                  Combustible: {camion.combustibleActual.toFixed(2)} / {camion.combustibleMaximo}<br />
-                  Distancia máxima: {camion.distanciaMaxima.toFixed(2)} km<br />
-                  Peso carga: {camion.pesoCarga.toFixed(2)}<br />
-                  Peso combinado: {camion.pesoCombinado.toFixed(2)}<br />
-                  Tara: {camion.tara}<br />
-                  Tipo: {camion.tipo}<br />
-                  Velocidad: {camion.velocidadPromedio} km/h<br />
+                  Capacidad GLP: {camion.capacidadActualGLP?.toFixed(2) || 'N/A'} / {camion.capacidadMaximaGLP || 'N/A'}<br />
+                  Combustible: {camion.combustibleActual?.toFixed(2) || 'N/A'} / {camion.combustibleMaximo || 'N/A'}<br />
                   Ubicación: {camion.ubicacion}<br />
-                  Progreso: {camion.porcentaje}
+                  Progreso: {camion.porcentaje || 0}%
                 </div>
               )}
               {esAveriado ? (
@@ -667,68 +613,37 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
               ) : (
                 <div className="flex flex-col gap-2">
                   <button
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded disabled:opacity-50"
-                    disabled={averiando === clickedCamion + '-1'}
-                    onClick={() => handleAveriar(clickedCamion, 1, onTruckBreakdown, setAveriando, setClickedCamion, setSimulacionActiva, {
-                      horaActual,
-                      horaSimulacion,
-                      fechaHoraSimulacion,
-                      fechaInicioSimulacion,
-                      diaSimulacion,
-                      tiempoRealSimulacion,
-                      tiempoTranscurridoSimulado,
-                      camiones,
-                      rutasCamiones,
-                      almacenes,
-                      bloqueos
-                    })}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
+                    onClick={() => {
+                      console.log('Avería leve simulada');
+                      setClickedCamion(null);
+                    }}
                   >
-                    {averiando === clickedCamion + '-1' ? 'Averiando...' : 'Avería tipo 1'}
+                    Avería leve
                   </button>
                   <button
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded disabled:opacity-50"
-                    disabled={averiando === clickedCamion + '-2'}
-                    onClick={() => handleAveriar(clickedCamion, 2, onTruckBreakdown, setAveriando, setClickedCamion, setSimulacionActiva, {
-                      horaActual,
-                      horaSimulacion,
-                      fechaHoraSimulacion,
-                      fechaInicioSimulacion,
-                      diaSimulacion,
-                      tiempoRealSimulacion,
-                      tiempoTranscurridoSimulado,
-                      camiones,
-                      rutasCamiones,
-                      almacenes,
-                      bloqueos
-                    })}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded"
+                    onClick={() => {
+                      console.log('Avería moderada simulada');
+                      setClickedCamion(null);
+                    }}
                   >
-                    {averiando === clickedCamion + '-2' ? 'Averiando...' : 'Avería tipo 2'}
+                    Avería moderada
                   </button>
                   <button
-                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded disabled:opacity-50"
-                    disabled={averiando === clickedCamion + '-3'}
-                    onClick={() => handleAveriar(clickedCamion, 3, onTruckBreakdown, setAveriando, setClickedCamion, setSimulacionActiva, {
-                      horaActual,
-                      horaSimulacion,
-                      fechaHoraSimulacion,
-                      fechaInicioSimulacion,
-                      diaSimulacion,
-                      tiempoRealSimulacion,
-                      tiempoTranscurridoSimulado,
-                      camiones,
-                      rutasCamiones,
-                      almacenes,
-                      bloqueos
-                    })}
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                    onClick={() => {
+                      console.log('Avería grave simulada');
+                      setClickedCamion(null);
+                    }}
                   >
-                    {averiando === clickedCamion + '-3' ? 'Averiando...' : 'Avería tipo 3'}
+                    Avería grave
                   </button>
                 </div>
               )}
               <button
                 className="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded w-full"
                 onClick={() => {
-                  // Aquí se activa el menú inferior para mostrar la ruta
                   const event = new CustomEvent('mostrarRutaCamion', { detail: { camionId: clickedCamion } });
                   window.dispatchEvent(event);
                   setClickedCamion(null);
@@ -758,7 +673,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
             ? (almacen.capacidadActualGLP / almacen.capacidadMaximaGLP) * 100 
             : 0;
 
-          // Calcular posición del modal para que se vea completo
           const modalWidth = 280;
           const modalHeight = 180;
           const viewportWidth = window.innerWidth;
@@ -767,15 +681,12 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
           let modalLeft = clickedAlmacenPos.x + 10;
           let modalTop = clickedAlmacenPos.y + 10;
           
-          // Ajustar horizontalmente si se sale de la pantalla
           if (modalLeft + modalWidth > viewportWidth) {
             modalLeft = clickedAlmacenPos.x - modalWidth - 10;
           }
           
-          // Ajustar verticalmente si se sale de la pantalla
           if (modalTop + modalHeight > viewportHeight) {
             modalTop = clickedAlmacenPos.y - modalHeight - 10;
-            // Si aún se sale por arriba, centrarlo verticalmente respecto al click
             if (modalTop < 0) {
               modalTop = Math.max(10, clickedAlmacenPos.y - modalHeight / 2);
             }
@@ -792,7 +703,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header */}
               <div className="p-3 bg-blue-600 text-white">
                 <div className="font-bold text-sm">{almacen.nombre}</div>
                 <div className="text-xs opacity-90">
@@ -800,9 +710,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
                 </div>
               </div>
               
-              {/* Content */}
               <div className="p-3">
-                {/* Estado */}
                 <div className="mb-3 text-center">
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                     almacen.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -811,7 +719,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
                   </span>
                 </div>
                 
-                {/* GLP Info */}
                 <div className="mb-3">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-xs font-medium text-gray-700">Gas Licuado (GLP)</span>
@@ -828,7 +735,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
                   </div>
                 </div>
 
-                {/* Info adicional para almacenes secundarios */}
                 {almacen.tipo === 'INTERMEDIO' && (
                   <div className="mb-3 p-2 bg-green-50 rounded text-center">
                     <div className="text-xs text-green-700">
@@ -838,7 +744,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
                 )}
               </div>
 
-              {/* Footer */}
               <div className="p-2 bg-gray-50 border-t">
                 <button
                   className="w-full bg-gray-500 hover:bg-gray-600 text-white py-1 px-3 rounded text-xs transition-colors"
@@ -853,12 +758,13 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
       )}
 
       {/* Controles del mapa */}
-      <div className="flex items-center gap-4 mt-2 justify-center">
+      <div className="flex items-center gap-4 mt-2 justify-center flex-wrap">
         <button
           onClick={() => {
             if (!running) {
-              // Solo iniciar el contador cuando se presiona "Iniciar" por primera vez
-              iniciarContadorTiempo();
+              if (iniciarContadorTiempo) {
+                iniciarContadorTiempo();
+              }
             }
             setRunning(prev => !prev);
           }}
@@ -875,18 +781,73 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
               : 'Iniciar'
           }
         </button>
+        
         <label className="flex items-center gap-1 text-sm">
           Velocidad:
-          <input
-            type="number"
-            min={100}
-            step={100}
+          <select
             value={intervalo}
             onChange={e => setIntervalo(parseInt(e.target.value))}
-            className="border rounded px-2 py-0.5 w-20"
-          />
-          ms
+            className="border rounded px-2 py-0.5"
+          >
+            <option value={CONFIGURACION_TIEMPO.VELOCIDAD_ANIMACION.RAPIDA}>Rápida</option>
+            <option value={CONFIGURACION_TIEMPO.VELOCIDAD_ANIMACION.NORMAL}>Normal</option>
+            <option value={CONFIGURACION_TIEMPO.VELOCIDAD_ANIMACION.LENTA}>Lenta</option>
+          </select>
         </label>
+        
+        <label className="flex items-center gap-1 text-sm">
+          Duración paquete:
+          <select
+            value={CONFIGURACION_TIEMPO.DURACION_PAQUETE_MINUTOS}
+            onChange={e => {
+              const nuevaDuracion = parseInt(e.target.value);
+              CONFIGURACION_TIEMPO.DURACION_PAQUETE_MINUTOS = nuevaDuracion;
+              console.log(`Duración de paquete actualizada a ${nuevaDuracion} minutos`);
+            }}
+            className="border rounded px-2 py-0.5"
+          >
+            <option value={60}>1 hora</option>
+            <option value={120}>2 horas</option>
+            <option value={180}>3 horas</option>
+            <option value={240}>4 horas</option>
+          </select>
+        </label>
+        
+        <div className="text-xs text-gray-600">
+          {intervalo >= 2000 ? 'Lento' : intervalo >= 1000 ? 'Normal' : 'Rápido'} | 
+          Paquete: {CONFIGURACION_TIEMPO.DURACION_PAQUETE_MINUTOS}min
+        </div>
+        
+        {/* Indicador de estado */}
+        {running && (() => {
+          const todosEntregados = camiones.every(camion => 
+            camion.estado === "Entregado" || camion.estado === "Disponible"
+          );
+          
+          if (todosEntregados && camiones.length > 0) {
+            return (
+              <div className="flex items-center gap-1 text-sm text-green-600">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span>Rutas completadas - Cargando nueva solución...</span>
+              </div>
+            );
+          }
+          
+          const camionesEnRuta = camiones.filter(camion => 
+            camion.estado === "En Camino"
+          ).length;
+          
+          if (camionesEnRuta > 0) {
+            return (
+              <div className="flex items-center gap-1 text-sm text-blue-600">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span>{camionesEnRuta} camiones en ruta</span>
+              </div>
+            );
+          }
+          
+          return null;
+        })()}
       </div>
     </div>
   );

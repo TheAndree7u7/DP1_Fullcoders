@@ -12,6 +12,7 @@ import {
   reiniciarSimulacion,
 } from "../services/simulacionApiService";
 import { getAlmacenes } from "../services/almacenApiService";
+import { CONFIGURACION_TIEMPO } from "../config/simulacion";
 import type {
   Pedido,
   Individuo,
@@ -240,16 +241,16 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       );
 
       const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
-        const anterior = camiones.find((c) => c.id === ruta.id);
         const gen = data.cromosoma.find(
           (g: Gen) => g.camion.codigo === ruta.id,
         );
         const camion = gen?.camion;
-        const ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
+        // Siempre empezar desde el inicio de la ruta para nueva solución
+        const ubicacion = ruta.ruta[0];
         return {
           id: ruta.id,
           ubicacion,
-          porcentaje: 0,
+          porcentaje: 0, // Siempre empezar desde 0
           estado: camion?.estado === "DISPONIBLE" ? "Disponible" : "En Camino",
           capacidadActualGLP: camion?.capacidadActualGLP ?? 0,
           capacidadMaximaGLP: camion?.capacidadMaximaGLP ?? 0,
@@ -298,7 +299,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       );
       throw error;
     }
-  }, [camiones, fechaInicioSimulacion]);
+  }, [fechaInicioSimulacion]);
 
   // Cargar almacenes al inicio con reintentos
   useEffect(() => {
@@ -876,22 +877,25 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       );
       
       if (todosEntregados && fechaHoraSimulacion) {
-        console.log("🏁 RUTA_COMPLETA: Todos los camiones terminaron sus rutas, solicitando nueva solución...");
+        console.log("🏁 RUTA_COMPLETA: Todos los camiones terminaron sus rutas, esperando antes de solicitar nueva solución...");
         
-        // Calcular la próxima fecha (avanzar 2 horas)
-        const fechaActual = new Date(fechaHoraSimulacion);
-        const proximaFecha = new Date(fechaActual.getTime() + 2 * 60 * 60 * 1000); // +2 horas
-        const proximaFechaISO = proximaFecha.toISOString().slice(0, 19); // Formato YYYY-MM-DDTHH:MM:SS
-        
-        console.log("📅 RUTA_COMPLETA: Solicitando mejor individuo para fecha:", proximaFechaISO);
-        
-        // Solicitar nueva solución automáticamente
-        try {
-          await cargarMejorIndividuoConFecha(proximaFechaISO);
-          console.log("✅ RUTA_COMPLETA: Nueva solución cargada exitosamente");
-        } catch (error) {
-          console.error("❌ RUTA_COMPLETA: Error al cargar nueva solución:", error);
-        }
+        // Esperar 2 segundos antes de solicitar nueva solución
+        setTimeout(async () => {
+          // Calcular la próxima fecha (avanzar 2 horas)
+          const fechaActual = new Date(fechaHoraSimulacion);
+          const proximaFecha = new Date(fechaActual.getTime() + 2 * 60 * 60 * 1000); // +2 horas
+          const proximaFechaISO = proximaFecha.toISOString().slice(0, 19); // Formato YYYY-MM-DDTHH:MM:SS
+          
+          console.log("📅 RUTA_COMPLETA: Solicitando mejor individuo para fecha:", proximaFechaISO);
+          
+          // Solicitar nueva solución automáticamente
+          try {
+            await cargarMejorIndividuoConFecha(proximaFechaISO);
+            console.log("✅ RUTA_COMPLETA: Nueva solución cargada exitosamente");
+          } catch (error) {
+            console.error("❌ RUTA_COMPLETA: Error al cargar nueva solución:", error);
+          }
+        }, 2000);
       }
     }
   };
@@ -1102,21 +1106,26 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     // Si todos los camiones terminaron, cargar nueva ruta automáticamente
     if (camionesTerminados.length === camiones.length && camiones.length > 0) {
       console.log("🏁 RUTA_COMPLETADA: Todos los camiones terminaron sus rutas");
-      console.log("🕐 RUTA_COMPLETADA: Cargando automáticamente nueva ruta para la siguiente fecha");
+      console.log("🕐 RUTA_COMPLETADA: Esperando 3 segundos antes de cargar nueva ruta...");
       
-      // Calcular la próxima fecha (avanzar 2 horas)
-      const fechaActual = new Date(fechaHoraSimulacion);
-      const proximaFecha = new Date(fechaActual.getTime() + 2 * 60 * 60 * 1000); // +2 horas
-      const proximaFechaISO = proximaFecha.toISOString().slice(0, 19); // Formato YYYY-MM-DDTHH:MM:SS
-      
-      // Cargar nueva ruta automáticamente
-      cargarMejorIndividuoConFecha(proximaFechaISO)
-        .then(() => {
-          console.log("✅ RUTA_COMPLETADA: Nueva ruta cargada automáticamente");
-        })
-        .catch((error) => {
-          console.error("❌ RUTA_COMPLETADA: Error al cargar nueva ruta:", error);
-        });
+      // Esperar 3 segundos para dar tiempo a ver el estado final
+      setTimeout(() => {
+        // Calcular la próxima fecha (avanzar 2 horas)
+        const fechaActual = new Date(fechaHoraSimulacion);
+        const proximaFecha = new Date(fechaActual.getTime() + 2 * 60 * 60 * 1000); // +2 horas
+        const proximaFechaISO = proximaFecha.toISOString().slice(0, 19); // Formato YYYY-MM-DDTHH:MM:SS
+        
+        console.log("📅 RUTA_COMPLETADA: Cargando nueva ruta para fecha:", proximaFechaISO);
+        
+        // Cargar nueva ruta automáticamente
+        cargarMejorIndividuoConFecha(proximaFechaISO)
+          .then(() => {
+            console.log("✅ RUTA_COMPLETADA: Nueva ruta cargada automáticamente");
+          })
+          .catch((error) => {
+            console.error("❌ RUTA_COMPLETADA: Error al cargar nueva ruta:", error);
+          });
+      }, 3000);
     }
   }, [camiones, simulacionActiva, fechaHoraSimulacion, cargarMejorIndividuoConFecha]);
 

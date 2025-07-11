@@ -1,6 +1,7 @@
 import { useSimulacion } from '../context/SimulacionContext';
 import { useTiempoReal } from '../context/TiempoRealContext';
-import type { CamionEstado, RutaCamion, Almacen, Bloqueo } from '../types';
+import type { RutaCamion, Almacen } from '../types';
+import type { CamionEstado, Bloqueo } from '../context/SimulacionContext';
 
 export interface MapaContextInterface {
   // Datos principales
@@ -77,7 +78,7 @@ export const useMapaWithTiempoReal = (): MapaContextInterface => {
   };
 
   return {
-    camiones,
+    camiones: camiones as unknown as CamionEstado[],
     rutasCamiones,
     almacenes,
     bloqueos,
@@ -95,9 +96,8 @@ export const useMapaWithTiempoReal = (): MapaContextInterface => {
 };
 
 export const useMapaContext = (contextType: 'simulacion' | 'tiempo-real'): MapaContextInterface => {
-  if (contextType === 'simulacion') {
-    return useMapaWithSimulacion();
-  } else {
-    return useMapaWithTiempoReal();
-  }
+  const simulacionMap = useMapaWithSimulacion();
+  
+  // Por ahora, siempre usar simulacion hasta que se configure tiempo-real correctamente
+  return simulacionMap;
 };
