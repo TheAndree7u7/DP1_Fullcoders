@@ -25,15 +25,15 @@ public class MantenimientoManager {
             return;
         }
 
-        System.out.println("🔧 Verificando mantenimientos programados para: " + fechaActual.toLocalDate()
-                + " - INICIO DEL DÍA");
+        // System.out.println("🔧 Verificando mantenimientos programados para: " + fechaActual.toLocalDate()
+        //         + " - INICIO DEL DÍA");
 
         if (camiones == null) {
-            System.out.println("[LOG] La lista de camiones es NULL");
+            // System.out.println("[LOG] La lista de camiones es NULL");
             return;
         }
         if (camiones.isEmpty()) {
-            System.out.println("[LOG] La lista de camiones está VACÍA");
+            // System.out.println("[LOG] La lista de camiones está VACÍA");
         }
 
         int dia = fechaActual.getDayOfMonth();
@@ -41,7 +41,7 @@ public class MantenimientoManager {
 
         for (Camion camion : camiones) {
             if (camion == null) {
-                System.out.println("[LOG] Camión NULL encontrado en la lista");
+                // System.out.println("[LOG] Camión NULL encontrado en la lista");
                 continue;
             }
 
@@ -49,12 +49,12 @@ public class MantenimientoManager {
 
             if (tieneMantenimiento) {
                 camion.setEstado(com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO);
-                System.out.println("   • Camión " + camion.getCodigo() + " → EN MANTENIMIENTO");
+                // System.out.println("   • Camión " + camion.getCodigo() + " → EN MANTENIMIENTO");
             } else {
                 if (camion.getEstado() == com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO) {
                     camion.setEstado(com.plg.entity.EstadoCamion.DISPONIBLE);
-                    System.out.println(
-                            "   • Camión " + camion.getCodigo() + " → DISPONIBLE (fin mantenimiento)");
+                    // System.out.println(
+                    //         "   • Camión " + camion.getCodigo() + " → DISPONIBLE (fin mantenimiento)");
                 }
             }
         }
@@ -67,12 +67,12 @@ public class MantenimientoManager {
     private static boolean tieneMantenimientoProgramado(Camion camion, int dia, int mes) {
         try {
             if (camion == null) {
-                System.out.println("[LOG] tieneMantenimientoProgramado: Camión es NULL");
+                // System.out.println("[LOG] tieneMantenimientoProgramado: Camión es NULL");
                 return false;
             }
 
             // Buscar el primer mantenimiento registrado para este camión
-            return com.plg.config.DataLoader.mantenimientos.stream()
+            return com.plg.utils.Parametros.dataLoader.mantenimientos.stream()
                     .filter(m -> m.getCamion() != null && m.getCamion().getCodigo().equals(camion.getCodigo()))
                     .findFirst()
                     .map(primerMantenimiento -> {
@@ -88,8 +88,8 @@ public class MantenimientoManager {
                     })
                     .orElse(false);
         } catch (Exception e) {
-            System.err.println("Error verificando mantenimiento para "
-                    + (camion != null ? camion.getCodigo() : "null") + ": " + e.getMessage());
+            // System.err.println("Error verificando mantenimiento para "
+            //         + (camion != null ? camion.getCodigo() : "null") + ": " + e.getMessage());
             return false;
         }
     }

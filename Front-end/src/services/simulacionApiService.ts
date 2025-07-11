@@ -1,10 +1,20 @@
 import type { Individuo } from "../types";
 import { API_URLS } from "../config/api";
 
-export async function getMejorIndividuo(): Promise<Individuo> {
+export async function getMejorIndividuo(fecha?: string): Promise<Individuo> {
   try {
     console.log("Iniciando solicitud al servidor...");
-    const response = await fetch(`${API_URLS.MEJOR_INDIVIDUO}`);
+    
+    // Construir la URL con el parámetro de fecha si se proporciona
+    let url = `${API_URLS.MEJOR_INDIVIDUO}`;
+    if (fecha) {
+      url += `?fecha=${encodeURIComponent(fecha)}`;
+      console.log("Solicitando paquete para fecha:", fecha);
+    } else {
+      console.log("Solicitando paquete sin fecha específica");
+    }
+    
+    const response = await fetch(url);
     console.log("Respuesta recibida:", {
       status: response.status,
       statusText: response.statusText,

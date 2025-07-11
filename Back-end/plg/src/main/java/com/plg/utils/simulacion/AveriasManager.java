@@ -3,7 +3,7 @@ package com.plg.utils.simulacion;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.plg.config.DataLoader;
+import com.plg.utils.Parametros;
 import com.plg.entity.Averia;
 import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
@@ -11,14 +11,12 @@ import com.plg.entity.EstadoCamion;
 import com.plg.entity.Pedido;
 
 /**
- * Maneja la actualización de estados de camiones en función de averías (TI1,
- * TI2, TI3).
+ * Maneja la actualización de estados de camiones en función de averías (TI1, TI2, TI3).
  */
 public class AveriasManager {
 
     /**
-     * Actualiza los estados de los camiones involucrados en averías activas según
-     * la fecha actual.
+     * Actualiza los estados de los camiones involucrados en averías activas según la fecha actual.
      * Este método puede invocarse cada intervalo de simulación.
      */
     public static void actualizarCamionesEnAveria(LocalDateTime fechaActual) {
@@ -26,11 +24,9 @@ public class AveriasManager {
             // Crear instancias de los repositorios y servicios necesarios
             com.plg.repository.AveriaRepository averiaRepository = new com.plg.repository.AveriaRepository();
             com.plg.repository.CamionRepository camionRepository = new com.plg.repository.CamionRepository();
-            com.plg.repository.AlmacenRepository almacenRepository = new com.plg.repository.AlmacenRepository();
             com.plg.service.CamionService camionService = new com.plg.service.CamionService(camionRepository);
-            com.plg.service.AlmacenService almacenService = new com.plg.service.AlmacenService(almacenRepository);
             com.plg.service.AveriaService averiaService = new com.plg.service.AveriaService(averiaRepository,
-                    camionService, almacenService);
+                    camionService);
 
             // Obtener todas las averías activas
             List<Averia> averiasActivas = averiaService.listarActivas();
@@ -50,8 +46,7 @@ public class AveriasManager {
 
     /**
      * 1. Lista averías TI1 (no requieren traslado).
-     * 2. Si la fechaHoraDisponible < fechaActual (ignorando segundos) → desactiva
-     * avería y pone camión DISPONIBLE.
+     * 2. Si la fechaHoraDisponible < fechaActual (ignorando segundos) → desactiva avería y pone camión DISPONIBLE.
      */
     private static void procesarAveriasNoRequierenTraslado(List<Averia> averiasActivas, LocalDateTime fechaActual,
             com.plg.service.CamionService camionService) {
@@ -73,10 +68,8 @@ public class AveriasManager {
 
     /**
      * 1. Procesa averías TI2/TI3 (requieren traslado).
-     * 2. Si fecha fin espera en ruta < fechaActual → traslada camión a taller y lo
-     * marca EN_MANTENIMIENTO_POR_AVERIA.
-     * 3. Si fecha disponible <= fechaActual → desactiva avería y pone camión
-     * DISPONIBLE.
+     * 2. Si fecha fin espera en ruta < fechaActual → traslada camión a taller y lo marca EN_MANTENIMIENTO_POR_AVERIA.
+     * 3. Si fecha disponible <= fechaActual → desactiva avería y pone camión DISPONIBLE.
      */
     private static void procesarAveriasRequierenTraslado(List<Averia> averiasActivas, LocalDateTime fechaActual,
             com.plg.service.CamionService camionService) {
@@ -114,11 +107,11 @@ public class AveriasManager {
     /* ----------------------------- UTILIDADES ----------------------------- */
 
     private static Camion buscarCamionPorCodigo(String codigoCamion) {
-        return DataLoader.camiones.stream().filter(c -> c.getCodigo().equals(codigoCamion)).findFirst().orElse(null);
+        return Parametros.dataLoader.camiones.stream().filter(c -> c.getCodigo().equals(codigoCamion)).findFirst().orElse(null);
     }
 
     private static Coordenada obtenerCoordenadaAlmacenCentral() {
-        return DataLoader.almacenes.stream().filter(a -> a.getTipo() == com.plg.entity.TipoAlmacen.CENTRAL)
+        return Parametros.dataLoader.almacenes.stream().filter(a -> a.getTipo() == com.plg.entity.TipoAlmacen.CENTRAL)
                 .map(a -> a.getCoordenada()).findFirst().orElse(new Coordenada(8, 12));
     }
 
@@ -134,4 +127,4 @@ public class AveriasManager {
         LocalDateTime t2 = f2.withSecond(0).withNano(0);
         return t1.isBefore(t2) || t1.isEqual(t2);
     }
-}
+} 

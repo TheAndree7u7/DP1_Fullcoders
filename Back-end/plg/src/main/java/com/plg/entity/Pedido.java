@@ -15,13 +15,16 @@ public class Pedido extends Nodo {
     private String codigo;
     private double horasLimite; 
     private LocalDateTime fechaRegistro;
+    private LocalDateTime fechaLimite; // Nueva variable para la fecha límite de entrega
     private double volumenGLPAsignado;
+    @Builder.Default
+    private double volumenGLPEntregado = 0.0;
     private EstadoPedido estado;
-    private LocalDateTime fechaLimite;
     private Pedido pedidoCopia;
 
     public Pedido(Coordenada coordenada, boolean bloqueado, double gScore, double fScore, TipoNodo tipoNodo) {
         super(coordenada, bloqueado, gScore, fScore, tipoNodo);
+        this.volumenGLPEntregado = 0.0;
     }
     @Override
     public String toString() {
@@ -48,7 +51,9 @@ public class Pedido extends Nodo {
             .codigo(codigo)
             .horasLimite(horasLimite)
             .fechaRegistro(fechaRegistro)
+            .fechaLimite(fechaLimite)
             .volumenGLPAsignado(volumenGLPAsignado)
+            .volumenGLPEntregado(volumenGLPEntregado)
             .estado(estado)
             .fechaLimite(fechaLimite)
             .build();
@@ -69,10 +74,12 @@ public class Pedido extends Nodo {
             this.codigo = this.pedidoCopia.getCodigo();
             this.horasLimite = this.pedidoCopia.getHorasLimite();
             this.fechaRegistro = this.pedidoCopia.getFechaRegistro();
+            this.fechaLimite = this.pedidoCopia.getFechaLimite();
             this.volumenGLPAsignado = this.pedidoCopia.getVolumenGLPAsignado();
+            this.volumenGLPEntregado = this.pedidoCopia.getVolumenGLPEntregado();
             this.estado = this.pedidoCopia.getEstado();
             this.fechaLimite = this.pedidoCopia.getFechaLimite();
         }
-    }   
+    }
 
 }

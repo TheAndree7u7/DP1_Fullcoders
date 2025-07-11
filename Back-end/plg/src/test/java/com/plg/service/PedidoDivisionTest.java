@@ -18,6 +18,7 @@ import com.plg.entity.EstadoCamion;
 import com.plg.entity.Pedido;
 import com.plg.entity.TipoCamion;
 import com.plg.repository.PedidoRepository;
+import com.plg.utils.Parametros;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,7 +36,7 @@ public class PedidoDivisionTest {
     @BeforeEach
     void setUp() {
         // Configurar camiones de prueba
-        DataLoader.camiones = Arrays.asList(
+        Parametros.dataLoader.camiones = Arrays.asList(
             crearCamion("C001", TipoCamion.TA, 100.0, EstadoCamion.DISPONIBLE),
             crearCamion("C002", TipoCamion.TB, 150.0, EstadoCamion.DISPONIBLE),
             crearCamion("C003", TipoCamion.TC, 200.0, EstadoCamion.DISPONIBLE),
@@ -134,7 +135,7 @@ public class PedidoDivisionTest {
     @Test
     void testPedidoConCamionesEnMantenimiento() {
         // Arrange
-        DataLoader.camiones = Arrays.asList(
+        Parametros.dataLoader.camiones = Arrays.asList(
             crearCamion("C001", TipoCamion.TA, 100.0, EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO),
             crearCamion("C002", TipoCamion.TB, 150.0, EstadoCamion.DISPONIBLE)
         );

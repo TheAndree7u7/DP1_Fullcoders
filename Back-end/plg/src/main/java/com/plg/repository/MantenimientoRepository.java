@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
-import com.plg.config.DataLoader;
+import com.plg.utils.Parametros;
 import com.plg.entity.Camion;
 import com.plg.entity.Mantenimiento;
 
@@ -21,7 +21,7 @@ public class MantenimientoRepository {
      * @return Lista de todos los mantenimientos
      */
     public List<Mantenimiento> findAll() {
-        return DataLoader.mantenimientos;
+        return Parametros.dataLoader.mantenimientos;
     }
 
     /**
@@ -31,7 +31,7 @@ public class MantenimientoRepository {
      * @return Lista de mantenimientos del mes
      */
     public List<Mantenimiento> findByMes(int mes) {
-        return DataLoader.mantenimientos.stream()
+        return Parametros.dataLoader.mantenimientos.stream()
                 .filter(m -> m.getMes() == mes)
                 .collect(Collectors.toList());
     }
@@ -44,7 +44,7 @@ public class MantenimientoRepository {
      * @return Lista de mantenimientos en esa fecha
      */
     public List<Mantenimiento> findByDiaAndMes(int dia, int mes) {
-        return DataLoader.mantenimientos.stream()
+        return Parametros.dataLoader.mantenimientos.stream()
                 .filter(m -> m.getDia() == dia && m.getMes() == mes)
                 .collect(Collectors.toList());
     }
@@ -63,9 +63,9 @@ public class MantenimientoRepository {
             }
 
             System.out.println("DEBUG: Buscando mantenimientos para camión: " + camion.getCodigo());
-            System.out.println("DEBUG: Total mantenimientos en memoria: " + DataLoader.mantenimientos.size());
+            System.out.println("DEBUG: Total mantenimientos en memoria: " + Parametros.dataLoader.mantenimientos.size());
 
-            List<Mantenimiento> resultado = DataLoader.mantenimientos.stream()
+            List<Mantenimiento> resultado = Parametros.dataLoader.mantenimientos.stream()
                     .filter(m -> {
                         if (m == null) {
                             System.out.println("WARNING: Mantenimiento null encontrado");
@@ -103,7 +103,7 @@ public class MantenimientoRepository {
      * @return el mantenimiento guardado
      */
     public Mantenimiento save(Mantenimiento mantenimiento) {
-        DataLoader.mantenimientos.add(mantenimiento);
+        Parametros.dataLoader.mantenimientos.add(mantenimiento);
         return mantenimiento;
     }
 }

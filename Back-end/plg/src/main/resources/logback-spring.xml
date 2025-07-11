@@ -2,52 +2,19 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
-    <!-- Patrón para consola con colores -->
     <property name="CONSOLE_LOG_PATTERN"
               value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID}){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} : %m%n%wEx"/>
-    
-    <!-- Patrón para archivo sin colores -->
-    <property name="FILE_LOG_PATTERN"
-              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p ${PID} --- [%15.15t] %-40.40logger{39} : %m%n%wEx"/>
 
-    <!-- Appender para consola -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <withJansi>true</withJansi> <!-- ¡Esto es clave en Windows! -->
         <encoder>
-            <charset>UTF-8</charset>
             <pattern>${CONSOLE_LOG_PATTERN}</pattern>
         </encoder>
     </appender>
 
-    <!-- Definir la ruta del archivo de logs relativa al directorio del proyecto -->
-    <property name="LOG_FILE" value="${user.dir}/Back-end/logs/application.log"/>
-    
-    <!-- Appender para archivo que se borra en cada ejecución -->
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>${LOG_FILE}</file>
-        <append>false</append> <!-- false = sobrescribe el archivo en cada ejecución -->
-        <encoder>
-            <charset>UTF-8</charset>
-            <pattern>${FILE_LOG_PATTERN}</pattern>
-        </encoder>
-    </appender>
-
-    <!-- Logger específico para nuestro paquete con nivel DEBUG -->
     <logger name="com.plg" level="DEBUG"/>
-    
-    <!-- Loggers para capturar System.out y System.err -->
-    <logger name="SYSTEM_OUT" level="INFO"/>
-    <logger name="SYSTEM_ERR" level="ERROR"/>
-    
-    <!-- Logger para Spring Boot -->
-    <logger name="org.springframework" level="INFO"/>
-    
-    <!-- Logger para aplicaciones Java -->
-    <logger name="java.lang.System" level="DEBUG"/>
 
-    <!-- Root logger que captura todo -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
     </root>
 </configuration>

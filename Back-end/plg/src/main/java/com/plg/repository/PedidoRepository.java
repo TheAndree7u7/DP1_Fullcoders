@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
-import com.plg.config.DataLoader;
+import com.plg.utils.Parametros;
 import com.plg.entity.Pedido;
 
 /**
@@ -19,7 +19,7 @@ public class PedidoRepository {
      * Obtiene todos los pedidos almacenados.
      */
     public List<Pedido> findAll() {
-        return DataLoader.pedidos;
+        return Parametros.dataLoader.pedidos;
     }
 
     /**
@@ -30,7 +30,7 @@ public class PedidoRepository {
      * @return lista de pedidos en el rango
      */
     public List<Pedido> findAllBetween(LocalDateTime inicio, LocalDateTime fin) {
-        return DataLoader.pedidos.stream()
+        return Parametros.dataLoader.pedidos.stream()
                 .filter(p -> {
                     LocalDateTime fecha = p.getFechaRegistro();
                     return (fecha.isEqual(inicio) || fecha.isAfter(inicio))
@@ -43,7 +43,7 @@ public class PedidoRepository {
      * Guarda un nuevo pedido en memoria.
      */
     public Pedido save(Pedido pedido) {
-        DataLoader.pedidos.add(pedido);
+        Parametros.dataLoader.pedidos.add(pedido);
         return pedido;
     }
 
@@ -51,9 +51,9 @@ public class PedidoRepository {
      * Actualiza el estado de un pedido existente.
      */
     public Pedido update(Pedido pedido) {
-        for (int i = 0; i < DataLoader.pedidos.size(); i++) {
-            if (DataLoader.pedidos.get(i).getCodigo().equals(pedido.getCodigo())) {
-                DataLoader.pedidos.set(i, pedido);
+        for (int i = 0; i < Parametros.dataLoader.pedidos.size(); i++) {
+            if (Parametros.dataLoader.pedidos.get(i).getCodigo().equals(pedido.getCodigo())) {
+                Parametros.dataLoader.pedidos.set(i, pedido);
                 return pedido;
             }
         }

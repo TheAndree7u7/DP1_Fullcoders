@@ -1,5 +1,7 @@
 package com.plg.factory;
 
+import com.plg.utils.Parametros;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,12 +13,10 @@ import com.plg.entity.Mapa;
 import com.plg.entity.TipoAlmacen;
 import com.plg.entity.TipoNodo;
 
-/**
- * Patrón fábrica para crear almacenes CENTRALs o secundarios.
- */
+
 public class AlmacenFactory {
 
-    public static final List<Almacen> almacenes = new ArrayList<>();
+    private static final List<Almacen> almacenes = new ArrayList<>();
     private static final Map<TipoAlmacen, Integer> contadorAlmacenes = new HashMap<>();
 
     // Mapa que representa el entorno de entrega
@@ -24,6 +24,14 @@ public class AlmacenFactory {
 
     static {
         // Inicializamos el contador para cada tipo de almacén
+        for (TipoAlmacen tipo : TipoAlmacen.values()) {
+            contadorAlmacenes.put(tipo, 0);
+        }
+    }
+
+    public static void limpiarFactory() {
+        almacenes.clear();
+        contadorAlmacenes.clear();
         for (TipoAlmacen tipo : TipoAlmacen.values()) {
             contadorAlmacenes.put(tipo, 0);
         }
@@ -71,10 +79,8 @@ public class AlmacenFactory {
                 .activo(true)
                 .build();
 
-        // Agregar el almacén a la lista y al mapa
-        almacenes.add(almacen);
         mapa.setNodo(coordenada, almacen);
-
+        almacenes.add(almacen);
         return almacen;
     }
 

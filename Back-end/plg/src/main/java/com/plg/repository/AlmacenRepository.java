@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
-import com.plg.config.DataLoader;
+import com.plg.utils.Parametros;
 import com.plg.entity.Almacen;
 
 /**
@@ -17,25 +17,14 @@ public class AlmacenRepository {
      * Devuelve todos los almacenes disponibles.
      */
     public List<Almacen> findAll() {
-        return DataLoader.almacenes;
+        return Parametros.dataLoader.almacenes;
     }
 
     /**
      * Almacena un nuevo almacén en memoria.
      */
     public Almacen save(Almacen almacen) {
-        DataLoader.almacenes.add(almacen);
+        Parametros.dataLoader.almacenes.add(almacen);
         return almacen;
-    }
-
-    // actualizar
-    public void update(Almacen almacen) {
-        for (int i = 0; i < DataLoader.almacenes.size(); i++) {
-            if (DataLoader.almacenes.get(i).getNombre().equals(almacen.getNombre())) {
-                DataLoader.almacenes.set(i, almacen);
-                return;
-            }
-        }
-        throw new RuntimeException("Almacen no encontrado: " + almacen.getNombre());
     }
 }

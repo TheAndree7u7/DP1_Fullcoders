@@ -1,7 +1,7 @@
 package com.plg.factory;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import com.plg.utils.Parametros;
 import java.util.List;
 
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidDataFormatException;
@@ -16,13 +16,10 @@ import com.plg.utils.Herramientas;
  */
 public class PedidoFactory {
 
-    // Lista estática para almacenar todos los pedidos creados
-    public static final List<Pedido> pedidos = new ArrayList<>();
-
     /**
      * Crea un pedido básico.
      *
-     * @param coordenada  Coordenada del pedido
+     * @param coordenada  Coordenada del pedidoy 
      * @param volumenGLP  Volumen de GLP a entregar (m3)
      * @param horasLimite Horas límite para entrega
      * @return instancia de Pedido con estado REGISTRADO y tipoNodo CLIENTE
@@ -30,7 +27,7 @@ public class PedidoFactory {
     public static Pedido crearPedido(
             Coordenada coordenada,
             double volumenGLP,
-            double horasLimite) {
+            double horasLimite, LocalDateTime fechaRegistro)  {
 
         // Crear el pedido
         Pedido pedido = Pedido.builder()
@@ -44,11 +41,12 @@ public class PedidoFactory {
                 .codigo("PEDIDO-" + coordenada.getFila() + "-" + coordenada.getColumna())
                 .horasLimite(horasLimite)
                 .volumenGLPAsignado(volumenGLP)
+                .volumenGLPEntregado(0.0) // Inicialmente no se ha entregado nada
                 .estado(EstadoPedido.REGISTRADO)
+                .fechaRegistro(fechaRegistro)
+                .fechaLimite(fechaRegistro.plusHours((long) horasLimite))
                 .build();
 
-        // Agregar el pedido a la lista
-        pedidos.add(pedido);
         return pedido;
     }
 
@@ -129,9 +127,9 @@ public class PedidoFactory {
                 .volumenGLPAsignado((double) m3)
                 .estado(EstadoPedido.REGISTRADO)
                 .fechaRegistro(fechaRegistro)
+                .volumenGLPEntregado(0.0) // Inicialmente no se ha entregado nada
+                .fechaLimite(fechaRegistro.plusHours((long)horaLimite))
                 .build();
-        // NOTA: No agregamos el pedido a la lista aquí, el DataLoader se encarga de esto
-        // pedidos.add(pedido);
         return pedido;
     }
 

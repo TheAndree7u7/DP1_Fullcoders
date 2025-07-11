@@ -56,7 +56,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
     iniciarContadorTiempo, 
     setSimulacionActiva, 
     simulacionActiva,
-    setPollingActivo,
+
     horaActual,
     horaSimulacion,
     fechaHoraSimulacion,

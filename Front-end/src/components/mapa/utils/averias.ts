@@ -67,14 +67,8 @@ export const handleAveriar = async (
     // Usar el timestamp de simulación en lugar de la hora actual del sistema
     const fechaHoraReporte = timestampSimulacion;
     
-    // 1. CRÍTICO: Detener el polling inmediatamente para evitar nuevos paquetes
-    console.log("🛑 DETENIENDO POLLING INMEDIATAMENTE...");
-    if (setPollingActivo) {
-      setPollingActivo(false);
-      console.log("✅ Polling detenido exitosamente");
-    } else {
-      console.warn("⚠️ No se pudo detener el polling - función no disponible");
-    }
+    // 1. CRÍTICO: Pausar la simulación inmediatamente para evitar nuevos paquetes
+    console.log("🛑 PAUSANDO SIMULACIÓN INMEDIATAMENTE...");
     
     // 2. CRÍTICO: Pausar la simulación inmediatamente
     console.log("⏸️ PAUSANDO SIMULACIÓN INMEDIATAMENTE...");
@@ -200,12 +194,10 @@ export const handleAveriar = async (
 
 /**
  * Función para pasar al siguiente paquete después de que termine el proceso de avería
- * Espera un tiempo fijo y luego reactiva el polling y la simulación para permitir la continuación
- * @param setPollingActivo - Función para controlar el polling de paquetes
+ * Espera un tiempo fijo y luego reactiva la simulación para permitir la continuación
  * @param setSimulacionActiva - Función para controlar el estado de la simulación
  */
 const pasarAlSiguientePaquete = async (
-  setPollingActivo?: (value: boolean) => void,
   setSimulacionActiva?: (value: boolean) => void
 ) => {
   try {
