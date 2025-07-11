@@ -1,6 +1,9 @@
 import { Route, Routes } from 'react-router-dom';
 import './App.css';
-import SimulacionSemanal from './views/SimulacionSemanal';
+import SeleccionVista from './views/SeleccionVista';
+import SimulacionSemanalConCarga from './views/SimulacionSemanalConCarga';
+import SimulacionAlColapso from './views/SimulacionAlColapso';
+import SimulacionDiaria from './views/SimulacionDiaria';
 import { SimulacionProvider } from './context/SimulacionContext';
 import { ToastContainer, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -9,7 +12,10 @@ function App() {
   return (
     <SimulacionProvider>
       <Routes>
-        <Route path="/" element={<SimulacionSemanal />} />
+        <Route path="/" element={<SeleccionVista />} />
+        <Route path="/simulacion-semanal" element={<SimulacionSemanalConCarga />} />
+        <Route path="/colapso-logistico" element={<SimulacionAlColapso />} />
+        <Route path="/ejecucion-tiempo-real" element={<SimulacionDiaria />} />
       </Routes>
       <ToastContainer
         position="top-right"

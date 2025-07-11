@@ -17,6 +17,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,7 +31,15 @@ public class Individuo {
     private List<Pedido> pedidos; // Lista de pedidos
     @Builder.Default
     private double porcentajeAsignacionCercana = 0.9; // Porcentaje de camiones a usar para asignación por cercanía
+    private LocalDateTime fechaHoraInicioIntervalo;
+    private LocalDateTime fechaHoraFinIntervalo;
+    private TipoIndividuo tipoIndividuo;
 
+    // Constructor para el algoritmo genético
+    // Inicializa el cromosoma con los camiones disponibles y los almacenes
+    // y asigna los pedidos a los camiones de manera aleatoria
+    // y luego asigna los pedidos a los camiones de manera eficiente
+    // y luego asigna los pedidos a los camiones de manera eficiente
     public Individuo(List<Pedido> pedidos) {
         this.pedidos = pedidos;
         this.descripcion = "";
@@ -41,9 +51,10 @@ public class Individuo {
         List<Almacen> almacenes = DataLoader.almacenes;
         List<Camion> camiones = DataLoader.camiones;
 
-        // FILTRAR CAMIONES EN MANTENIMIENTO - Ubicación más eficiente
+        // FILTRAR CAMIONES EN MANTENIMIENTO o AVERIADOS- Ubicación más eficiente
         List<Camion> camionesDisponibles = camiones.stream()
-                .filter(camion -> camion.getEstado() != com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
+                .filter(camion -> camion.getEstado() != com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO
+                        && camion.getEstado() != com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_CORRECTIVO)
                 .collect(java.util.stream.Collectors.toList());
 
         // Verificar que tengamos camiones disponibles
@@ -67,7 +78,8 @@ public class Individuo {
         List<Gen> genesMezclados = new ArrayList<>(cromosoma);
         Collections.shuffle(genesMezclados, new Random(Parametros.semillaAleatoria + 1));
 
-        // NUEVO: Para cada pedido, selecciona un subconjunto random de genes y asigna al más cercano
+        // NUEVO: Para cada pedido, selecciona un subconjunto random de genes y asigna
+        // al más cercano
         Random selectorDeGen = new Random(Parametros.semillaAleatoria + 2);
         for (Nodo pedido : pedidosMezclados) {
             if (!(pedido instanceof Pedido)) {
@@ -104,7 +116,8 @@ public class Individuo {
                 for (int i = 1; i < nodos.size() - 2; i++) { // entre el primer pedido y el penúltimo
                     if (selectorDeGen.nextDouble() < 0.5) { // 50% de probabilidad
                         // Elegir aleatoriamente entre almacén 1 o 2 si existen
-                        Almacen almacenIntermedio = almacenes.size() > 2 ? almacenes.get(1 + selectorDeGen.nextInt(2)) : almacenes.get(1);
+                        Almacen almacenIntermedio = almacenes.size() > 2 ? almacenes.get(1 + selectorDeGen.nextInt(2))
+                                : almacenes.get(1);
                         nodos.add(i + 1, almacenIntermedio);
                         i++; // saltar el almacén recién insertado para evitar inserciones consecutivas
                     }

@@ -96,7 +96,7 @@ public class CamionService {
      * Cambia el estado de un camión por su código.
      *
      * @param codigoCamion Código del camión
-     * @param nuevoEstado Nuevo estado a asignar
+     * @param nuevoEstado  Nuevo estado a asignar
      * @return El camión actualizado
      */
     public Camion cambiarEstado(String codigoCamion, EstadoCamion nuevoEstado) {
@@ -111,7 +111,7 @@ public class CamionService {
     /**
      * Cambia la coordenada de un camión por su código.
      *
-     * @param codigoCamion Código del camión
+     * @param codigoCamion    Código del camión
      * @param nuevaCoordenada Nueva coordenada a asignar
      * @return El camión actualizado
      */
@@ -151,6 +151,86 @@ public class CamionService {
     }
 
     /**
+     * Actualiza un camión con los datos del frontend durante procesamiento de
+     * averías.
+     *
+     * @param codigoCamion       Código del camión a actualizar
+     * @param ubicacion          Ubicación en formato "(x,y)"
+     * @param estado             Estado del camión
+     * @param capacidadActualGLP Capacidad actual de GLP
+     * @param combustibleActual  Combustible actual
+     * @return El camión actualizado
+     */
+    public Camion actualizarDesdeEstadoFrontend(String codigoCamion, String ubicacion,
+            String estado, Double capacidadActualGLP, Double combustibleActual) {
+        try {
+            Camion camion = camionRepository.findAll().stream()
+                    .filter(c -> c.getCodigo().equals(codigoCamion))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Camión no encontrado: " + codigoCamion));
+
+            // Actualizar coordenada si está presente
+            if (ubicacion != null && ubicacion.matches("\\(\\d+,\\d+\\)")) {
+                String coords = ubicacion.substring(1, ubicacion.length() - 1);
+                String[] parts = coords.split(",");
+                int x = Integer.parseInt(parts[0]);
+                int y = Integer.parseInt(parts[1]);
+                // Corrección: y -> fila, x -> columna
+                camion.setCoordenada(new Coordenada(y, x));
+            }
+
+            // Actualizar estado del camión
+            if (estado != null) {
+                try {
+                    EstadoCamion estadoEnum = EstadoCamion.valueOf(estado.toUpperCase().replace(" ", "_"));
+                    camion.setEstado(estadoEnum);
+                } catch (IllegalArgumentException e) {
+                    // Si no se puede convertir, mapear algunos estados comunes
+                    switch (estado.toLowerCase()) {
+                        case "en camino":
+                        case "en ruta":
+                            camion.setEstado(EstadoCamion.EN_RUTA);
+                            break;
+                        case "disponible":
+                            camion.setEstado(EstadoCamion.DISPONIBLE);
+                            break;
+                        case "averiado":
+                            camion.setEstado(EstadoCamion.INMOVILIZADO_POR_AVERIA);
+                            break;
+                        case "en mantenimiento":
+                            camion.setEstado(EstadoCamion.EN_MANTENIMIENTO);
+                            break;
+                        default:
+                            System.err.println("Estado no reconocido para camión " + codigoCamion + ": " + estado);
+                    }
+                }
+            }
+
+            // Actualizar capacidad actual de GLP
+            if (capacidadActualGLP != null && capacidadActualGLP >= 0) {
+                camion.setCapacidadActualGLP(capacidadActualGLP);
+            }
+
+            // Actualizar combustible actual
+            if (combustibleActual != null && combustibleActual >= 0) {
+                camion.setCombustibleActual(combustibleActual);
+            }
+
+            // System.out.println("🚛 Camión " + codigoCamion + " actualizado desde
+            // frontend: " +
+            // "ubicación=" + ubicacion + ", estado=" + estado +
+            // ", GLP=" + capacidadActualGLP + ", combustible=" + combustibleActual);
+
+            // Guardar cambios en el repositorio
+            return camionRepository.save(camion);
+
+        } catch (Exception e) {
+            System.err.println("❌ Error al actualizar camión " + codigoCamion + " desde frontend: " + e.getMessage());
+            throw new RuntimeException("Error al actualizar camión desde frontend", e);
+        }
+    }
+
+    /**
      * Obtiene información detallada de cada camión incluyendo número de pedidos
      * asociados, cantidad de GLP, combustible, kilómetros restantes y estado.
      *
@@ -183,7 +263,8 @@ public class CamionService {
             // Cantidad de gasolina
             infoCamion.put("combustibleMaximo", camion.getCombustibleMaximo());
             infoCamion.put("combustibleActual", camion.getCombustibleActual());
-            infoCamion.put("porcentajeCombustible", (camion.getCombustibleActual() / camion.getCombustibleMaximo()) * 100);
+            infoCamion.put("porcentajeCombustible",
+                    (camion.getCombustibleActual() / camion.getCombustibleMaximo()) * 100);
 
             // Kilómetros restantes
             infoCamion.put("distanciaMaxima", camion.getDistanciaMaxima());
@@ -200,7 +281,8 @@ public class CamionService {
             resultado.add(infoCamion);
         }
 
-        // Ordenar primero por número de pedidos (de mayor a menor) y luego por combustible restante (de menor a mayor)
+        // Ordenar primero por número de pedidos (de mayor a menor) y luego por
+        // combustible restante (de menor a mayor)
         resultado.sort((a, b) -> {
             // Primero comparar por número de pedidos (descendente)
             Long pedidosA = (Long) a.get("numeroPedidos");
@@ -211,7 +293,8 @@ public class CamionService {
                 return comparePedidos;
             }
 
-            // Si tienen el mismo número de pedidos, comparar por combustible restante (ascendente)
+            // Si tienen el mismo número de pedidos, comparar por combustible restante
+            // (ascendente)
             Double combustibleA = (Double) a.get("combustibleActual");
             Double combustibleB = (Double) b.get("combustibleActual");
             return combustibleA.compareTo(combustibleB);

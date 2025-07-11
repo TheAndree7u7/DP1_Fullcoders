@@ -1,0 +1,281 @@
+{
+	"info": {
+		"_postman_id": "simulacion-iterativa-api",
+		"name": "Simulación Iterativa API",
+		"description": "API para configurar y ejecutar simulaciones iterativas paso a paso",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Configuración",
+			"item": [
+				{
+					"name": "Configurar Simulación",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fechaInicio\": \"{{fechaInicio}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/simulacion-iterativa/configurar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"simulacion-iterativa",
+								"configurar"
+							]
+						},
+						"description": "Configura la simulación iterativa con una fecha de inicio"
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Estado",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/simulacion-iterativa/estado",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"simulacion-iterativa",
+								"estado"
+							]
+						},
+						"description": "Obtiene el estado actual de la simulación iterativa"
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Info Postman",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/simulacion-iterativa/postman-info",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"simulacion-iterativa",
+								"postman-info"
+							]
+						},
+						"description": "Obtiene información de Postman con todos los endpoints disponibles"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para configurar y obtener información de la simulación"
+		},
+		{
+			"name": "Ejecución Secuencial",
+			"item": [
+				{
+					"name": "Obtener Siguiente Solución",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/simulacion-iterativa/obtener-solucion",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"simulacion-iterativa",
+								"obtener-solucion"
+							]
+						},
+						"description": "Obtiene la siguiente solución del algoritmo genético (secuencial)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para ejecutar la simulación paso a paso"
+		},
+		{
+			"name": "Navegación por Fechas",
+			"item": [
+				{
+					"name": "Calcular Solución para Fecha (sin avanzar)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fecha\": \"{{fechaEspecifica}}\",\n    \"avanzarSimulacion\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/simulacion-iterativa/obtener-solucion-fecha",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"simulacion-iterativa",
+								"obtener-solucion-fecha"
+							]
+						},
+						"description": "Calcula la solución para una fecha específica sin cambiar el estado de la simulación"
+					},
+					"response": []
+				},
+				{
+					"name": "Avanzar hasta Fecha Específica",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fecha\": \"{{fechaEspecifica}}\",\n    \"avanzarSimulacion\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/simulacion-iterativa/obtener-solucion-fecha",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"simulacion-iterativa",
+								"obtener-solucion-fecha"
+							]
+						},
+						"description": "Avanza la simulación hasta una fecha específica y obtiene la solución"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para navegar a fechas específicas de la simulación"
+		},
+		{
+			"name": "Administración",
+			"item": [
+				{
+					"name": "Reiniciar Simulación",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/simulacion-iterativa/reiniciar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"simulacion-iterativa",
+								"reiniciar"
+							]
+						},
+						"description": "Reinicia la simulación iterativa, limpiando todo el estado"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para administrar la simulación"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Script que se ejecuta antes de cada petición",
+					"console.log('Ejecutando petición a: ' + pm.request.url);"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Script que se ejecuta después de cada petición",
+					"pm.test(\"Status code is 200\", function () {",
+					"    pm.response.to.have.status(200);",
+					"});",
+					"",
+					"pm.test(\"Response has success field\", function () {",
+					"    var jsonData = pm.response.json();",
+					"    pm.expect(jsonData).to.have.property('success');",
+					"});",
+					"",
+					"pm.test(\"Response has estado field\", function () {",
+					"    var jsonData = pm.response.json();",
+					"    pm.expect(jsonData).to.have.property('estado');",
+					"});",
+					"",
+					"// Guardar variables útiles",
+					"if (pm.response.json().success) {",
+					"    var estado = pm.response.json().estado;",
+					"    if (estado) {",
+					"        pm.environment.set(\"fechaActual\", estado.fechaActual);",
+					"        pm.environment.set(\"iteraciones\", estado.iteraciones);",
+					"        pm.environment.set(\"configurada\", estado.configurada);",
+					"        pm.environment.set(\"finalizada\", estado.finalizada);",
+					"    }",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "fechaInicio",
+			"value": "2024-01-15T08:00:00",
+			"type": "string"
+		},
+		{
+			"key": "fechaEspecifica",
+			"value": "2024-01-15T14:30:00",
+			"type": "string"
+		}
+	]
+} 

@@ -37,7 +37,8 @@ public class Averia {
 
         String[] partes = line.split("_");
         if (partes.length != 3) {
-            throw new InvalidDataFormatException("Formato de línea de avería incorrecto. Se esperaban 3 partes separadas por '_'. Línea: " + line);
+            throw new InvalidDataFormatException(
+                    "Formato de línea de avería incorrecto. Se esperaban 3 partes separadas por '_'. Línea: " + line);
         }
 
         String turnoStr = partes[0];
@@ -45,7 +46,9 @@ public class Averia {
         String tipoIncidenteStr = partes[2];
 
         if (turnoStr.trim().isEmpty() || codigoCamion.trim().isEmpty() || tipoIncidenteStr.trim().isEmpty()) {
-            throw new InvalidDataFormatException("Los componentes de la avería (turno, código de camión, tipo de incidente) no pueden estar vacíos. Línea: " + line);
+            throw new InvalidDataFormatException(
+                    "Los componentes de la avería (turno, código de camión, tipo de incidente) no pueden estar vacíos. Línea: "
+                            + line);
         }
 
         this.tipoIncidente = new TipoIncidente(tipoIncidenteStr); // El constructor de TipoIncidente ya valida
@@ -53,7 +56,8 @@ public class Averia {
         try {
             this.camion = CamionFactory.getCamionPorCodigo(codigoCamion);
         } catch (NoSuchElementException e) {
-            throw new InvalidDataFormatException("Error en la línea de avería: " + line + ". Detalles: " + e.getMessage(), e);
+            throw new InvalidDataFormatException(
+                    "Error en la línea de avería: " + line + ". Detalles: " + e.getMessage(), e);
         }
     }
 
@@ -68,7 +72,8 @@ public class Averia {
         }
     }
 
-    //calcula el tiempo que no estara disponible segun si importa turno o si s va trasladar a almacen central
+    // calcula el tiempo que no estara disponible segun si importa turno o si s va
+    // trasladar a almacen central
     public double calcularTiempoInoperatividad() {
         double tiempoInoperatividad = 0;
 
@@ -76,7 +81,8 @@ public class Averia {
             if (this.tipoIncidente.isImportaTurnoDiaAveria()) {
                 tiempoInoperatividad += this.tipoIncidente.getNTurnosEnReparacion() * 8.0;
             } else {
-                tiempoInoperatividad += this.tipoIncidente.getHorasReparacionTaller() + this.tipoIncidente.getHorasEsperaEnRuta();
+                tiempoInoperatividad += this.tipoIncidente.getHorasReparacionTaller()
+                        + this.tipoIncidente.getHorasEsperaEnRuta();
             }
         } else {
             tiempoInoperatividad += this.tipoIncidente.getHorasReparacionRuta();
@@ -84,16 +90,18 @@ public class Averia {
         return tiempoInoperatividad;
     }
 
-    //calcula la fecha y hora de disponibilidad
+    // calcula la fecha y hora de disponibilidad
     public LocalDateTime calcularFechaHoraDisponible() {
         LocalDateTime fechaHoraDisponibleLocal = this.fechaHoraReporte;
-        //si requiere traslado
+        // si requiere traslado
         if (this.tipoIncidente.isRequiereTraslado()) {
-            //si no importa el turno
+            // si no importa el turno
             if (!this.tipoIncidente.isImportaTurnoDiaAveria()) {
                 fechaHoraDisponibleLocal = fechaHoraDisponibleLocal.toLocalDate().plusDays(1).atStartOfDay();
-                fechaHoraDisponibleLocal = fechaHoraDisponibleLocal.plusHours((long) this.tipoIncidente.getHorasReparacionTaller());
-                fechaHoraDisponibleLocal = fechaHoraDisponibleLocal.plusHours((long) this.tipoIncidente.getHorasEsperaEnRuta());
+                fechaHoraDisponibleLocal = fechaHoraDisponibleLocal
+                        .plusHours((long) this.tipoIncidente.getHorasReparacionTaller());
+                fechaHoraDisponibleLocal = fechaHoraDisponibleLocal
+                        .plusHours((long) this.tipoIncidente.getHorasEsperaEnRuta());
             } else {
                 // aca solamente si es turno uno
                 switch (this.turnoOcurrencia) {
@@ -106,12 +114,15 @@ public class Averia {
                     default -> {
                     }
                 }
-                fechaHoraDisponibleLocal = fechaHoraDisponibleLocal.plusHours((long) this.tipoIncidente.getHorasReparacionTaller());
-                fechaHoraDisponibleLocal = fechaHoraDisponibleLocal.plusHours((long) this.tipoIncidente.getHorasEsperaEnRuta());
+                fechaHoraDisponibleLocal = fechaHoraDisponibleLocal
+                        .plusHours((long) this.tipoIncidente.getHorasReparacionTaller());
+                fechaHoraDisponibleLocal = fechaHoraDisponibleLocal
+                        .plusHours((long) this.tipoIncidente.getHorasEsperaEnRuta());
             }
         } else {
-            //si no requiere traslado
-            fechaHoraDisponibleLocal = fechaHoraDisponibleLocal.plusHours((long) this.tipoIncidente.getHorasReparacionRuta());
+            // si no requiere traslado
+            fechaHoraDisponibleLocal = fechaHoraDisponibleLocal
+                    .plusHours((long) this.tipoIncidente.getHorasReparacionRuta());
         }
         return fechaHoraDisponibleLocal;
     }

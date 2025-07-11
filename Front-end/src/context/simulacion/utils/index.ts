@@ -1,13 +1,29 @@
 /**
  * @file index.ts
- * @description Exportaciones centralizadas de las utilidades de simulación
+ * @description Punto de entrada para todas las utilidades del contexto de simulación
  */
 
-// Utilidades de coordenadas
-export { parseCoord } from "./coordenadas";
+// Exportar utilidades de coordenadas
+export { parseCoord } from './coordenadas';
 
-// Utilidades de camiones
-export { adaptarCamionParaCalculos } from "./camiones";
+// Exportar utilidades de camiones
+export { adaptarCamionParaCalculos } from './camiones';
 
-// Utilidades de tiempo
-export { formatearTiempoTranscurrido } from "./tiempo"; 
+// Exportar utilidades de tiempo
+export { formatearTiempoTranscurrido, calcularTimestampSimulacion } from './tiempo';
+
+// Exportar controles de simulación
+export { 
+  pausarSimulacion, 
+  reanudarSimulacion, 
+  iniciarContadorTiempo, 
+  iniciarPollingPrimerPaquete 
+} from './controles';
+
+// Exportar utilidades de estado
+export { 
+  capturarEstadoCompleto, 
+  generarResumenEstado,
+  convertirEstadoParaBackend,
+  type EstadoSimulacionCompleto 
+} from './estado'; 

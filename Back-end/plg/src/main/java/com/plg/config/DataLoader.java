@@ -26,12 +26,12 @@ public class DataLoader {
 
     private static String pathAverias = "data/averias/averias.v1.txt";
     private static String pathMantenimientos = "data/mantenimientos/mantpreventivo.txt";
-    
+
     // Métodos para generar paths dinámicamente basándose en parámetros actuales
     private static String getPathPedidos() {
         return "data/pedidos/ventas" + Parametros.anho + Parametros.mes + ".txt";
     }
-    
+
     private static String getPathBloqueos() {
         return "data/bloqueos/" + Parametros.anho + Parametros.mes + ".bloqueos.txt";
     }
@@ -75,7 +75,7 @@ public class DataLoader {
         List<String> lines = Herramientas.readAllLines(pathAverias);
         for (String line : lines) {
             Averia averia = new Averia(line);
- 
+
         }
         return averias;
     }
@@ -83,54 +83,66 @@ public class DataLoader {
     public static List<Pedido> initializePedidos() throws InvalidDataFormatException, IOException {
         // Limpiar la lista de pedidos antes de cargar nuevos
         PedidoFactory.pedidos.clear();
-        
+
         List<String> lines = Herramientas.readAllLines(getPathPedidos());
         List<Pedido> pedidosOriginales = new ArrayList<>();
-        
+
         // Primero crear todos los pedidos originales
         for (String line : lines) {
             Pedido pedido = PedidoFactory.crearPedido(line);
+
+            // Validar y corregir coordenadas del pedido
+            Coordenada coordenadaOriginal = pedido.getCoordenada();
+            Coordenada coordenadaCorregida = validarYCorregirCoordenada(coordenadaOriginal);
+
+            if (!coordenadaOriginal.equals(coordenadaCorregida)) {
+                System.err.println("⚠️ Pedido " + pedido.getCodigo() + " tenía coordenadas inválidas: " +
+                        coordenadaOriginal + " → Corregidas a: " + coordenadaCorregida);
+                pedido.setCoordenada(coordenadaCorregida);
+            }
+
             pedido.setFechaLimite(pedido.getFechaRegistro().plusHours((long) pedido.getHorasLimite()));
             pedidosOriginales.add(pedido);
         }
-        
+
         // Ahora procesar cada pedido para dividirlo si es necesario
         List<Pedido> pedidosFinales = new ArrayList<>();
         int pedidosDivididos = 0;
         int totalPedidosOriginales = pedidosOriginales.size();
-        
+
         for (Pedido pedidoOriginal : pedidosOriginales) {
             if (necesitaDivision(pedidoOriginal.getVolumenGLPAsignado())) {
                 // Dividir el pedido
                 List<Pedido> pedidosSubdivididos = dividirPedido(pedidoOriginal);
                 pedidosFinales.addAll(pedidosSubdivididos);
                 pedidosDivididos++;
-                System.out.println("Pedido " + pedidoOriginal.getCodigo() + " dividido en " + 
-                                 pedidosSubdivididos.size() + " partes (volumen original: " + 
-                                 pedidoOriginal.getVolumenGLPAsignado() + " m³)");
+                System.out.println("Pedido " + pedidoOriginal.getCodigo() + " dividido en " +
+                        pedidosSubdivididos.size() + " partes (volumen original: " +
+                        pedidoOriginal.getVolumenGLPAsignado() + " m³)");
             } else {
                 pedidosFinales.add(pedidoOriginal);
             }
         }
-        
+
         // Actualizar las listas
         PedidoFactory.pedidos.clear();
         PedidoFactory.pedidos.addAll(pedidosFinales);
         pedidos = PedidoFactory.pedidos;
-        
+
         // Mostrar estadísticas
         System.out.println("\n=== ESTADÍSTICAS DE CARGA DE PEDIDOS ===");
         System.out.println("📊 Pedidos originales leídos: " + totalPedidosOriginales);
         System.out.println("📊 Pedidos que requirieron división: " + pedidosDivididos);
         System.out.println("📊 Total de pedidos finales: " + pedidos.size());
-        
+
         mostrarEstadisticasCapacidad();
-        
+
         return pedidos;
     }
 
     /**
-     * Verifica si un pedido necesita ser dividido en función de las capacidades de los camiones.
+     * Verifica si un pedido necesita ser dividido en función de las capacidades de
+     * los camiones.
      */
     private static boolean necesitaDivision(double volumenGLP) {
         if (volumenGLP <= 0) {
@@ -147,11 +159,11 @@ public class DataLoader {
         List<Camion> camionesDisponibles = camiones.stream()
                 .filter(camion -> camion.getEstado() != EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
                 .collect(Collectors.toList());
-        
+
         if (camionesDisponibles.isEmpty()) {
             camionesDisponibles = camiones;
         }
-        
+
         return camionesDisponibles.stream()
                 .mapToDouble(Camion::getCapacidadMaximaGLP)
                 .max()
@@ -163,25 +175,26 @@ public class DataLoader {
      */
     private static List<Pedido> dividirPedido(Pedido pedidoOriginal) {
         List<Pedido> pedidosDivididos = new ArrayList<>();
-        
+
         // Obtener capacidades de todos los camiones disponibles
         List<Double> capacidadesCamiones = obtenerCapacidadesCamiones();
-        
+
         if (capacidadesCamiones.isEmpty()) {
             // Si no hay camiones, devolver el pedido original
             return List.of(pedidoOriginal);
         }
-        
+
         // Calcular la división óptima
-        List<Double> volumenePorPedido = calcularDivisionOptima(pedidoOriginal.getVolumenGLPAsignado(), capacidadesCamiones);
-        
+        List<Double> volumenePorPedido = calcularDivisionOptima(pedidoOriginal.getVolumenGLPAsignado(),
+                capacidadesCamiones);
+
         // Crear pedidos divididos
         for (int i = 0; i < volumenePorPedido.size(); i++) {
             double volumenPedido = volumenePorPedido.get(i);
-            
+
             // Generar código único para cada pedido dividido
             String codigoCompleto = pedidoOriginal.getCodigo() + "-DIV" + (i + 1);
-            
+
             Pedido pedido = Pedido.builder()
                     .coordenada(pedidoOriginal.getCoordenada())
                     .bloqueado(false)
@@ -194,10 +207,10 @@ public class DataLoader {
                     .estado(EstadoPedido.REGISTRADO)
                     .fechaRegistro(pedidoOriginal.getFechaRegistro())
                     .build();
-            
+
             pedidosDivididos.add(pedido);
         }
-        
+
         return pedidosDivididos;
     }
 
@@ -208,11 +221,11 @@ public class DataLoader {
         List<Camion> camionesDisponibles = camiones.stream()
                 .filter(camion -> camion.getEstado() != EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
                 .collect(Collectors.toList());
-        
+
         if (camionesDisponibles.isEmpty()) {
             camionesDisponibles = camiones;
         }
-        
+
         return camionesDisponibles.stream()
                 .map(Camion::getCapacidadMaximaGLP)
                 .sorted((a, b) -> Double.compare(b, a)) // Ordenar de mayor a menor
@@ -228,14 +241,14 @@ public class DataLoader {
         List<Double> estrategia1 = estrategiaGreedySimple(volumenTotal, capacidadesCamiones);
         List<Double> estrategia2 = estrategiaBalanceada(volumenTotal, capacidadesCamiones);
         List<Double> estrategia3 = estrategiaMinimizarCamiones(volumenTotal, capacidadesCamiones);
-        
+
         // Evaluar y seleccionar la mejor estrategia
         AnalisisEstrategia mejor = evaluarEstrategias(volumenTotal, estrategia1, estrategia2, estrategia3);
-        
-        System.out.println("🎯 Estrategia seleccionada: " + mejor.nombre + 
-                          " (Camiones: " + mejor.numCamiones + 
-                          ", Eficiencia: " + String.format("%.1f%%", mejor.eficiencia * 100) + ")");
-        
+
+        System.out.println("🎯 Estrategia seleccionada: " + mejor.nombre +
+                " (Camiones: " + mejor.numCamiones +
+                ", Eficiencia: " + String.format("%.1f%%", mejor.eficiencia * 100) + ")");
+
         return mejor.division;
     }
 
@@ -245,19 +258,19 @@ public class DataLoader {
     private static List<Double> estrategiaGreedySimple(double volumenTotal, List<Double> capacidadesCamiones) {
         List<Double> volumenPorPedido = new ArrayList<>();
         double volumenRestante = volumenTotal;
-        
+
         while (volumenRestante > 0) {
             int indiceCamion = 0;
             while (volumenRestante > 0 && indiceCamion < capacidadesCamiones.size()) {
                 double capacidadCamion = capacidadesCamiones.get(indiceCamion);
                 double volumenAsignado = Math.min(volumenRestante, capacidadCamion);
-                
+
                 volumenPorPedido.add(volumenAsignado);
                 volumenRestante -= volumenAsignado;
                 indiceCamion++;
             }
         }
-        
+
         return volumenPorPedido;
     }
 
@@ -267,34 +280,37 @@ public class DataLoader {
     private static List<Double> estrategiaBalanceada(double volumenTotal, List<Double> capacidadesCamiones) {
         List<Double> volumenPorPedido = new ArrayList<>();
         double volumenRestante = volumenTotal;
-        
+
         // Agrupar capacidades por tipo
         Map<Double, Integer> tiposCamiones = new HashMap<>();
         for (Double capacidad : capacidadesCamiones) {
             tiposCamiones.put(capacidad, tiposCamiones.getOrDefault(capacidad, 0) + 1);
         }
-        
+
         // Distribuir proporcionalmente entre tipos
         while (volumenRestante > 0) {
             boolean asignoVolumen = false;
-            
+
             for (Map.Entry<Double, Integer> entry : tiposCamiones.entrySet()) {
-                if (volumenRestante <= 0 || entry.getValue() <= 0) continue;
-                
+                if (volumenRestante <= 0 || entry.getValue() <= 0)
+                    continue;
+
                 double capacidad = entry.getKey();
                 double volumenAsignado = Math.min(volumenRestante, capacidad);
-                
+
                 volumenPorPedido.add(volumenAsignado);
                 volumenRestante -= volumenAsignado;
                 entry.setValue(entry.getValue() - 1);
                 asignoVolumen = true;
-                
-                if (volumenRestante <= 0) break;
+
+                if (volumenRestante <= 0)
+                    break;
             }
-            
-            if (!asignoVolumen) break; // No hay más camiones disponibles
+
+            if (!asignoVolumen)
+                break; // No hay más camiones disponibles
         }
-        
+
         return volumenPorPedido;
     }
 
@@ -304,42 +320,43 @@ public class DataLoader {
     private static List<Double> estrategiaMinimizarCamiones(double volumenTotal, List<Double> capacidadesCamiones) {
         List<Double> volumenPorPedido = new ArrayList<>();
         double volumenRestante = volumenTotal;
-        
+
         // Ordenar capacidades de mayor a menor
         List<Double> capacidadesOrdenadas = new ArrayList<>(capacidadesCamiones);
         capacidadesOrdenadas.sort((a, b) -> Double.compare(b, a));
-        
+
         for (Double capacidad : capacidadesOrdenadas) {
             while (volumenRestante > 0 && volumenRestante >= capacidad * 0.1) { // Usar si al menos 10% de la capacidad
                 double volumenAsignado = Math.min(volumenRestante, capacidad);
                 volumenPorPedido.add(volumenAsignado);
                 volumenRestante -= volumenAsignado;
             }
-            if (volumenRestante <= 0) break;
+            if (volumenRestante <= 0)
+                break;
         }
-        
+
         return volumenPorPedido;
     }
 
     /**
      * Evalúa las diferentes estrategias y selecciona la mejor
      */
-    private static AnalisisEstrategia evaluarEstrategias(double volumenTotal, 
-                                                       List<Double> estrategia1, 
-                                                       List<Double> estrategia2, 
-                                                       List<Double> estrategia3) {
-        
+    private static AnalisisEstrategia evaluarEstrategias(double volumenTotal,
+            List<Double> estrategia1,
+            List<Double> estrategia2,
+            List<Double> estrategia3) {
+
         AnalisisEstrategia analisis1 = new AnalisisEstrategia("Greedy Simple", estrategia1, volumenTotal);
         AnalisisEstrategia analisis2 = new AnalisisEstrategia("Balanceada", estrategia2, volumenTotal);
         AnalisisEstrategia analisis3 = new AnalisisEstrategia("Minimizar Camiones", estrategia3, volumenTotal);
-        
+
         // Priorizar: 1) Eficiencia, 2) Menor número de camiones
         List<AnalisisEstrategia> estrategias = Arrays.asList(analisis1, analisis2, analisis3);
-        
+
         return estrategias.stream()
                 .filter(e -> e.esValida)
                 .max(Comparator.comparing((AnalisisEstrategia e) -> e.eficiencia)
-                              .thenComparing((AnalisisEstrategia e) -> -e.numCamiones))
+                        .thenComparing((AnalisisEstrategia e) -> -e.numCamiones))
                 .orElse(analisis1); // Fallback a estrategia 1
     }
 
@@ -352,12 +369,12 @@ public class DataLoader {
         int numCamiones;
         double eficiencia;
         boolean esValida;
-        
+
         AnalisisEstrategia(String nombre, List<Double> division, double volumenTotal) {
             this.nombre = nombre;
             this.division = division;
             this.numCamiones = division.size();
-            
+
             double volumenAsignado = division.stream().mapToDouble(Double::doubleValue).sum();
             this.eficiencia = volumenAsignado / volumenTotal;
             this.esValida = Math.abs(volumenAsignado - volumenTotal) < 0.001;
@@ -373,26 +390,26 @@ public class DataLoader {
                 .filter(camion -> camion.getEstado() != EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
                 .mapToDouble(Camion::getCapacidadMaximaGLP)
                 .sum();
-        
+
         // Capacidad total de todos los camiones (incluyendo los en mantenimiento)
         double capacidadTotalSistema = camiones.stream()
                 .mapToDouble(Camion::getCapacidadMaximaGLP)
                 .sum();
-        
+
         // Suma total de GLP de todos los pedidos
         double demandaTotalGLP = pedidos.stream()
                 .mapToDouble(Pedido::getVolumenGLPAsignado)
                 .sum();
-        
+
         // Cantidad de camiones por estado
         long camionesDisponibles = camiones.stream()
                 .filter(camion -> camion.getEstado() != EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
                 .count();
-        
+
         long camionesEnMantenimiento = camiones.stream()
                 .filter(camion -> camion.getEstado() == EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
                 .count();
-        
+
         System.out.println("\n=== ESTADÍSTICAS DE CAPACIDAD Y DEMANDA ===");
         System.out.println("🚛 Total de camiones: " + camiones.size());
         System.out.println("✅ Camiones disponibles: " + camionesDisponibles);
@@ -400,14 +417,49 @@ public class DataLoader {
         System.out.println("📦 Capacidad total disponible: " + String.format("%.2f", capacidadTotalDisponible) + " m³");
         System.out.println("📦 Capacidad total del sistema: " + String.format("%.2f", capacidadTotalSistema) + " m³");
         System.out.println("📊 Demanda total de GLP: " + String.format("%.2f", demandaTotalGLP) + " m³");
-        System.out.println("📈 Ratio demanda/capacidad disponible: " + String.format("%.2f", demandaTotalGLP / capacidadTotalDisponible));
-        System.out.println("📈 Ratio demanda/capacidad total: " + String.format("%.2f", demandaTotalGLP / capacidadTotalSistema));
-        
+        System.out.println("📈 Ratio demanda/capacidad disponible: "
+                + String.format("%.2f", demandaTotalGLP / capacidadTotalDisponible));
+        System.out.println(
+                "📈 Ratio demanda/capacidad total: " + String.format("%.2f", demandaTotalGLP / capacidadTotalSistema));
+
         if (demandaTotalGLP > capacidadTotalDisponible) {
             System.out.println("⚠️  ADVERTENCIA: La demanda supera la capacidad disponible!");
         } else {
             System.out.println("✅ La capacidad disponible es suficiente para cubrir la demanda");
         }
+    }
+
+    /**
+     * Valida y corrige una coordenada para que esté dentro del rango del mapa.
+     * 
+     * @param coordenada La coordenada a validar
+     * @return La coordenada corregida si está fuera del rango, o la original si
+     *         está dentro
+     */
+    private static Coordenada validarYCorregirCoordenada(Coordenada coordenada) {
+        if (coordenada == null) {
+            System.err.println("⚠️ Coordenada nula encontrada, usando (0,0)");
+            return new Coordenada(0, 0);
+        }
+
+        // Obtener dimensiones del mapa
+        Mapa mapa = Mapa.getInstance();
+        if (mapa == null) {
+            System.err.println("⚠️ Mapa no inicializado, usando dimensiones por defecto");
+            return new Coordenada(0, 0);
+        }
+
+        int filasMapa = mapa.getFilas();
+        int columnasMapa = mapa.getColumnas();
+
+        int fila = coordenada.getFila();
+        int columna = coordenada.getColumna();
+
+        // Ajustar coordenadas al rango válido
+        int filaCorregida = Math.max(0, Math.min(fila, filasMapa - 1));
+        int columnaCorregida = Math.max(0, Math.min(columna, columnasMapa - 1));
+
+        return new Coordenada(filaCorregida, columnaCorregida);
     }
 
     /**
@@ -457,7 +509,7 @@ public class DataLoader {
             Camion camion;
             try {
                 camion = CamionFactory.getCamionPorCodigo(codigoTipoCamion);
- 
+
             } catch (NoSuchElementException e) {
                 throw new InvalidDataFormatException(
                         "Error en línea de mantenimiento: " + line + ". Detalles: " + e.getMessage());

@@ -27,6 +27,7 @@ public class Gen {
     private List<Pedido> pedidos;
     private double fitness;
     private List<Almacen> almacenes;
+
     public Gen(Camion camion, List<Nodo> nodosOriginal) {
         this.camion = camion;
         this.nodos = nodosOriginal;
@@ -47,13 +48,16 @@ public class Gen {
             double distanciaMaxima = camion.calcularDistanciaMaxima();
             if (distanciaMaxima < distanciaCalculada) {
                 fitness = Double.POSITIVE_INFINITY;
-                this.descripcion = descripcionDistanciaLejana(distanciaMaxima, distanciaCalculada, posicionActual, destino);
+                this.descripcion = descripcionDistanciaLejana(distanciaMaxima, distanciaCalculada, posicionActual,
+                        destino);
                 break;
             }
             if (destino instanceof Pedido) {
                 Pedido pedido = (Pedido) destino;
                 double tiempoEntregaLimite = pedido.getHorasLimite();
-                double tiempoLlegada = distanciaCalculada / camion.getVelocidadPromedio() + 0.25; // +15 minutos (0.25 horas) de tiempo de despacho
+                double tiempoLlegada = distanciaCalculada / camion.getVelocidadPromedio() + 0.25; // +15 minutos (0.25
+                                                                                                  // horas) de tiempo de
+                                                                                                  // despacho
                 boolean tiempoMenorQueLimite = tiempoLlegada <= tiempoEntregaLimite;
                 boolean volumenGLPAsignado = camion.getCapacidadActualGLP() >= pedido.getVolumenGLPAsignado();
                 if (tiempoMenorQueLimite && volumenGLPAsignado) {
@@ -64,7 +68,7 @@ public class Gen {
                         rutaAstar.remove(0);
                     }
                     rutaFinal.addAll(rutaAstar);
-                    
+
                     // Agregar tiempo de parada de 15 minutos (repetir el nodo del pedido)
                     // Como la velocidad promedio es 50 km/h y cada nodo representa 1km,
                     // en 15 minutos (0.25 horas) el camión recorrería 50 * 0.25 = 12.5 nodos
@@ -73,7 +77,7 @@ public class Gen {
                     for (int j = 0; j < nodosParada; j++) {
                         rutaFinal.add(destino); // Repetir el nodo del pedido
                     }
-                    
+
                     // Si el pedido está en un nodo bloqueado, guardar la ruta de entrada
                     if (destino.isBloqueado()) {
                         rutaEntradaBloqueada = new ArrayList<>(rutaAstar);
@@ -83,7 +87,8 @@ public class Gen {
                     posicionActual = destino;
                 } else {
                     fitness = Double.POSITIVE_INFINITY;
-                    this.descripcion = descripcionError(pedido, camion, tiempoEntregaLimite, tiempoLlegada, tiempoMenorQueLimite, volumenGLPAsignado);
+                    this.descripcion = descripcionError(pedido, camion, tiempoEntregaLimite, tiempoLlegada,
+                            tiempoMenorQueLimite, volumenGLPAsignado);
                     break;
                 }
             } else if (destino instanceof Almacen || destino instanceof Camion) {
@@ -102,13 +107,14 @@ public class Gen {
                 rutaFinal.addAll(rutaAstar);
                 posicionActual = destino;
             }
-            // Si el nodo anterior era bloqueado y hay que salir, regresar por la ruta invertida
+            // Si el nodo anterior era bloqueado y hay que salir, regresar por la ruta
+            // invertida
             if (rutaEntradaBloqueada != null && i + 1 < nodos.size()) {
                 // No incluir el nodo bloqueado al salir
                 List<Nodo> rutaSalida = new ArrayList<>(rutaEntradaBloqueada);
                 Collections.reverse(rutaSalida);
                 rutaSalida.remove(0); // Quitar el nodo bloqueado
-                
+
                 // Solo procesar si hay nodos en la ruta de salida
                 if (!rutaSalida.isEmpty()) {
                     rutaFinal.addAll(rutaSalida);
@@ -135,7 +141,8 @@ public class Gen {
         }
     }
 
-    public String descripcionDistanciaLejana(double distanciaMaxima, double distanciaCalculada, Nodo nodo1, Nodo nodo2) {
+    public String descripcionDistanciaLejana(double distanciaMaxima, double distanciaCalculada, Nodo nodo1,
+            Nodo nodo2) {
         return "El camion con código " + camion.getCodigo()
                 + " no puede recorrer la distancia de " + distanciaCalculada
                 + " km. La distancia máxima es de " + distanciaMaxima
@@ -143,7 +150,8 @@ public class Gen {
                 + " y se dirige a la posición " + nodo2.getCoordenada() + ".";
     }
 
-    public String descripcionError(Pedido pedido, Camion camion, double tiempoEntregaLimite, double tiempoLlegada, boolean tiempoMenorQueLimite, boolean volumenGLPAsignado) {
+    public String descripcionError(Pedido pedido, Camion camion, double tiempoEntregaLimite, double tiempoLlegada,
+            boolean tiempoMenorQueLimite, boolean volumenGLPAsignado) {
         String respuesta = "";
         if (!tiempoMenorQueLimite) {
             respuesta = "El camion con código " + camion.getCodigo()

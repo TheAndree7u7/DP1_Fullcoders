@@ -8,6 +8,8 @@ import { ChevronLeft, ChevronUp } from "lucide-react";
 import { useSimulacion,  } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
 import ControlSimulacion from "../components/ControlSimulacion";
+import IndicadorPaqueteActual from "../components/IndicadorPaqueteActual";
+
 
 // Constante que define cuánto tiempo (en segundos) representa cada nodo en la simulación
 const SEGUNDOS_POR_NODO = 36;
@@ -15,7 +17,12 @@ const SEGUNDOS_POR_NODO = 36;
 const SimulacionSemanal: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
   const [bottomMenuExpandido, setBottomMenuExpandido] = useState(false);
-  const { fechaHoraSimulacion, horaActual, tiempoTranscurridoSimulado } = useSimulacion();
+  const { 
+    fechaHoraSimulacion, 
+    horaActual, 
+    tiempoTranscurridoSimulado, 
+    fechaHoraAcumulada
+  } = useSimulacion();
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
   // Estado para alternar paneles
   const [panel, setPanel] = useState<'camiones' | 'bloqueos'>('camiones');
@@ -26,11 +33,9 @@ const SimulacionSemanal: React.FC = () => {
   // Estado para el panel de control
   const [controlPanelExpandido, setControlPanelExpandido] = useState(false);
 
-  // Constante que indica cada cuántas horas se reciben datos del backend
-  const HORAS_POR_ACTUALIZACION = 2;
+
   
-  // Estado para guardar el tiempo en la simulación (actualizado por nodos)
-  const [tiempoReal, setTiempoReal] = useState<Date | null>(null);
+
   
   // Actualizar la hora simulada solo cuando cambia la fecha del backend
   useEffect(() => {
@@ -40,49 +45,9 @@ const SimulacionSemanal: React.FC = () => {
     }
   }, [fechaHoraSimulacion]);
   
-  // Actualizar la hora en tiempo real basado en los nodos actuales
-  useEffect(() => {
-    if (fechaHoraSimulacion && horaActual >= 0) {
-      const fechaBase = new Date(fechaHoraSimulacion);
-      
-      // Número total de nodos para una actualización completa (cada 4 horas)
-      const NODOS_POR_ACTUALIZACION = 100;
-      
-      // Calculamos qué nodo estamos dentro del ciclo actual (0-99)
-      const nodoEnCicloActual = horaActual % NODOS_POR_ACTUALIZACION;
-      
-      // Calculamos el avance por nodo (segundos totales de 4 horas divididos por nodos totales)
-      const segundosPorNodo = (HORAS_POR_ACTUALIZACION * 60 * 60) / NODOS_POR_ACTUALIZACION; // 4 horas / 100 nodos
-      
-      // Calculamos segundos adicionales solo para el incremento local dentro del ciclo actual
-      const segundosAdicionales = nodoEnCicloActual * segundosPorNodo;
-      
-      // Crea nueva fecha sumando los segundos (no debe pasarse del próximo intervalo de 4 horas)
-      const nuevaFecha = new Date(fechaBase.getTime() + segundosAdicionales * 1000);
-      setTiempoReal(nuevaFecha);
-    }
-  }, [horaActual, fechaHoraSimulacion]);
 
-  // Formato para la fecha y hora de simulación (del backend)
-  const fechaSimulada = tiempoSimulado ? 
-    tiempoSimulado.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'numeric',
-      year: 'numeric'
-    }) + ' ' + 
-    tiempoSimulado.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    }) : '';
-    
-  // Formato para la hora en tiempo real (actualizada por nodos)
-  const horaRealSimulada = tiempoReal ? 
-    tiempoReal.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    }) : '';
+
+
 
   // Efecto para escuchar clicks en los botones de la navbar
   useEffect(() => {
@@ -127,26 +92,28 @@ const SimulacionSemanal: React.FC = () => {
       <Navbar />
       <div className="bg-[#1E293B] text-white py-2 px-4 flex justify-between items-center">
         <h1 className="font-bold">Ejecución Semanal - {formatearTiempoTranscurrido(tiempoTranscurridoSimulado)}</h1>
-        {tiempoSimulado && (
-          <div className="text-sm flex items-center gap-4">
-            <div>
-              <span className="mr-2">Fecha de la simulación:</span>
-              <span className="font-bold text-blue-300">{fechaSimulada}</span>
-            </div>
-            <div>
-              <span className="mr-2">Hora de la simulacion:</span>
-              <span className="font-bold text-blue-300">{horaRealSimulada}</span>
-            </div>
-            <div>
-              <span className="mr-2">Nodo actual:</span>
-              <span className="font-bold text-blue-300">{horaActual}</span>
-            </div>
-            <div>
-              <span className="mr-2">Seg/nodo:</span>
-              <span className="font-bold text-blue-300">{SEGUNDOS_POR_NODO}</span>
-            </div>
+        <div className="flex items-center gap-4">
+          {/* Indicador compacto del paquete actual */}
+          <div className="bg-[#334155] rounded-lg px-3 py-1">
+            <IndicadorPaqueteActual variant="compact" showProgress={false} showTime={false} />
           </div>
-        )}
+          {tiempoSimulado && (
+            <div className="text-sm flex items-center gap-4">
+              <div>
+                <span className="mr-2">Fecha y hora de la simulacion:</span>
+                <span className="font-bold text-blue-300">{fechaHoraAcumulada}</span>
+              </div> 
+              <div>
+                <span className="mr-2">Nodo actual:</span>
+                <span className="font-bold text-blue-300">{horaActual}</span>
+              </div>
+              <div>
+                <span className="mr-2">Seg/nodo:</span>
+                <span className="font-bold text-blue-300">{SEGUNDOS_POR_NODO}</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       
       {/* Panel de control de simulación */}
@@ -162,7 +129,20 @@ const SimulacionSemanal: React.FC = () => {
         
         {controlPanelExpandido && (
           <div className="transition-all duration-300">
-            <ControlSimulacion />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Control de simulación */}
+              <div className="lg:col-span-2">
+                <ControlSimulacion />
+              </div>
+              {/* Indicador detallado del paquete actual */}
+              <div className="lg:col-span-1">
+                <IndicadorPaqueteActual 
+                  variant="detailed" 
+                  showProgress={true} 
+                  showTime={true}
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -263,6 +243,8 @@ const SimulacionSemanal: React.FC = () => {
       <div className={`transition-all duration-300 ${bottomMenuExpandido ? 'flex-shrink-0' : 'h-0 overflow-hidden'}`}>
         <BottomMenu expanded={bottomMenuExpandido} setExpanded={setBottomMenuExpandido} camionSeleccionadoExterno={camionSeleccionadoExterno} />
       </div>
+
+
     </div>
   );
 };

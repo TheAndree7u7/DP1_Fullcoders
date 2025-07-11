@@ -16,23 +16,94 @@ public class GenDto {
     private List<NodoDto> nodos;
     private CoordenadaDto destino;
     private List<PedidoDto> pedidos;
-    //Almacenes 
+    // Almacenes
     private List<AlmacenDto> almacenes;
+
     public GenDto(Gen gen) {
         this.camion = new CamionDto(gen.getCamion());
         this.nodos = new ArrayList<>();
         for (Nodo nodo : gen.getRutaFinal()) {
             this.nodos.add(new NodoDto(nodo));
         }
-        if(gen.getPedidos().isEmpty()) {
+        if (gen.getPedidos().isEmpty()) {
             this.destino = new CoordenadaDto(DataLoader.almacenes.get(0).getCoordenada());
-        }else{
+        } else {
             this.destino = new CoordenadaDto(gen.getPedidos().getLast().getCoordenada());
         }
         this.pedidos = new ArrayList<>();
         for (Pedido pedido : gen.getPedidos()) {
             this.pedidos.add(new PedidoDto(pedido));
         }
- 
+
+    }
+
+    /**
+     * Verifica que entre cada nodo consecutivo en la ruta haya exactamente una
+     * unidad de diferencia.
+     * Utiliza la distancia Manhattan (|x1-x2| + |y1-y2|) para calcular la
+     * diferencia entre coordenadas.
+     * 
+     * @return true si todos los nodos consecutivos están separados por exactamente
+     *         una unidad, false en caso contrario
+     */
+    public boolean verificarDiferenciaUnitariaEntreNodos() {
+        // Si hay menos de 2 nodos, no hay pares consecutivos para verificar
+        if (nodos == null || nodos.size() < 2) {
+            return true;
+        }
+
+        // Verificar cada par de nodos consecutivos
+        for (int i = 0; i < nodos.size() - 1; i++) {
+            NodoDto nodoActual = nodos.get(i);
+            NodoDto nodoSiguiente = nodos.get(i + 1);
+
+            // Calcular la distancia Manhattan entre las coordenadas
+            int diferenciaX = Math.abs(nodoActual.getCoordenada().getX() - nodoSiguiente.getCoordenada().getX());
+            int diferenciaY = Math.abs(nodoActual.getCoordenada().getY() - nodoSiguiente.getCoordenada().getY());
+            int distanciaManhattan = diferenciaX + diferenciaY;
+
+            // Verificar que la distancia sea exactamente 1
+            if (distanciaManhattan != 1) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Obtiene información detallada sobre las diferencias entre nodos consecutivos.
+     * Útil para debugging cuando la verificación falla.
+     * 
+     * @return Lista de strings con información sobre cada par de nodos consecutivos
+     */
+    public List<String> obtenerInformacionDiferenciasNodos() {
+        List<String> informacion = new ArrayList<>();
+
+        if (nodos == null || nodos.size() < 2) {
+            informacion.add("No hay suficientes nodos para verificar diferencias");
+            return informacion;
+        }
+
+        for (int i = 0; i < nodos.size() - 1; i++) {
+            NodoDto nodoActual = nodos.get(i);
+            NodoDto nodoSiguiente = nodos.get(i + 1);
+
+            int diferenciaX = Math.abs(nodoActual.getCoordenada().getX() - nodoSiguiente.getCoordenada().getX());
+            int diferenciaY = Math.abs(nodoActual.getCoordenada().getY() - nodoSiguiente.getCoordenada().getY());
+            int distanciaManhattan = diferenciaX + diferenciaY;
+
+            String info = String.format("Nodo %d (%d,%d) -> Nodo %d (%d,%d): distancia=%d %s",
+                    i,
+                    nodoActual.getCoordenada().getX(), nodoActual.getCoordenada().getY(),
+                    i + 1,
+                    nodoSiguiente.getCoordenada().getX(), nodoSiguiente.getCoordenada().getY(),
+                    distanciaManhattan,
+                    distanciaManhattan == 1 ? "✓" : "✗ (debería ser 1)");
+
+            informacion.add(info);
+        }
+
+        return informacion;
     }
 }

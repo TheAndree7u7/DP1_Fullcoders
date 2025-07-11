@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Play, RotateCcw, Clock, Calendar, Info } from 'lucide-react';
 import { iniciarSimulacion, obtenerInfoSimulacion } from '../services/simulacionApiService';
 import { useSimulacion } from '../context/SimulacionContext';
+import { reanudarSimulacion as reanudarSimulacionUtil } from '../context/simulacion/utils/controles';
 
 interface InfoSimulacion {
   totalPaquetes: number;
@@ -17,7 +18,7 @@ const ControlSimulacion: React.FC = () => {
   const [mensaje, setMensaje] = useState<string>('');
   const [tipoMensaje, setTipoMensaje] = useState<'success' | 'error' | 'info'>('info');
   const [infoSimulacion, setInfoSimulacion] = useState<InfoSimulacion | null>(null);
-  const { reiniciar, limpiarEstadoParaNuevaSimulacion, iniciarPollingPrimerPaquete } = useSimulacion();
+  const { reiniciar, limpiarEstadoParaNuevaSimulacion, iniciarPollingPrimerPaquete, setSimulacionActiva, simulacionActiva } = useSimulacion();
 
   // Establecer fecha por defecto (hoy)
   useEffect(() => {
@@ -32,16 +33,50 @@ const ControlSimulacion: React.FC = () => {
       try {
         const info = await obtenerInfoSimulacion();
         setInfoSimulacion(info);
+        
+        // 🔍 DIAGNÓSTICO: Agregar logs para ver por qué el botón está bloqueado
+        console.log("📊 DIAGNÓSTICO: Estado de la simulación obtenido del backend:", {
+          totalPaquetes: info.totalPaquetes,
+          paqueteActual: info.paqueteActual,
+          enProceso: info.enProceso,
+          tiempoActual: info.tiempoActual
+        });
+        
+        // console.log("🔒 DIAGNÓSTICO: Estado del botón 'Iniciar Simulación':", {
+        //   cargando: cargando,
+        //   simulacionEnProceso: info.enProceso,
+        //   botonBloqueado: cargando || info.enProceso,
+        //   razonBloqueo: cargando ? 'Cargando activo' : info.enProceso ? 'Simulación en proceso' : 'No bloqueado'
+        // });
+        
       } catch (error) {
         console.error('Error al obtener info de simulación:', error);
       }
     }, 5000);
 
     // Obtener información inicial
-    obtenerInfoSimulacion().then(setInfoSimulacion).catch(console.error);
+    obtenerInfoSimulacion().then((info) => {
+      setInfoSimulacion(info);
+      
+      // 🔍 DIAGNÓSTICO: Log inicial también
+      console.log("📊 DIAGNÓSTICO: Estado inicial de la simulación:", {
+        totalPaquetes: info.totalPaquetes,
+        paqueteActual: info.paqueteActual,
+        enProceso: info.enProceso,
+        tiempoActual: info.tiempoActual
+      });
+      
+      // console.log("🔒 DIAGNÓSTICO: Estado inicial del botón 'Iniciar Simulación':", {
+      //   cargando: cargando,
+      //   simulacionEnProceso: info.enProceso,
+      //   botonBloqueado: cargando || info.enProceso,
+      //   razonBloqueo: cargando ? 'Cargando activo' : info.enProceso ? 'Simulación en proceso' : 'No bloqueado'
+      // });
+      
+    }).catch(console.error);
 
     return () => clearInterval(intervalo);
-  }, []);
+  }, [cargando]); // Agregué cargando como dependencia para actualizar logs
 
   const manejarInicioSimulacion = async () => {
     if (!fechaInicio || !horaInicio) {
@@ -139,14 +174,59 @@ const ControlSimulacion: React.FC = () => {
     }
   };
 
+  // 🔧 NUEVA FUNCIÓN: Forzar reinicio cuando el botón está bloqueado
+  const manejarForzarReinicio = async () => {
+    setCargando(true);
+    setMensaje('Forzando reinicio del sistema...');
+    setTipoMensaje('info');
+
+    try {
+      console.log("🔧 FORZAR REINICIO: Iniciando reinicio forzado del sistema");
+      
+      // Reiniciar tanto el backend como el contexto local
+      await reiniciar();
+      
+      // Limpiar estado local forzadamente
+      setInfoSimulacion(null);
+      
+      console.log("🔧 FORZAR REINICIO: Reinicio completado, esperando actualización del estado");
+      
+      // Forzar actualización del estado después de un tiempo
+      setTimeout(async () => {
+        try {
+          const info = await obtenerInfoSimulacion();
+          setInfoSimulacion(info);
+          console.log("📊 FORZAR REINICIO: Info actualizada:", info);
+          
+          setMensaje('Sistema reiniciado forzadamente. El botón debería estar disponible ahora.');
+          setTipoMensaje('success');
+          
+        } catch (error) {
+          console.error('Error al actualizar info después del reinicio forzado:', error);
+          setMensaje('Reinicio forzado completado pero no se pudo verificar el estado');
+          setTipoMensaje('error');
+        }
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Error en reinicio forzado:', error);
+      setMensaje(`Error en reinicio forzado: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      setTipoMensaje('error');
+    } finally {
+      setCargando(false);
+    }
+  };
+
   const obtenerColorEstado = () => {
     if (!infoSimulacion) return 'bg-gray-500';
-    return infoSimulacion.enProceso ? 'bg-green-500' : 'bg-red-500';
+    if (!infoSimulacion.enProceso) return 'bg-red-500';
+    return simulacionActiva ? 'bg-green-500' : 'bg-yellow-500';
   };
 
   const obtenerTextoEstado = () => {
     if (!infoSimulacion) return 'Desconocido';
-    return infoSimulacion.enProceso ? 'En Proceso' : 'Detenida';
+    if (!infoSimulacion.enProceso) return 'Detenida';
+    return simulacionActiva ? 'En Proceso' : 'Pausada';
   };
 
   // Manejador para el cambio de hora que garantiza el formato correcto
@@ -182,29 +262,93 @@ const ControlSimulacion: React.FC = () => {
             <Info className="w-4 h-4 text-blue-500" />
             <span className="text-sm font-medium text-gray-700">Estado Actual</span>
           </div>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-gray-600">Total de paquetes:</span>
-              <span className="ml-2 font-medium">{infoSimulacion.totalPaquetes}</span>
-            </div>
-            <div>
-              <span className="text-gray-600">Paquete actual:</span>
-              <span className="ml-2 font-medium">{infoSimulacion.paqueteActual}</span>
+          
+          {/* Paquete actual destacado */}
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg p-4 mb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold">Paquete Actual</h3>
+                <p className="text-blue-100 text-sm">Paquete siendo consumido</p>
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-bold">
+                  {infoSimulacion.paqueteActual}
+                </div>
+                <div className="text-blue-100 text-sm">
+                  de {infoSimulacion.totalPaquetes}
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Información detallada en grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-3">
+            <div className="bg-white rounded-lg p-3 border border-gray-200">
+              <div className="text-gray-600 text-xs uppercase tracking-wide">Total Paquetes</div>
+              <div className="text-xl font-bold text-gray-800">{infoSimulacion.totalPaquetes}</div>
+            </div>
+            <div className="bg-white rounded-lg p-3 border border-gray-200">
+              <div className="text-gray-600 text-xs uppercase tracking-wide">Progreso</div>
+              <div className="text-xl font-bold text-gray-800">
+                {infoSimulacion.totalPaquetes > 0 
+                  ? Math.round((infoSimulacion.paqueteActual / infoSimulacion.totalPaquetes) * 100)
+                  : 0}%
+              </div>
+            </div>
+            <div className="bg-white rounded-lg p-3 border border-gray-200">
+              <div className="text-gray-600 text-xs uppercase tracking-wide">Estado</div>
+              <div className={`text-xl font-bold ${
+                !infoSimulacion.enProceso ? 'text-red-600' : 
+                simulacionActiva ? 'text-green-600' : 'text-yellow-600'
+              }`}>
+                {obtenerTextoEstado()}
+              </div>
+            </div>
+          </div>
+
+          {/* Información adicional */}
+          {infoSimulacion.tiempoActual && (
+            <div className="bg-white rounded-lg p-3 border border-gray-200 mb-3">
+              <div className="text-gray-600 text-xs uppercase tracking-wide mb-1">Tiempo de Simulación</div>
+              <div className="text-sm font-medium text-gray-800">
+                {new Date(infoSimulacion.tiempoActual).toLocaleString('es-ES', {
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit'
+                })}
+              </div>
+            </div>
+          )}
           
-          {/* Barra de progreso */}
+          {/* Barra de progreso mejorada */}
           {infoSimulacion.totalPaquetes > 0 && (
             <div className="mt-3">
-              <div className="flex justify-between text-xs text-gray-600 mb-1">
-                <span>Progreso</span>
-                <span>{Math.round((infoSimulacion.paqueteActual / infoSimulacion.totalPaquetes) * 100)}%</span>
+              <div className="flex justify-between text-xs text-gray-600 mb-2">
+                <span className="font-medium">Progreso de la Simulación</span>
+                <span className="font-medium">{Math.round((infoSimulacion.paqueteActual / infoSimulacion.totalPaquetes) * 100)}%</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                 <div 
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out shadow-sm"
                   style={{ width: `${(infoSimulacion.paqueteActual / infoSimulacion.totalPaquetes) * 100}%` }}
                 ></div>
+              </div>
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Paquete 0</span>
+                <span>Paquete {infoSimulacion.totalPaquetes}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Mensaje cuando no hay paquetes */}
+          {infoSimulacion.totalPaquetes === 0 && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+              <div className="text-yellow-800 font-medium">No hay paquetes disponibles</div>
+              <div className="text-yellow-600 text-sm mt-1">
+                Inicia una simulación para generar paquetes de datos
               </div>
             </div>
           )}
@@ -260,6 +404,18 @@ const ControlSimulacion: React.FC = () => {
           {cargando ? 'Iniciando...' : 'Iniciar Simulación'}
         </button>
         
+        {/* Botón de reanudar - solo se muestra si la simulación está pausada */}
+        {!simulacionActiva && (infoSimulacion?.enProceso ?? false) && (
+          <button
+            onClick={() => reanudarSimulacionUtil(setSimulacionActiva)}
+            disabled={cargando}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          >
+            <Play className="w-4 h-4" />
+            Reanudar Simulación
+          </button>
+        )}
+        
         <button
           onClick={manejarReinicioSimulacion}
           disabled={cargando}
@@ -268,7 +424,33 @@ const ControlSimulacion: React.FC = () => {
           <RotateCcw className="w-4 h-4" />
           Reiniciar
         </button>
+
+        {/* 🔧 NUEVO BOTÓN: Forzar Reinicio - solo se muestra si el botón de iniciar está bloqueado */}
+        {(infoSimulacion?.enProceso ?? false) && (
+          <button
+            onClick={manejarForzarReinicio}
+            disabled={cargando}
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          >
+            <RotateCcw className="w-4 h-4" />
+            {cargando ? 'Forzando...' : 'Forzar Reinicio'}
+          </button>
+        )}
       </div>
+
+      {/* 🔧 NUEVO: Mensaje de ayuda cuando el botón está bloqueado */}
+      {(infoSimulacion?.enProceso ?? false) && !cargando && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+            <span className="text-yellow-800 font-medium">Botón "Iniciar Simulación" bloqueado</span>
+          </div>
+          <p className="text-yellow-700 text-sm mt-1">
+            El sistema detecta que hay una simulación en proceso. 
+            Si crees que esto es un error, usa el botón "Forzar Reinicio" para desbloquear el sistema.
+          </p>
+        </div>
+      )}
 
       {/* Mensaje de estado */}
       {mensaje && (
