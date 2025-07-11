@@ -48,7 +48,7 @@ public class Simulacion {
         actualizarRepositorios(fechaActual);
         actualizarCamiones(fechaActual);
         MantenimientoManager.verificarYActualizarMantenimientos(Parametros.dataLoader.camiones, fechaActual);
-        AveriasManager.actualizarCamionesEnAveria(fechaActual);
+        //AveriasManager.actualizarCamionesEnAveria(fechaActual);
         Simulacion.bloqueosActivos = Simulacion.actualizarBloqueos(fechaActual);
         actualizarPedidos();
     }
