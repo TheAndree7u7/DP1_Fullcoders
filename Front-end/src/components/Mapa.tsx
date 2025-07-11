@@ -578,18 +578,13 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
         
         const estadoCamion = camiones.find(c => c.id === info.id);
         
-        // Determinar posición actual y dirección
+        // Determinar posición actual basada en el progreso de la ruta
         let currentPos = rutaCoords[0]; // Posición por defecto
         
-        if (estadoCamion && estadoCamion.ubicacion && typeof estadoCamion.ubicacion === 'string') {
-          try {
-            const parsedPos = parseCoord(estadoCamion.ubicacion);
-            if (parsedPos && typeof parsedPos.x === 'number' && typeof parsedPos.y === 'number') {
-              currentPos = parsedPos;
-            }
-          } catch (error) {
-            console.warn('🚨 Error al parsear ubicación del camión:', estadoCamion.ubicacion);
-          }
+        if (estadoCamion && rutaCoords.length > 0) {
+          // Usar el porcentaje como índice del nodo actual
+          const indiceNodoActual = Math.min(Math.floor(estadoCamion.porcentaje), rutaCoords.length - 1);
+          currentPos = rutaCoords[indiceNodoActual];
         }
         
         let rotacion = 0;
@@ -627,9 +622,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
 
   // Función handleAveriar movida a mapa/utils/averias.ts
 
-  if (cargando) {
-    return <p>Cargando simulación...</p>;
-  }
 
   return (
     <div className="w-full h-full flex flex-col">

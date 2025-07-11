@@ -195,6 +195,45 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [ejecutando, inicioEjecucion]);
 
+  // Actualización continua de posición de camiones para animación suave
+  useEffect(() => {
+    if (!ejecutando || !inicioEjecucion || rutasCamiones.length === 0) return;
+
+    console.log("🎬 TIEMPO REAL: Iniciando animación continua de camiones...");
+
+    const interval = setInterval(() => {
+      // Actualizar solo la posición de los camiones existentes
+      setCamiones(camionesActuales => {
+        return camionesActuales.map(camion => {
+          const ruta = rutasCamiones.find(r => r.id === camion.id);
+          if (!ruta) return camion;
+
+          // Calcular nuevo índice del nodo actual
+          const ahora = new Date();
+          const tiempoTranscurridoMs = ahora.getTime() - inicioEjecucion.getTime();
+          const tiempoTranscurridoSegundos = tiempoTranscurridoMs / 1000;
+          
+          // 25 nodos en 10 segundos = 2.5 nodos por segundo
+          const nodosAvanzadosPorSegundo = 25 / 10;
+          const nodosAvanzados = tiempoTranscurridoSegundos * nodosAvanzadosPorSegundo;
+          
+          const totalNodos = ruta.ruta.length;
+          const nuevoIndice = Math.min(Math.floor(nodosAvanzados), totalNodos - 1);
+
+          return {
+            ...camion,
+            porcentaje: nuevoIndice
+          };
+        });
+      });
+    }, 1000); // Actualizar cada segundo para animación suave
+
+    return () => {
+      console.log("🛑 TIEMPO REAL: Deteniendo animación continua de camiones");
+      clearInterval(interval);
+    };
+  }, [ejecutando, inicioEjecucion, rutasCamiones]);
+
   // Función para cargar datos de simulación
   const cargarDatosSimulacion = async () => {
     try {
@@ -244,10 +283,33 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
           );
           const camion = gen?.camion;
 
+          // Calcular índice del nodo actual basado en tiempo transcurrido
+          const calcularIndiceNodoActual = (rutaId: string): number => {
+            if (!inicioEjecucion) return 0;
+            
+            const ahora = new Date();
+            const tiempoTranscurridoMs = ahora.getTime() - inicioEjecucion.getTime();
+            const tiempoTranscurridoSegundos = tiempoTranscurridoMs / 1000;
+            
+            // Cada 10 segundos reales = 30 minutos simulados
+            // En 30 minutos simulados, deben avanzar 25 nodos
+            // Entonces en 1 segundo real = 25/10 = 2.5 nodos
+            const nodosAvanzadosPorSegundo = 25 / 10; // 2.5 nodos por segundo real
+            
+            const totalNodos = ruta.ruta.length;
+            if (totalNodos <= 1) return 0;
+            
+            // Calcular cuántos nodos ha avanzado
+            const nodosAvanzados = tiempoTranscurridoSegundos * nodosAvanzadosPorSegundo;
+            
+            // Retornar el índice del nodo actual (máximo: totalNodos - 1)
+            return Math.min(Math.floor(nodosAvanzados), totalNodos - 1);
+          };
+
           return {
             id: ruta.id,
             ubicacion: ruta.ruta[0] || "(0,0)",
-            porcentaje: Math.floor(Math.random() * 100), // Progreso simulado
+            porcentaje: calcularIndiceNodoActual(ruta.id),
             estado:
               camion?.estado === "DISPONIBLE" ? "Disponible" : "En Camino",
             capacidadActualGLP: camion?.capacidadActualGLP ?? 0,
