@@ -11,17 +11,20 @@ import type {
 interface CargaArchivosSimulacionProps {
   onArchivosCargados: (estado: EstadoCargaArchivos) => void;
   onContinuar: () => void;
+  onSaltarCarga: () => void;
 }
 
 const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
   onArchivosCargados,
-  onContinuar
+  onContinuar,
+  onSaltarCarga
 }) => {
   const [estadoCarga, setEstadoCarga] = useState<EstadoCargaArchivos>({
     ventas: { cargado: false, errores: [] },
     bloqueos: { cargado: false, errores: [] },
     camiones: { cargado: false, errores: [] }
   });
+  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
 
   const fileInputVentasRef = useRef<HTMLInputElement>(null);
   const fileInputBloqueosRef = useRef<HTMLInputElement>(null);
@@ -265,6 +268,20 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
     return estadoCarga.ventas.cargado && estadoCarga.bloqueos.cargado;
   };
 
+  // Función para manejar el salto de carga
+  const manejarSaltarCarga = () => {
+    setMostrarConfirmacion(true);
+  };
+
+  const confirmarSaltarCarga = () => {
+    setMostrarConfirmacion(false);
+    onSaltarCarga();
+  };
+
+  const cancelarSaltarCarga = () => {
+    setMostrarConfirmacion(false);
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="bg-white rounded-lg shadow-lg p-6">
@@ -440,8 +457,16 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
           </div>
         </div>
 
-        {/* Botón Continuar */}
-        <div className="flex justify-end">
+        {/* Botones de Acción */}
+        <div className="flex justify-between items-center">
+          <button
+            onClick={manejarSaltarCarga}
+            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-md text-sm font-medium transition-colors flex items-center gap-2"
+          >
+            <span>⚠️</span>
+            Continuar con Datos de Prueba
+          </button>
+
           <button
             onClick={onContinuar}
             disabled={!puedenCargarseArchivos()}
@@ -455,6 +480,40 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Modal de Confirmación */}
+      {mostrarConfirmacion && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+            <div className="flex items-center mb-4">
+              <span className="text-2xl mr-3">⚠️</span>
+              <h3 className="text-lg font-semibold text-gray-900">
+                ¿Continuar con datos de prueba?
+              </h3>
+            </div>
+            
+            <p className="text-gray-600 mb-6">
+              Al continuar con datos de prueba, se utilizarán los archivos existentes en el sistema. 
+              ¿Estás seguro de que deseas proceder sin cargar archivos personalizados?
+            </p>
+            
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={cancelarSaltarCarga}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarSaltarCarga}
+                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Continuar con Datos de Prueba
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

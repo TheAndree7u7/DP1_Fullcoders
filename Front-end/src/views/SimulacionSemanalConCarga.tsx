@@ -46,6 +46,11 @@ const SimulacionSemanalConCarga: React.FC = () => {
     }
   };
 
+  const manejarSaltarCarga = () => {
+    toast.info('Continuando con datos de prueba existentes...');
+    setPaso('simulacion');
+  };
+
   const manejarVolver = () => {
     navigate("/");
   };
@@ -83,6 +88,7 @@ const SimulacionSemanalConCarga: React.FC = () => {
         <CargaArchivosSimulacion
           onArchivosCargados={manejarArchivosCargados}
           onContinuar={manejarContinuar}
+          onSaltarCarga={manejarSaltarCarga}
         />
       </div>
 
