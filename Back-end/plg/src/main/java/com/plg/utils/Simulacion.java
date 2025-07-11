@@ -53,7 +53,7 @@ public class Simulacion {
         actualizarPedidos();
     }
 
-    public static List<Pedido> actualizarPedidosEnRango(List<Pedido> pedidos) {
+    public static List<Pedido> actualizarPedidosEnRango() {
         // 1. Obtenemos todos los pedidos del fechaActual < x < fechaActual + intervaloTiempo
         LocalDateTime fechaLimite = Parametros.fecha_inicial.plusMinutes(Parametros.intervaloTiempo);
         List<Pedido> pedidosEnRango = Parametros.dataLoader.pedidos.stream()
@@ -69,7 +69,7 @@ public class Simulacion {
     }
 
     private static void actualizarPedidos() {
-        List<Pedido> pedidosActualizados = actualizarPedidosEnRango(Parametros.dataLoader.pedidos);
+        List<Pedido> pedidosActualizados = actualizarPedidosEnRango();
         // Borramos los pedidos del mapa
         for (int i = 0; i < Mapa.getInstance().getFilas(); i++) {
             for (int j = 0; j < Mapa.getInstance().getColumnas(); j++) {
@@ -84,6 +84,7 @@ public class Simulacion {
         for (Pedido pedido : pedidosActualizados) {
             Mapa.getInstance().setNodo(pedido.getCoordenada(), pedido);
         }
+        pedidosEnviar = pedidosActualizados;
     }
 
     public static List<Bloqueo> actualizarBloqueos(LocalDateTime fechaActual) {
