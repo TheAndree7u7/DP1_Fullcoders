@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback, memo } from 'react';
 import { useSimulacion } from '../context/SimulacionContext';
 import { useMapaWithSimulacion, useMapaWithTiempoReal, type MapaContextInterface } from '../hooks/useMapaContext';
 import type { Coordenada } from '../types';
@@ -32,9 +32,158 @@ const SVG_HEIGHT = GRID_HEIGHT * CELL_SIZE;
 // Parametrización del grosor de línea de bloqueos
 const BLOQUEO_STROKE_WIDTH = 4;
 
+// Componente memoizado para la leyenda
+const LeyendaMapa = memo(() => {
+  const [leyendaVisible, setLeyendaVisible] = useState(false);
+  
+  return (
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 p-2 w-32 flex-shrink-0">
+      <button
+        onClick={() => setLeyendaVisible(!leyendaVisible)}
+        className="flex items-center justify-between w-full text-left text-xs font-semibold text-gray-800 hover:text-gray-900 mb-2"
+      >
+        <span>LEYENDA</span>
+        {leyendaVisible ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+      </button>
+      
+      {leyendaVisible && (
+        <div className="space-y-1.5">
+          {/* Almacén Central */}
+          <div className="flex items-center gap-1.5">
+            <img src={almacenCentralIcon} alt="Almacén Central" className="w-4 h-4" />
+            <span className="text-xs text-gray-700">A. Central</span>
+          </div>
+          
+          {/* Almacén Intermedio */}
+          <div className="flex items-center gap-1.5">
+            <img src={almacenIntermedioIcon} alt="Almacén Intermedio" className="w-4 h-4" />
+            <span className="text-xs text-gray-700">A. Intermedio</span>
+          </div>
+          
+          {/* Cliente */}
+          <div className="flex items-center gap-1.5">
+            <img src={clienteIcon} alt="Cliente" className="w-4 h-4" />
+            <span className="text-xs text-gray-700">Cliente</span>
+          </div>
+          
+          {/* Camión */}
+          <div className="flex items-center gap-1.5">
+            <svg width="16" height="12" viewBox="0 0 16 12" className="border border-gray-300 rounded">
+              <rect x="2" y="4" width="10" height="4" rx="0.5" fill="#3b82f6" stroke="black" strokeWidth="0.3" />
+              <rect x="10" y="5" width="3" height="2" rx="0.3" fill="#3b82f6" stroke="black" strokeWidth="0.3" />
+              <circle cx="4" cy="9" r="1" fill="black" />
+              <circle cx="8" cy="9" r="1" fill="black" />
+              <circle cx="11" cy="9" r="1" fill="black" />
+              <polygon points="13,6 12,5.5 12,6.5" fill="white" stroke="black" strokeWidth="0.2" />
+            </svg>
+            <span className="text-xs text-gray-700">Camión</span>
+          </div>
+          
+          {/* Ruta */}
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-0.5 border-t border-dashed border-blue-500"></div>
+            <span className="text-xs text-gray-700">Ruta</span>
+          </div>
+          
+          {/* Bloqueos */}
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-0.5 bg-red-600 rounded-full"></div>
+            <span className="text-xs text-gray-700">Bloqueos</span>
+          </div>
+          
+          {/* Estados de camiones */}
+          <div className="pt-1 border-t border-gray-200">
+            <div className="text-xs font-medium text-gray-600 mb-1">Estados:</div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-blue-500 rounded-sm"></div>
+                <span className="text-xs text-gray-700">Normal</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
+                <span className="text-xs text-gray-700">Averiado</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 bg-gray-800 rounded-sm"></div>
+                <span className="text-xs text-gray-700">Mant.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+});
 
+LeyendaMapa.displayName = 'LeyendaMapa';
 
+// Componente memoizado para la cuadrícula
+const CuadriculaMapa = memo(() => {
+  const gridLines = useMemo(() => {
+    const verticalLines = [...Array(GRID_WIDTH + 1)].map((_, i) => (
+      <line key={`v-${i}`} x1={i * CELL_SIZE} y1={0} x2={i * CELL_SIZE} y2={SVG_HEIGHT} stroke="#d1d5db" strokeWidth={1} />
+    ));
+    const horizontalLines = [...Array(GRID_HEIGHT + 1)].map((_, i) => (
+      <line key={`h-${i}`} x1={0} y1={i * CELL_SIZE} x2={SVG_WIDTH} y2={i * CELL_SIZE} stroke="#d1d5db" strokeWidth={1} />
+    ));
+    return [...verticalLines, ...horizontalLines];
+  }, []);
 
+  return <>{gridLines}</>;
+});
+
+CuadriculaMapa.displayName = 'CuadriculaMapa';
+
+// Componente memoizado para los controles del mapa
+interface ControlesMapaProps {
+  running: boolean;
+  intervalo: number;
+  simulacionActiva: boolean;
+  onToggleRunning: () => void;
+  onIntervaloChange: (intervalo: number) => void;
+}
+
+const ControlesMapa = memo<ControlesMapaProps>(({ 
+  running, 
+  intervalo, 
+  simulacionActiva, 
+  onToggleRunning, 
+  onIntervaloChange 
+}) => {
+  return (
+    <div className="flex items-center gap-4 mt-2 justify-center">
+      <button
+        onClick={onToggleRunning}
+        className={`px-4 py-1 rounded text-white ${
+          !simulacionActiva && running 
+            ? 'bg-yellow-500 hover:bg-yellow-600' 
+            : 'bg-blue-500 hover:bg-blue-600'
+        }`}
+      >
+        {!simulacionActiva && running 
+          ? 'Pausado (Avería)' 
+          : running 
+            ? 'Pausar' 
+            : 'Iniciar'
+        }
+      </button>
+      <label className="flex items-center gap-1 text-sm">
+        Velocidad:
+        <input
+          type="number"
+          min={100}
+          step={100}
+          value={intervalo}
+          onChange={e => onIntervaloChange(parseInt(e.target.value))}
+          className="border rounded px-2 py-0.5 w-20"
+        />
+        ms
+      </label>
+    </div>
+  );
+});
+
+ControlesMapa.displayName = 'ControlesMapa';
 
 interface MapaProps {
   elementoResaltado?: {tipo: 'camion' | 'pedido' | 'almacen', id: string} | null;
@@ -84,8 +233,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
   const [clickedCamion, setClickedCamion] = useState<string | null>(null);
   const [clickedPos, setClickedPos] = useState<{x: number, y: number} | null>(null);
   const [averiando, setAveriando] = useState<string | null>(null);
-  // Estado para la leyenda desplegable
-  const [leyendaVisible, setLeyendaVisible] = useState(false);
   // Estados para el modal de almacenes
   const [clickedAlmacen, setClickedAlmacen] = useState<string | null>(null);
   const [clickedAlmacenPos, setClickedAlmacenPos] = useState<{x: number, y: number} | null>(null);
@@ -96,17 +243,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
   const pedidosPendientes = useMemo(() => getPedidosPendientes(rutasCamiones, camiones), [rutasCamiones, camiones]);
   //console.log('👥 MAPA: Pedidos pendientes (clientes):', pedidosPendientes);
   //console.log('🚚 MAPA: Estado de camiones:', camiones);
-
-  // Memoizar la cuadrícula para evitar re-renderizados innecesarios
-  const gridLines = useMemo(() => {
-    const verticalLines = [...Array(GRID_WIDTH + 1)].map((_, i) => (
-      <line key={`v-${i}`} x1={i * CELL_SIZE} y1={0} x2={i * CELL_SIZE} y2={SVG_HEIGHT} stroke="#d1d5db" strokeWidth={1} />
-    ));
-    const horizontalLines = [...Array(GRID_HEIGHT + 1)].map((_, i) => (
-      <line key={`h-${i}`} x1={0} y1={i * CELL_SIZE} x2={SVG_WIDTH} y2={i * CELL_SIZE} stroke="#d1d5db" strokeWidth={1} />
-    ));
-    return [...verticalLines, ...horizontalLines];
-  }, []);
 
   // Memoizar los bloqueos para evitar recalculos innecesarios
   const bloqueosRenderizados = useMemo(() => {
@@ -375,6 +511,19 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
       });
   }, [camionesVisuales, camiones, elementoResaltado, clickedCamion, tooltipCamion, setTooltipCamion, setTooltipPos, setClickedCamion, setClickedPos]);
 
+  // Callbacks memoizados para los controles
+  const handleToggleRunning = useCallback(() => {
+    if (!running) {
+      // Solo iniciar el contador cuando se presiona "Iniciar" por primera vez
+      iniciarContadorTiempo && iniciarContadorTiempo();
+    }
+    setRunning(prev => !prev);
+  }, [running, iniciarContadorTiempo]);
+
+  const handleIntervaloChange = useCallback((nuevoIntervalo: number) => {
+    setIntervalo(nuevoIntervalo);
+  }, []);
+
   useEffect(() => {
     const iniciales = rutasCamiones.map((info, idx) => {
       // Filtrar valores undefined o null de la ruta
@@ -476,82 +625,8 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
   return (
     <div className="w-full h-full flex flex-col">
       <div className="flex items-start gap-3 flex-1">
-        {/* Leyenda lateral compacta */}
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-2 w-32 flex-shrink-0">
-          <button
-            onClick={() => setLeyendaVisible(!leyendaVisible)}
-            className="flex items-center justify-between w-full text-left text-xs font-semibold text-gray-800 hover:text-gray-900 mb-2"
-          >
-            <span>LEYENDA</span>
-            {leyendaVisible ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-          </button>
-          
-          {leyendaVisible && (
-            <div className="space-y-1.5">
-              {/* Almacén Central */}
-              <div className="flex items-center gap-1.5">
-                <img src={almacenCentralIcon} alt="Almacén Central" className="w-4 h-4" />
-                <span className="text-xs text-gray-700">A. Central</span>
-              </div>
-              
-              {/* Almacén Intermedio */}
-              <div className="flex items-center gap-1.5">
-                <img src={almacenIntermedioIcon} alt="Almacén Intermedio" className="w-4 h-4" />
-                <span className="text-xs text-gray-700">A. Intermedio</span>
-              </div>
-              
-              {/* Cliente */}
-              <div className="flex items-center gap-1.5">
-                <img src={clienteIcon} alt="Cliente" className="w-4 h-4" />
-                <span className="text-xs text-gray-700">Cliente</span>
-              </div>
-              
-              {/* Camión */}
-              <div className="flex items-center gap-1.5">
-                <svg width="16" height="12" viewBox="0 0 16 12" className="border border-gray-300 rounded">
-                  <rect x="2" y="4" width="10" height="4" rx="0.5" fill="#3b82f6" stroke="black" strokeWidth="0.3" />
-                  <rect x="10" y="5" width="3" height="2" rx="0.3" fill="#3b82f6" stroke="black" strokeWidth="0.3" />
-                  <circle cx="4" cy="9" r="1" fill="black" />
-                  <circle cx="8" cy="9" r="1" fill="black" />
-                  <circle cx="11" cy="9" r="1" fill="black" />
-                  <polygon points="13,6 12,5.5 12,6.5" fill="white" stroke="black" strokeWidth="0.2" />
-                </svg>
-                <span className="text-xs text-gray-700">Camión</span>
-              </div>
-              
-              {/* Ruta */}
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-0.5 border-t border-dashed border-blue-500"></div>
-                <span className="text-xs text-gray-700">Ruta</span>
-              </div>
-              
-              {/* Bloqueos */}
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-0.5 bg-red-600 rounded-full"></div>
-                <span className="text-xs text-gray-700">Bloqueos</span>
-              </div>
-              
-              {/* Estados de camiones */}
-              <div className="pt-1 border-t border-gray-200">
-                <div className="text-xs font-medium text-gray-600 mb-1">Estados:</div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-blue-500 rounded-sm"></div>
-                    <span className="text-xs text-gray-700">Normal</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
-                    <span className="text-xs text-gray-700">Averiado</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-gray-800 rounded-sm"></div>
-                    <span className="text-xs text-gray-700">Mant.</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Leyenda lateral compacta - Componente memoizado */}
+        <LeyendaMapa />
 
         {/* Contenedor del mapa */}
         <div className="flex-1 flex flex-col items-center justify-center">
@@ -584,8 +659,8 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
               }}
             />
             
-            {/* Grid - Memoizado para evitar re-renderizado */}
-            {gridLines}
+            {/* Grid - Componente memoizado para evitar re-renderizado */}
+            <CuadriculaMapa />
 
             {/* Bloqueos - Memoizados para evitar re-renderizado */}
             {bloqueosRenderizados}
@@ -880,42 +955,16 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
         })()
       )}
 
-      {/* Controles del mapa */}
-      <div className="flex items-center gap-4 mt-2 justify-center">
-        <button
-          onClick={() => {
-            if (!running) {
-              // Solo iniciar el contador cuando se presiona "Iniciar" por primera vez
-              iniciarContadorTiempo();
-            }
-            setRunning(prev => !prev);
-          }}
-          className={`px-4 py-1 rounded text-white ${
-            !simulacionActiva && running 
-              ? 'bg-yellow-500 hover:bg-yellow-600' 
-              : 'bg-blue-500 hover:bg-blue-600'
-          }`}
-        >
-          {!simulacionActiva && running 
-            ? 'Pausado (Avería)' 
-            : running 
-              ? 'Pausar' 
-              : 'Iniciar'
-          }
-        </button>
-        <label className="flex items-center gap-1 text-sm">
-          Velocidad:
-          <input
-            type="number"
-            min={100}
-            step={100}
-            value={intervalo}
-            onChange={e => setIntervalo(parseInt(e.target.value))}
-            className="border rounded px-2 py-0.5 w-20"
-          />
-          ms
-        </label>
-      </div>
+      {/* Controles del mapa - Componente memoizado */}
+      {contextType === 'simulacion' && (
+        <ControlesMapa 
+          running={running}
+          intervalo={intervalo}
+          simulacionActiva={simulacionActiva}
+          onToggleRunning={handleToggleRunning}
+          onIntervaloChange={handleIntervaloChange}
+        />
+      )}
     </div>
   );
 };

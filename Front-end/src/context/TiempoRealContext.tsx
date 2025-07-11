@@ -106,6 +106,7 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
   const [inicioEjecucion, setInicioEjecucion] = useState<Date | null>(null);
   const [fechaInicioSimulacion, setFechaInicioSimulacion] = useState<Date | null>(null);
 
+
   // Actualización del tiempo real cada segundo
   useEffect(() => {
     const interval = setInterval(() => {
@@ -137,9 +138,11 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Función para calcular la fecha simulada basada en el tiempo transcurrido
   const calcularFechaSimulada = (): string => {
-    if (!fechaInicioSimulacion || !inicioEjecucion) {
-      // Usar fecha base: 01 de enero de 2025 a las 00:00:00
-      const fechaBase = new Date('2025-01-01T00:00:00');
+    // Crear fecha base forzando UTC: 01/01/2025 00:00:00
+    const fechaBase = new Date(Date.UTC(2025, 0, 1, 0, 0, 0, 0)); // UTC
+    
+    // Si no hay inicio de ejecución, devolver la fecha base
+    if (!inicioEjecucion) {
       return fechaBase.toISOString().slice(0, 19); // Formato: YYYY-MM-DDTHH:mm:ss
     }
 
@@ -151,7 +154,7 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
     const factorAceleracion = 180; // 1 segundo real = 180 segundos simulados
     const tiempoSimuladoMs = tiempoTranscurridoMs * factorAceleracion;
     
-    const fechaSimulada = new Date(fechaInicioSimulacion.getTime() + tiempoSimuladoMs);
+    const fechaSimulada = new Date(fechaBase.getTime() + tiempoSimuladoMs);
     return fechaSimulada.toISOString().slice(0, 19); // Formato: YYYY-MM-DDTHH:mm:ss
   };
 
@@ -302,14 +305,7 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
     setInicioEjecucion(ahora);
     setTiempoTranscurrido("00:00:00");
     
-    // Establecer fecha de inicio de simulación (base para cálculos)
-    if (!fechaInicioSimulacion) {
-      const fechaBase = new Date('2025-01-01T00:00:00');
-      setFechaInicioSimulacion(fechaBase);
-      console.log("📅 TIEMPO REAL: Fecha base de simulación establecida:", fechaBase.toISOString());
-    }
-
-    // En tiempo real no cargamos almacenes automáticamente
+    console.log("📅 TIEMPO REAL: Simulación iniciará desde las 00:00:00 del 01/01/2025");
     console.log("ℹ️ TIEMPO REAL: Simulación iniciada, esperando datos del nuevo endpoint...");
   };
 
