@@ -86,7 +86,7 @@ public class Individuo {
      * Valida la asignación usando un Gen temporal y calcularFitness.
      */
     private void asignarPedidosACamiones(List<Camion> camionesDisponibles, List<Pedido> pedidosMezclados, List<Gen> cromosoma, LocalDateTime fechaActual) {
-        int maxPedidosPorCamion = 3;
+        int maxPedidosPorCamion = 1;
         Random random = new Random();
         guardarEstadoActual();
         Collections.shuffle(camionesDisponibles);
