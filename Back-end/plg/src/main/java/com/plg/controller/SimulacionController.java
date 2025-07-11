@@ -89,20 +89,20 @@ public class SimulacionController {
 
 
 
-    @PostMapping("/iniciar")
-    public ResponseEntity<String> iniciarSimulacion(@RequestParam String fechaInicio) {
+    @GetMapping("/iniciar")
+    public ResponseEntity<String> iniciarSimulacion(@RequestParam String fecha) {
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/iniciar");
-        System.out.println("📅 Fecha recibida: " + fechaInicio);
+        System.out.println("📅 Fecha recibida: " + fecha);
         try {
             // Validar que la fecha no sea nula
-            if (fechaInicio == null) {
+            if (fecha == null) {
                 System.out.println("❌ Error: Fecha de inicio es nula");
                 return ResponseEntity.badRequest().body("Error: La fecha de inicio no puede ser nula");
             }
-            LocalDateTime fechaDateTime = LocalDateTime.parse(fechaInicio);
+            LocalDateTime fechaDateTime = LocalDateTime.parse(fecha);
             Simulacion.configurarSimulacionSemanal(fechaDateTime);
             simulacionIniciada = true; // Marcar que la simulación ha sido iniciada
-            String mensaje = "Simulación iniciada correctamente con fecha: " + fechaInicio;
+            String mensaje = "Simulación iniciada correctamente con fecha: " + fecha;
             System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
             return ResponseEntity.ok(mensaje);
         } catch (Exception e) {

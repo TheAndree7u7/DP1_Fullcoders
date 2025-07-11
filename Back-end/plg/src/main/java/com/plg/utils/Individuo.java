@@ -110,7 +110,7 @@ public class Individuo {
                     double pendiente = pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado();
                     double entregar = Math.min(glpPorPedido, pendiente);
                     pedido.setVolumenGLPEntregado(pedido.getVolumenGLPEntregado() + entregar);
-                    Gen gen = cromosoma.stream().filter(g -> g.getCamion().equals(camion)).findFirst().orElse(null);
+                    Gen gen = cromosoma.stream().filter(g -> g.getCamion().getCodigo().equals(camion.getCodigo())).findFirst().orElse(null);
                     if (gen != null) {
                         gen.getPedidos().add(pedido);
                         gen.getNodos().add(pedido);

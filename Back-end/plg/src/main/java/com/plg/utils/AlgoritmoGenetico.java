@@ -34,7 +34,7 @@ public class AlgoritmoGenetico {
 
     public AlgoritmoGenetico(Mapa mapa) {
         this.mapa = mapa;
-        generaciones = 50;
+        generaciones = 10;
         poblacionTamano = 300;
     }
 
