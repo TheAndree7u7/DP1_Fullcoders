@@ -8,13 +8,12 @@ import com.plg.utils.Herramientas;
 import com.plg.utils.Parametros;
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidDataFormatException;
 
-import org.springframework.stereotype.Component;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-@Component
 public class DataLoader {
 
     private String pathAverias = "data/averias/averias.v1.txt";
@@ -53,26 +52,33 @@ public class DataLoader {
     }
 
     public List<Almacen> initializeAlmacenes() {
-        AlmacenFactory.crearAlmacen(TipoAlmacen.CENTRAL, coordenadaCentral, 1_000_000_000,
+        Almacen central = AlmacenFactory.crearAlmacen(TipoAlmacen.CENTRAL, coordenadaCentral, 1_000_000_000,
                 1_000_000_000);
-        AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(42, 42), 160.0, 50);
-        AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(3, 63), 160.0, 50);
-
+        Almacen secundario1 = AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(42, 42), 160.0, 50);
+        Almacen secundario2 = AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(3, 63), 160.0, 50);
+        this.almacenes.add(central);
+        this.almacenes.add(secundario1);
+        this.almacenes.add(secundario2);
         return this.almacenes;
     }
 
     public List<Camion> initializeCamiones() {
+        CamionFactory.limpiarFactory(); 
         for (int i = 0; i < 2; i++) {
-            CamionFactory.crearCamionesPorTipo(TipoCamion.TA, true, coordenadaCentral);
+            Camion camion = CamionFactory.crearCamionesPorTipo(TipoCamion.TA, true, coordenadaCentral);
+            this.camiones.add(camion);
         }
         for (int i = 0; i < 4; i++) {
-            CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);
+            Camion camion = CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);
+            this.camiones.add(camion);
         }
         for (int i = 0; i < 4; i++) {
-            CamionFactory.crearCamionesPorTipo(TipoCamion.TC, true, coordenadaCentral);
+            Camion camion = CamionFactory.crearCamionesPorTipo(TipoCamion.TC, true, coordenadaCentral);
+            this.camiones.add(camion);
         }
         for (int i = 0; i < 10; i++) {
-            CamionFactory.crearCamionesPorTipo(TipoCamion.TD, true, coordenadaCentral);
+            Camion camion = CamionFactory.crearCamionesPorTipo(TipoCamion.TD, true, coordenadaCentral);
+            this.camiones.add(camion);
         }
         return this.camiones;
     }
@@ -88,14 +94,13 @@ public class DataLoader {
 
     public List<Pedido> initializePedidos() throws InvalidDataFormatException, IOException {
         List<String> lines = Herramientas.readAllLines(getPathPedidos());
-        List<Pedido> pedidosOriginales = new ArrayList<>();
 
         for (String line : lines) {
             Pedido pedido = PedidoFactory.crearPedido(line);
-            pedidosOriginales.add(pedido);
+            this.pedidos.add(pedido);
         }
 
-        return pedidosOriginales;
+        return this.pedidos;
     }
 
     public List<Mantenimiento> initializeMantenimientos()

@@ -30,24 +30,16 @@ public class Simulacion {
     public static Set<Pedido> pedidosEntregados = new LinkedHashSet<>();
     public static List<Bloqueo> bloqueosActivos = new ArrayList<>();
     public static Individuo mejorIndividuo = null;
-
     // Variable global para pedidosEnviar
     public static List<Pedido> pedidosEnviar = new ArrayList<>();
-
-
-
     public static void configurarSimulacionDiaria(LocalDateTime startDate) {
         // Aun no implementado
     }
-
     public static void configurarSimulacionSemanal(LocalDateTime startDate) {
-
         // 1. Actualizar parámetros globales antes de cargar datos
         Parametros.actualizarParametrosGlobales(startDate);
-
         // 2. Limpiamos el mapa antes de iniciar la simulación
         Mapa.getInstance().limpiarMapa();
-
         // 3. Creamos un nuevo dataLoader para la simulación semanal
         Parametros.dataLoader = new DataLoader();
     }

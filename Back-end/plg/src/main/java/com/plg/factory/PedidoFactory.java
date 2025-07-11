@@ -47,8 +47,6 @@ public class PedidoFactory {
                 .fechaLimite(fechaRegistro.plusHours((long) horasLimite))
                 .build();
 
-        // Agregar el pedido a la lista
-        Parametros.dataLoader.pedidos.add(pedido);
         return pedido;
     }
 

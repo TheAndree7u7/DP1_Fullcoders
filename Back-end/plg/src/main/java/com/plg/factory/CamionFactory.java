@@ -1,7 +1,6 @@
 package com.plg.factory;
 
-
-import com.plg.utils.Parametros;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,11 +16,19 @@ import com.plg.entity.TipoNodo;
  */
 public class CamionFactory {
 
-    
+    private static final List<Camion> camiones = new ArrayList<>();
     private static final Map<TipoCamion, Integer> contadorCamiones = new HashMap<>();
 
     static {
         // Inicializamos el contador para cada tipo de camión
+        for (TipoCamion tipo : TipoCamion.values()) {
+            contadorCamiones.put(tipo, 0);
+        }
+    }
+
+    public static void limpiarFactory() {
+        camiones.clear();
+        contadorCamiones.clear();
         for (TipoCamion tipo : TipoCamion.values()) {
             contadorCamiones.put(tipo, 0);
         }
@@ -131,7 +138,7 @@ public class CamionFactory {
         if (operativo) {
             Camion camion = crearCamionOperativo(codigo, tipo, capacidadGLP, tara, coordenada, 25.0, pesoCarga);
             camion.calcularDistanciaMaxima(); // Calculamos la distancia máxima
-            Parametros.dataLoader.camiones.add(camion); // Agregamos el camión operativo a la lista
+            camiones.add(camion);
             return camion;
         } else {
             return crearCamionAveriado(codigo, tipo, capacidadGLP, tara, coordenada, pesoCarga);
@@ -157,21 +164,11 @@ public class CamionFactory {
      * @return Camion correspondiente al código, o null si no se encuentra
      */
     public static Camion getCamionPorCodigo(String codigo) {
-        return Parametros.dataLoader.camiones.stream()
+        return camiones.stream()
                 .filter(c -> c.getCodigo().equals(codigo))
                 .findFirst()
                 .orElse(null);
                 
     }
 
-    /**
-     * Reinicia los contadores de camiones a sus valores iniciales.
-     * Útil para reiniciar la simulación desde cero.
-     */
-    public static void reiniciarContadores() {
-        for (TipoCamion tipo : TipoCamion.values()) {
-            contadorCamiones.put(tipo, 0);
-        }
-        Parametros.dataLoader.camiones.clear();
-    }
 }
