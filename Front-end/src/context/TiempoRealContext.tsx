@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { getMejorIndividuo } from "../services/simulacionApiService";
+import { getMejorIndividuo, getMejorIndividuoPorFecha } from "../services/simulacionApiService";
 import { getAlmacenes } from "../services/almacenApiService";
 import type {
   Pedido,
@@ -138,9 +138,9 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
   // Función para calcular la fecha simulada basada en el tiempo transcurrido
   const calcularFechaSimulada = (): string => {
     if (!fechaInicioSimulacion || !inicioEjecucion) {
-      // Si no tenemos fecha de inicio, usar una fecha base
-      const fechaBase = new Date('2024-07-08T06:00:00');
-      return fechaBase.toISOString();
+      // Usar fecha base: 01 de enero de 2025 a las 00:00:00
+      const fechaBase = new Date('2025-01-01T00:00:00');
+      return fechaBase.toISOString().slice(0, 19); // Formato: YYYY-MM-DDTHH:mm:ss
     }
 
     const ahora = new Date();
@@ -152,7 +152,7 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
     const tiempoSimuladoMs = tiempoTranscurridoMs * factorAceleracion;
     
     const fechaSimulada = new Date(fechaInicioSimulacion.getTime() + tiempoSimuladoMs);
-    return fechaSimulada.toISOString();
+    return fechaSimulada.toISOString().slice(0, 19); // Formato: YYYY-MM-DDTHH:mm:ss
   };
 
   // Formatear hora de simulación basada en fechaHoraSimulacion
@@ -207,13 +207,7 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
       // Llamar al nuevo endpoint con la fecha simulada
       let data: IndividuoConBloqueos;
       try {
-        const response = await fetch(`http://localhost:8085/api/simulacion/mejor?fecha=${fechaSimulada}`);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        data = await response.json() as IndividuoConBloqueos;
+        data = await getMejorIndividuoPorFecha(fechaSimulada) as IndividuoConBloqueos;
         console.log("✅ TIEMPO REAL: Respuesta del nuevo endpoint recibida");
       } catch (error) {
         console.log("⚠️ TIEMPO REAL: Error en nuevo endpoint, simulando respuesta:", error);
@@ -310,7 +304,7 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
     
     // Establecer fecha de inicio de simulación (base para cálculos)
     if (!fechaInicioSimulacion) {
-      const fechaBase = new Date('2024-07-08T06:00:00');
+      const fechaBase = new Date('2025-01-01T00:00:00');
       setFechaInicioSimulacion(fechaBase);
       console.log("📅 TIEMPO REAL: Fecha base de simulación establecida:", fechaBase.toISOString());
     }

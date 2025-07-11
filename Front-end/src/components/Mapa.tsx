@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useSimulacion } from '../context/SimulacionContext';
 import { useMapaWithSimulacion, useMapaWithTiempoReal, type MapaContextInterface } from '../hooks/useMapaContext';
 import type { Coordenada } from '../types';
@@ -93,9 +93,287 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
   // DEBUG: Verificar que almacenes llega al componente
   // console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
 
-  const pedidosPendientes = getPedidosPendientes(rutasCamiones, camiones);
+  const pedidosPendientes = useMemo(() => getPedidosPendientes(rutasCamiones, camiones), [rutasCamiones, camiones]);
   //console.log('👥 MAPA: Pedidos pendientes (clientes):', pedidosPendientes);
   //console.log('🚚 MAPA: Estado de camiones:', camiones);
+
+  // Memoizar la cuadrícula para evitar re-renderizados innecesarios
+  const gridLines = useMemo(() => {
+    const verticalLines = [...Array(GRID_WIDTH + 1)].map((_, i) => (
+      <line key={`v-${i}`} x1={i * CELL_SIZE} y1={0} x2={i * CELL_SIZE} y2={SVG_HEIGHT} stroke="#d1d5db" strokeWidth={1} />
+    ));
+    const horizontalLines = [...Array(GRID_HEIGHT + 1)].map((_, i) => (
+      <line key={`h-${i}`} x1={0} y1={i * CELL_SIZE} x2={SVG_WIDTH} y2={i * CELL_SIZE} stroke="#d1d5db" strokeWidth={1} />
+    ));
+    return [...verticalLines, ...horizontalLines];
+  }, []);
+
+  // Memoizar los bloqueos para evitar recalculos innecesarios
+  const bloqueosRenderizados = useMemo(() => {
+    return bloqueos && bloqueos.map((bloqueo, idx) => (
+      <polyline
+        key={`bloqueo-${idx}`}
+        fill="none"
+        stroke="#dc2626"
+        strokeWidth={BLOQUEO_STROKE_WIDTH}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        points={bloqueo.coordenadas.map(coord => `${coord.x * CELL_SIZE},${coord.y * CELL_SIZE}`).join(' ')}
+      />
+    ));
+  }, [bloqueos]);
+
+  // Memoizar los pedidos/clientes para evitar recalculos innecesarios
+  const clientesRenderizados = useMemo(() => {
+    return pedidosPendientes.map(pedido => {
+      const esResaltado = elementoResaltado?.tipo === 'pedido' && elementoResaltado?.id === pedido.codigo;
+      return (
+        <g key={pedido.codigo}>
+          {/* Círculo de resaltado para pedidos */}
+          {esResaltado && (
+            <circle
+              cx={pedido.coordenada.x * CELL_SIZE}
+              cy={pedido.coordenada.y * CELL_SIZE}
+              r={25}
+              fill="none"
+              stroke="#f59e0b"
+              strokeWidth={3}
+              strokeDasharray="4 2"
+              opacity={0.8}
+            >
+              <animate
+                attributeName="r"
+                values="20;30;20"
+                dur="2s"
+                repeatCount="indefinite"
+              />
+            </circle>
+          )}
+          
+          <image
+            href={clienteIcon}
+            x={pedido.coordenada.x * CELL_SIZE - 15}
+            y={pedido.coordenada.y * CELL_SIZE - 15}
+            width={30}
+            height={30}
+          />
+          <text
+            x={pedido.coordenada.x * CELL_SIZE}
+            y={pedido.coordenada.y * CELL_SIZE + 25}
+            textAnchor="middle"
+            fontSize="10"
+            fill="#dc2626"
+            fontWeight="bold"
+            stroke="#fff"
+            strokeWidth="0.5"
+          >
+            {pedido.codigo}
+          </text>
+        </g>
+      );
+    });
+  }, [pedidosPendientes, elementoResaltado]);
+
+  // Memoizar los almacenes para evitar recalculos innecesarios
+  const almacenesRenderizados = useMemo(() => {
+    return almacenes.map(almacen => {
+      const esResaltado = elementoResaltado?.tipo === 'almacen' && elementoResaltado?.id === almacen.id;
+      return (
+        <g key={almacen.id} style={{ cursor: 'pointer' }}>
+          {/* Círculo de resaltado para almacenes */}
+          {esResaltado && (
+            <circle
+              cx={almacen.coordenada.x * CELL_SIZE}
+              cy={almacen.coordenada.y * CELL_SIZE}
+              r={30}
+              fill="none"
+              stroke="#10b981"
+              strokeWidth={3}
+              strokeDasharray="6 3"
+              opacity={0.8}
+            >
+              <animate
+                attributeName="r"
+                values="25;35;25"
+                dur="2s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="opacity"
+                values="0.6;1;0.6"
+                dur="2s"
+                repeatCount="indefinite"
+              />
+            </circle>
+          )}
+          
+          <image
+            href={almacen.tipo === 'CENTRAL' ? almacenCentralIcon : almacenIntermedioIcon}
+            x={almacen.coordenada.x * CELL_SIZE - 20}
+            y={almacen.coordenada.y * CELL_SIZE - 20}
+            width={40}
+            height={40}
+            onClick={evt => {
+              if (!clickedAlmacen) {
+                setClickedAlmacen(almacen.id);
+                setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
+                actualizarAlmacenes();
+              }
+            }}
+          />
+          <text
+            x={almacen.coordenada.x * CELL_SIZE}
+            y={almacen.coordenada.y * CELL_SIZE + 30}
+            textAnchor="middle"
+            fontSize="12"
+            fill={almacen.tipo === 'CENTRAL' ? '#2563eb' : '#16a34a'}
+            fontWeight="bold"
+            stroke="#fff"
+            strokeWidth="0.5"
+            onClick={evt => {
+              if (!clickedAlmacen) {
+                setClickedAlmacen(almacen.id);
+                setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
+                actualizarAlmacenes();
+              }
+            }}
+          >
+            {almacen.nombre}
+          </text>
+        </g>
+      );
+    });
+  }, [almacenes, elementoResaltado, clickedAlmacen, actualizarAlmacenes]);
+
+  // Memoizar las rutas de camiones para evitar recalculos innecesarios
+  const rutasCamionesRenderizadas = useMemo(() => {
+    return camionesVisuales
+      .filter(camion => {
+        const estadoCamion = camiones.find(c => c.id === camion.id);
+        return estadoCamion?.estado !== 'Entregado' && 
+               estadoCamion?.estado !== 'Averiado' && 
+               camion.ruta.length > 1;
+      })
+      .map(camion => (
+        <polyline
+          key={`ruta-${camion.id}`}
+          fill="none"
+          stroke={camion.color}
+          strokeWidth={2}
+          strokeDasharray="4 2"
+          points={camion.ruta.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
+        />
+      ));
+  }, [camionesVisuales, camiones]);
+
+  // Memoizar los camiones para evitar recalculos innecesarios
+  const camionesRenderizados = useMemo(() => {
+    return camionesVisuales
+      .filter(camion => camiones.find(c => c.id === camion.id)?.estado !== 'Entregado')
+      .map(camion => {
+         const estadoCamion = camiones.find(c => c.id === camion.id);
+         const esAveriado = estadoCamion?.estado === 'Averiado';
+         const esEnMantenimiento = estadoCamion?.estado === 'En Mantenimiento';
+         const esResaltado = elementoResaltado?.tipo === 'camion' && elementoResaltado?.id === camion.id;
+         const { posicion, rotacion, color } = camion;
+         // Rojo para averiados, negro para mantenimiento, color original para otros estados
+         const colorFinal = esAveriado ? ESTADO_COLORS.AVERIADO : esEnMantenimiento ? ESTADO_COLORS.MANTENIMIENTO : color;
+         const cx = posicion.x * CELL_SIZE;
+         const cy = posicion.y * CELL_SIZE;
+         return (
+           <g key={camion.id}>
+             <g
+               transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
+               style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}
+               onMouseEnter={evt => {
+                 // Solo mostrar tooltip si no hay modal activo
+                 if (!clickedCamion) {
+                   setTooltipCamion(camion.id);
+                   setTooltipPos({ x: evt.clientX, y: evt.clientY });
+                 }
+               }}
+               onMouseMove={evt => {
+                 if (!clickedCamion && tooltipCamion === camion.id) {
+                   setTooltipPos({ x: evt.clientX, y: evt.clientY });
+                 }
+               }}
+               onMouseLeave={() => {
+                 setTooltipCamion(null);
+               }}
+               onClick={evt => {
+                 // Solo abrir el modal si no hay otro modal ya abierto
+                 if (!clickedCamion) {
+                   setClickedCamion(camion.id);
+                   setClickedPos({ x: evt.clientX, y: evt.clientY });
+                   // Ocultar el tooltip de hover
+                   setTooltipCamion(null);
+                 }
+               }}
+             >
+               {/* Círculo de resaltado que se mueve con el camión */}
+               {esResaltado && (
+                 <circle
+                   key={`resaltado-${camion.id}`}
+                   cx={0}
+                   cy={0}
+                   r={25}
+                   fill="none"
+                   stroke="#f59e0b"
+                   strokeWidth={3}
+                   strokeDasharray="8 4"
+                   opacity={0.9}
+                   style={{ transition: 'all 0.8s linear' }}
+                 >
+                   <animateTransform
+                     attributeName="transform"
+                     type="rotate"
+                     values="0 0 0;360 0 0"
+                     dur="4s"
+                     repeatCount="indefinite"
+                   />
+                   <animate
+                     attributeName="opacity"
+                     values="0.7;1;0.7"
+                     dur="1.5s"
+                     repeatCount="indefinite"
+                   />
+                 </circle>
+               )}
+               
+               {/* Cuerpo principal del camión */}
+               <rect key={`cuerpo-${camion.id}`} x={-8} y={-3} width={16} height={6} rx={1} fill={colorFinal} stroke="black" strokeWidth={0.5} />
+               
+               {/* Cabina del camión (frente) */}
+               <rect key={`cabina-${camion.id}`} x={6} y={-2} width={4} height={4} rx={0.5} fill={colorFinal} stroke="black" strokeWidth={0.5} />
+               
+               {/* Ruedas */}
+               <circle key={`rueda1-${camion.id}`} cx={-5} cy={4} r={1.5} fill="black" />
+               <circle key={`rueda2-${camion.id}`} cx={2} cy={4} r={1.5} fill="black" />
+               <circle key={`rueda3-${camion.id}`} cx={7} cy={4} r={1.5} fill="black" />
+               
+               {/* Indicador de dirección (flecha) */}
+               <polygon 
+                 key={`flecha-${camion.id}`}
+                 points="10,0 8,-1.5 8,1.5" 
+                 fill="white" 
+                 stroke="black" 
+                 strokeWidth={0.3}
+               />
+               
+               {/* Líneas de detalle del camión */}
+               <line key={`linea1-${camion.id}`} x1={-6} y1={-1} x2={4} y2={-1} stroke="black" strokeWidth={0.3} opacity={0.6} />
+               <line key={`linea2-${camion.id}`} x1={-6} y1={1} x2={4} y2={1} stroke="black" strokeWidth={0.3} opacity={0.6} />
+               
+               {esAveriado && (
+                 <text key={`averia-${camion.id}`} x={0} y={-10} textAnchor="middle" fontSize="8" fill="#dc2626" fontWeight="bold">
+                   💥
+                 </text>
+               )}
+             </g>
+           </g>
+         );
+      });
+  }, [camionesVisuales, camiones, elementoResaltado, clickedCamion, tooltipCamion, setTooltipCamion, setTooltipPos, setClickedCamion, setClickedPos]);
 
   useEffect(() => {
     const iniciales = rutasCamiones.map((info, idx) => {
@@ -306,274 +584,23 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
               }}
             />
             
-            {/* Grid */}
-            {[...Array(GRID_WIDTH + 1)].map((_, i) => (
-              <line key={`v-${i}`} x1={i * CELL_SIZE} y1={0} x2={i * CELL_SIZE} y2={SVG_HEIGHT} stroke="#d1d5db" strokeWidth={1} />
-            ))}
-            {[...Array(GRID_HEIGHT + 1)].map((_, i) => (
-              <line key={`h-${i}`} x1={0} y1={i * CELL_SIZE} x2={SVG_WIDTH} y2={i * CELL_SIZE} stroke="#d1d5db" strokeWidth={1} />
-            ))}
+            {/* Grid - Memoizado para evitar re-renderizado */}
+            {gridLines}
 
-            {/* Bloqueos */}
-            {bloqueos && bloqueos.map((bloqueo, idx) => (
-              <polyline
-                key={`bloqueo-${idx}`}
-                fill="none"
-                stroke="#dc2626"
-                strokeWidth={BLOQUEO_STROKE_WIDTH}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                points={bloqueo.coordenadas.map(coord => `${coord.x * CELL_SIZE},${coord.y * CELL_SIZE}`).join(' ')}
-              />
-            ))}
+            {/* Bloqueos - Memoizados para evitar re-renderizado */}
+            {bloqueosRenderizados}
 
-            {/* Clientes/Pedidos */}
-            {pedidosPendientes.map(pedido => {
-              //console.log('👤 MAPA: Renderizando cliente:', pedido.codigo, 'en posición:', pedido.coordenada);
-              const esResaltado = elementoResaltado?.tipo === 'pedido' && elementoResaltado?.id === pedido.codigo;
-              return (
-                <g key={pedido.codigo}>
-                  {/* Círculo de resaltado para pedidos */}
-                  {esResaltado && (
-                    <circle
-                      cx={pedido.coordenada.x * CELL_SIZE}
-                      cy={pedido.coordenada.y * CELL_SIZE}
-                      r={25}
-                      fill="none"
-                      stroke="#f59e0b"
-                      strokeWidth={3}
-                      strokeDasharray="4 2"
-                      opacity={0.8}
-                    >
-                      <animate
-                        attributeName="r"
-                        values="20;30;20"
-                        dur="2s"
-                        repeatCount="indefinite"
-                      />
-                    </circle>
-                  )}
-                  
-                  <image
-                    href={clienteIcon}
-                    x={pedido.coordenada.x * CELL_SIZE - 15}
-                    y={pedido.coordenada.y * CELL_SIZE - 15}
-                    width={30}
-                    height={30}
-                  />
-                  <text
-                    x={pedido.coordenada.x * CELL_SIZE}
-                    y={pedido.coordenada.y * CELL_SIZE + 25}
-                    textAnchor="middle"
-                    fontSize="10"
-                    fill="#dc2626"
-                    fontWeight="bold"
-                    stroke="#fff"
-                    strokeWidth="0.5"
-                  >
-                    {pedido.codigo}
-                  </text>
-                </g>
-              );
-            })}
+            {/* Clientes/Pedidos - Memoizados para evitar re-renderizado */}
+            {clientesRenderizados}
 
-            {/* Almacenes */}
-            {almacenes.map(almacen => {
-              // console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
-              const esResaltado = elementoResaltado?.tipo === 'almacen' && elementoResaltado?.id === almacen.id;
-              return (
-                <g key={almacen.id} style={{ cursor: 'pointer' }}>
-                  {/* Círculo de resaltado para almacenes */}
-                  {esResaltado && (
-                    <circle
-                      cx={almacen.coordenada.x * CELL_SIZE}
-                      cy={almacen.coordenada.y * CELL_SIZE}
-                      r={30}
-                      fill="none"
-                      stroke="#10b981"
-                      strokeWidth={3}
-                      strokeDasharray="6 3"
-                      opacity={0.8}
-                    >
-                      <animate
-                        attributeName="r"
-                        values="25;35;25"
-                        dur="2s"
-                        repeatCount="indefinite"
-                      />
-                      <animate
-                        attributeName="opacity"
-                        values="0.6;1;0.6"
-                        dur="2s"
-                        repeatCount="indefinite"
-                      />
-                    </circle>
-                  )}
-                  
-                  <image
-                    href={almacen.tipo === 'CENTRAL' ? almacenCentralIcon : almacenIntermedioIcon}
-                    x={almacen.coordenada.x * CELL_SIZE - 20}
-                    y={almacen.coordenada.y * CELL_SIZE - 20}
-                    width={40}
-                    height={40}
-                    onClick={evt => {
-                      if (!clickedAlmacen) {
-                        setClickedAlmacen(almacen.id);
-                        setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
-                        // Actualizar información de almacenes para tener datos frescos
-                        actualizarAlmacenes();
-                      }
-                    }}
-                  />
-                  <text
-                    x={almacen.coordenada.x * CELL_SIZE}
-                    y={almacen.coordenada.y * CELL_SIZE + 30}
-                    textAnchor="middle"
-                    fontSize="12"
-                    fill={almacen.tipo === 'CENTRAL' ? '#2563eb' : '#16a34a'}
-                    fontWeight="bold"
-                    stroke="#fff"
-                    strokeWidth="0.5"
-                    onClick={evt => {
-                      if (!clickedAlmacen) {
-                        setClickedAlmacen(almacen.id);
-                        setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
-                        // Actualizar información de almacenes para tener datos frescos
-                        actualizarAlmacenes();
-                      }
-                    }}
-                  >
-                    {almacen.nombre}
-                  </text>
-                </g>
-              );
-            })}
+            {/* Almacenes - Memoizados para evitar re-renderizado */}
+            {almacenesRenderizados}
 
-            {/* Rutas de camiones */}
-            {camionesVisuales
-              .filter(camion => {
-                const estadoCamion = camiones.find(c => c.id === camion.id);
-                return estadoCamion?.estado !== 'Entregado' && 
-                       estadoCamion?.estado !== 'Averiado' && 
-                       camion.ruta.length > 1;
-              })
-              .map(camion => (
-                <polyline
-                  key={`ruta-${camion.id}`}
-                  fill="none"
-                  stroke={camion.color}
-                  strokeWidth={2}
-                  strokeDasharray="4 2"
-                  points={camion.ruta.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
-                />
-              ))}
+            {/* Rutas de camiones - Memoizadas para evitar re-renderizado */}
+            {rutasCamionesRenderizadas}
 
-            {/* Camiones */}
-            {camionesVisuales
-              .filter(camion => camiones.find(c => c.id === camion.id)?.estado !== 'Entregado')
-              .map(camion => {
-                 const estadoCamion = camiones.find(c => c.id === camion.id);
-                 const esAveriado = estadoCamion?.estado === 'Averiado';
-                 const esEnMantenimiento = estadoCamion?.estado === 'En Mantenimiento';
-                 const esResaltado = elementoResaltado?.tipo === 'camion' && elementoResaltado?.id === camion.id;
-                 const { posicion, rotacion, color } = camion;
-                 // Rojo para averiados, negro para mantenimiento, color original para otros estados
-                 const colorFinal = esAveriado ? ESTADO_COLORS.AVERIADO : esEnMantenimiento ? ESTADO_COLORS.MANTENIMIENTO : color;
-                 const cx = posicion.x * CELL_SIZE;
-                 const cy = posicion.y * CELL_SIZE;
-                 return (
-                   <g key={camion.id}>
-                     <g
-                       transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
-                       style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}
-                       onMouseEnter={evt => {
-                         // Solo mostrar tooltip si no hay modal activo
-                         if (!clickedCamion) {
-                           setTooltipCamion(camion.id);
-                           setTooltipPos({ x: evt.clientX, y: evt.clientY });
-                         }
-                       }}
-                       onMouseMove={evt => {
-                         if (!clickedCamion && tooltipCamion === camion.id) {
-                           setTooltipPos({ x: evt.clientX, y: evt.clientY });
-                         }
-                       }}
-                       onMouseLeave={() => {
-                         setTooltipCamion(null);
-                       }}
-                       onClick={evt => {
-                         // Solo abrir el modal si no hay otro modal ya abierto
-                         if (!clickedCamion) {
-                           setClickedCamion(camion.id);
-                           setClickedPos({ x: evt.clientX, y: evt.clientY });
-                           // Ocultar el tooltip de hover
-                           setTooltipCamion(null);
-                         }
-                       }}
-                     >
-                       {/* Círculo de resaltado que se mueve con el camión */}
-                       {esResaltado && (
-                         <circle
-                           key={`resaltado-${camion.id}`}
-                           cx={0}
-                           cy={0}
-                           r={25}
-                           fill="none"
-                           stroke="#f59e0b"
-                           strokeWidth={3}
-                           strokeDasharray="8 4"
-                           opacity={0.9}
-                           style={{ transition: 'all 0.8s linear' }}
-                         >
-                           <animateTransform
-                             attributeName="transform"
-                             type="rotate"
-                             values="0 0 0;360 0 0"
-                             dur="4s"
-                             repeatCount="indefinite"
-                           />
-                           <animate
-                             attributeName="opacity"
-                             values="0.7;1;0.7"
-                             dur="1.5s"
-                             repeatCount="indefinite"
-                           />
-                         </circle>
-                       )}
-                       
-                       {/* Cuerpo principal del camión */}
-                       <rect key={`cuerpo-${camion.id}`} x={-8} y={-3} width={16} height={6} rx={1} fill={colorFinal} stroke="black" strokeWidth={0.5} />
-                       
-                       {/* Cabina del camión (frente) */}
-                       <rect key={`cabina-${camion.id}`} x={6} y={-2} width={4} height={4} rx={0.5} fill={colorFinal} stroke="black" strokeWidth={0.5} />
-                       
-                       {/* Ruedas */}
-                       <circle key={`rueda1-${camion.id}`} cx={-5} cy={4} r={1.5} fill="black" />
-                       <circle key={`rueda2-${camion.id}`} cx={2} cy={4} r={1.5} fill="black" />
-                       <circle key={`rueda3-${camion.id}`} cx={7} cy={4} r={1.5} fill="black" />
-                       
-                       {/* Indicador de dirección (flecha) */}
-                       <polygon 
-                         key={`flecha-${camion.id}`}
-                         points="10,0 8,-1.5 8,1.5" 
-                         fill="white" 
-                         stroke="black" 
-                         strokeWidth={0.3}
-                       />
-                       
-                       {/* Líneas de detalle del camión */}
-                       <line key={`linea1-${camion.id}`} x1={-6} y1={-1} x2={4} y2={-1} stroke="black" strokeWidth={0.3} opacity={0.6} />
-                       <line key={`linea2-${camion.id}`} x1={-6} y1={1} x2={4} y2={1} stroke="black" strokeWidth={0.3} opacity={0.6} />
-                       
-                       {esAveriado && (
-                         <text key={`averia-${camion.id}`} x={0} y={-10} textAnchor="middle" fontSize="8" fill="#dc2626" fontWeight="bold">
-                           💥
-                         </text>
-                       )}
-                     </g>
-                   </g>
-                 );
-              })}
+            {/* Camiones - Memoizados para evitar re-renderizado */}
+            {camionesRenderizados}
           </svg>
           </div>
         </div>
