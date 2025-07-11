@@ -27,7 +27,7 @@ const SimulacionSemanal: React.FC = () => {
   const [controlPanelExpandido, setControlPanelExpandido] = useState(false);
 
   // Constante que indica cada cuántas horas se reciben datos del backend
-  const HORAS_POR_ACTUALIZACION = 2;
+  const HORAS_POR_ACTUALIZACION = 0.5;
   
   // Estado para guardar el tiempo en la simulación (actualizado por nodos)
   const [tiempoReal, setTiempoReal] = useState<Date | null>(null);
@@ -45,19 +45,19 @@ const SimulacionSemanal: React.FC = () => {
     if (fechaHoraSimulacion && horaActual >= 0) {
       const fechaBase = new Date(fechaHoraSimulacion);
       
-      // Número total de nodos para una actualización completa (cada 4 horas)
-      const NODOS_POR_ACTUALIZACION = 100;
+      // Número total de nodos para una actualización completa (cada 30 minutos)
+      const NODOS_POR_ACTUALIZACION = 25;
       
-      // Calculamos qué nodo estamos dentro del ciclo actual (0-99)
+      // Calculamos qué nodo estamos dentro del ciclo actual (0-24)
       const nodoEnCicloActual = horaActual % NODOS_POR_ACTUALIZACION;
       
-      // Calculamos el avance por nodo (segundos totales de 4 horas divididos por nodos totales)
-      const segundosPorNodo = (HORAS_POR_ACTUALIZACION * 60 * 60) / NODOS_POR_ACTUALIZACION; // 4 horas / 100 nodos
+      // Calculamos el avance por nodo (segundos totales de 30 minutos divididos por nodos totales)
+      const segundosPorNodo = (0.5 * 60 * 60) / NODOS_POR_ACTUALIZACION; // 30 minutos / 25 nodos
       
       // Calculamos segundos adicionales solo para el incremento local dentro del ciclo actual
       const segundosAdicionales = nodoEnCicloActual * segundosPorNodo;
       
-      // Crea nueva fecha sumando los segundos (no debe pasarse del próximo intervalo de 4 horas)
+      // Crea nueva fecha sumando los segundos (no debe pasarse del próximo intervalo de 30 minutos)
       const nuevaFecha = new Date(fechaBase.getTime() + segundosAdicionales * 1000);
       setTiempoReal(nuevaFecha);
     }

@@ -39,8 +39,8 @@ import {
  */
 const HORA_INICIAL = 0;
 const HORA_PRIMERA_ACTUALIZACION = 0; // Cambié de 1 a 0 para empezar desde el primer paquete
-const NODOS_PARA_ACTUALIZACION = 100;
-//aca 100 nodos significan 2h de tiempo entonces cada nodo
+const NODOS_PARA_ACTUALIZACION = 25;
+//aca 25 nodos significan 30 minutos de tiempo entonces cada nodo
 // representa 1.2 minutos de tiempo real, lo que es un valor razonable para simular el avance
 
 const INCREMENTO_PORCENTAJE = 1;
@@ -177,6 +177,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     useState<boolean>(false);
   const [proximaSolucionCargada, setProximaSolucionCargada] =
     useState<IndividuoConBloqueos | null>(null);
+  const [concatenacionAplicada, setConcatenacionAplicada] =
+    useState<boolean>(false);
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
   const [fechaHoraSimulacion, setFechaHoraSimulacion] = useState<string | null>(
     null,
@@ -634,6 +636,79 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   /**
+   * @function concatenarRutas
+   * @description Concatena rutas nuevas con rutas existentes para transición suave
+   */
+  const concatenarRutas = (data: IndividuoConBloqueos): RutaCamion[] => {
+    return data.cromosoma.map((gen: Gen) => {
+      const rutaAnterior = rutasCamiones.find(r => r.id === gen.camion.codigo);
+      const camionAnterior = camiones.find(c => c.id === gen.camion.codigo);
+      
+      // Nueva ruta del cromosoma
+      const nuevaRutaCompleta = gen.nodos.map(
+        (n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`,
+      );
+      
+      // Si tenemos una ruta anterior y estamos concatenando desde el nodo 25
+      if (rutaAnterior && camionAnterior) {
+        // Mantener los primeros 25 nodos de la ruta anterior
+        const rutaHastaNodo25 = rutaAnterior.ruta.slice(0, 25);
+        
+        // Validar que las rutas sean consecutivas (nodo 25 de ruta anterior conecta con nodo 0 de nueva ruta)
+        const ultimoNodoRutaAnterior = rutaAnterior.ruta[24]; // nodo 25 (índice 24)
+        const primerNodoNuevaRuta = nuevaRutaCompleta[0];
+        
+        // Parsear coordenadas para validar distancia
+        const coordUltimoNodo = parseCoord(ultimoNodoRutaAnterior);
+        const coordPrimerNodo = parseCoord(primerNodoNuevaRuta);
+        
+        // Calcular distancia Manhattan (movimiento en grid)
+        const distanciaManhattan = Math.abs(coordUltimoNodo.x - coordPrimerNodo.x) + 
+                                 Math.abs(coordUltimoNodo.y - coordPrimerNodo.y);
+        
+        if (ultimoNodoRutaAnterior === primerNodoNuevaRuta) {
+          console.log(`✅ VALIDACIÓN: Camión ${gen.camion.codigo} - Rutas conectan perfectamente en la misma coordenada: ${ultimoNodoRutaAnterior}`);
+        } else if (distanciaManhattan === 1) {
+          console.log(`✅ VALIDACIÓN: Camión ${gen.camion.codigo} - Rutas son adyacentes (distancia: 1)
+          Último nodo: ${ultimoNodoRutaAnterior} → Primer nodo: ${primerNodoNuevaRuta}`);
+        } else if (distanciaManhattan > 1) {
+          console.log(`🚨 ERROR VALIDACIÓN: Camión ${gen.camion.codigo} - Las coordenadas están MUY LEJOS (distancia: ${distanciaManhattan})
+          Último nodo ruta anterior: ${ultimoNodoRutaAnterior} ${JSON.stringify(coordUltimoNodo)}
+          Primer nodo nueva ruta: ${primerNodoNuevaRuta} ${JSON.stringify(coordPrimerNodo)}
+          ¡Esto causará un salto brusco en el movimiento!`);
+        }
+        
+        // Concatenar la nueva ruta desde el nodo 25
+        let rutaConcatenada;
+        if (ultimoNodoRutaAnterior === primerNodoNuevaRuta) {
+          // Si son la misma coordenada, evitar duplicar el nodo
+          rutaConcatenada = [...rutaHastaNodo25, ...nuevaRutaCompleta.slice(1)];
+        } else {
+          // Si son diferentes (adyacentes o no), mantener ambos nodos para continuidad
+          rutaConcatenada = [...rutaHastaNodo25, ...nuevaRutaCompleta];
+        }
+        
+        console.log(`🔗 CONCATENACIÓN: Camión ${gen.camion.codigo} - Ruta anterior: ${rutaAnterior.ruta.length} nodos, Nueva ruta: ${nuevaRutaCompleta.length} nodos, Concatenada: ${rutaConcatenada.length} nodos`);
+        
+        return {
+          id: gen.camion.codigo,
+          ruta: rutaConcatenada,
+          puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
+          pedidos: gen.pedidos,
+        };
+      }
+      
+      // Si no hay ruta anterior, usar la nueva ruta completa
+      return {
+        id: gen.camion.codigo,
+        ruta: nuevaRutaCompleta,
+        puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
+        pedidos: gen.pedidos,
+      };
+    });
+  };
+
+  /**
    * @function aplicarSolucionPrecargada
    * @description Aplica una solución previamente cargada para transición suave
    */
@@ -664,14 +739,17 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         );
       }
 
-      const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => ({
-        id: gen.camion.codigo,
-        ruta: gen.nodos.map(
-          (n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`,
-        ),
-        puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
-        pedidos: gen.pedidos,
-      }));
+      // Aplicar concatenación de rutas si estamos en el nodo 25
+      const nuevasRutas: RutaCamion[] = concatenacionAplicada 
+        ? concatenarRutas(data)
+        : data.cromosoma.map((gen: Gen) => ({
+            id: gen.camion.codigo,
+            ruta: gen.nodos.map(
+              (n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`,
+            ),
+            puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
+            pedidos: gen.pedidos,
+          }));
 
       setRutasCamiones(nuevasRutas);
       console.log(
@@ -690,7 +768,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         return {
           id: ruta.id,
           ubicacion,
-          porcentaje: 0,
+          porcentaje: anterior?.porcentaje ?? 0, // Mantener el progreso actual
           estado: camion?.estado === "DISPONIBLE" ? "Disponible" : "En Camino",
           capacidadActualGLP: camion?.capacidadActualGLP ?? 0,
           capacidadMaximaGLP: camion?.capacidadMaximaGLP ?? 0,
@@ -725,6 +803,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
       setEsperandoActualizacion(false);
       setSolicitudAnticipadaEnviada(false);
+      setConcatenacionAplicada(false);
       setProximaSolucionCargada(null);
 
       // Asegurar que el estado de carga esté en false después de aplicar datos
@@ -748,20 +827,33 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const avanzarHora = async () => {
     if (esperandoActualizacion || !simulacionActiva) return;
 
-    // Verificar si necesitamos solicitar anticipadamente la próxima solución
-    const nodosTres4 = Math.floor(NODOS_PARA_ACTUALIZACION * 0.75);
+    // Verificar si necesitamos solicitar anticipadamente la próxima solución en el nodo 15
+    const nodoAnticipado = 15;
+    const nodoConcatenacion = 25;
     const nodosRestantes = nodosRestantesAntesDeActualizar - 1;
+    const nodoActual = NODOS_PARA_ACTUALIZACION - nodosRestantes;
 
-    if (nodosRestantes === nodosTres4 && !solicitudAnticipadaEnviada) {
+    if (nodoActual === nodoAnticipado && !solicitudAnticipadaEnviada) {
       console.log(
-        "📅 ANTICIPADA: Llegamos a 3/4 del ciclo (nodo",
-        NODOS_PARA_ACTUALIZACION - nodosRestantes,
+        "📅 ANTICIPADA: Llegamos al nodo",
+        nodoAnticipado,
         "de",
         NODOS_PARA_ACTUALIZACION,
         ") - Solicitando próxima solución...",
       );
       setSolicitudAnticipadaEnviada(true);
       cargarSolucionAnticipada();
+    }
+
+    // Verificar si necesitamos marcar que llegamos al nodo 25 para concatenación
+    if (nodoActual === nodoConcatenacion && proximaSolucionCargada && !concatenacionAplicada) {
+      console.log(
+        "🔗 CONCATENACIÓN: Llegamos al nodo",
+        nodoConcatenacion,
+        "- Marcando para concatenación en próxima actualización...",
+      );
+      setConcatenacionAplicada(true);
+      // NO aplicar inmediatamente, esperar al final del ciclo
     }
 
     const nuevosCamiones = camiones.map((camion) => {
@@ -914,12 +1006,19 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setCamiones(nuevosCamiones);
       setHoraActual((prev) => prev + 1);
 
-      // Si ya tenemos la solución anticipada cargada, usarla directamente
-      if (proximaSolucionCargada) {
+      // Si ya se marcó para concatenación, aplicar la solución con concatenación
+      if (concatenacionAplicada && proximaSolucionCargada) {
+        console.log(
+          "🔗 TRANSICIÓN: Aplicando solución con concatenación después de recibir datos completos",
+        );
+        await aplicarSolucionPrecargada(proximaSolucionCargada);
+        setProximaSolucionCargada(null); // Limpiar después de usar
+      } else if (proximaSolucionCargada) {
         console.log(
           "⚡ TRANSICIÓN: Usando solución anticipada precargada para transición suave",
         );
         await aplicarSolucionPrecargada(proximaSolucionCargada);
+        setProximaSolucionCargada(null); // Limpiar después de usar
       } else {
         console.log(
           "🔄 TRANSICIÓN: Solución anticipada no disponible, cargando en tiempo real...",

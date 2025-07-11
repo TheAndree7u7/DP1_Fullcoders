@@ -422,7 +422,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
            <g key={camion.id}>
              <g
                transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
-               style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}
+               style={{ cursor: 'pointer' }}
                onMouseEnter={evt => {
                  // Solo mostrar tooltip si no hay modal activo
                  if (!clickedCamion) {
@@ -460,7 +460,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, contextType = 'simulacio
                    strokeWidth={3}
                    strokeDasharray="8 4"
                    opacity={0.9}
-                   style={{ transition: 'all 0.8s linear' }}
+                   style={{}}
                  >
                    <animateTransform
                      attributeName="transform"
