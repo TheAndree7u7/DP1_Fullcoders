@@ -67,10 +67,7 @@ public class SimulacionController {
         // Calcular el intervalo de tiempo en minutos entre la fecha inicial y la fecha actual
         Parametros.diferenciaTiempoMinRequest = (int) ChronoUnit.MINUTES.between(Parametros.fecha_inicial, fechaDateTime);
         Parametros.actualizarParametrosGlobales(fechaDateTime);
-        
-        // Obtener pedidos en el rango de dos horas y unir con pedidos planificados
         Simulacion.actualizarEstadoGlobal(fechaDateTime);
-
         System.out.println("🧩 Pedidos a enviar unidos para la fecha: " +
          Simulacion.pedidosEnviar.size());
         System.out.println("🧬 Ejecutando algoritmo genético para la fecha: " + fechaDateTime);

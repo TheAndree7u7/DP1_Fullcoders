@@ -16,8 +16,7 @@ public class GenDto {
     private List<NodoDto> nodos;
     private CoordenadaDto destino;
     private List<PedidoDto> pedidos;
-    //Almacenes 
-    private List<AlmacenDto> almacenes;
+
     public GenDto(Gen gen) {
         this.camion = new CamionDto(gen.getCamion());
         this.nodos = new ArrayList<>();
