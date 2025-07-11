@@ -53,9 +53,7 @@ public class AlgoritmoGenetico {
                     hijos.get(j).mutar();
                 }
             }
-
             poblacion = seleccionar_mejores(padres, hijos);
-
             // Verificamos si hay mejora
             double fitnessActual = poblacion.get(0).getFitness();
             if (fitnessActual > mejorFitness) {
@@ -68,17 +66,9 @@ public class AlgoritmoGenetico {
         // Ordenar población
         poblacion.sort((ind1, ind2) -> Double.compare(ind1.getFitness(), ind2.getFitness()));
         mejorIndividuo = poblacion.get(0);
-        verificarMejorIndividuo(mejorIndividuo);
-        
-        // Si el mejor individuo tiene fitness infinito, intentar crear un individuo vacío más simple
-        if (mejorIndividuo.getFitness() == Double.POSITIVE_INFINITY) {
-            LoggerUtil.logWarning("🔧 El mejor individuo tiene fitness infinito. Creando solución de emergencia...");
-            // Crear un individuo con rutas vacías (solo regresar al almacén)
-            mejorIndividuo = crearIndividuoEmergencia();
-        }
-        
+        verificarMejorIndividuo(mejorIndividuo);    
         actualizarParametrosGlobales(mejorIndividuo);
-        System.out.println("Fitness algoritmo genético: " + Parametros.contadorPrueba + " " + mejorIndividuo.getFitness());
+        System.out.println("Fitness algoritmo genético: " + Parametros.contadorPrueba + " Valor: " + mejorIndividuo.getFitness());
         for (Gen gen : mejorIndividuo.getCromosoma()) {
             Camion camion = gen.getCamion();
             camion.setGen(gen);
