@@ -192,48 +192,7 @@ public class Individuo {
         }
     }
 
-    public void mutar() {
-        Random rnd = new Random();
-        int g1 = rnd.nextInt(cromosoma.size());
-        int g2 = rnd.nextInt(cromosoma.size());
-        while (g2 == g1) {
-            g2 = rnd.nextInt(cromosoma.size());
-        }
-        Gen gen1 = cromosoma.get(g1);
-        Gen gen2 = cromosoma.get(g2);
-        List<Nodo> route1 = gen1.getNodos();
-        List<Nodo> route2 = gen2.getNodos();
-        if (route1.size() > 1 && route2.size() > 1) {
-            if (rnd.nextBoolean()) {
-                int i1 = rnd.nextInt(route1.size() - 1);
-                int i2 = rnd.nextInt(route2.size() - 1);
-                Nodo temp = route1.get(i1);
-                route1.set(i1, route2.get(i2));
-                route2.set(i2, temp);
-            } else {
-                if (route1.size() > 2) {
-                    int i1 = rnd.nextInt(route1.size() - 1);
-                    Nodo nodo = route1.remove(i1);
-                    route2.add(route2.size() - 1, nodo);
-                }
-            }
-            List<Pedido> nuevosPedidos1 = new ArrayList<>();
-            for (Nodo n : route1) {
-                if (n instanceof Pedido) {
-                    nuevosPedidos1.add((Pedido) n);
-                }
-            }
-            gen1.setPedidos(nuevosPedidos1);
-            List<Pedido> nuevosPedidos2 = new ArrayList<>();
-            for (Nodo n : route2) {
-                if (n instanceof Pedido) {
-                    nuevosPedidos2.add((Pedido) n);
-                }
-            }
-            gen2.setPedidos(nuevosPedidos2);
-            this.fitness = calcularFitness();
-        }
-    }
+
 
     @Override
     public String toString() {
