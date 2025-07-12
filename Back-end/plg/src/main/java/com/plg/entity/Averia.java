@@ -27,6 +27,7 @@ public class Averia {
     private LocalDateTime fechaHoraFinEsperaEnRuta;
     private int turnoOcurrencia;
     private double tiempoReparacionEstimado;
+    @Builder.Default
     private Boolean estado = true; // true: activo, false: inactivo
     private Coordenada coordenada;
 
