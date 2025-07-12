@@ -63,7 +63,6 @@ const styles = {
  * Función para calcular la hora exacta de simulación basada en los intervalos reales
  */
 const calcularHoraExactaSimulacion = (
-  fechaHoraSimulacion: string,
   fechaInicioIntervalo: string,
   fechaFinIntervalo: string,
   horaActual: number
@@ -172,7 +171,6 @@ const FechaHoraSimulacion: React.FC = () => {
   if (fechaHoraInicioIntervalo && fechaHoraFinIntervalo && horaActual > 0) {
     try {
       const fechaExacta = calcularHoraExactaSimulacion(
-        fechaHoraSimulacion || '',
         fechaHoraInicioIntervalo,
         fechaHoraFinIntervalo,
         horaActual
