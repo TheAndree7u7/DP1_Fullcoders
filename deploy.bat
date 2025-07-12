@@ -10,7 +10,7 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
-cd ..\..\..
+cd ..\..\
 
 REM Usar ruta absoluta del docker-compose.yml
 set DOCKER_COMPOSE_FILE=%~dp0docker-compose.yml
