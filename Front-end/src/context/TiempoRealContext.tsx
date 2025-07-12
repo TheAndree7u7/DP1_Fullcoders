@@ -106,6 +106,7 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
   const [inicioEjecucion, setInicioEjecucion] = useState<Date | null>(null);
   const [fechaInicioSimulacion, setFechaInicioSimulacion] = useState<Date | null>(null);
 
+  const [ultimaRutaCargada, setUltimaRutaCargada] = useState<string | null>(null);
 
   // Actualización del tiempo real cada segundo
   useEffect(() => {
@@ -187,7 +188,7 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
       } catch (error) {
         console.log("⚠️ TIEMPO REAL: Error al cargar nueva solución:", error);
       }
-    }, 10 * 1000); // 10 segundos reales = 30 minutos simulados
+    }, 10 * 10000000000000); // 10 segundos reales = 30 minutos simulados
 
     return () => {
       console.log("🛑 TIEMPO REAL: Deteniendo polling de nuevas soluciones");
@@ -207,7 +208,28 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
         return camionesActuales.map(camion => {
           const ruta = rutasCamiones.find(r => r.id === camion.id);
           if (!ruta) return camion;
-
+          if (camion.porcentaje === 0 && ruta.ruta.length > 0) {
+            const fechaInicio = new Date().toLocaleString('es-PE', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hour12: true
+            });
+            
+            const posicionInicial = ruta.ruta[0]; // Primer nodo
+            const posicionFinal = ruta.ruta[ruta.ruta.length - 1]; // Último nodo
+            
+            console.log(
+              `🚛 INICIO RUTA - [${fechaInicio}]\n` +
+              `   Camión: ${camion.id}\n` +
+              `   Nodos: ${ruta.ruta.length}\n` +
+              `   Inicio: ${posicionInicial}\n` +
+              `   Destino: ${posicionFinal}`
+            );
+          }
           // Calcular nuevo índice del nodo actual
           const ahora = new Date();
           const tiempoTranscurridoMs = ahora.getTime() - inicioEjecucion.getTime();
@@ -255,6 +277,14 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
       let data: IndividuoConBloqueos;
       try {
         data = await getMejorIndividuoPorFecha(fechaSimulada) as IndividuoConBloqueos;
+        const hashRutaActual = JSON.stringify(data.cromosoma);
+        if (hashRutaActual === ultimaRutaCargada) {
+          console.log("⏭️  Misma ruta detectada, omitiendo actualización");
+          return;
+        }
+        setUltimaRutaCargada(hashRutaActual);
+        console.log("🆕 Nueva ruta detectada, actualizando...");
+        
         console.log("✅ TIEMPO REAL: Respuesta del nuevo endpoint recibida");
       } catch (error) {
         console.log("⚠️ TIEMPO REAL: Error en nuevo endpoint, simulando respuesta:", error);
@@ -402,6 +432,7 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
     setFechaHoraSimulacion(null);
     setHoraSimulacion("00:00:00");
     setTiempoReal(new Date());
+    setUltimaRutaCargada(null);
   };
 
   // Métricas calculadas

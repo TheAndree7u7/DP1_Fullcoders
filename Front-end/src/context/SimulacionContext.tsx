@@ -73,6 +73,7 @@ export interface CamionEstado {
   tara: number;
   tipo: string;
   velocidadPromedio: number;
+  rutaCompletada: boolean;
 }
 
 /**
@@ -195,7 +196,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [simulacionActiva, setSimulacionActiva] = useState<boolean>(false);
   const [horaSimulacion, setHoraSimulacion] = useState<string>("00:00:00");
   const [pollingActivo, setPollingActivo] = useState<boolean>(false);
-
+  
   // Efecto de polling activo DESHABILITADO - ahora usamos el polling específico más abajo
   // que maneja mejor el primer paquete sin consumir paquetes innecesarios
 
