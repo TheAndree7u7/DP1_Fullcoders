@@ -105,8 +105,8 @@ interface SimulacionContextType {
   almacenes: Almacen[];
   fechaHoraSimulacion: string | null; // Fecha y hora de la simulación del backend
   fechaInicioSimulacion: string | null; // Fecha y hora de inicio de la simulación
-  fechaHoraInicioIntervalo: string | null; // Fecha y hora de inicio del intervalo actual
-  fechaHoraFinIntervalo: string | null; // Fecha y hora de fin del intervalo actual
+  fechaHoraInicioIntervalo: string | null; // Fecha y hora de inicio del paquete actual siendo consumido
+  fechaHoraFinIntervalo: string | null; // Fecha y hora de fin del paquete actual siendo consumido
   diaSimulacion: number | null; // Día extraído de fechaHoraSimulacion
   tiempoRealSimulacion: string; // Tiempo real transcurrido desde el inicio de la simulación
   tiempoTranscurridoSimulado: string; // Tiempo transcurrido dentro de la simulación
@@ -128,6 +128,8 @@ interface SimulacionContextType {
   cargando: boolean;
   bloqueos: Bloqueo[];
   marcarCamionAveriado: (camionId: string) => void; // Nueva función para manejar averías
+  limpiarSimulacionCompleta: () => void; // Nueva función para limpiar completamente incluyendo fecha de inicio
+  obtenerInfoPaqueteActual: () => { inicio: string | null; fin: string | null; numero: number }; // Nueva función para obtener info del paquete actual
 }
 
 /**
@@ -455,24 +457,26 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("Fecha de inicio de datos en el  mapa: ", data.fechaHoraInicioIntervalo);
       console.log("Fecha de inicio de datos en el mapa : ", data.fechaHoraFinIntervalo);
       
-      // Actualizar intervalos de fecha si están disponibles
+      // Actualizar fechas del paquete actual siendo consumido
       if (data.fechaHoraInicioIntervalo) {
         setFechaHoraInicioIntervalo(data.fechaHoraInicioIntervalo);
-        console.log("📅 INTERVALO: Fecha de inicio del intervalo establecida:", data.fechaHoraInicioIntervalo);
+        console.log("📦 PAQUETE ACTUAL: Fecha de inicio establecida:", data.fechaHoraInicioIntervalo);
       }
       if (data.fechaHoraFinIntervalo) {
         setFechaHoraFinIntervalo(data.fechaHoraFinIntervalo);
-        console.log("📅 INTERVALO: Fecha de fin del intervalo establecida:", data.fechaHoraFinIntervalo);
+        console.log("📦 PAQUETE ACTUAL: Fecha de fin establecida:", data.fechaHoraFinIntervalo);
       }
       
       // Actualizar fecha y hora de la simulación
       if (data.fechaHoraSimulacion) {
         setFechaHoraSimulacion(data.fechaHoraSimulacion);
 
-        // Establecer fecha de inicio si es la primera vez
+        // Establecer fecha de inicio si es la primera vez o si no existe
         if (!fechaInicioSimulacion) {
           setFechaInicioSimulacion(data.fechaHoraSimulacion);
-          console.log("Fecha de inicio de simulación establecida:", data.fechaHoraSimulacion);
+          console.log("📅 CARGA: Fecha de inicio de simulación establecida:", data.fechaHoraSimulacion);
+        } else {
+          console.log("📅 CARGA: Manteniendo fecha de inicio existente:", fechaInicioSimulacion);
         }
 
         // Extraer el día de la fecha
@@ -582,6 +586,11 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Incrementar el contador de paquetes consumidos
       setPaqueteActualConsumido(prev => prev + 1);
       console.log("📦 PAQUETE CONSUMIDO: Nuevo paquete aplicado, contador actualizado");
+      console.log("📦 PAQUETE ACTUAL:", {
+        numero: paqueteActualConsumido + 1,
+        inicio: data.fechaHoraInicioIntervalo,
+        fin: data.fechaHoraFinIntervalo
+      });
     } catch (error) {
       console.error("Error al cargar datos de simulación:", error);
       throw error; // Re-lanzar para que el caller pueda manejar el error
@@ -616,24 +625,26 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("Fecha de inicio de datos precargados intervalo del mapa: ", data.fechaHoraInicioIntervalo);
       console.log("Fecha de inicio de datos precargados intervalo mapa: ", data.fechaHoraFinIntervalo);
       
-      // Actualizar intervalos de fecha si están disponibles
+      // Actualizar fechas del paquete actual siendo consumido
       if (data.fechaHoraInicioIntervalo) {
         setFechaHoraInicioIntervalo(data.fechaHoraInicioIntervalo);
-        console.log("📅 TRANSICIÓN: Fecha de inicio del intervalo establecida:", data.fechaHoraInicioIntervalo);
+        console.log("📦 TRANSICIÓN: Fecha de inicio del paquete actual establecida:", data.fechaHoraInicioIntervalo);
       }
       if (data.fechaHoraFinIntervalo) {
         setFechaHoraFinIntervalo(data.fechaHoraFinIntervalo);
-        console.log("📅 TRANSICIÓN: Fecha de fin del intervalo establecida:", data.fechaHoraFinIntervalo);
+        console.log("📦 TRANSICIÓN: Fecha de fin del paquete actual establecida:", data.fechaHoraFinIntervalo);
       }
       
       // Actualizar fecha y hora de la simulación
       if (data.fechaHoraSimulacion) {
         setFechaHoraSimulacion(data.fechaHoraSimulacion);
 
-        // Establecer fecha de inicio si es la primera vez
+        // Establecer fecha de inicio si es la primera vez o si no existe
         if (!fechaInicioSimulacion) {
           setFechaInicioSimulacion(data.fechaHoraSimulacion);
-          console.log("Fecha de inicio de simulación establecida:", data.fechaHoraSimulacion);
+          console.log("📅 TRANSICIÓN: Fecha de inicio de simulación establecida:", data.fechaHoraSimulacion);
+        } else {
+          console.log("📅 TRANSICIÓN: Manteniendo fecha de inicio existente:", fechaInicioSimulacion);
         }
 
         const fecha = new Date(data.fechaHoraSimulacion);
@@ -700,6 +711,11 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Incrementar el contador de paquetes consumidos
       setPaqueteActualConsumido(prev => prev + 1);
       console.log(`📦 PAQUETE CONSUMIDO: Paquete precargado aplicado, contador actualizado a ${paqueteActualConsumido + 1}`);
+      console.log("📦 PAQUETE ACTUAL:", {
+        numero: paqueteActualConsumido + 1,
+        inicio: data.fechaHoraInicioIntervalo,
+        fin: data.fechaHoraFinIntervalo
+      });
       console.log("===============================================FIN========================================================");
     } catch (error) {
       console.error("❌ TRANSICIÓN: Error al aplicar solución precargada:", error);
@@ -991,7 +1007,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     setRutasCamiones([]);
     setBloqueos([]);
     setFechaHoraSimulacion(null);
-    setFechaInicioSimulacion(null);
+    // NO limpiar fechaInicioSimulacion para mantenerla durante toda la simulación semanal
+    // setFechaInicioSimulacion(null);
     setFechaHoraInicioIntervalo(null);
     setFechaHoraFinIntervalo(null);
     setDiaSimulacion(null);
@@ -1015,9 +1032,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     // Detener cualquier polling anterior
     setPollingActivo(false);
 
-    console.log("✅ LIMPIEZA: Estado limpio, cargando almacenes y datos...");
-
-
+    console.log("✅ LIMPIEZA: Estado limpio, manteniendo fecha de inicio de simulación semanal:", fechaInicioSimulacion);
 
     // Mientras esperamos el primer paquete, mostrar estado de carga
     setCargando(true);
@@ -1026,6 +1041,56 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     // No intentar cargar datos inmediatamente, solo usar polling para obtener el primer paquete
     console.log("🔄 LIMPIEZA: Iniciando polling para obtener el primer paquete disponible...");
     setPollingActivo(true);
+  };
+
+  /**
+   * @function limpiarSimulacionCompleta
+   * @description Limpia completamente la simulación incluyendo la fecha de inicio
+   * Se usa cuando se inicia una nueva simulación semanal
+   */
+  const limpiarSimulacionCompleta = () => {
+    console.log("🧹 LIMPIEZA COMPLETA: Limpiando toda la simulación incluyendo fecha de inicio...");
+
+    // Limpiar TODOS los datos de simulación incluyendo fecha de inicio
+    setCamiones([]);
+    setRutasCamiones([]);
+    setBloqueos([]);
+    setFechaHoraSimulacion(null);
+    setFechaInicioSimulacion(null); // Limpiar fecha de inicio para nueva simulación semanal
+    setFechaHoraInicioIntervalo(null);
+    setFechaHoraFinIntervalo(null);
+    setDiaSimulacion(null);
+    setTiempoTranscurridoSimulado("00:00:00");
+    setHoraSimulacionAcumulada("00:00:00");
+    setFechaHoraAcumulada("");
+
+    // Resetear contadores
+    setHoraActual(HORA_INICIAL);
+    setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
+    setEsperandoActualizacion(false);
+    setSolicitudAnticipadaEnviada(false);
+    setProximaSolucionCargada(null);
+    setPaqueteActualConsumido(0);
+
+    // Detener simulación
+    setSimulacionActiva(false);
+    setPollingActivo(false);
+    setCargando(false);
+
+    console.log("✅ LIMPIEZA COMPLETA: Simulación completamente limpiada, lista para nueva simulación semanal");
+  };
+
+  /**
+   * @function obtenerInfoPaqueteActual
+   * @description Obtiene información del paquete que se está consumiendo actualmente en el mapa
+   * @returns {Object} Información del paquete actual: inicio, fin y número
+   */
+  const obtenerInfoPaqueteActual = () => {
+    return {
+      inicio: fechaHoraInicioIntervalo,
+      fin: fechaHoraFinIntervalo,
+      numero: paqueteActualConsumido
+    };
   };
 
   return (
@@ -1060,6 +1125,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         cargando,
         bloqueos,
         marcarCamionAveriado,
+        limpiarSimulacionCompleta,
+        obtenerInfoPaqueteActual,
       }}
     >
       {children}

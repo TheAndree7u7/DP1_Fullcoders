@@ -93,10 +93,7 @@ const SimulacionSemanal: React.FC = () => {
       <div className="bg-[#1E293B] text-white py-2 px-4 flex justify-between items-center">
         <h1 className="font-bold">Ejecución Semanal - {formatearTiempoTranscurrido(tiempoTranscurridoSimulado)}</h1>
         <div className="flex items-center gap-4">
-          {/* Indicador compacto del paquete actual */}
-          <div className="bg-[#334155] rounded-lg px-3 py-1">
-            <IndicadorPaqueteActual variant="compact" showProgress={false} showTime={false} />
-          </div>
+ 
           {tiempoSimulado && (
             <div className="text-sm flex items-center gap-4">
               <div>
