@@ -18,7 +18,14 @@ const ControlSimulacion: React.FC = () => {
   const [mensaje, setMensaje] = useState<string>('');
   const [tipoMensaje, setTipoMensaje] = useState<'success' | 'error' | 'info'>('info');
   const [infoSimulacion, setInfoSimulacion] = useState<InfoSimulacion | null>(null);
-  const { reiniciar, limpiarEstadoParaNuevaSimulacion, iniciarPollingPrimerPaquete, setSimulacionActiva, simulacionActiva } = useSimulacion();
+  const { 
+    reiniciar, 
+    limpiarEstadoParaNuevaSimulacion, 
+    iniciarPollingPrimerPaquete, 
+    setSimulacionActiva, 
+    simulacionActiva,
+    setFechaInicioSimulacion
+  } = useSimulacion();
 
   // Establecer fecha por defecto (hoy)
   useEffect(() => {
@@ -92,7 +99,10 @@ const ControlSimulacion: React.FC = () => {
     try {
       const fechaHoraISO = `${fechaInicio}T${horaInicio}:00`;
       
-      // Primero iniciar la simulación en el backend
+      // 1. Guarda la fecha de inicio en el contexto global
+      setFechaInicioSimulacion(fechaHoraISO);
+
+      // 2. Inicia la simulación en el backend
       setMensaje('Configurando simulación en el backend...');
       await iniciarSimulacion(fechaHoraISO);
       

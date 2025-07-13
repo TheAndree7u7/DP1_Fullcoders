@@ -133,11 +133,7 @@ const SimulacionSemanal: React.FC = () => {
               </div>
               {/* Indicador detallado del paquete actual */}
               <div className="lg:col-span-1">
-                <IndicadorPaqueteActual 
-                  variant="detailed" 
-                  showProgress={true} 
-                  showTime={true}
-                />
+                <IndicadorPaqueteActual />
               </div>
             </div>
           </div>

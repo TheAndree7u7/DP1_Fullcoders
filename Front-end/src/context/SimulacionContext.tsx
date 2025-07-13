@@ -130,6 +130,7 @@ interface SimulacionContextType {
   marcarCamionAveriado: (camionId: string) => void; // Nueva función para manejar averías
   limpiarSimulacionCompleta: () => void; // Nueva función para limpiar completamente incluyendo fecha de inicio
   obtenerInfoPaqueteActual: () => { inicio: string | null; fin: string | null; numero: number }; // Nueva función para obtener info del paquete actual
+  setFechaInicioSimulacion: (fecha: string) => void; // Setter global para la fecha de inicio
 }
 
 /**
@@ -391,9 +392,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       try {
         console.log("🔍 POLLING: Buscando nuevos paquetes...");
-        // Corregido: obtener el mejor individuo usando la fecha de fin de intervalo si existe, si no usar una fecha por defecto
-        const fechaParaBuscar = "2025-06-10T12:00:00";
-        const paquete = await getMejorIndividuo(fechaParaBuscar);
+        // Usar la fecha de inicio global del contexto (asegurar string)
+        const paquete = await getMejorIndividuo(fechaInicioSimulacion ?? "");
         const data = paquete as IndividuoConBloqueos;
 
         // Verificar si hay datos válidos (cualquier paquete con estructura válida)
@@ -429,7 +429,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("🛑 POLLING: Limpiando interval de polling");
       clearInterval(interval);
     };
-  }, [pollingActivo, simulacionActiva]);
+  }, [pollingActivo, simulacionActiva, fechaInicioSimulacion]);
 
 
 
@@ -448,7 +448,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log(
         "🔄 SOLICITUD: Iniciando solicitud de nueva solución al servidor...",
       );
-      const data = (await getMejorIndividuo( "24-06-10T12:00:00")) as IndividuoConBloqueos;
+      // Usar la fecha de inicio global del contexto (asegurar string)
+      const data = (await getMejorIndividuo(fechaInicioSimulacion ?? "")) as IndividuoConBloqueos;
       console.log(
         "✅ RESPUESTA: Datos de nueva solución recibidos del servidor:",
         data,
@@ -606,8 +607,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const cargarSolucionAnticipada = async () => {
     try {
       console.log("🚀 ANTICIPADA: Cargando solución anticipada en background...");
-      const fechaParaBuscar = "2025-06-10T12:00:00";
-      const data = await getMejorIndividuo(fechaParaBuscar) as IndividuoConBloqueos;
+      // Usar la fecha de inicio global del contexto (asegurar string)
+      const data = await getMejorIndividuo(fechaHoraFinIntervalo  || "") as IndividuoConBloqueos;
       console.log("✨ ANTICIPADA: Solución anticipada cargada y lista:", data);
       setProximaSolucionCargada(data);
     } catch (error) {
@@ -1127,6 +1128,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         marcarCamionAveriado,
         limpiarSimulacionCompleta,
         obtenerInfoPaqueteActual,
+        setFechaInicioSimulacion,
       }}
     >
       {children}
