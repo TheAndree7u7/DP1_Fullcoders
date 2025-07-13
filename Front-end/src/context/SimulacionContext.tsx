@@ -7,7 +7,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { getMejorIndividuo, reiniciarSimulacion } from "../services/simulacionApiService";
-import { getAlmacenes } from "../services/almacenApiService";
+
 import type {
   Pedido,
   Individuo,
@@ -128,7 +128,6 @@ interface SimulacionContextType {
   cargando: boolean;
   bloqueos: Bloqueo[];
   marcarCamionAveriado: (camionId: string) => void; // Nueva función para manejar averías
-  actualizarAlmacenes: () => Promise<void>; // Nueva función para actualizar almacenes
 }
 
 /**
@@ -216,9 +215,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         console.log(`🔄 CONTEXTO: Intento ${intentos + 1}/${maxIntentos} de carga inicial...`);
 
-        // Intentar cargar almacenes primero (silencioso en reintentos)
-        await cargarAlmacenes(intentos > 0);
-        console.log("✅ CONTEXTO: Almacenes cargados exitosamente");
+
 
         // No intentar cargar datos de simulación automáticamente para evitar consumir paquetes
         // Los datos se cargarán a través del polling cuando estén disponibles
@@ -392,22 +389,17 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       try {
         console.log("🔍 POLLING: Buscando nuevos paquetes...");
-        const data = (await getMejorIndividuo()) as IndividuoConBloqueos;
+        // Corregido: obtener el mejor individuo usando la fecha de fin de intervalo si existe, si no usar una fecha por defecto
+        const fechaParaBuscar = "2025-06-10T12:00:00";
+        const paquete = await getMejorIndividuo(fechaParaBuscar);
+        const data = paquete as IndividuoConBloqueos;
 
         // Verificar si hay datos válidos (cualquier paquete con estructura válida)
         if (data && data.cromosoma && Array.isArray(data.cromosoma)) {
           console.log("✅ POLLING: Primer paquete encontrado (camiones:", data.cromosoma.length, "), desactivando polling...");
           setPollingActivo(false);
 
-          // Asegurar que los almacenes estén cargados antes del primer paquete
-          if (almacenes.length === 0) {
-            console.log("🏪 POLLING: Cargando almacenes antes del primer paquete...");
-            try {
-              await cargarAlmacenes(false); // No silencioso para debug
-            } catch (error) {
-              console.log("⚠️ POLLING: Error al cargar almacenes:", error);
-            }
-          }
+
 
           // Aplicar el primer paquete y setear la hora inicial correctamente
           await aplicarSolucionPrecargada(data);
@@ -437,35 +429,9 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [pollingActivo, simulacionActiva]);
 
-  // Función para actualizar almacenes (útil para refrescar capacidades)
-  const actualizarAlmacenes = async () => {
-    try {
-      console.log("🔄 ALMACENES: Actualizando información de almacenes...");
-      await cargarAlmacenes(false);
-      console.log("✅ ALMACENES: Información actualizada");
-    } catch (error) {
-      console.error("❌ ALMACENES: Error al actualizar almacenes:", error);
-    }
-  };
 
-  /**
-   * @function cargarAlmacenes
-   * @description Carga los datos de almacenes desde el backend
-   */
-  const cargarAlmacenes = async (silencioso: boolean = false) => {
-    try {
-      const data = await getAlmacenes();
-      setAlmacenes(data);
-      if (!silencioso) {
-        console.log("✅ ALMACENES: Almacenes cargados:", data.length, "items");
-      }
-    } catch (error) {
-      if (!silencioso) {
-        console.error("❌ ALMACENES: Error al cargar almacenes:", error);
-      }
-      throw error; // Re-lanzar para que el caller pueda manejar el error
-    }
-  };
+
+
 
   /**
    * @function cargarDatos
@@ -480,7 +446,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log(
         "🔄 SOLICITUD: Iniciando solicitud de nueva solución al servidor...",
       );
-      const data = (await getMejorIndividuo()) as IndividuoConBloqueos;
+      const data = (await getMejorIndividuo( "24-06-10T12:00:00")) as IndividuoConBloqueos;
       console.log(
         "✅ RESPUESTA: Datos de nueva solución recibidos del servidor:",
         data,
@@ -603,14 +569,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       if (data.almacenes && data.almacenes.length > 0) {
         console.log("🏪 CONTEXTO: Actualizando almacenes desde simulación:", data.almacenes);
         setAlmacenes(data.almacenes);
-      } else if (almacenes.length === 0) {
-        // Si no vienen almacenes en la respuesta y no tenemos almacenes cargados, cargarlos
-        console.log("🏪 CONTEXTO: No hay almacenes en la simulación, cargando desde API...");
-        try {
-          await cargarAlmacenes(false);
-        } catch (error) {
-          console.log("⚠️ CONTEXTO: Error al cargar almacenes desde API:", error);
-        }
       } else {
         console.log("🏪 CONTEXTO: Manteniendo almacenes existentes (" + almacenes.length + " items)");
       }
@@ -639,7 +597,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const cargarSolucionAnticipada = async () => {
     try {
       console.log("🚀 ANTICIPADA: Cargando solución anticipada en background...");
-      const data = await getMejorIndividuo() as IndividuoConBloqueos;
+      const fechaParaBuscar = "2025-06-10T12:00:00";
+      const data = await getMejorIndividuo(fechaParaBuscar) as IndividuoConBloqueos;
       console.log("✨ ANTICIPADA: Solución anticipada cargada y lista:", data);
       setProximaSolucionCargada(data);
     } catch (error) {
@@ -1058,16 +1017,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
     console.log("✅ LIMPIEZA: Estado limpio, cargando almacenes y datos...");
 
-    // Asegurar que los almacenes estén cargados SIEMPRE
-    try {
-      if (almacenes.length === 0) {
-        console.log("🏪 LIMPIEZA: Cargando almacenes...");
-        await cargarAlmacenes(false);
-        console.log("✅ LIMPIEZA: Almacenes cargados exitosamente");
-      }
-    } catch (error) {
-      console.log("⚠️ LIMPIEZA: Error al cargar almacenes:", error);
-    }
+
 
     // Mientras esperamos el primer paquete, mostrar estado de carga
     setCargando(true);
@@ -1110,7 +1060,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         cargando,
         bloqueos,
         marcarCamionAveriado,
-        actualizarAlmacenes,
       }}
     >
       {children}

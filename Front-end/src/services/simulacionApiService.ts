@@ -1,20 +1,31 @@
 import type { Individuo } from "../types";
 import { API_URLS } from "../config/api";
 
-export async function getMejorIndividuo(): Promise<Individuo> {
+export async function getMejorIndividuo(fechaInicio: string): Promise<Individuo> {
   try {
-    console.log("Iniciando solicitud al servidor...");
-    const response = await fetch(`${API_URLS.MEJOR_INDIVIDUO}`);
+    console.log("Iniciando solicitud al servidor (GET con fecha)...");
+
+    // Codificar la fecha para la URL
+    const url = `${API_URLS.MEJOR_INDIVIDUO}/${encodeURIComponent(fechaInicio)}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+      // No se debe enviar body en un GET
+    });
+
     console.log("Respuesta recibida:", {
       status: response.status,
       statusText: response.statusText,
       headers: Object.fromEntries(response.headers.entries())
     });
-    
-    // Si la respuesta está vacía o no es JSON
+
+    // Verificar el tipo de contenido
     const contentType = response.headers.get("content-type");
     console.log("Content-Type:", contentType);
-    
+
     if (!contentType || !contentType.includes("application/json")) {
       console.error("Tipo de contenido inválido:", contentType);
       throw new Error("La respuesta del servidor no es JSON válido");
@@ -33,7 +44,7 @@ export async function getMejorIndividuo(): Promise<Individuo> {
 
     const data = await response.json();
     console.log("Datos recibidos:", data);
-    
+
     if (!data) {
       console.error("Respuesta vacía");
       throw new Error("La respuesta está vacía");

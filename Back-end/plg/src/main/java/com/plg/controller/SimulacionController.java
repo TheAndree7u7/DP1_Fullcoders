@@ -92,12 +92,27 @@ public class SimulacionController {
         System.out.println("✅ Simulación reanudada después de avería");
     }
 
-    @GetMapping("/mejor")
-    public IndividuoDto obtenerMejorIndividuo() {
+    @GetMapping("/mejor/{fecha}")
+    public IndividuoDto obtenerMejorIndividuo(@PathVariable String fecha) {
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/mejor");
+        // Este método debe aceptar @PathVariable String fecha como parámetro.
+        // Ejemplo de firma correcta:
+        // @GetMapping("/mejor/{fecha}")
+        // public IndividuoDto obtenerMejorIndividuo(@PathVariable String fecha) { ... }
 
-        // Obtener el siguiente paquete en secuencia
+        LocalDateTime fechaSimulacion;
+        try {
+            fechaSimulacion = LocalDateTime.parse(fecha);
+        } catch (Exception e) {
+            System.err.println("❌ Error al parsear la fecha recibida: " + fecha);
+            return null;
+        }
+        Simulacion.simularIntervalo(fechaSimulacion);
+
         IndividuoDto siguientePaquete = Simulacion.obtenerSiguientePaquete();
+
+        // Ejemplo de uso desde el frontend o Postman:
+        // GET http://localhost:8080/api/simulacion/mejor/2024-06-10T12:00:00
 
         if (siguientePaquete == null) {
             System.out.println("⏳ No hay paquetes disponibles, esperando...");
@@ -181,11 +196,11 @@ public class SimulacionController {
         return info;
     }
 
-    @PostMapping("/iniciar")
-    public ResponseEntity<String> iniciarSimulacion(@RequestBody SimulacionRequest request) {
+    @PostMapping("/pedir_creacion_paquete")
+    public ResponseEntity<String> pedirCreacionPaquete(@RequestBody SimulacionRequest request) {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/pedir_creacion_paquete");
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/iniciar");
         System.out.println("📅 Fecha recibida: " + request.getFechaInicio());
-
         try {
             // Validar que la fecha no sea nula
             if (request.getFechaInicio() == null) {
@@ -239,6 +254,62 @@ public class SimulacionController {
             simulacionThread.setName("SimulacionThread-" + request.getFechaInicio());
             simulacionThread.start();
             hiloSimulacionActual = simulacionThread;
+
+            String mensaje = "Simulación iniciada correctamente con fecha: " + request.getFechaInicio();
+            System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
+
+            return ResponseEntity.ok(mensaje);
+
+        } catch (Exception e) {
+            String errorMsg = "Error al pedir creación de paquete: " + e.getMessage();
+            System.err.println("❌ " + errorMsg);
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMsg);
+        }
+
+    }
+
+    @PostMapping("/iniciar")
+    public ResponseEntity<String> iniciarSimulacion(@RequestBody SimulacionRequest request) {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/iniciar");
+        System.out.println("📅 Fecha recibida: " + request.getFechaInicio());
+
+        try {
+            // Validar que la fecha no sea nula
+            if (request.getFechaInicio() == null) {
+                System.out.println("❌ Error: Fecha de inicio es nula");
+                return ResponseEntity.badRequest().body("Error: La fecha de inicio no puede ser nula");
+            }
+            // Pedir mejor individuo
+            Simulacion.simularIntervalo(request.getFechaInicio());
+            
+            // Detener cualquier simulación anterior
+            //// detenerSimulacionActual();
+            System.out.println("🛑 Simulación anterior detenida (si existía)");
+
+            // Verificar estado del sistema antes de iniciar
+            System.out.println("🔍 DIAGNÓSTICO DEL SISTEMA:");
+            System.out.println("   • Almacenes disponibles: " + com.plg.config.DataLoader.almacenes.size());
+            System.out.println("   • Camiones disponibles: " + com.plg.config.DataLoader.camiones.size());
+            System.out.println("   • Mapa inicializado: " + (com.plg.entity.Mapa.getInstance() != null));
+
+            // Verificar camiones disponibles (no en mantenimiento)
+            long camionesDisponibles = com.plg.config.DataLoader.camiones.stream()
+                    .filter(camion -> camion.getEstado() != com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
+                    .count();
+            System.out.println("   • Camiones no en mantenimiento: " + camionesDisponibles);
+
+            if (camionesDisponibles == 0) {
+                System.out.println("⚠️ ADVERTENCIA: Todos los camiones están en mantenimiento");
+            }
+
+            System.out.println("🔧 Configurando simulación con fecha: " + request.getFechaInicio());
+
+            // Limpiar historial anterior antes de iniciar nueva simulación
+            com.plg.utils.simulacion.GestorHistorialSimulacion.limpiarHistorialCompleto();
+
+            // Configurar la simulación con la fecha enviada desde el frontend
+            Simulacion.configurarSimulacion(request.getFechaInicio());
 
             String mensaje = "Simulación iniciada correctamente con fecha: " + request.getFechaInicio();
             System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
