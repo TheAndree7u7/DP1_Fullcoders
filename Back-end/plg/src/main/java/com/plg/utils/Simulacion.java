@@ -16,6 +16,7 @@ import com.plg.dto.IndividuoDto;
 import com.plg.dto.request.AveriaConEstadoRequest;
 import com.plg.entity.Bloqueo;
 import com.plg.entity.Camion;
+import com.plg.entity.EstadoPedido;
 import com.plg.entity.Mapa;
 import com.plg.entity.Pedido;
 import com.plg.repository.AlmacenRepository;
@@ -186,13 +187,10 @@ public class Simulacion {
         System.out.println("🔒 Backup inicial de simulación creado tras configuración");
     }
 
-    /**
-     * Ejecuta el bucle principal de la simulación semanal.
-     * Procesa pedidos, ejecuta algoritmos genéticos y maneja eventos durante una
-     * semana completa.
-     */
-    public static void ejecutarSimulacion() {
+    public static void inicializarSimulacion() {
+        // ! ACA SE SIMULA LA SEMANA COMPLETA
         try {
+            // ! ACA SE SIMULA LA SEMANA COMPLETA
             GestorHistorialSimulacion.setEnProceso(true);
             ConfiguracionSimulacion.imprimirDatosSimulacion();
             Parametros.fecha_inicial = fechaActual;
@@ -200,6 +198,98 @@ public class Simulacion {
             System.out.println("🚀 Iniciando simulación hasta: " + fechaLimite);
             System.out.println("📅 Fecha de inicio (desde frontend): " + fechaActual);
             System.out.println("📦 Pedidos semanales iniciales: " + pedidosSemanal.size());
+        } catch (Exception e) {
+            System.err.println("💥 ERROR CRÍTICO EN LA SIMULACIÓN:");
+            System.err.println("Tiempo actual cuando ocurrió el error: " + fechaActual);
+            System.err.println("Mensaje de error: " + e.getMessage());
+            System.err.println("Tipo de excepción: " + e.getClass().getSimpleName());
+            e.printStackTrace();
+        }
+    }
+
+    public static void simularIntervalo(LocalDateTime fechaActual) {
+        // !BUSCA TODOS LOS PEDIDOS con fecha menor a la fecha actual pero mayor a la
+        // fecha de inicio
+        List<Pedido> pedidosDelIntervalo = DataLoader.pedidos.stream()
+                .filter(pedido -> pedido.getFechaRegistro()
+                        .isBefore(fechaActual.minusMinutes(Parametros.intervaloTiempo))
+                        && !pedido.getEstado().equals(EstadoPedido.ENTREGADO))
+                .collect(Collectors.toList());
+
+        // !BUSCA TODOS LOS PEDIDOS con fecha menor a la fecha actual pero mayor a la
+        // fecha de inicio
+        // !BUSCA TODOS LOS PEDIDOS con fecha menor a la fecha actual pero mayor a la
+        // fecha de inicio
+        System.out.println("******************INICIO DE LA ITERACION**************");
+        System.out.println("Tiempo actual: " + fechaActual);
+        System.out.println("Pedidos por enviar al algoritmo genetico: " + pedidosDelIntervalo.size());
+        Camion.imprimirDatosCamiones(DataLoader.camiones);
+
+        // !Actualiza con respecto al gen anterior de cada camion
+        List<Bloqueo> bloqueosActivos = EstadoManager.actualizarBloqueos(fechaActual);
+        EstadoManager.actualizarEstadoGlobal(fechaActual, pedidosDelIntervalo);
+        if (pedidosDelIntervalo.isEmpty()) {
+            System.out.println("No hay pedidos por atender en este momento.");
+        }
+        try {
+            // ! Quiero saber las posiciones actuales de los camiones en el mapa
+            Camion.imprimirDatosCamiones(DataLoader.camiones);
+            // ?====Crear el algoritmo genetico====
+            AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(),
+                    pedidosDelIntervalo);
+            // ? Ejecutar el algoritmo genetico
+            algoritmoGenetico.ejecutarAlgoritmo();
+            // ? Crear el paquete de mejor individuo
+            IndividuoDto mejorIndividuoDto = new IndividuoDto(
+                    algoritmoGenetico.getMejorIndividuo(),
+                    pedidosDelIntervalo, bloqueosActivos, fechaActual);
+            mejorIndividuoDto.setFechaHoraInicioIntervalo(fechaActual);
+            mejorIndividuoDto.setFechaHoraFinIntervalo(
+                    fechaActual.plusMinutes(Parametros.intervaloTiempo));
+            // Aplicar el estado final de los camiones permanentemente
+            // CamionStateApplier.aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
+
+            // Agregar al historial para el frontend
+            GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
+        } catch (Exception e) {
+            System.err.println("❌ Error en algoritmo genético en tiempo " + fechaActual + ": "
+                    + e.getMessage());
+            e.printStackTrace();
+
+            // Crear un paquete de emergencia en lugar de no generar nada
+            try {
+                System.out
+                        .println("🚑 Creando paquete de emergencia para tiempo " + fechaActual);
+                Individuo individuoEmergencia = IndividuoFactory.crearIndividuoVacio();
+                IndividuoDto paqueteEmergencia = new IndividuoDto(individuoEmergencia,
+                        pedidosDelIntervalo, bloqueosActivos, fechaActual);
+
+                paqueteEmergencia.setFechaHoraInicioIntervalo(fechaActual);
+                paqueteEmergencia.setFechaHoraFinIntervalo(
+                        fechaActual.plusMinutes(Parametros.intervaloTiempo));
+                GestorHistorialSimulacion.agregarPaquete(paqueteEmergencia);
+            } catch (Exception e2) {
+                System.err
+                        .println("❌ Error al crear paquete de emergencia: " + e2.getMessage());
+                e2.printStackTrace();
+            }
+        }
+        // ! Desactivar los bloqueos activos
+        for (Bloqueo bloqueo : bloqueosActivos) {
+            bloqueo.desactivarBloqueo();
+        }
+        EstadoManager.imprimirResumenEstados();
+        System.out.println("********************FIN DE ITERACION****************************");
+    }
+
+    /**
+     * Ejecuta el bucle principal de la simulación semanal.
+     * Procesa pedidos, ejecuta algoritmos genéticos y maneja eventos durante una
+     * semana completa.
+     */
+    public static void ejecutarSimulacion() {
+        try {
+
             // ! ACA SE SIMULA LA SEMANA COMPLETA
 
             while (!simulacionTerminadaporelfront) {
@@ -252,8 +342,7 @@ public class Simulacion {
                             EstadoManager.actualizarEstadoGlobal(fechaActual, pedidosEnviar);
                         }
                         if (!pedidosEnviar.isEmpty()) {
-                            // camiones
-                            // almacenes
+
                             if (modoStandalone) {
                                 // Modo standalone: ejecutar sin esperar semáforos
                                 try {
