@@ -36,7 +36,7 @@ import {
  */
 const HORA_INICIAL = 0;
 const HORA_PRIMERA_ACTUALIZACION = 0; // Cambié de 1 a 0 para empezar desde el primer paquete
-const NODOS_PARA_ACTUALIZACION = 100;
+const NODOS_PARA_ACTUALIZACION = 25;
 //aca 100 nodos significan 2h de tiempo entonces cada nodo
 // representa 1.2 minutos de tiempo real, lo que es un valor razonable para simular el avance
 
@@ -277,8 +277,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       const fechaBase = new Date(fechaHoraSimulacion);
 
       // Número total de nodos para una actualización completa (cada 2 horas)
-      const NODOS_POR_ACTUALIZACION = 100;
-      const HORAS_POR_ACTUALIZACION = 2;
+      const NODOS_POR_ACTUALIZACION = 25;
+      const HORAS_POR_ACTUALIZACION = 0.5;
 
       // Calculamos qué nodo estamos dentro del ciclo actual (0-99)
       const nodoEnCicloActual = horaActual % NODOS_POR_ACTUALIZACION;

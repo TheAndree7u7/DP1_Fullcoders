@@ -210,10 +210,11 @@ public class Simulacion {
     public static void simularIntervalo(LocalDateTime fechaActual) {
         // !BUSCA TODOS LOS PEDIDOS con fecha menor a la fecha actual pero mayor a la
         // fecha de inicio
+        // Arreglado: corregida la sintaxis de los paréntesis y la lógica del filtro
         List<Pedido> pedidosDelIntervalo = DataLoader.pedidos.stream()
-                .filter(pedido -> pedido.getFechaRegistro()
-                        .isBefore(fechaActual.minusMinutes(Parametros.intervaloTiempo))
-                        && !pedido.getEstado().equals(EstadoPedido.ENTREGADO))
+                .filter(pedido -> pedido.getFechaRegistro().isAfter(Parametros.fecha_inicial) &&
+                        pedido.getFechaRegistro().isBefore(fechaActual.plusMinutes(Parametros.intervaloTiempo)) &&
+                        !pedido.getEstado().equals(EstadoPedido.ENTREGADO))
                 .collect(Collectors.toList());
 
         // !BUSCA TODOS LOS PEDIDOS con fecha menor a la fecha actual pero mayor a la
