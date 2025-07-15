@@ -51,8 +51,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
     avanzarHora, 
     cargando, 
     bloqueos, 
-    marcarCamionAveriado, 
-    actualizarAlmacenes, 
+    marcarCamionAveriado,  
     iniciarContadorTiempo, 
     setSimulacionActiva, 
     simulacionActiva,
@@ -393,7 +392,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                         setClickedAlmacen(almacen.id);
                         setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
                         // Actualizar información de almacenes para tener datos frescos
-                        actualizarAlmacenes();
+                        
                       }
                     }}
                   />
@@ -411,7 +410,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                         setClickedAlmacen(almacen.id);
                         setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
                         // Actualizar información de almacenes para tener datos frescos
-                        actualizarAlmacenes();
+                     
                       }
                     }}
                   >

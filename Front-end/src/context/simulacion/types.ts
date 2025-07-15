@@ -8,10 +8,10 @@ import type { Pedido, Individuo, Almacen, Coordenada } from "../../types";
 /**
  * Constantes de configuración de la simulación
  */
-export const HORAS_POR_ACTUALIZACION = 2;
+export const HORAS_POR_ACTUALIZACION = 2; // 120 minutos = 2 horas (coincide con backend)
 export const HORA_INICIAL = 0;
 export const HORA_PRIMERA_ACTUALIZACION = 0;
-export const NODOS_PARA_ACTUALIZACION = 100;
+export const NODOS_PARA_ACTUALIZACION = 100; // Coincide con el cálculo del backend: 120 * 100 / 120 = 100
 export const INCREMENTO_PORCENTAJE = 1;
 
 /**

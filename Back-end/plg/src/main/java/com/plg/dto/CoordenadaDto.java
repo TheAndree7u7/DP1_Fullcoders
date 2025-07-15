@@ -13,4 +13,9 @@ public class CoordenadaDto {
         this.x = coordenada.getColumna();
         this.y = coordenada.getFila();
     }
+
+    public CoordenadaDto(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
 }

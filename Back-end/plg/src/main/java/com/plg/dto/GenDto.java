@@ -37,6 +37,63 @@ public class GenDto {
 
     }
 
+    /*
+     * Cortar un los nodos de este gen que no pueda recorrer el camion/segun una
+     * cantidad de tiempo por ejemplo 30 minutos puede recorrer 25 nodos
+     */
+    public void cortarNodos(int tiempoMinutosIntervalo) {
+        int numero_de_nodos_que_puede_recorrer_el_camion = (int) (tiempoMinutosIntervalo * 100 / 120);
+        System.out.println(
+                "numero_de_nodos_que_puede_recorrer_el_camion: " + numero_de_nodos_que_puede_recorrer_el_camion);
+
+        // Verificar que la lista de nodos no sea null y tenga elementos
+        if (this.nodos == null) {
+            System.out.println("⚠️ ADVERTENCIA: Lista de nodos es null, inicializando lista vacía");
+            this.nodos = new ArrayList<>();
+            return;
+        }
+
+        if (this.nodos.isEmpty()) {
+            System.out.println("⚠️ ADVERTENCIA: Lista de nodos vacía, no se puede cortar");
+            return;
+        }
+
+        // Verificar que no intentemos cortar más nodos de los que tenemos
+        int nodosDisponibles = this.nodos.size();
+        int nodosACortar = Math.min(numero_de_nodos_que_puede_recorrer_el_camion, nodosDisponibles);
+
+        System.out.println("nodos disponibles: " + nodosDisponibles);
+        System.out.println("nodos a cortar: " + nodosACortar);
+
+        // Cortar los nodos de la ruta final solo si hay nodos para cortar
+        if (nodosACortar > 0) {
+            try {
+                this.nodos = this.nodos.subList(0, nodosACortar);
+
+                // Verificar que la lista no esté vacía después del corte
+                if (!this.nodos.isEmpty()) {
+                    this.destino = this.nodos.get(this.nodos.size() - 1).getCoordenada();
+                } else {
+                    System.out.println(
+                            "⚠️ ADVERTENCIA: Lista quedó vacía después del corte, usando coordenada del camión");
+                    // Si la lista quedó vacía, usar la coordenada del camión como destino
+                    if (this.camion != null) {
+                        this.destino = new CoordenadaDto(this.camion.getColumna(), this.camion.getFila());
+                    }
+                }
+            } catch (IndexOutOfBoundsException e) {
+                System.err.println("❌ ERROR: IndexOutOfBoundsException al cortar nodos: " + e.getMessage());
+                System.err.println("nodos.size(): " + this.nodos.size() + ", nodosACortar: " + nodosACortar);
+                // En caso de error, mantener la lista original
+                return;
+            }
+        } else {
+            System.out.println("⚠️ ADVERTENCIA: No hay nodos para cortar (nodosACortar = 0)");
+        }
+
+        System.out.println("tamaño de ruta cortada: " + this.nodos.size());
+    }
+
     /**
      * Verifica que entre cada nodo consecutivo en la ruta haya exactamente una
      * unidad de diferencia.

@@ -65,6 +65,16 @@ public class IndividuoDto {
         }
     }
 
+    /*
+     * Cortar los nodos de cada gen que no pueda recorrer el camion/segun una
+     * cantidad de tiempo por ejemplo 30 minutos puede recorrer 25 nodos
+     */
+    public void cortarNodos(int tiempoMinutosIntervalo) {
+        for (GenDto gen : cromosoma) {
+            gen.cortarNodos(tiempoMinutosIntervalo);
+        }
+    }
+
     /**
      * Retorna un diccionario ordenado con información de cada camión, incluyendo su
      * posición inicial y final.

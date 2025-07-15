@@ -247,6 +247,7 @@ public class Simulacion {
             mejorIndividuoDto.setFechaHoraInicioIntervalo(fechaActual);
             mejorIndividuoDto.setFechaHoraFinIntervalo(
                     fechaActual.plusMinutes(Parametros.intervaloTiempo));
+            mejorIndividuoDto.cortarNodos(Parametros.intervaloTiempo);
             // Aplicar el estado final de los camiones permanentemente
             // CamionStateApplier.aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
 
