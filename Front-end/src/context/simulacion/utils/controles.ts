@@ -38,7 +38,7 @@ export const iniciarContadorTiempo = (
   setInicioSimulacion(new Date());
   setTiempoRealSimulacion("00:00:00");
   setSimulacionActiva(true);
-  console.log("⏱️ CONTADOR: Iniciando contador de tiempo real de simulación...");
+  // console.log("⏱️ CONTADOR: Iniciando contador de tiempo real de simulación...");
 };
 
 /**

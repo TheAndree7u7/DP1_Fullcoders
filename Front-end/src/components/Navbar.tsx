@@ -1,17 +1,35 @@
 
 import { useState, useRef, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Package } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
-import { useSimulacion,  } from "../context/SimulacionContext";
+import { useSimulacion } from "../hooks/useSimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
 
 const Navbar: React.FC = () => {
   const [, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { tiempoTranscurridoSimulado, tiempoRealSimulacion } = useSimulacion();
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Helper function to convert seconds to HH:MM:SS format
+  const formatSecondsToHMS = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Helper function to format date for display
+  const formatDateForDisplay = (date: Date | null): string => {
+    if (!date) return "00:00:00";
+    return date.toLocaleTimeString('es-ES', { 
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -26,37 +44,60 @@ const Navbar: React.FC = () => {
     };
   }, []);
 
+  // Función para obtener el título según la ruta actual
+  const getTituloVista = () => {
+    switch (location.pathname) {
+      case "/simulacion-semanal":
+        return "Simulación Semanal";
+      case "/colapso-logistico":
+        return "Colapso Logístico";
+      case "/ejecucion-tiempo-real":
+        return "Ejecución en Tiempo Real";
+      default:
+        return "Sistema de Simulación";
+    }
+  };
+
+  // Solo mostrar la navbar si no estamos en la pantalla de selección
+  if (location.pathname === "/") {
+    return null;
+  }
 
   return (
-    <nav className="bg-white p-4 max-h-[48px] flex items-center justify-between fixed top-0 left-0 right-0 z-50" >
+    <nav className="bg-white p-4 max-h-[48px] flex items-center justify-between fixed top-0 left-0 right-0 z-50 shadow-sm border-b border-gray-200" >
       <div className="flex items-center space-x-8">
         <img src={logo} alt="logo" className="w-[24px] h-[24px]" />
         <div className="font-bold text-[14px] text-[#1890FF]">GLPSoft</div>
         <div className="text-black font-bold text-xl">
-          {location.pathname === '/ejecucion-tiempo-real' 
-            ? 'Ejecución en Tiempo Real'
-            : `Ejecución Semanal - ${formatearTiempoTranscurrido(tiempoTranscurridoSimulado)}`
-          }
+          {getTituloVista()} - {formatearTiempoTranscurrido(formatSecondsToHMS(tiempoTranscurridoSimulado))}
         </div>
       </div>
       
       <div className="flex items-center space-x-4">
-        {/* Botón para gestión de pedidos */}
-        {(location.pathname === '/' || location.pathname === '/simulacion-semanal') && (
-          <button
-            onClick={() => navigate('/pedidos')}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg transition-colors text-sm font-medium"
-            title="Gestionar pedidos"
-          >
-            <Package size={16} />
-            Gestionar Pedidos
-          </button>
-        )}
+        {/* Botón de retroceso */}
+        <button
+          onClick={() => navigate(-1)}
+          className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-md text-sm font-medium transition-colors flex items-center space-x-1"
+          title="Volver atrás"
+        >
+          <span>⬅️</span>
+          <span>Atrás</span>
+        </button>
+
+        {/* Botón para volver a la selección de vista */}
+        <button
+          onClick={() => navigate("/")}
+          className="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-md text-sm font-medium transition-colors flex items-center space-x-1"
+          title="Ir al inicio"
+        >
+          <span>🏠</span>
+          <span>Inicio</span>
+        </button>
         
         <div className="flex items-center space-x-2">
           <div className="text-gray-600 text-sm">⏱️ Duracion de la simulacion:</div>
           <div className="font-mono font-bold text-[#1890FF] text-lg bg-gray-100 px-3 py-1 rounded">
-            {tiempoRealSimulacion}
+            {formatDateForDisplay(tiempoRealSimulacion)}
           </div>
         </div>
       </div>
