@@ -48,13 +48,15 @@ public class GenDto {
 
         // Verificar que la lista de nodos no sea null y tenga elementos
         if (this.nodos == null) {
-            // System.out.println("⚠️ ADVERTENCIA: Lista de nodos es null, inicializando lista vacía");
+            // System.out.println("⚠️ ADVERTENCIA: Lista de nodos es null, inicializando
+            // lista vacía");
             this.nodos = new ArrayList<>();
             return;
         }
 
         if (this.nodos.isEmpty()) {
-            // System.out.println("⚠️ ADVERTENCIA: Lista de nodos vacía, no se puede cortar");
+            // System.out.println("⚠️ ADVERTENCIA: Lista de nodos vacía, no se puede
+            // cortar");
             return;
         }
 
@@ -73,6 +75,10 @@ public class GenDto {
                 // Verificar que la lista no esté vacía después del corte
                 if (!this.nodos.isEmpty()) {
                     this.destino = this.nodos.get(this.nodos.size() - 1).getCoordenada();
+                    // // !añadir 10 nodos repitiendo el ultimo nodo
+                    // for (int i = 0; i < 50; i++) {
+                    // this.nodos.add(this.nodos.get(this.nodos.size() - 1));
+                    // }
                 } else {
                     // System.out.println(
                     // "⚠️ ADVERTENCIA: Lista quedó vacía después del corte, usando coordenada del
