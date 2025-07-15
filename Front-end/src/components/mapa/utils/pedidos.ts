@@ -4,7 +4,7 @@
  */
 
 import type { Pedido } from "../../../types";
-import type { CamionEstado, RutaCamion } from "../../../context/SimulacionContext";
+import type { CamionEstado, RutaCamion } from "../../../types";
 import { parseCoord } from "./coordenadas";
 
 /**
@@ -18,19 +18,12 @@ export const getPedidosPendientes = (
   camiones: CamionEstado[]
 ): Pedido[] => {
   const pedidosPendientes: Pedido[] = [];
-  const pedidosVistos = new Set<string>();
   
   rutasCamiones.forEach(ruta => {
     const camionActual = camiones.find(c => c.id === ruta.id);
     if (!camionActual) {
-      // Si no hay estado del camión, mostrar todos los pedidos (sin duplicados)
-      ruta.pedidos.forEach(pedido => {
-        const identificador = `${pedido.codigo}-${pedido.coordenada.x}-${pedido.coordenada.y}`;
-        if (!pedidosVistos.has(identificador)) {
-          pedidosVistos.add(identificador);
-          pedidosPendientes.push(pedido);
-        }
-      });
+      // Si no hay estado del camión, mostrar todos los pedidos
+      pedidosPendientes.push(...ruta.pedidos);
       return;
     }
 
@@ -44,14 +37,6 @@ export const getPedidosPendientes = (
 
     // Para cada pedido de esta ruta, verificar si ya fue visitado
     ruta.pedidos.forEach(pedido => {
-      // Crear identificador único para evitar duplicados
-      const identificador = `${pedido.codigo}-${pedido.coordenada.x}-${pedido.coordenada.y}`;
-      
-      // Si ya vimos este pedido, no agregarlo de nuevo
-      if (pedidosVistos.has(identificador)) {
-        return;
-      }
-      
       // Buscar el índice del nodo que corresponde a este pedido
       const indicePedidoEnRuta = ruta.ruta.findIndex(nodo => {
         // Validar que el nodo existe y es un string
@@ -70,7 +55,6 @@ export const getPedidosPendientes = (
 
       // Si el pedido está en un nodo que aún no ha sido visitado, mostrarlo
       if (indicePedidoEnRuta === -1 || indicePedidoEnRuta > posicionActual) {
-        pedidosVistos.add(identificador);
         pedidosPendientes.push(pedido);
       }
     });

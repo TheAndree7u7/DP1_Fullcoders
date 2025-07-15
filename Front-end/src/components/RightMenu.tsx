@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronRight, Search, ChevronUp, ChevronDown, ChevronsUpDown, Building2 } from 'lucide-react';
-import { useSimulacion, type CamionEstado } from '../context/SimulacionContext';
+import { useSimulacion } from '../hooks/useSimulacionContext';
+import type { CamionEstado } from '../types';
 import MetricasRendimiento from './MetricasRendimiento';
 import CardsCamiones from './CardCamion';
 import IndicadoresCamiones from './IndicadoresCamiones';
@@ -42,9 +43,13 @@ function DatosCamionesTable({ onElementoSeleccionado }: { onElementoSeleccionado
     }
   };
 
-  // Filtrar y ordenar camiones
+  // Filtrar y ordenar camiones (eliminar duplicados primero)
   const camionesFiltrados = React.useMemo(() => {
-    let result = camiones;
+    // Eliminar duplicados basándose en el ID
+    const camionesUnicos = camiones.filter((camion, index, array) => 
+      array.findIndex(c => c.id === camion.id) === index
+    );
+    let result = camionesUnicos;
     
     // Filtrar por búsqueda
     if (busquedaCamion.trim() !== '') {
@@ -188,9 +193,9 @@ function DatosCamionesTable({ onElementoSeleccionado }: { onElementoSeleccionado
                 </td>
               </tr>
             ) : (
-              camionesFiltrados.map((camion) => (
+              camionesFiltrados.map((camion, index) => (
                 <tr 
-                  key={camion.id} 
+                  key={`camion-table-${camion.id}-${index}`} 
                   onClick={() => onElementoSeleccionado({tipo: 'camion', id: camion.id})}
                   className={
                     `border-b last:border-b-0 bg-white hover:bg-blue-50 hover:cursor-pointer transition-colors`
