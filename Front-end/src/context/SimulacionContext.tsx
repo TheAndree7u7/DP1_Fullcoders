@@ -298,7 +298,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       if (data.fechaHoraFinIntervalo) {
         setFechaHoraFinIntervalo(data.fechaHoraFinIntervalo);
       }
-      
+      console.log("Fecha de inicio del intervalo", data.fechaHoraInicioIntervalo);
+      console.log("Fecha de fin del intervalo", data.fechaHoraFinIntervalo);
       // Actualizar fecha y hora de la simulación
       if (data.fechaHoraSimulacion) {
         setFechaHoraSimulacion(data.fechaHoraSimulacion);

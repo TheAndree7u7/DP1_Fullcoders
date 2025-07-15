@@ -157,7 +157,7 @@ const BottomMenu: React.FC<BottomMenuProps> = ({ expanded, setExpanded, camionSe
   // Hacer scroll automático cuando el seguimiento automático esté activo y cambien los camiones
   useEffect(() => {
     if (seguimientoAutomatico && camionSeleccionado && rutaProcesada.length > 0) {
-      console.log('🎯 SEGUIMIENTO: Activando scroll automático para camión', camionSeleccionado);
+      // console.log('🎯 SEGUIMIENTO: Activando scroll automático para camión', camionSeleccionado);
       const timer = setTimeout(() => {
         // setScrollAutomatico(true);
         scrollToCurrentNodeInternal();
@@ -174,17 +174,17 @@ const BottomMenu: React.FC<BottomMenuProps> = ({ expanded, setExpanded, camionSe
     if (timelineRef.current && camionSeleccionado) {
       const camion = camiones.find(c => c.id === camionSeleccionado);
       if (camion) {
-        console.log('📍 SCROLL: Buscando nodo actual para camión', camionSeleccionado, 'con porcentaje', camion.porcentaje);
+        // console.log('📍 SCROLL: Buscando nodo actual para camión', camionSeleccionado, 'con porcentaje', camion.porcentaje);
         
         // Encontrar el nodo actual en la ruta procesada (agrupada)
         const nodoActualIndex = rutaProcesada.findIndex(nodo => nodo.actual);
         
-        console.log('🔍 SCROLL: Índice del nodo actual encontrado:', nodoActualIndex);
+        // console.log('🔍 SCROLL: Índice del nodo actual encontrado:', nodoActualIndex);
         
         if (nodoActualIndex !== -1) {
           const nodeElement = timelineRef.current.children[nodoActualIndex] as HTMLElement;
           if (nodeElement) {
-            console.log('✅ SCROLL: Haciendo scroll al nodo actual');
+            // console.log('✅ SCROLL: Haciendo scroll al nodo actual');
             nodeElement.scrollIntoView({
               behavior: 'smooth',
               block: 'nearest',
@@ -198,7 +198,7 @@ const BottomMenu: React.FC<BottomMenuProps> = ({ expanded, setExpanded, camionSe
 
   // Función para hacer scroll al nodo actual (para el botón)
   const scrollToCurrentNode = () => {
-    console.log('🎯 ACCIÓN: Botón "Ir al nodo actual" presionado');
+    // console.log('🎯 ACCIÓN: Botón "Ir al nodo actual" presionado');
     scrollToCurrentNodeInternal();
     // Si el seguimiento está pausado, reactivarlo
     if (!seguimientoAutomatico) {
