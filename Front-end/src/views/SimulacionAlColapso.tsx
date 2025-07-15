@@ -14,7 +14,7 @@ import IndicadorPaqueteActual from "../components/IndicadorPaqueteActual";
 // Constante que define cuánto tiempo (en segundos) representa cada nodo en la simulación
 const SEGUNDOS_POR_NODO = 36;
 
-const SimulacionAlColapso: React.FC = () => {
+const SimulacionSemanal: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
   const [bottomMenuExpandido, setBottomMenuExpandido] = useState(false);
   const { 
@@ -91,12 +91,9 @@ const SimulacionAlColapso: React.FC = () => {
     <div className="bg-[#F5F5F5] w-screen h-screen flex flex-col pt-16">
       <Navbar />
       <div className="bg-[#1E293B] text-white py-2 px-4 flex justify-between items-center">
-        <h1 className="font-bold">Colapso Logístico - {formatearTiempoTranscurrido(tiempoTranscurridoSimulado)}</h1>
+        <h1 className="font-bold">Ejecución Semanal - {formatearTiempoTranscurrido(tiempoTranscurridoSimulado)}</h1>
         <div className="flex items-center gap-4">
-          {/* Indicador compacto del paquete actual */}
-          <div className="bg-[#334155] rounded-lg px-3 py-1">
-            <IndicadorPaqueteActual variant="compact" showProgress={false} showTime={false} />
-          </div>
+ 
           {tiempoSimulado && (
             <div className="text-sm flex items-center gap-4">
               <div>
@@ -136,11 +133,7 @@ const SimulacionAlColapso: React.FC = () => {
               </div>
               {/* Indicador detallado del paquete actual */}
               <div className="lg:col-span-1">
-                <IndicadorPaqueteActual 
-                  variant="detailed" 
-                  showProgress={true} 
-                  showTime={true}
-                />
+                <IndicadorPaqueteActual />
               </div>
             </div>
           </div>
@@ -249,4 +242,4 @@ const SimulacionAlColapso: React.FC = () => {
   );
 };
 
-export default SimulacionAlColapso;
+export default SimulacionSemanal;
