@@ -48,13 +48,13 @@ public class GenDto {
 
         // Verificar que la lista de nodos no sea null y tenga elementos
         if (this.nodos == null) {
-            System.out.println("⚠️ ADVERTENCIA: Lista de nodos es null, inicializando lista vacía");
+            // System.out.println("⚠️ ADVERTENCIA: Lista de nodos es null, inicializando lista vacía");
             this.nodos = new ArrayList<>();
             return;
         }
 
         if (this.nodos.isEmpty()) {
-            System.out.println("⚠️ ADVERTENCIA: Lista de nodos vacía, no se puede cortar");
+            // System.out.println("⚠️ ADVERTENCIA: Lista de nodos vacía, no se puede cortar");
             return;
         }
 
@@ -74,24 +74,29 @@ public class GenDto {
                 if (!this.nodos.isEmpty()) {
                     this.destino = this.nodos.get(this.nodos.size() - 1).getCoordenada();
                 } else {
-                    System.out.println(
-                            "⚠️ ADVERTENCIA: Lista quedó vacía después del corte, usando coordenada del camión");
+                    // System.out.println(
+                    // "⚠️ ADVERTENCIA: Lista quedó vacía después del corte, usando coordenada del
+                    // camión");
                     // Si la lista quedó vacía, usar la coordenada del camión como destino
                     if (this.camion != null) {
                         this.destino = new CoordenadaDto(this.camion.getColumna(), this.camion.getFila());
                     }
                 }
             } catch (IndexOutOfBoundsException e) {
-                System.err.println("❌ ERROR: IndexOutOfBoundsException al cortar nodos: " + e.getMessage());
-                System.err.println("nodos.size(): " + this.nodos.size() + ", nodosACortar: " + nodosACortar);
+                // System.err.println("❌ ERROR: IndexOutOfBoundsException al cortar nodos: " +
+                // e.getMessage());
+                // System.err.println("nodos.size(): " + this.nodos.size() + ", nodosACortar: "
+                // + nodosACortar);
                 // En caso de error, mantener la lista original
                 return;
             }
         } else {
-            System.out.println("⚠️ ADVERTENCIA: No hay nodos para cortar (nodosACortar = 0)");
+            // System.out.println("⚠️ ADVERTENCIA: No hay nodos para cortar (nodosACortar =
+            // 0)");
+            return;
         }
 
-        System.out.println("tamaño de ruta cortada: " + this.nodos.size());
+        // System.out.println("tamaño de ruta cortada: " + this.nodos.size());
     }
 
     /**
