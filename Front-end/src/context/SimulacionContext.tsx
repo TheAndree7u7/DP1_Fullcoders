@@ -8,11 +8,16 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { Almacen, Gen, Nodo } from "../types";
 
+// ============================
+// IMPORTACIONES DE TIPOS Y CONSTANTES
+// ============================
+
 // Importar constantes
 import {
   HORA_INICIAL,
   HORA_PRIMERA_ACTUALIZACION,
   NODOS_PARA_ACTUALIZACION,
+  HORAS_POR_ACTUALIZACION,
 } from "./simulacion";
 
 // Importar tipos
@@ -24,7 +29,11 @@ import type {
   IndividuoConBloqueos,
 } from "./simulacion";
 
-// Importar módulos refactorizados
+// ============================
+// IMPORTACIONES DE MÓDULOS REFACTORIZADOS
+// ============================
+
+// Importar módulos de datos
 import {
   cargarDatosIniciales,
   cargarDatos,
@@ -32,19 +41,23 @@ import {
   reiniciarSimulacionBackend,
 } from "./simulacion/dataManager";
 
+// Importar módulos de lógica de camiones
 import {
   marcarCamionAveriado as marcarCamionAveriadoUtil,
 } from "./simulacion/camionLogic";
 
+// Importar módulos de polling
 import {
   ejecutarPollingPrimerPaquete,
 } from "./simulacion/pollingManager";
 
+// Importar módulos de gestión de estado
 import {
   limpiarEstadoParaNuevaSimulacion as limpiarEstadoParaNuevaSimulacionUtil,
   limpiarSimulacionCompleta as limpiarSimulacionCompletaUtil,
 } from "./simulacion/stateManager";
 
+// Importar módulos de avance de hora
 import {
   avanzarHora as avanzarHoraUtil,
 } from "./simulacion/avanceHora";
@@ -56,10 +69,17 @@ import {
   iniciarContadorTiempo as iniciarContadorTiempoUtil,
 } from "./simulacion/utils";
 
-// Creación del contexto con valor inicial undefined
+// ============================
+// CREACIÓN DEL CONTEXTO
+// ============================
+
 const SimulacionContext = createContext<SimulacionContextType | undefined>(
   undefined,
 );
+
+// ============================
+// COMPONENTE PROVEEDOR
+// ============================
 
 /**
  * @component SimulacionProvider
@@ -70,12 +90,23 @@ const SimulacionContext = createContext<SimulacionContextType | undefined>(
 export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  // Estados del contexto
+  // ============================
+  // ESTADOS PRINCIPALES DE LA SIMULACIÓN
+  // ============================
+  
+  // Estados de control de la simulación
   const [horaActual, setHoraActual] = useState<number>(HORA_INICIAL);
+  const [simulacionActiva, setSimulacionActiva] = useState<boolean>(false);
+  const [cargando, setCargando] = useState<boolean>(true);
+  const [pollingActivo, setPollingActivo] = useState<boolean>(false);
+  
+  // Estados de datos de la simulación
   const [camiones, setCamiones] = useState<CamionEstado[]>([]);
   const [rutasCamiones, setRutasCamiones] = useState<RutaCamion[]>([]);
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
-  const [cargando, setCargando] = useState<boolean>(true);
+  const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
+  
+  // Estados de control de actualización
   const [nodosRestantesAntesDeActualizar, setNodosRestantesAntesDeActualizar] =
     useState<number>(NODOS_PARA_ACTUALIZACION);
   const [esperandoActualizacion, setEsperandoActualizacion] =
@@ -84,29 +115,36 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     useState<boolean>(false);
   const [proximaSolucionCargada, setProximaSolucionCargada] =
     useState<IndividuoConBloqueos | null>(null);
-  const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
-  const [fechaHoraSimulacion, setFechaHoraSimulacion] = useState<string | null>(
-    null,
-  );
+  
+  // Estados de fechas y tiempo
+  const [fechaHoraSimulacion, setFechaHoraSimulacion] = useState<string | null>(null);
   const [fechaInicioSimulacion, setFechaInicioSimulacion] = useState<string | null>(null);
   const [fechaHoraInicioIntervalo, setFechaHoraInicioIntervalo] = useState<string | null>(null);
   const [fechaHoraFinIntervalo, setFechaHoraFinIntervalo] = useState<string | null>(null);
   const [diaSimulacion, setDiaSimulacion] = useState<number | null>(null);
+  const [inicioSimulacion, setInicioSimulacion] = useState<Date | null>(null);
+  
+  // Estados de tiempo y contadores
   const [tiempoRealSimulacion, setTiempoRealSimulacion] = useState<string>("00:00:00");
   const [tiempoTranscurridoSimulado, setTiempoTranscurridoSimulado] = useState<string>("00:00:00");
-  const [inicioSimulacion, setInicioSimulacion] = useState<Date | null>(null);
-  const [simulacionActiva, setSimulacionActiva] = useState<boolean>(false);
   const [horaSimulacion, setHoraSimulacion] = useState<string>("00:00:00");
   const [horaSimulacionAcumulada, setHoraSimulacionAcumulada] = useState<string>("00:00:00");
   const [fechaHoraAcumulada, setFechaHoraAcumulada] = useState<string>("");
-  const [pollingActivo, setPollingActivo] = useState<boolean>(false);
   const [paqueteActualConsumido, setPaqueteActualConsumido] = useState<number>(0);
 
-  // Cargar almacenes al inicio con reintentos
+  // ============================
+  // EFECTOS DE INICIALIZACIÓN
+  // ============================
+
+  // Cargar datos iniciales al montar el componente
   useEffect(() => {
     console.log("🚀 CONTEXTO: Montando contexto...");
     cargarDatosIniciales();
   }, []);
+
+  // ============================
+  // EFECTOS DE CONTROL DE TIEMPO
+  // ============================
 
   // Contador de tiempo real de la simulación
   useEffect(() => {
@@ -133,14 +171,14 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       const fechaBase = new Date(fechaHoraSimulacion);
 
       // Número total de nodos para una actualización completa (cada 2 horas)
-      const NODOS_POR_ACTUALIZACION = 25;
-      const HORAS_POR_ACTUALIZACION = 0.5;
+    
+      
 
       // Calculamos qué nodo estamos dentro del ciclo actual (0-99)
-      const nodoEnCicloActual = horaActual % NODOS_POR_ACTUALIZACION;
+      const nodoEnCicloActual = horaActual % NODOS_PARA_ACTUALIZACION;
 
       // Calculamos el avance por nodo (segundos totales de 2 horas divididos por nodos totales)
-      const segundosPorNodo = (HORAS_POR_ACTUALIZACION * 60 * 60) / NODOS_POR_ACTUALIZACION;
+      const segundosPorNodo = (HORAS_POR_ACTUALIZACION * 60 * 60) / NODOS_PARA_ACTUALIZACION;
 
       // Calculamos segundos adicionales solo para el incremento local dentro del ciclo actual
       const segundosAdicionales = nodoEnCicloActual * segundosPorNodo;
@@ -218,6 +256,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [fechaHoraSimulacion, fechaInicioSimulacion]);
 
+  // ============================
+  // EFECTOS DE POLLING
+  // ============================
+
   // Polling automático para obtener el primer paquete después de iniciar la simulación
   useEffect(() => {
     if (!pollingActivo || !simulacionActiva) return;
@@ -236,6 +278,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
     return cleanup;
   }, [pollingActivo, simulacionActiva, fechaInicioSimulacion]);
+
+  // ============================
+  // FUNCIONES DE GESTIÓN DE DATOS
+  // ============================
 
   /**
    * @function aplicarSolucionPrecargada
@@ -266,6 +312,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         setDiaSimulacion(fecha.getDate());
       }
 
+      // Procesar rutas de camiones
       const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => ({
         id: gen.camion.codigo,
         ruta: gen.nodos.map((n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`),
@@ -275,6 +322,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setRutasCamiones(nuevasRutas);
 
+      // Procesar estado de camiones
       const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
         const gen = data.cromosoma.find((g: Gen) => g.camion.codigo === ruta.id);
         const camion = gen?.camion;
@@ -301,17 +349,18 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setCamiones(nuevosCamiones);
 
+      // Actualizar bloqueos y almacenes
       if (data.bloqueos) {
         setBloqueos(data.bloqueos);
       } else {
         setBloqueos([]);
       }
 
-      // Actualizar almacenes si vienen en la respuesta
       if (data.almacenes && data.almacenes.length > 0) {
         setAlmacenes(data.almacenes);
       }
 
+      // Resetear contadores y estados
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
       setEsperandoActualizacion(false);
       setSolicitudAnticipadaEnviada(false);
@@ -405,6 +454,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  // ============================
+  // FUNCIONES DE CONTROL DE SIMULACIÓN
+  // ============================
+
   /**
    * @function avanzarHora
    * @description Avanza la simulación una hora, actualizando la posición de los camiones
@@ -431,6 +484,34 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       cargarDatosSimulacion
     );
   };
+
+  /**
+   * @function iniciarContadorTiempo
+   * @description Inicia el contador de tiempo real de la simulación
+   */
+  const iniciarContadorTiempo = () => {
+    iniciarContadorTiempoUtil(setInicioSimulacion, setTiempoRealSimulacion, setSimulacionActiva);
+  };
+
+  /**
+   * @function pausarSimulacion
+   * @description Pausa la simulación desactivando el contador de tiempo
+   */
+  const pausarSimulacion = () => {
+    pausarSimulacionUtil(setSimulacionActiva);
+  };
+
+  /**
+   * @function reanudarSimulacion
+   * @description Reanuda la simulación activando el contador de tiempo
+   */
+  const reanudarSimulacion = () => {
+    reanudarSimulacionUtil(setSimulacionActiva);
+  };
+
+  // ============================
+  // FUNCIONES DE GESTIÓN DE ESTADO
+  // ============================
 
   /**
    * @function reiniciar
@@ -477,22 +558,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   /**
-   * @function iniciarContadorTiempo
-   * @description Inicia el contador de tiempo real de la simulación
-   */
-  const iniciarContadorTiempo = () => {
-    iniciarContadorTiempoUtil(setInicioSimulacion, setTiempoRealSimulacion, setSimulacionActiva);
-  };
-
-  /**
-   * @function iniciarPollingPrimerPaquete
-   * @description Inicia el polling para obtener el primer paquete disponible
-   */
-  const iniciarPollingPrimerPaquete = () => {
-    setPollingActivo(true);
-  };
-
-  /**
    * @function reiniciarYEmpezarNuevo
    * @description Reinicia completamente la simulación y empieza a cargar nuevos paquetes
    */
@@ -534,32 +599,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error("❌ NUEVO INICIO: Error al reiniciar e iniciar nueva simulación:", error);
       throw error;
     }
-  };
-
-  /**
-   * @function marcarCamionAveriado
-   * @description Marca un camión como averiado, deteniéndolo en su posición actual
-   * @param {string} camionId - El ID del camión a averiar
-   */
-  const marcarCamionAveriado = (camionId: string) => {
-    const nuevosCamiones = marcarCamionAveriadoUtil(camiones, camionId);
-    setCamiones(nuevosCamiones);
-  };
-
-  /**
-   * @function pausarSimulacion
-   * @description Pausa la simulación desactivando el contador de tiempo
-   */
-  const pausarSimulacion = () => {
-    pausarSimulacionUtil(setSimulacionActiva);
-  };
-
-  /**
-   * @function reanudarSimulacion
-   * @description Reanuda la simulación activando el contador de tiempo
-   */
-  const reanudarSimulacion = () => {
-    reanudarSimulacionUtil(setSimulacionActiva);
   };
 
   /**
@@ -623,6 +662,36 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     );
   };
 
+  // ============================
+  // FUNCIONES DE CONTROL DE POLLING
+  // ============================
+
+  /**
+   * @function iniciarPollingPrimerPaquete
+   * @description Inicia el polling para obtener el primer paquete disponible
+   */
+  const iniciarPollingPrimerPaquete = () => {
+    setPollingActivo(true);
+  };
+
+  // ============================
+  // FUNCIONES DE GESTIÓN DE CAMIONES
+  // ============================
+
+  /**
+   * @function marcarCamionAveriado
+   * @description Marca un camión como averiado, deteniéndolo en su posición actual
+   * @param {string} camionId - El ID del camión a averiar
+   */
+  const marcarCamionAveriado = (camionId: string) => {
+    const nuevosCamiones = marcarCamionAveriadoUtil(camiones, camionId);
+    setCamiones(nuevosCamiones);
+  };
+
+  // ============================
+  // FUNCIONES DE INFORMACIÓN
+  // ============================
+
   /**
    * @function obtenerInfoPaqueteActual
    * @description Obtiene información del paquete que se está consumiendo actualmente en el mapa
@@ -636,47 +705,72 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   };
 
+  // ============================
+  // VALOR DEL CONTEXTO
+  // ============================
+
+  const contextValue: SimulacionContextType = {
+    // Estados de datos
+    horaActual,
+    camiones,
+    rutasCamiones,
+    almacenes,
+    bloqueos,
+    cargando,
+    
+    // Estados de fechas y tiempo
+    fechaHoraSimulacion,
+    fechaInicioSimulacion,
+    fechaHoraInicioIntervalo,
+    fechaHoraFinIntervalo,
+    diaSimulacion,
+    tiempoRealSimulacion,
+    tiempoTranscurridoSimulado,
+    horaSimulacion,
+    horaSimulacionAcumulada,
+    fechaHoraAcumulada,
+    paqueteActualConsumido,
+    
+    // Estados de control
+    simulacionActiva,
+    
+    // Funciones de control de simulación
+    avanzarHora,
+    reiniciar,
+    iniciarContadorTiempo,
+    reiniciarYEmpezarNuevo,
+    pausarSimulacion,
+    reanudarSimulacion,
+    
+    // Funciones de gestión de estado
+    limpiarEstadoParaNuevaSimulacion,
+    limpiarSimulacionCompleta,
+    
+    // Funciones de control de polling
+    iniciarPollingPrimerPaquete,
+    
+    // Funciones de gestión de camiones
+    marcarCamionAveriado,
+    
+    // Funciones de información
+    obtenerInfoPaqueteActual,
+    
+    // Setters
+    setSimulacionActiva,
+    setPollingActivo,
+    setFechaInicioSimulacion,
+  };
+
   return (
-    <SimulacionContext.Provider
-      value={{
-        horaActual,
-        camiones,
-        rutasCamiones,
-        almacenes,
-        fechaHoraSimulacion,
-        fechaInicioSimulacion,
-        fechaHoraInicioIntervalo,
-        fechaHoraFinIntervalo,
-        diaSimulacion,
-        tiempoRealSimulacion,
-        tiempoTranscurridoSimulado,
-        simulacionActiva,
-        horaSimulacion,
-        horaSimulacionAcumulada,
-        fechaHoraAcumulada,
-        paqueteActualConsumido,
-        avanzarHora,
-        reiniciar,
-        iniciarContadorTiempo,
-        reiniciarYEmpezarNuevo,
-        limpiarEstadoParaNuevaSimulacion,
-        iniciarPollingPrimerPaquete,
-        pausarSimulacion,
-        reanudarSimulacion,
-        setSimulacionActiva,
-        setPollingActivo,
-        cargando,
-        bloqueos,
-        marcarCamionAveriado,
-        limpiarSimulacionCompleta,
-        obtenerInfoPaqueteActual,
-        setFechaInicioSimulacion,
-      }}
-    >
+    <SimulacionContext.Provider value={contextValue}>
       {children}
     </SimulacionContext.Provider>
   );
 };
+
+// ============================
+// HOOK PERSONALIZADO
+// ============================
 
 /**
  * @function useSimulacion
