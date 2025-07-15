@@ -219,16 +219,16 @@ export const TiempoRealProvider: React.FC<{ children: React.ReactNode }> = ({
               hour12: true
             });
             
-            const posicionInicial = ruta.ruta[0]; // Primer nodo
-            const posicionFinal = ruta.ruta[ruta.ruta.length - 1]; // Último nodo
+            // const posicionInicial = ruta.ruta[0]; // Primer nodo
+            // const posicionFinal = ruta.ruta[ruta.ruta.length - 1]; // Último nodo
             
-            console.log(
-              `🚛 INICIO RUTA - [${fechaInicio}]\n` +
-              `   Camión: ${camion.id}\n` +
-              `   Nodos: ${ruta.ruta.length}\n` +
-              `   Inicio: ${posicionInicial}\n` +
-              `   Destino: ${posicionFinal}`
-            );
+            // console.log(
+            //   `🚛 INICIO RUTA - [${fechaInicio}]\n` +
+            //   `   Camión: ${camion.id}\n` +
+            //   `   Nodos: ${ruta.ruta.length}\n` +
+            //   `   Inicio: ${posicionInicial}\n` +
+            //   `   Destino: ${posicionFinal}`
+            // );
           }
           // Calcular nuevo índice del nodo actual
           const ahora = new Date();
