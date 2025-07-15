@@ -213,7 +213,7 @@ public class Simulacion {
         // Arreglado: corregida la sintaxis de los paréntesis y la lógica del filtro
         List<Pedido> pedidosDelIntervalo = DataLoader.pedidos.stream()
                 .filter(pedido -> pedido.getFechaRegistro().isAfter(Parametros.fecha_inicial) &&
-                        pedido.getFechaRegistro().isBefore(fechaActual.plusMinutes(Parametros.intervaloTiempo)) &&
+                        pedido.getFechaRegistro().isBefore(fechaActual.minusMinutes(Parametros.intervaloTiempo)) &&
                         !pedido.getEstado().equals(EstadoPedido.ENTREGADO))
                 .collect(Collectors.toList());
 
