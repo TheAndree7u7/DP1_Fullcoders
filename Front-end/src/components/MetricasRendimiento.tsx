@@ -1,11 +1,11 @@
 // components/MetricasRendimiento.tsx
-import { useSimulacion } from '../hooks/useSimulacionContext';
+import { useSimulacion } from '../context/SimulacionContext';
 import checkIcon from '../assets/checkIcon.svg';
 import gasolinaIcon from '../assets/gasolinaIcon.svg';
 
 const MetricasRendimiento: React.FC = () => {
   const { camiones } = useSimulacion();
-  const porcentajePromedio = (camiones.reduce((acc, c) => acc + (c.porcentaje || 0), 0) / camiones.length).toFixed(0);
+  const porcentajePromedio = (camiones.reduce((acc, c) => acc + c.porcentaje, 0) / camiones.length).toFixed(0);
   const entregados = camiones.filter(c => c.estado === 'Entregado').length * 40;
   const capacidadTotalGLP = camiones.reduce((acc, c) => acc + c.capacidadActualGLP, 0).toFixed(1);
 

@@ -4,13 +4,12 @@
  */
 
 import { averiarCamionConEstado } from "../../../services/averiaApiService";
-import { eliminarPaquetesFuturos } from "../../../services/simulacionApiService";
+import { eliminarPaquetesFuturos, obtenerInfoSimulacion } from "../../../services/simulacionApiService";
 import { toast, Bounce } from 'react-toastify';
 import { pausarSimulacion as pausarSimulacionUtil } from "../../../context/simulacion/utils/controles";
-import { capturarEstadoCompleto, generarResumenEstado, type EstadoSimulacionCompleto } from "../../../context/simulacion/utils/estado";
+import { capturarEstadoCompleto, generarResumenEstado, convertirEstadoParaBackend, type EstadoSimulacionCompleto } from "../../../context/simulacion/utils/estado";
 import { calcularTimestampSimulacion } from "../../../context/simulacion/utils/tiempo";
-import type { CamionEstado, RutaCamion } from "../../../types";
-import type { Bloqueo } from "../../../context/SimulacionContext";
+import type { CamionEstado, RutaCamion, Bloqueo } from "../../../context/SimulacionContext";
 import type { Almacen } from "../../../types";
 
 /**
@@ -81,40 +80,16 @@ export const handleAveriar = async (
     console.log("⏸️ PAUSANDO SIMULACIÓN INMEDIATAMENTE...");
     pausarSimulacionUtil(setSimulacionActiva);
     
-    // 3. 🔧 CORREGIDO: Marcar el camión como averiado ANTES de capturar el estado
-    console.log("🔄 MARCANDO CAMIÓN COMO AVERIADO PRIMERO...");
-    marcarCamionAveriado(camionId);
-    console.log(`✅ Camión ${camionId} marcado como averiado en el contexto local`);
-    
-    // 4. Capturar el estado completo actual (ahora incluye el camión averiado)
-    console.log("📸 CAPTURANDO ESTADO COMPLETO (CON CAMIÓN AVERIADO)...");
+    // 3. Capturar el estado completo actual
+    console.log("📸 CAPTURANDO ESTADO COMPLETO...");
     const estadoCompleto: EstadoSimulacionCompleto = capturarEstadoCompleto(estadoSimulacion);
     
-    // 5. Verificar que el camión está averiado en el estado capturado
-    const camionAveriado = estadoCompleto.camiones?.find(c => c.id === camionId);
-    if (camionAveriado) {
-      console.log(`✅ VERIFICACIÓN: Camión ${camionId} en estado capturado:`, {
-        id: camionAveriado.id,
-        estado: camionAveriado.estado,
-        ubicacion: camionAveriado.ubicacion
-      });
-      
-      if (camionAveriado.estado !== 'Averiado') {
-        console.error(`❌ ERROR: El camión ${camionId} NO está marcado como averiado en el estado capturado. Estado actual: ${camionAveriado.estado}`);
-        // Intentar actualizar el estado manualmente
-        camionAveriado.estado = 'Averiado';
-        console.log(`🔧 CORRECCIÓN: Forzando estado 'Averiado' para el camión ${camionId}`);
-      }
-    } else {
-      console.error(`❌ ERROR: No se encontró el camión ${camionId} en el estado capturado`);
-    }
-    
-    // 6. Generar resumen del estado para logs
+    // 4. Generar resumen del estado para logs
     const resumenEstado = generarResumenEstado(estadoCompleto);
     console.log("📊 RESUMEN DEL ESTADO AL MOMENTO DE LA AVERÍA:");
     console.log(resumenEstado);
     
-    // 7. CRÍTICO: Eliminar paquetes futuros - esta operación debe ser exitosa
+    // 5. CRÍTICO: Eliminar paquetes futuros - esta operación debe ser exitosa
     console.log("🗑️ ELIMINANDO PAQUETES FUTUROS (CRÍTICO)...");
     try {
       await eliminarPaquetesFuturos();
@@ -137,12 +112,17 @@ export const handleAveriar = async (
       throw new Error(`Error crítico al eliminar paquetes futuros: ${error}`);
     }
     
-    // 8. Enviar avería con estado completo al backend (ahora incluye el camión averiado)
-    console.log("📡 ENVIANDO AVERÍA CON ESTADO COMPLETO (CAMIÓN AVERIADO)...");
+    // 6. Enviar avería con estado completo al backend
+    console.log("📡 ENVIANDO AVERÍA CON ESTADO COMPLETO...");
     console.log("📅 TIMESTAMP USADO PARA AVERÍA:", fechaHoraReporte);
-    await averiarCamionConEstado(camionId, tipo, fechaHoraReporte, estadoCompleto);
+    const estadoParaBackend = convertirEstadoParaBackend(estadoCompleto);
+    await averiarCamionConEstado(camionId, tipo, fechaHoraReporte, estadoParaBackend);
     
-    // 9. Mostrar toast de éxito
+    // 7. Marcar el camión como averiado en el contexto
+    console.log("🔄 ACTUALIZANDO ESTADO LOCAL...");
+    marcarCamionAveriado(camionId);
+    
+    // 8. Mostrar toast de éxito
     toast.success(`🚛💥 Camión ${camionId} averiado (Tipo ${tipo}) - Simulación pausada y paquetes futuros eliminados`, {
       position: "top-right",
       autoClose: 6000,
@@ -160,7 +140,6 @@ export const handleAveriar = async (
       tipo,
       timestampUsado: fechaHoraReporte,
       estadoCapturado: true,
-      camionAveriado: true,
       paquetesFuturosEliminados: true,
       simulacionPausada: true,
       pollingDetenido: !!setPollingActivo
@@ -195,21 +174,26 @@ export const handleAveriar = async (
     console.log("🔚 PROCESO DE AVERÍA FINALIZADO");
     
     // Pasar inmediatamente al siguiente paquete después de la avería
-    pasarAlSiguientePaquete(setPollingActivo, setSimulacionActiva);
+    pasarAlSiguientePaquete(setPollingActivo);
   }
 };
 
 /**
  * Función para pasar al siguiente paquete después de que termine el proceso de avería
- * Espera un tiempo fijo y luego reactiva el polling y la simulación para permitir la continuación
+ * Espera un tiempo fijo y luego reactiva el polling para permitir la continuación
  * @param setPollingActivo - Función para controlar el polling de paquetes
- * @param setSimulacionActiva - Función para controlar el estado de la simulación
  */
-const pasarAlSiguientePaquete = async (
-  setPollingActivo?: (value: boolean) => void,
-  setSimulacionActiva?: (value: boolean) => void
-) => {
+const pasarAlSiguientePaquete = async (setPollingActivo?: (value: boolean) => void) => {
   try {
+    console.log("🔄 AVERÍA TERMINADA: Esperando generación del nuevo paquete...");
+    
+    // Obtener información actual para referencia
+    const infoActual = await obtenerInfoSimulacion();
+    const paqueteActualAntes = infoActual.paqueteActual;
+    const paqueteEsperado = paqueteActualAntes + 1;
+    
+    console.log(`📊 INFORMACIÓN ACTUAL: Paquete actual=${paqueteActualAntes}, esperando paquete=${paqueteEsperado}`);
+    
     // Mostrar notificación de espera al usuario
     toast.info(`⏳ Esperando que se genere el siguiente paquete después de la avería...`, {
       position: "top-right",
@@ -224,31 +208,51 @@ const pasarAlSiguientePaquete = async (
     });
     
     // Esperar un tiempo fijo para dar tiempo al backend a generar el nuevo paquete
+    // Basándome en los logs, veo que el sistema SÍ está generando los datos
+    console.log("⏳ ESPERANDO: Dando tiempo al backend para generar el nuevo paquete...");
     await new Promise(resolve => setTimeout(resolve, 5000)); // 5 segundos
     
-    // Reactivar el polling y la simulación automáticamente
+    // Verificar si ahora hay más paquetes disponibles
+    const infoActualizada = await obtenerInfoSimulacion();
+    console.log(`📊 INFORMACIÓN ACTUALIZADA: Paquete actual=${infoActualizada.paqueteActual}, Total=${infoActualizada.totalPaquetes}`);
+    
+    // Siempre reactivar el polling - el sistema de polling normal manejará la obtención de datos
     if (setPollingActivo) {
       setPollingActivo(true);
+      console.log("✅ SIGUIENTE PAQUETE: Polling reactivado - el sistema continuará automáticamente");
+      
+      // Mostrar notificación de éxito
+      toast.success(`📦 Continuando con la simulación después de la avería`, {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+    } else {
+      console.warn("⚠️ SIGUIENTE PAQUETE: No se pudo reactivar el polling - función no disponible");
+      
+      // Mostrar notificación de advertencia
+      toast.warning(`⚠️ No se pudo reactivar el polling automático`, {
+        position: "top-right",
+        autoClose: 6000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
     }
-    
-    if (setSimulacionActiva) {
-      setSimulacionActiva(true);
-    }
-    
-    // Mostrar notificación de éxito
-    toast.success(`📦 Simulación reanudada automáticamente después de la avería`, {
-      position: "top-right",
-      autoClose: 4000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
-      transition: Bounce,
-    });
     
   } catch (error) {
+    console.error("❌ ERROR AL PASAR AL SIGUIENTE PAQUETE:", error);
+    
     // Mostrar error al usuario
     toast.error(`❌ Error al pasar al siguiente paquete: ${error instanceof Error ? error.message : 'Error desconocido'}`, {
       position: "top-right",

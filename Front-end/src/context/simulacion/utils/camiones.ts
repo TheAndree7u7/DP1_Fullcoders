@@ -4,7 +4,7 @@
  */
 
 import type { Camion } from "../../../types";
-import type { CamionEstado } from "../../../types";
+import type { CamionEstado } from "../../SimulacionContext";
 
 /**
  * Función adaptadora para convertir un CamionEstado a un objeto compatible con Camion
@@ -15,18 +15,16 @@ import type { CamionEstado } from "../../../types";
 export const adaptarCamionParaCalculos = (camion: CamionEstado): Camion => {
   return {
     codigo: camion.id,
-    coordenada: { x: 0, y: 0 }, // Coordenada por defecto
-    capacidadActualGLP: camion.capacidadActualGLP || 0,
-    capacidadMaximaGLP: camion.capacidadMaximaGLP || 0,
-    combustibleActual: camion.combustibleActual || 0,
-    combustibleMaximo: camion.combustibleMaximo || 0,
-    distanciaMaxima: camion.distanciaMaxima || 0,
+    capacidadActualGLP: camion.capacidadActualGLP,
+    capacidadMaximaGLP: camion.capacidadMaximaGLP,
+    combustibleActual: camion.combustibleActual,
+    combustibleMaximo: camion.combustibleMaximo,
+    distanciaMaxima: camion.distanciaMaxima,
     estado: camion.estado,
-    pesoCarga: camion.pesoCarga || 0,
-    pesoCombinado: camion.pesoCombinado || 0,
-    tara: camion.tara || 0,
-    tipo: camion.tipo || 'TA',
-    velocidadPromedio: camion.velocidadPromedio || 0,
-    tiempoParadaRestante: 0, // Valor por defecto
+    pesoCarga: camion.pesoCarga,
+    pesoCombinado: camion.pesoCombinado,
+    tara: camion.tara,
+    tipo: camion.tipo,
+    velocidadPromedio: camion.velocidadPromedio,
   };
 }; 

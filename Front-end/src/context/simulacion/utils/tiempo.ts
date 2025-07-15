@@ -45,55 +45,6 @@ export const formatearTiempoTranscurrido = (tiempoHMS: string): string => {
 };
 
 /**
- * @function formatearTiempoTranscurridoCompleto
- * @description Calcula y formatea el tiempo transcurrido entre dos fechas considerando días completos
- * @param {string} fechaActual - Fecha actual de la simulación
- * @param {string} fechaInicio - Fecha de inicio de la simulación
- * @returns {string} Tiempo formateado de manera legible
- */
-export const formatearTiempoTranscurridoCompleto = (
-  fechaActual: string,
-  fechaInicio: string
-): string => {
-  try {
-    const fechaActualDate = new Date(fechaActual);
-    const fechaInicioDate = new Date(fechaInicio);
-    
-    const diferenciaMilisegundos = fechaActualDate.getTime() - fechaInicioDate.getTime();
-    
-    if (diferenciaMilisegundos < 0) {
-      return "Tiempo no válido";
-    }
-    
-    const totalSegundos = Math.floor(diferenciaMilisegundos / 1000);
-    const dias = Math.floor(totalSegundos / 86400);
-    const horas = Math.floor((totalSegundos % 86400) / 3600);
-    const minutos = Math.floor((totalSegundos % 3600) / 60);
-    
-    const partes = [];
-    
-    if (dias > 0) {
-      partes.push(`${dias} día${dias > 1 ? 's' : ''}`);
-    }
-    if (horas > 0) {
-      partes.push(`${horas} hora${horas > 1 ? 's' : ''}`);
-    }
-    if (minutos > 0) {
-      partes.push(`${minutos} minuto${minutos > 1 ? 's' : ''}`);
-    }
-    
-    if (partes.length === 0) {
-      return "Menos de un minuto";
-    }
-    
-    return `Transcurrieron ${partes.join(' y ')}`;
-  } catch (error) {
-    console.warn("Error al formatear tiempo transcurrido completo:", error);
-    return "Error en cálculo de tiempo";
-  }
-};
-
-/**
  * @function calcularTimestampSimulacion
  * @description Calcula el timestamp correcto de simulación usando la fecha base con hora 00:00:00 y la horaSimulacion calculada
  * @param {string | null} fechaHoraSimulacion - Fecha y hora base de la simulación del backend
