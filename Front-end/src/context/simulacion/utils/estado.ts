@@ -5,8 +5,7 @@
 
 import type { RutaCamion } from '../../../types';
 import type { Almacen } from '../../../types';
-import type { CamionEstado } from '../../../types';
-import type { Bloqueo } from '../../SimulacionContext';
+import type { CamionEstado, Bloqueo } from '../../SimulacionContext';
 
 /**
  * @interface EstadoSimulacionCompleto
@@ -130,7 +129,7 @@ export const convertirEstadoParaBackend = (estado: EstadoSimulacionCompleto): ob
       velocidadPromedio: camion.velocidadPromedio
     })),
     
-    // Convertir rutas de camiones con coordenadas corregidas
+    // Convertir rutas de camiones
     rutasCamiones: estado.rutasCamiones.map(ruta => ({
       id: ruta.id,
       ruta: ruta.ruta,
@@ -147,7 +146,7 @@ export const convertirEstadoParaBackend = (estado: EstadoSimulacionCompleto): ob
       }))
     })),
     
-    // Convertir almacenes con coordenadas corregidas
+    // Convertir almacenes
     almacenes: estado.almacenes.map(almacen => ({
       coordenadaX: almacen.coordenada?.x || 0,
       coordenadaY: almacen.coordenada?.y || 0,
@@ -163,7 +162,7 @@ export const convertirEstadoParaBackend = (estado: EstadoSimulacionCompleto): ob
       activo: almacen.activo
     })),
     
-    // Convertir bloqueos con coordenadas corregidas
+    // Convertir bloqueos
     bloqueos: estado.bloqueos.map(bloqueo => ({
       coordenadas: bloqueo.coordenadas.map(coord => ({
         x: coord.x,

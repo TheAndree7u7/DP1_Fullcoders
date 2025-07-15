@@ -1,5 +1,5 @@
 // components/CardCamion.tsx
-import { useSimulacion } from '../hooks/useSimulacionContext';
+import { useSimulacion } from '../context/SimulacionContext';
 import Camion from '../assets/camion.svg';
 import { getCamionColorByState } from '../config/colors';
 
