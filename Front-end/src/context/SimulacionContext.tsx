@@ -35,7 +35,6 @@ import type {
 
 // Importar módulos de datos
 import {
-  cargarDatosIniciales,
   cargarDatos,
   cargarSolucionAnticipada,
   reiniciarSimulacionBackend,
@@ -131,16 +130,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [horaSimulacionAcumulada, setHoraSimulacionAcumulada] = useState<string>("00:00:00");
   const [fechaHoraAcumulada, setFechaHoraAcumulada] = useState<string>("");
   const [paqueteActualConsumido, setPaqueteActualConsumido] = useState<number>(0);
-
-  // ============================
-  // EFECTOS DE INICIALIZACIÓN
-  // ============================
-
-  // Cargar datos iniciales al montar el componente
-  useEffect(() => {
-    console.log("🚀 CONTEXTO: Montando contexto...");
-    cargarDatosIniciales();
-  }, []);
 
   // ============================
   // EFECTOS DE CONTROL DE TIEMPO

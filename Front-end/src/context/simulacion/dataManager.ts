@@ -14,37 +14,7 @@ import type { Almacen } from "../../types";
 import type { Gen, Nodo } from "../../types";
 
 
-/**
- * @function cargarDatosIniciales
- * @description Carga los datos iniciales de la simulación con reintentos
- */
-export const cargarDatosIniciales = async (): Promise<void> => {
-  let intentos = 0;
-  const maxIntentos = 10;
 
-  while (intentos < maxIntentos) {
-    try {
-      console.log(`🔄 CONTEXTO: Intento ${intentos + 1}/${maxIntentos} de carga inicial...`);
-      
-      // No intentar cargar datos de simulación automáticamente para evitar consumir paquetes
-      // Los datos se cargarán a través del polling cuando estén disponibles
-      console.log("ℹ️ CONTEXTO: Datos de simulación se cargarán vía polling cuando estén disponibles");
-      
-      // Si llegamos aquí, al menos los almacenes se cargaron correctamente
-      break;
-    } catch (error) {
-      intentos++;
-      console.log(`⚠️ CONTEXTO: Intento ${intentos} fallido:`, error);
-
-      if (intentos < maxIntentos) {
-        // Esperar antes del siguiente intento
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      } else {
-        console.error("❌ CONTEXTO: No se pudieron cargar los datos iniciales después de", maxIntentos, "intentos");
-      }
-    }
-  }
-};
 
 /**
  * @function cargarDatos

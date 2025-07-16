@@ -44,17 +44,28 @@ public class DataLoader {
     public static List<Camion> camiones = new ArrayList<>();
     public static List<Averia> averias = new ArrayList<>();
     public static List<Bloqueo> bloqueos = new ArrayList<>();
+    public static volatile boolean inicializando = false;
 
     public static List<Almacen> initializeAlmacenes() {
+        // Limpiar la lista de almacenes antes de crear nuevos
+        AlmacenFactory.almacenes.clear();
+        almacenes.clear();
+
         AlmacenFactory.crearAlmacen(TipoAlmacen.CENTRAL, coordenadaCentral, 1_000_000_000,
                 1_000_000_000);
         AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(42, 42), 160.0, 50);
         AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(3, 63), 160.0, 50);
         almacenes = AlmacenFactory.almacenes;
+
+        System.out.println("🏭 Almacenes inicializados: " + almacenes.size() + " almacenes creados");
         return almacenes;
     }
 
     public static List<Camion> initializeCamiones() {
+        // Limpiar la lista de camiones antes de crear nuevos
+        CamionFactory.camiones.clear();
+        camiones.clear();
+
         for (int i = 0; i < 2; i++) {
             CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);
         }
@@ -68,6 +79,8 @@ public class DataLoader {
             CamionFactory.crearCamionesPorTipo(TipoCamion.TD, true, coordenadaCentral);
         }
         camiones = CamionFactory.camiones;
+
+        System.out.println("🚛 Camiones inicializados: " + camiones.size() + " camiones creados");
         return camiones;
     }
 

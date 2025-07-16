@@ -3,6 +3,7 @@ package com.plg.controller;
 import com.plg.utils.Simulacion;
 import com.plg.dto.IndividuoDto;
 import com.plg.dto.request.SimulacionRequest;
+import com.plg.config.DataLoader;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -93,7 +94,7 @@ public class SimulacionController {
     }
 
     @GetMapping("/mejor/{fecha}")
-    public IndividuoDto obtenerMejorIndividuo(@PathVariable String fecha) {
+    public ResponseEntity<?> obtenerMejorIndividuo(@PathVariable String fecha) {
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/mejor");
         // Este método debe aceptar @PathVariable String fecha como parámetro.
         // Ejemplo de firma correcta:
@@ -105,7 +106,7 @@ public class SimulacionController {
             fechaSimulacion = LocalDateTime.parse(fecha);
         } catch (Exception e) {
             System.err.println("❌ Error al parsear la fecha recibida: " + fecha);
-            return null;
+            return ResponseEntity.badRequest().body("Error al parsear la fecha");
         }
         Simulacion.simularIntervalo(fechaSimulacion);
 
@@ -131,9 +132,9 @@ public class SimulacionController {
 
         if (siguientePaquete != null) {
             System.out.println("✅ ENDPOINT RESPUESTA: Paquete enviado al frontend");
+            return ResponseEntity.ok(siguientePaquete);
         }
-
-        return siguientePaquete;
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
     @GetMapping("/reiniciar")
@@ -187,13 +188,17 @@ public class SimulacionController {
     }
 
     @GetMapping("/info")
-    public Simulacion.SimulacionInfo obtenerInfoSimulacion() {
+    public ResponseEntity<?> obtenerInfoSimulacion() {
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/info");
+        if (DataLoader.inicializando) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(java.util.Collections.singletonMap("status", "inicializando"));
+        }
         Simulacion.SimulacionInfo info = Simulacion.obtenerInfoSimulacion();
         System.out.println("✅ ENDPOINT RESPUESTA: Total=" + info.totalPaquetes +
                 ", Actual=" + info.paqueteActual +
                 ", EnProceso=" + info.enProceso);
-        return info;
+        return ResponseEntity.ok(info);
     }
 
     @PostMapping("/pedir_creacion_paquete")
@@ -275,14 +280,15 @@ public class SimulacionController {
         System.out.println("📅 Fecha recibida: " + request.getFechaInicio());
 
         try {
-            // Validar que la fecha no sea nula
             if (request.getFechaInicio() == null) {
                 System.out.println("❌ Error: Fecha de inicio es nula");
                 return ResponseEntity.badRequest().body("Error: La fecha de inicio no puede ser nula");
             }
+            // ACTIVAR bandera de inicialización
+            DataLoader.inicializando = true;
             // Pedir mejor individuo
             Simulacion.simularIntervalo(request.getFechaInicio());
-            
+
             // Detener cualquier simulación anterior
             //// detenerSimulacionActual();
             System.out.println("🛑 Simulación anterior detenida (si existía)");
@@ -310,13 +316,15 @@ public class SimulacionController {
 
             // Configurar la simulación con la fecha enviada desde el frontend
             Simulacion.configurarSimulacion(request.getFechaInicio());
-
+            // DESACTIVAR bandera de inicialización
+            DataLoader.inicializando = false;
             String mensaje = "Simulación iniciada correctamente con fecha: " + request.getFechaInicio();
             System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
 
             return ResponseEntity.ok(mensaje);
 
         } catch (Exception e) {
+            DataLoader.inicializando = false;
             String errorMsg = "Error al iniciar simulación: " + e.getMessage();
             System.err.println("❌ " + errorMsg);
             e.printStackTrace();

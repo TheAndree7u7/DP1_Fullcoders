@@ -12,7 +12,8 @@ import com.plg.utils.Parametros;
 import com.plg.utils.Simulacion;
 
 /**
- * Clase utilitaria que centraliza la configuración y los logs de inicio de la simulación.
+ * Clase utilitaria que centraliza la configuración y los logs de inicio de la
+ * simulación.
  */
 public class ConfiguracionSimulacion {
 
@@ -29,8 +30,15 @@ public class ConfiguracionSimulacion {
 
         // 3. Limpiar datos anteriores
         DataLoader.pedidos.clear();
+        DataLoader.almacenes.clear();
+        DataLoader.camiones.clear();
+        DataLoader.averias.clear();
+        DataLoader.bloqueos.clear();
+        DataLoader.mantenimientos.clear();
         com.plg.factory.PedidoFactory.pedidos.clear();
-        
+        com.plg.factory.AlmacenFactory.almacenes.clear();
+        com.plg.factory.CamionFactory.camiones.clear();
+
         // 4. Inicializar datos
         DataLoader.initializeAlmacenes();
         DataLoader.initializeCamiones();
@@ -64,7 +72,8 @@ public class ConfiguracionSimulacion {
     }
 
     /**
-     * Actualiza los parámetros globales basándose en la fecha de inicio seleccionada.
+     * Actualiza los parámetros globales basándose en la fecha de inicio
+     * seleccionada.
      * Esto asegura que los pedidos se carguen con las fechas correctas.
      */
     private static void actualizarParametrosGlobales(LocalDateTime fechaInicio) {
@@ -72,10 +81,10 @@ public class ConfiguracionSimulacion {
         Parametros.anho = String.valueOf(fechaInicio.getYear());
         Parametros.mes = String.format("%02d", fechaInicio.getMonthValue());
         Parametros.dia = String.format("%02d", fechaInicio.getDayOfMonth());
-        
+
         // Actualizar fecha_inicial en Parametros
         Parametros.fecha_inicial = fechaInicio;
-        
+
         System.out.println("📅 Parámetros actualizados:");
         System.out.println("   • Año: " + Parametros.anho);
         System.out.println("   • Mes: " + Parametros.mes);
@@ -86,10 +95,9 @@ public class ConfiguracionSimulacion {
      * Imprime un resumen actualizado de las métricas principales de la simulación.
      */
     public static void imprimirDatosSimulacion() {
-        //2025-01-01T04:00- 6pm 
+        // 2025-01-01T04:00- 6pm
 
-
-        //LISTA DE PEDIDOS SEMANALES 
+        // LISTA DE PEDIDOS SEMANALES
         List<Pedido> pedidosSemanal = Simulacion.getPedidosSemanal();
         LocalDateTime fechaActual = Simulacion.getFechaActual();
 
@@ -107,4 +115,4 @@ public class ConfiguracionSimulacion {
             MantenimientoManager.verificarYActualizarMantenimientos(camiones, fechaActual);
         }
     }
-} 
+}

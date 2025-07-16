@@ -51,6 +51,17 @@ public class Individuo {
         List<Almacen> almacenes = DataLoader.almacenes;
         List<Camion> camiones = DataLoader.camiones;
 
+        // Validar que las listas no estén vacías
+        if (almacenes == null || almacenes.isEmpty()) {
+            LoggerUtil.logError("❌ ERROR: La lista de almacenes está vacía o es nula");
+            throw new IllegalStateException("No se pueden inicializar almacenes. La lista está vacía.");
+        }
+
+        if (camiones == null || camiones.isEmpty()) {
+            LoggerUtil.logError("❌ ERROR: La lista de camiones está vacía o es nula");
+            throw new IllegalStateException("No se pueden inicializar camiones. La lista está vacía.");
+        }
+
         // FILTRAR CAMIONES EN MANTENIMIENTO o AVERIADOS- Ubicación más eficiente
         List<Camion> camionesDisponibles = camiones.stream()
                 .filter(camion -> camion.getEstado() != com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO
@@ -71,6 +82,13 @@ public class Individuo {
         for (Camion camion : camionesDisponibles) {
             cromosoma.add(new Gen(camion, new ArrayList<>()));
         }
+
+        // Validar que hay al menos un almacén antes de acceder al índice 0
+        if (almacenes.isEmpty()) {
+            LoggerUtil.logError("❌ ERROR: No hay almacenes disponibles para crear rutas");
+            throw new IllegalStateException("No se puede crear rutas sin almacenes disponibles.");
+        }
+
         Almacen almacenCentral = almacenes.get(0);
         List<Nodo> pedidosMezclados = new ArrayList<>();
         pedidosMezclados.addAll(pedidos);
