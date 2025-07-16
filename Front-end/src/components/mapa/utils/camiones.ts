@@ -12,12 +12,6 @@ import type { Coordenada } from "../../../types";
  * @returns {number} Ángulo de rotación en grados
  */
 export const calcularRotacion = (from: Coordenada, to: Coordenada): number => {
-  // Validar que las coordenadas existan
-  if (!from || !to || typeof from.x !== 'number' || typeof from.y !== 'number' || 
-      typeof to.x !== 'number' || typeof to.y !== 'number') {
-    return 0; // Retornar 0 grados si las coordenadas son inválidas
-  }
-  
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   

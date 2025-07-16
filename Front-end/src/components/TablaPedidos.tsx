@@ -1,6 +1,5 @@
-// components/TablaPedidos.tsx
 import React, { useState } from "react";
-import { useSimulacion } from "../context/SimulacionContext";
+import { useSimulacion } from '../hooks/useSimulacionContext';
 import { Package, MapPin, Truck, Search, ChevronUp, ChevronDown, ChevronsUpDown, Calendar } from "lucide-react";
 import type { Pedido } from "../types";
 
