@@ -160,29 +160,53 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   // Calcular la hora de simulación basado en fechaHoraSimulacion y horaActual
   useEffect(() => {
     if (fechaHoraSimulacion && horaActual >= 0) {
-      const fechaBase = new Date(fechaHoraSimulacion);
-
-      // Número total de nodos para una actualización completa (cada 2 horas)
-    
+      let nuevaFecha: Date;
       
-
-      // Calculamos qué nodo estamos dentro del ciclo actual (0-99)
-      const nodoEnCicloActual = horaActual % NODOS_PARA_ACTUALIZACION;
-
-      // Calculamos segundos adicionales solo para el incremento local dentro del ciclo actual
-      const segundosAdicionales = nodoEnCicloActual * SEGUNDOS_POR_NODO;
-
-      // Crea nueva fecha sumando los segundos
-      const nuevaFecha = new Date(fechaBase.getTime() + segundosAdicionales * 1000);
-
-      // Formatear solo la hora
-      const horaFormateada = nuevaFecha.toLocaleTimeString('es-ES', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      });
-
-      setHoraSimulacion(horaFormateada);
+      // Si tenemos intervalos específicos, usarlos para un cálculo más preciso
+      if (fechaHoraInicioIntervalo && fechaHoraFinIntervalo) {
+        const fechaInicio = new Date(fechaHoraInicioIntervalo);
+        const fechaFin = new Date(fechaHoraFinIntervalo);
+        
+        // Calcular la duración total del intervalo en milisegundos
+        const duracionTotal = fechaFin.getTime() - fechaInicio.getTime();
+        
+        // Calcular el progreso dentro del intervalo actual (0-1)
+        const progresoEnIntervalo = Math.min(horaActual / NODOS_PARA_ACTUALIZACION, 1);
+        const tiempoTranscurrido = duracionTotal * progresoEnIntervalo;
+        
+        // Calcular la fecha exacta sumando el tiempo transcurrido a la fecha de inicio del intervalo
+        nuevaFecha = new Date(fechaInicio.getTime() + tiempoTranscurrido);
+        
+        // Formatear solo la hora
+        const horaFormateada = nuevaFecha.toLocaleTimeString('es-ES', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        
+        setHoraSimulacion(horaFormateada);
+      } else {
+        // Fallback al método anterior si no hay intervalos específicos
+        const fechaBase = new Date(fechaHoraSimulacion);
+        
+        // Calculamos qué nodo estamos dentro del ciclo actual (0-24)
+        const nodoEnCicloActual = horaActual % NODOS_PARA_ACTUALIZACION;
+        
+        // Calculamos segundos adicionales solo para el incremento local dentro del ciclo actual
+        const segundosAdicionales = nodoEnCicloActual * SEGUNDOS_POR_NODO;
+        
+        // Crea nueva fecha sumando los segundos
+        nuevaFecha = new Date(fechaBase.getTime() + segundosAdicionales * 1000);
+        
+        // Formatear solo la hora
+        const horaFormateada = nuevaFecha.toLocaleTimeString('es-ES', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        
+        setHoraSimulacion(horaFormateada);
+      }
 
       // Calcular hora acumulada desde el inicio de la simulación
       if (fechaInicioSimulacion) {
@@ -213,7 +237,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         setFechaHoraAcumulada(fechaHoraAcumuladaFormateada);
       }
     }
-  }, [horaActual, fechaHoraSimulacion, fechaInicioSimulacion]);
+  }, [horaActual, fechaHoraSimulacion, fechaInicioSimulacion, fechaHoraInicioIntervalo, fechaHoraFinIntervalo]);
 
   // Calcular tiempo transcurrido simulado
   useEffect(() => {
@@ -343,6 +367,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       console.log("Fecha de inicio del intervalo", data.fechaHoraInicioIntervalo);
       console.log("Fecha de fin del intervalo", data.fechaHoraFinIntervalo);
+      
       // Actualizar fecha y hora de la simulación
       if (data.fechaHoraSimulacion) {
         setFechaHoraSimulacion(data.fechaHoraSimulacion);
@@ -404,7 +429,9 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         setAlmacenes(data.almacenes);
       }
 
-      // Resetear contadores y estados
+      // CRÍTICO: Reiniciar el tiempo de simulación para sincronizar con el nuevo intervalo
+      // Esto evita que el reloj siga avanzando mientras los camiones empiezan desde 0
+      setHoraActual(0); // Reiniciar el nodo actual
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
       setEsperandoActualizacion(false);
       setSolicitudAnticipadaEnviada(false);
@@ -416,6 +443,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Incrementar el contador de paquetes consumidos
       setPaqueteActualConsumido(prev => prev + 1);
       
+      console.log("✅ TRANSICIÓN: Tiempo de simulación reiniciado para sincronizar con nuevo intervalo");
       console.log("===============================================FIN========================================================");
     } catch (error) {
       console.error("❌ TRANSICIÓN: Error al aplicar solución precargada:", error);
@@ -518,7 +546,9 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         console.warn("⚠️ ADVERTENCIA: No hay almacenes válidos del backend, manteniendo almacenes actuales");
       }
 
-      setHoraActual(HORA_PRIMERA_ACTUALIZACION);
+      // CRÍTICO: Reiniciar el tiempo de simulación para sincronizar con el nuevo intervalo
+      // Esto evita que el reloj siga avanzando mientras los camiones empiezan desde 0
+      setHoraActual(0); // Reiniciar el nodo actual
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
       setEsperandoActualizacion(false);
       setSolicitudAnticipadaEnviada(false);
@@ -526,6 +556,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Incrementar el contador de paquetes consumidos
       setPaqueteActualConsumido(prev => prev + 1);
+      
+      console.log("✅ CARGANDO: Tiempo de simulación reiniciado para sincronizar con nuevo intervalo");
       
       console.log("✅ CARGA COMPLETADA: Datos de simulación cargados exitosamente");
     } catch (error) {
