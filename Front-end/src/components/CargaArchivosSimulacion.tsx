@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import type { 
   ArchivoCarga, 
   EstadoCargaArchivos, 
@@ -7,6 +7,7 @@ import type {
   DatosVentas,
   DatosBloqueo
 } from "../types";
+import { useSimulacion } from '../context/SimulacionContext';
 
 interface CargaArchivosSimulacionProps {
   onArchivosCargados: (estado: EstadoCargaArchivos) => void;
@@ -19,12 +20,14 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
   onContinuar,
   onSaltarCarga
 }) => {
+  const { fechaInicioSimulacion, setFechaInicioSimulacion } = useSimulacion();
   const [estadoCarga, setEstadoCarga] = useState<EstadoCargaArchivos>({
     ventas: { cargado: false, errores: [] },
     bloqueos: { cargado: false, errores: [] },
     camiones: { cargado: false, errores: [] }
   });
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+  const [fechaSimulacion, setFechaSimulacion] = useState<string>(fechaInicioSimulacion || '');
 
   const fileInputVentasRef = useRef<HTMLInputElement>(null);
   const fileInputBloqueosRef = useRef<HTMLInputElement>(null);
@@ -54,6 +57,13 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
 01d05h05m-01d21h37m:42,08,42,15,47,15,47,27,55,27`
     }
   ];
+
+  // Cuando cambia la fecha local, actualizar el contexto global
+  useEffect(() => {
+    if (fechaSimulacion) {
+      setFechaInicioSimulacion(fechaSimulacion);
+    }
+  }, [fechaSimulacion]);
 
   // Función para validar archivo de ventas
   const validarArchivoVentas = (contenido: string): ValidacionArchivo => {
@@ -288,6 +298,19 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
         <h2 className="text-2xl font-bold text-gray-900 mb-6">
           Cargar Archivos para Simulación Semanal
         </h2>
+        {/* Campo para seleccionar la fecha de simulación */}
+        <div className="mb-6">
+          <label className="block text-gray-700 font-medium mb-2" htmlFor="fechaSimulacion">
+            Fecha de inicio de la simulación
+          </label>
+          <input
+            id="fechaSimulacion"
+            type="date"
+            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={fechaSimulacion ? fechaSimulacion.substring(0, 10) : ''}
+            onChange={e => setFechaSimulacion(e.target.value)}
+          />
+        </div>
         
         <div className="mb-6">
           <p className="text-gray-600 mb-4">

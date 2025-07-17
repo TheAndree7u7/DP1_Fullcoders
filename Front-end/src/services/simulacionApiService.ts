@@ -127,7 +127,7 @@ export async function obtenerInfoSimulacion(): Promise<{
   tiempoActual: string;
 }> {
   try {
-    console.log("Obteniendo información de simulación...");
+    // console.log("Obteniendo información de simulación...");
     
     const response = await fetch(`${API_URLS.INFO_SIMULACION}`, {
       method: 'GET'
@@ -139,7 +139,7 @@ export async function obtenerInfoSimulacion(): Promise<{
     }
 
     const info = await response.json();
-    console.log("Información de simulación obtenida:", info);
+    // console.log("Información de simulación obtenida:", info);
     return info;
   } catch (error) {
     console.error("Error al obtener información de simulación:", error);

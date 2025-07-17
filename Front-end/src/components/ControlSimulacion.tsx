@@ -41,13 +41,7 @@ const ControlSimulacion: React.FC = () => {
         const info = await obtenerInfoSimulacion();
         setInfoSimulacion(info);
         
-        // 🔍 DIAGNÓSTICO: Agregar logs para ver por qué el botón está bloqueado
-        console.log("📊 DIAGNÓSTICO: Estado de la simulación obtenido del backend:", {
-          totalPaquetes: info.totalPaquetes,
-          paqueteActual: info.paqueteActual,
-          enProceso: info.enProceso,
-          tiempoActual: info.tiempoActual
-        });
+
         
         // console.log("🔒 DIAGNÓSTICO: Estado del botón 'Iniciar Simulación':", {
         //   cargando: cargando,
@@ -65,13 +59,7 @@ const ControlSimulacion: React.FC = () => {
     obtenerInfoSimulacion().then((info) => {
       setInfoSimulacion(info);
       
-      // 🔍 DIAGNÓSTICO: Log inicial también
-      console.log("📊 DIAGNÓSTICO: Estado inicial de la simulación:", {
-        totalPaquetes: info.totalPaquetes,
-        paqueteActual: info.paqueteActual,
-        enProceso: info.enProceso,
-        tiempoActual: info.tiempoActual
-      });
+
       
       // console.log("🔒 DIAGNÓSTICO: Estado inicial del botón 'Iniciar Simulación':", {
       //   cargando: cargando,
@@ -97,6 +85,7 @@ const ControlSimulacion: React.FC = () => {
     setTipoMensaje('info');
 
     try {
+      console.log("===================🚀 FRONTEND: Iniciando SIMULAION==============");
       const fechaHoraISO = `${fechaInicio}T${horaInicio}:00`;
       
       // 1. Guarda la fecha de inicio en el contexto global
