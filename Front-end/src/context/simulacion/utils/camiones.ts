@@ -4,7 +4,7 @@
  */
 
 import type { Camion } from "../../../types";
-import type { CamionEstado } from "../../../types";
+import type { CamionEstado } from "../../SimulacionContext";
 
 /**
  * Función adaptadora para convertir un CamionEstado a un objeto compatible con Camion

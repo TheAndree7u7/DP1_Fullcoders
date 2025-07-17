@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useSimulacion } from "../hooks/useSimulacionContext";
+import { useSimulacion } from "../context/SimulacionContext";
 import type { Coordenada } from "../types";
 
 

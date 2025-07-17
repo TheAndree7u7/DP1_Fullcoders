@@ -1,12 +1,14 @@
-import React, { useState, useRef } from "react";
-import type { 
-  ArchivoCarga, 
-  EstadoCargaArchivos, 
-  EjemploArchivo, 
-  ValidacionArchivo,
-  DatosVentas,
-  DatosBloqueo
-} from "../types";
+import React, { useState, useRef, useEffect } from "react";
+import type { EstadoCargaArchivos } from "../types";
+import { useSimulacion } from '../context/SimulacionContext';
+import { 
+  ejemplos, 
+  descargarEjemplo, 
+  manejarCargaArchivo, 
+  puedenCargarseArchivos, 
+  formatearTamanoArchivo 
+} from './cargar_archivos';
+import { iniciarSimulacion, obtenerInfoSimulacion } from '../services/simulacionApiService';
 
 interface CargaArchivosSimulacionProps {
   onArchivosCargados: (estado: EstadoCargaArchivos) => void;
@@ -19,263 +21,122 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
   onContinuar,
   onSaltarCarga
 }) => {
+  const { 
+    fechaInicioSimulacion, 
+    setFechaInicioSimulacion,
+    limpiarEstadoParaNuevaSimulacion,
+    iniciarPollingPrimerPaquete
+  } = useSimulacion();
   const [estadoCarga, setEstadoCarga] = useState<EstadoCargaArchivos>({
     ventas: { cargado: false, errores: [] },
     bloqueos: { cargado: false, errores: [] },
     camiones: { cargado: false, errores: [] }
   });
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+  const [fechaSimulacion, setFechaSimulacion] = useState<string>(fechaInicioSimulacion || new Date().toISOString().substring(0, 10) + 'T00:00');
+  const [cargando, setCargando] = useState(false);
+  const [mensaje, setMensaje] = useState<string>('');
+  const [tipoMensaje, setTipoMensaje] = useState<'success' | 'error' | 'info'>('info');
 
   const fileInputVentasRef = useRef<HTMLInputElement>(null);
   const fileInputBloqueosRef = useRef<HTMLInputElement>(null);
 
-  // Ejemplos de archivos
-  const ejemplos: EjemploArchivo[] = [
-    {
-      nombre: "ventas202501.txt",
-      descripcion: "Archivo de ventas/pedidos",
-      tipo: "ventas",
-      formato: "Formato: fechaHora:coordenadaX,coordenadaY,codigoCliente,volumenGLP,horasLimite",
-      contenido: `01d00h24m:16,13,c-198,3m3,4h
-01d00h48m:5,18,c-12,9m3,17h
-01d01h12m:63,13,c-83,2m3,9h
-01d01h35m:4,6,c-37,2m3,16h
-01d01h59m:54,16,c-115,9m3,5h`
-    },
-    {
-      nombre: "202501.bloqueos.txt",
-      descripcion: "Archivo de bloqueos",
-      tipo: "bloqueos",
-      formato: "Formato: fechaInicio-fechaFin:coordenadas",
-      contenido: `01d00h31m-01d21h35m:15,10,30,10,30,18
-01d01h13m-01d20h38m:08,03,08,23,20,23
-01d02h40m-01d22h32m:57,30,57,45
-01d03h54m-01d21h25m:25,25,30,25,30,30,35,30
-01d05h05m-01d21h37m:42,08,42,15,47,15,47,27,55,27`
+  // Cuando cambia la fecha local, actualizar el contexto global
+  useEffect(() => {
+    if (fechaSimulacion) {
+      setFechaInicioSimulacion(fechaSimulacion);
     }
-  ];
+  }, [fechaSimulacion]);
 
-  // Función para validar archivo de ventas
-  const validarArchivoVentas = (contenido: string): ValidacionArchivo => {
-    const lineas = contenido.trim().split('\n');
-    const errores: string[] = [];
-    const advertencias: string[] = [];
-    const datosParseados: DatosVentas[] = [];
 
-    lineas.forEach((linea, index) => {
-      if (!linea.trim()) return;
-
-      const partes = linea.split(':');
-      if (partes.length !== 2) {
-        errores.push(`Línea ${index + 1}: Formato incorrecto. Debe ser 'fechaHora:datos'`);
-        return;
-      }
-
-      const fechaHora = partes[0].trim();
-      const datos = partes[1].trim();
-
-      // Validar formato de fecha
-      if (!/^\d{2}d\d{2}h\d{2}m$/.test(fechaHora)) {
-        errores.push(`Línea ${index + 1}: Formato de fecha incorrecto. Debe ser 'DDdHHhMMm'`);
-        return;
-      }
-
-      // Validar datos
-      const valores = datos.split(',');
-      if (valores.length !== 5) {
-        errores.push(`Línea ${index + 1}: Debe tener 5 valores separados por coma`);
-        return;
-      }
-
-      const [x, y, cliente, volumen, horas] = valores;
-      
-      if (!/^\d+$/.test(x) || !/^\d+$/.test(y)) {
-        errores.push(`Línea ${index + 1}: Coordenadas deben ser números`);
-        return;
-      }
-
-      if (!/^c-\d+$/.test(cliente)) {
-        errores.push(`Línea ${index + 1}: Código de cliente debe ser 'c-NUMERO'`);
-        return;
-      }
-
-      if (!/^\d+m3$/.test(volumen)) {
-        errores.push(`Línea ${index + 1}: Volumen debe ser 'NUMEROm3'`);
-        return;
-      }
-
-      if (!/^\d+h$/.test(horas)) {
-        errores.push(`Línea ${index + 1}: Horas límite debe ser 'NUMEROh'`);
-        return;
-      }
-
-      datosParseados.push({
-        fechaHora,
-        coordenadaX: parseInt(x),
-        coordenadaY: parseInt(y),
-        codigoCliente: cliente,
-        volumenGLP: parseInt(volumen.replace('m3', '')),
-        horasLimite: parseInt(horas.replace('h', ''))
-      });
-    });
-
-    return {
-      esValido: errores.length === 0,
-      errores,
-      advertencias,
-      datosParseados
-    };
-  };
-
-  // Función para validar archivo de bloqueos
-  const validarArchivoBloqueos = (contenido: string): ValidacionArchivo => {
-    const lineas = contenido.trim().split('\n');
-    const errores: string[] = [];
-    const advertencias: string[] = [];
-    const datosParseados: DatosBloqueo[] = [];
-
-    lineas.forEach((linea, index) => {
-      if (!linea.trim()) return;
-
-      const partes = linea.split(':');
-      if (partes.length !== 2) {
-        errores.push(`Línea ${index + 1}: Formato incorrecto. Debe ser 'fechaInicio-fechaFin:coordenadas'`);
-        return;
-      }
-
-      const fechas = partes[0].trim();
-      const coordenadas = partes[1].trim();
-
-      // Validar formato de fechas
-      const fechasPartes = fechas.split('-');
-      if (fechasPartes.length !== 2) {
-        errores.push(`Línea ${index + 1}: Formato de fechas incorrecto. Debe ser 'fechaInicio-fechaFin'`);
-        return;
-      }
-
-      const [fechaInicio, fechaFin] = fechasPartes;
-      if (!/^\d{2}d\d{2}h\d{2}m$/.test(fechaInicio) || !/^\d{2}d\d{2}h\d{2}m$/.test(fechaFin)) {
-        errores.push(`Línea ${index + 1}: Formato de fecha incorrecto. Debe ser 'DDdHHhMMm'`);
-        return;
-      }
-
-      // Validar coordenadas
-      const coordValores = coordenadas.split(',');
-      if (coordValores.length < 2 || coordValores.length % 2 !== 0) {
-        errores.push(`Línea ${index + 1}: Debe tener un número par de coordenadas (x,y)`);
-        return;
-      }
-
-      const coordenadasArray: Array<{x: number, y: number}> = [];
-      for (let i = 0; i < coordValores.length; i += 2) {
-        const x = parseInt(coordValores[i]);
-        const y = parseInt(coordValores[i + 1]);
-        
-        if (isNaN(x) || isNaN(y)) {
-          errores.push(`Línea ${index + 1}: Coordenadas deben ser números`);
-          return;
-        }
-        
-        coordenadasArray.push({ x, y });
-      }
-
-      datosParseados.push({
-        fechaInicio,
-        fechaFin,
-        coordenadas: coordenadasArray
-      });
-    });
-
-    return {
-      esValido: errores.length === 0,
-      errores,
-      advertencias,
-      datosParseados
-    };
-  };
 
   // Función para manejar la carga de archivos
-  const manejarCargaArchivo = async (
+  const handleCargaArchivo = async (
     archivo: File, 
     tipo: 'ventas' | 'bloqueos' | 'camiones'
   ) => {
-    try {
-      const contenido = await archivo.text();
-      const archivoCarga: ArchivoCarga = {
-        nombre: archivo.name,
-        contenido,
-        tipo,
-        fechaCreacion: new Date(),
-        tamano: archivo.size
-      };
-
-      let validacion: ValidacionArchivo;
-      
-      if (tipo === 'ventas') {
-        validacion = validarArchivoVentas(contenido);
-      } else if (tipo === 'bloqueos') {
-        validacion = validarArchivoBloqueos(contenido);
-      } else {
-        validacion = { esValido: false, errores: ['Tipo de archivo no soportado'], advertencias: [] };
-      }
-
-      setEstadoCarga(prev => ({
-        ...prev,
-        [tipo]: {
-          cargado: validacion.esValido,
-          archivo: validacion.esValido ? archivoCarga : undefined,
-          errores: validacion.errores
-        }
-      }));
-
-      // Notificar al componente padre
-      const nuevoEstado = {
-        ...estadoCarga,
-        [tipo]: {
-          cargado: validacion.esValido,
-          archivo: validacion.esValido ? archivoCarga : undefined,
-          errores: validacion.errores
-        }
-      };
+    await manejarCargaArchivo(archivo, tipo, estadoCarga, (nuevoEstado) => {
+      setEstadoCarga(nuevoEstado);
       onArchivosCargados(nuevoEstado);
-
-    } catch (error) {
-      setEstadoCarga(prev => ({
-        ...prev,
-        [tipo]: {
-          cargado: false,
-          errores: [`Error al leer el archivo: ${error}`]
-        }
-      }));
-    }
+    });
   };
 
-  // Función para descargar ejemplo
-  const descargarEjemplo = (ejemplo: EjemploArchivo) => {
-    const blob = new Blob([ejemplo.contenido], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = ejemplo.nombre;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
-  // Función para verificar si se pueden cargar todos los archivos
-  const puedenCargarseArchivos = () => {
-    return estadoCarga.ventas.cargado && estadoCarga.bloqueos.cargado;
-  };
 
   // Función para manejar el salto de carga
   const manejarSaltarCarga = () => {
     setMostrarConfirmacion(true);
   };
 
-  const confirmarSaltarCarga = () => {
+  const confirmarSaltarCarga = async () => {
+    if (!fechaSimulacion) {
+      setMensaje('Por favor, selecciona una fecha y hora válidas');
+      setTipoMensaje('error');
+      return;
+    }
+
+    setCargando(true);
+    setMensaje('Iniciando simulación con datos de prueba...');
+    setTipoMensaje('info');
     setMostrarConfirmacion(false);
-    onSaltarCarga();
+
+    try {
+      console.log("===================🚀 FRONTEND: Iniciando SIMULACIÓN CON DATOS DE PRUEBA==============");
+      const fechaHoraISO = fechaSimulacion;
+      
+      // 1. Guarda la fecha de inicio en el contexto global
+      setFechaInicioSimulacion(fechaHoraISO);
+
+      // 2. Inicia la simulación en el backend
+      setMensaje('Configurando simulación en el backend...');
+      await iniciarSimulacion(fechaHoraISO);
+      
+      setMensaje('Simulación iniciada exitosamente. Cargando datos...');
+      setTipoMensaje('success');
+      
+      console.log("🚀 FRONTEND: Simulación iniciada en backend, limpiando estado...");
+      
+      // Limpiar el estado y cargar nuevos datos
+      await limpiarEstadoParaNuevaSimulacion();
+      console.log("🧹 FRONTEND: Estado limpiado y datos cargados para nueva simulación");
+      
+      setMensaje('Iniciando visualización automática...');
+      
+      // Iniciar el polling para obtener el primer paquete automáticamente
+      iniciarPollingPrimerPaquete();
+      console.log("🔄 FRONTEND: Polling iniciado para obtener primer paquete automáticamente");
+      
+      // Actualizar información después de unos segundos para dar tiempo al backend
+      setTimeout(async () => {
+        try {
+          const info = await obtenerInfoSimulacion();
+          console.log("📊 FRONTEND: Info de simulación actualizada:", info);
+          
+          if (info.enProceso) {
+            setMensaje('Simulación en progreso - Los datos se actualizan automáticamente');
+            setTipoMensaje('success');
+          } else {
+            setMensaje('Simulación completada o detenida');
+            setTipoMensaje('info');
+          }
+        } catch (error) {
+          console.error('Error al actualizar info:', error);
+          setMensaje('Simulación iniciada pero no se pudo obtener el estado');
+          setTipoMensaje('error');
+        }
+      }, 3000); // Esperamos 3 segundos para que el backend empiece a generar paquetes
+      
+      // Llamar a la función original para continuar con el flujo
+      onSaltarCarga();
+      
+    } catch (error) {
+      console.error('Error al iniciar simulación:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      setMensaje(`Error al iniciar simulación: ${errorMessage}`);
+      setTipoMensaje('error');
+    } finally {
+      setCargando(false);
+    }
   };
 
   const cancelarSaltarCarga = () => {
@@ -288,6 +149,47 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
         <h2 className="text-2xl font-bold text-gray-900 mb-6">
           Cargar Archivos para Simulación Semanal
         </h2>
+        {/* Campo para seleccionar la fecha y hora de simulación */}
+        <div className="mb-6">
+          <label className="block text-gray-700 font-medium mb-2">
+            Fecha y hora de inicio de la simulación
+          </label>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm text-gray-600 mb-1" htmlFor="fechaSimulacion">
+                Fecha
+              </label>
+              <input
+                id="fechaSimulacion"
+                type="date"
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={fechaSimulacion ? fechaSimulacion.substring(0, 10) : ''}
+                onChange={e => {
+                  const nuevaFecha = e.target.value;
+                  const horaActual = fechaSimulacion ? fechaSimulacion.substring(11) : '00:00';
+                  setFechaSimulacion(`${nuevaFecha}T${horaActual}`);
+                }}
+              />
+            </div>
+            
+            <div className="flex-1">
+              <label className="block text-sm text-gray-600 mb-1" htmlFor="horaSimulacion">
+                Hora
+              </label>
+              <input
+                id="horaSimulacion"
+                type="time"
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={fechaSimulacion ? fechaSimulacion.substring(11, 16) : '00:00'}
+                onChange={e => {
+                  const fechaActual = fechaSimulacion ? fechaSimulacion.substring(0, 10) : new Date().toISOString().substring(0, 10);
+                  const nuevaHora = e.target.value;
+                  setFechaSimulacion(`${fechaActual}T${nuevaHora}:00`);
+                }}
+              />
+            </div>
+          </div>
+        </div>
         
         <div className="mb-6">
           <p className="text-gray-600 mb-4">
@@ -320,7 +222,7 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
                   <strong>Archivo:</strong> {estadoCarga.ventas.archivo.nombre}
                 </p>
                 <p className="text-sm text-gray-600">
-                  <strong>Tamaño:</strong> {(estadoCarga.ventas.archivo.tamano / 1024).toFixed(2)} KB
+                  <strong>Tamaño:</strong> {formatearTamanoArchivo(estadoCarga.ventas.archivo.tamano)} KB
                 </p>
               </div>
             )}
@@ -359,7 +261,7 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
-                  manejarCargaArchivo(file, 'ventas');
+                  handleCargaArchivo(file, 'ventas');
                 }
               }}
               className="hidden"
@@ -392,7 +294,7 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
                   <strong>Archivo:</strong> {estadoCarga.bloqueos.archivo.nombre}
                 </p>
                 <p className="text-sm text-gray-600">
-                  <strong>Tamaño:</strong> {(estadoCarga.bloqueos.archivo.tamano / 1024).toFixed(2)} KB
+                  <strong>Tamaño:</strong> {formatearTamanoArchivo(estadoCarga.bloqueos.archivo.tamano)} KB
                 </p>
               </div>
             )}
@@ -431,7 +333,7 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
-                  manejarCargaArchivo(file, 'bloqueos');
+                  handleCargaArchivo(file, 'bloqueos');
                 }
               }}
               className="hidden"
@@ -469,9 +371,9 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
 
           <button
             onClick={onContinuar}
-            disabled={!puedenCargarseArchivos()}
+            disabled={!puedenCargarseArchivos(estadoCarga)}
             className={`px-6 py-3 rounded-md text-sm font-medium transition-colors ${
-              puedenCargarseArchivos()
+              puedenCargarseArchivos(estadoCarga)
                 ? 'bg-green-600 hover:bg-green-700 text-white'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
@@ -480,6 +382,40 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Indicador de estado */}
+      {(cargando || mensaje) && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+            <div className="flex items-center mb-4">
+              {cargando && (
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
+              )}
+              <h3 className="text-lg font-semibold text-gray-900">
+                {cargando ? 'Iniciando simulación...' : 'Estado'}
+              </h3>
+            </div>
+            
+            {mensaje && (
+              <p className={`text-sm mb-4 ${
+                tipoMensaje === 'error' ? 'text-red-600' : 
+                tipoMensaje === 'success' ? 'text-green-600' : 
+                'text-blue-600'
+              }`}>
+                {mensaje}
+              </p>
+            )}
+            
+            {cargando && (
+              <div className="flex justify-center">
+                <div className="animate-pulse text-sm text-gray-500">
+                  Por favor espera...
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Modal de Confirmación */}
       {mostrarConfirmacion && (

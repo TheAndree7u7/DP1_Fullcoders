@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown, MapPin, Package, Truck, Navigation, Pause } from 'lucide-react';
-import { useSimulacion } from '../hooks/useSimulacionContext';
+import { useSimulacion } from '../context/SimulacionContext';
 import type { Coordenada } from '../types';
 
 interface BottomMenuProps {
@@ -53,7 +53,7 @@ const BottomMenu: React.FC<BottomMenuProps> = ({ expanded, setExpanded, camionSe
     
     if (!ruta || !camion) return [];
 
-    const porcentajeActual = camion.porcentaje || 0;
+    const porcentajeActual = camion.porcentaje;
     const nodosAgrupados: NodoRuta[] = [];
     let nodoActual: NodoRuta | null = null;
 
@@ -144,30 +144,10 @@ const BottomMenu: React.FC<BottomMenuProps> = ({ expanded, setExpanded, camionSe
 
   const rutaProcesada = obtenerRutaProcesada();
 
-  // Función interna para hacer scroll al nodo actual
-  const scrollToCurrentNodeInternal = useCallback(() => {
-    if (timelineRef.current && camionSeleccionado) {
-      const camion = camiones.find(c => c.id === camionSeleccionado);
-      if (camion) {
-        const nodoActualIndex = rutaProcesada.findIndex(nodo => nodo.actual);
-        
-        if (nodoActualIndex !== -1) {
-          const nodeElement = timelineRef.current.children[nodoActualIndex] as HTMLElement;
-          if (nodeElement) {
-            nodeElement.scrollIntoView({
-              behavior: 'smooth',
-              block: 'nearest',
-              inline: 'center'
-            });
-          }
-        }
-      }
-    }
-  }, [camionSeleccionado, camiones, rutaProcesada]);
-
   // Activar seguimiento automático por defecto cuando se selecciona un camión
   useEffect(() => {
     if (camionSeleccionado) {
+      // console.log('🎯 SEGUIMIENTO: Activando seguimiento automático por defecto para camión', camionSeleccionado);
       setSeguimientoAutomatico(true);
     } else {
       setSeguimientoAutomatico(false);
@@ -177,20 +157,53 @@ const BottomMenu: React.FC<BottomMenuProps> = ({ expanded, setExpanded, camionSe
   // Hacer scroll automático cuando el seguimiento automático esté activo y cambien los camiones
   useEffect(() => {
     if (seguimientoAutomatico && camionSeleccionado && rutaProcesada.length > 0) {
+      // console.log('🎯 SEGUIMIENTO: Activando scroll automático para camión', camionSeleccionado);
       const timer = setTimeout(() => {
+        // setScrollAutomatico(true);
         scrollToCurrentNodeInternal();
+        // Resetear la bandera después de un breve delay
+        // setTimeout(() => setScrollAutomatico(false), 200);
       }, 100);
       
       return () => clearTimeout(timer);
     }
-  }, [seguimientoAutomatico, camionSeleccionado, camiones, rutaProcesada, scrollToCurrentNodeInternal]);
+  }, [seguimientoAutomatico, camionSeleccionado, camiones, rutaProcesada]);
+
+  // Función interna para hacer scroll al nodo actual
+  const scrollToCurrentNodeInternal = () => {
+    if (timelineRef.current && camionSeleccionado) {
+      const camion = camiones.find(c => c.id === camionSeleccionado);
+      if (camion) {
+        // console.log('📍 SCROLL: Buscando nodo actual para camión', camionSeleccionado, 'con porcentaje', camion.porcentaje);
+        
+        // Encontrar el nodo actual en la ruta procesada (agrupada)
+        const nodoActualIndex = rutaProcesada.findIndex(nodo => nodo.actual);
+        
+        // console.log('🔍 SCROLL: Índice del nodo actual encontrado:', nodoActualIndex);
+        
+        if (nodoActualIndex !== -1) {
+          const nodeElement = timelineRef.current.children[nodoActualIndex] as HTMLElement;
+          if (nodeElement) {
+            // console.log('✅ SCROLL: Haciendo scroll al nodo actual');
+            nodeElement.scrollIntoView({
+              behavior: 'smooth',
+              block: 'nearest',
+              inline: 'center'
+            });
+          }
+        }
+      }
+    }
+  };
 
   // Función para hacer scroll al nodo actual (para el botón)
   const scrollToCurrentNode = () => {
+    // console.log('🎯 ACCIÓN: Botón "Ir al nodo actual" presionado');
     scrollToCurrentNodeInternal();
     // Si el seguimiento está pausado, reactivarlo
     if (!seguimientoAutomatico) {
       setSeguimientoAutomatico(true);
+      console.log('🔄 SEGUIMIENTO: Reactivado desde botón de navegación');
     }
   };
 
@@ -198,6 +211,7 @@ const BottomMenu: React.FC<BottomMenuProps> = ({ expanded, setExpanded, camionSe
   const toggleSeguimientoAutomatico = () => {
     const nuevoEstado = !seguimientoAutomatico;
     setSeguimientoAutomatico(nuevoEstado);
+    console.log('🔄 SEGUIMIENTO:', nuevoEstado ? 'Reanudado' : 'Pausado');
   };
 
   // Función para obtener el ícono según el tipo de nodo

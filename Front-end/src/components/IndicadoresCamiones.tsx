@@ -1,5 +1,5 @@
 // components/IndicadoresCamiones.tsx
-import { useSimulacion } from '../hooks/useSimulacionContext';
+import { useSimulacion } from '../context/SimulacionContext';
 import { CircleDashed, Fuel, Wrench, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 /**

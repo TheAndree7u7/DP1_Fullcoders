@@ -111,7 +111,6 @@ export interface Almacen {
 
 export interface Camion {
   codigo: string;
-  id?: string; // Alias for codigo for frontend compatibility
   coordenada: Coordenada;
   tipo: TipoCamion | string; // Permitir strings para compatibilidad
   capacidadMaximaGLP: number;
@@ -125,7 +124,6 @@ export interface Camion {
   velocidadPromedio: number;
   distanciaMaxima: number;
   tiempoParadaRestante: number;
-  porcentaje?: number; // Progress percentage for simulation
   // Propiedades opcionales del Nodo para compatibilidad con backend
   bloqueado?: boolean;
   gScore?: number;

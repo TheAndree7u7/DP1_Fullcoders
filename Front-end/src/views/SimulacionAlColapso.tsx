@@ -5,21 +5,22 @@ import BloqueosTable from "../components/BloqueosTable";
 import RightMenu from "../components/RightMenu";
 import BottomMenu from "../components/BottomMenu";
 import { ChevronLeft, ChevronUp } from "lucide-react";
-import { useSimulacion } from "../hooks/useSimulacionContext";
-import { useMapaElementos } from "../hooks/useMapaContext";
+import { useSimulacion,  } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
-import BotonControlSimulacion from "../components/BotonControlSimulacion";
+import ControlSimulacion from "../components/ControlSimulacion";
 import IndicadorPaqueteActual from "../components/IndicadorPaqueteActual";
-import IndicadorNodoActual from "../components/IndicadorNodoActual";
+import { SEGUNDOS_POR_NODO } from "../context/simulacion/types";
 
-const SimulacionAlColapso: React.FC = () => {
+
+const SimulacionSemanal: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
   const [bottomMenuExpandido, setBottomMenuExpandido] = useState(false);
   const { 
     fechaHoraSimulacion, 
-    tiempoTranscurridoSimulado 
+    horaActual, 
+    tiempoTranscurridoSimulado, 
+    fechaHoraAcumulada
   } = useSimulacion();
-  const elementosMapa = useMapaElementos();
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
   // Estado para alternar paneles
   const [panel, setPanel] = useState<'camiones' | 'bloqueos'>('camiones');
@@ -88,14 +89,24 @@ const SimulacionAlColapso: React.FC = () => {
     <div className="bg-[#F5F5F5] w-screen h-screen flex flex-col pt-16">
       <Navbar />
       <div className="bg-[#1E293B] text-white py-2 px-4 flex justify-between items-center">
-        <h1 className="font-bold">Colapso Logístico - {formatearTiempoTranscurrido(tiempoTranscurridoSimulado.toString())}</h1>
+        <h1 className="font-bold">Ejecución Semanal - {formatearTiempoTranscurrido(tiempoTranscurridoSimulado)}</h1>
         <div className="flex items-center gap-4">
-          {/* Indicador compacto del paquete actual */}
-          <div className="bg-[#334155] rounded-lg px-3 py-1">
-            <IndicadorPaqueteActual variant="compact" showProgress={false} showTime={false} />
-          </div>
+ 
           {tiempoSimulado && (
-            <IndicadorNodoActual className="text-sm" />
+            <div className="text-sm flex items-center gap-4">
+              <div>
+                <span className="mr-2">Fecha y hora de la simulacion:</span>
+                <span className="font-bold text-blue-300">{fechaHoraAcumulada}</span>
+              </div> 
+              <div>
+                <span className="mr-2">Nodo actual:</span>
+                <span className="font-bold text-blue-300">{horaActual}</span>
+              </div>
+              <div>
+                <span className="mr-2">Seg/nodo:</span>
+                <span className="font-bold text-blue-300">{SEGUNDOS_POR_NODO}</span>
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -116,15 +127,11 @@ const SimulacionAlColapso: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Control de simulación */}
               <div className="lg:col-span-2">
-                <BotonControlSimulacion />
+                <ControlSimulacion />
               </div>
               {/* Indicador detallado del paquete actual */}
               <div className="lg:col-span-1">
-                <IndicadorPaqueteActual 
-                  variant="detailed" 
-                  showProgress={true} 
-                  showTime={true}
-                />
+                <IndicadorPaqueteActual />
               </div>
             </div>
           </div>
@@ -138,13 +145,7 @@ const SimulacionAlColapso: React.FC = () => {
             {/* Mapa */}
             <div className={`transition-all duration-300 ${menuExpandido ? "flex-[2]" : "flex-[1]"}`}>
               <div className="bg-white p-4 rounded-xl overflow-auto w-full h-full">
-                <Mapa 
-                  elementoResaltado={elementoResaltado}
-                  camiones={elementosMapa.camiones}
-                  pedidos={elementosMapa.pedidos}
-                  almacenes={elementosMapa.almacenes}
-                  bloqueos={elementosMapa.bloqueos}
-                />
+                <Mapa elementoResaltado={elementoResaltado} />
               </div>
             </div>
             {/* Menú derecho */}
@@ -239,4 +240,4 @@ const SimulacionAlColapso: React.FC = () => {
   );
 };
 
-export default SimulacionAlColapso;
+export default SimulacionSemanal;

@@ -5,8 +5,7 @@
 
 import type { RutaCamion } from '../../../types';
 import type { Almacen } from '../../../types';
-import type { CamionEstado } from '../../../types';
-import type { Bloqueo } from '../../SimulacionContext';
+import type { CamionEstado, Bloqueo } from '../types';
 
 /**
  * @interface EstadoSimulacionCompleto

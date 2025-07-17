@@ -4,7 +4,7 @@
  */
 
 import type { Pedido } from "../../../types";
-import type { CamionEstado, RutaCamion } from "../../../types";
+import type { CamionEstado, RutaCamion } from "../../../context/SimulacionContext";
 import { parseCoord } from "./coordenadas";
 
 /**

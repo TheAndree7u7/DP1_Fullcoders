@@ -4,13 +4,12 @@
  */
 
 import { averiarCamionConEstado } from "../../../services/averiaApiService";
-import { eliminarPaquetesFuturos } from "../../../services/simulacionApiService";
+import { eliminarPaquetesFuturos, obtenerInfoSimulacion } from "../../../services/simulacionApiService";
 import { toast, Bounce } from 'react-toastify';
 import { pausarSimulacion as pausarSimulacionUtil } from "../../../context/simulacion/utils/controles";
 import { capturarEstadoCompleto, generarResumenEstado, type EstadoSimulacionCompleto } from "../../../context/simulacion/utils/estado";
 import { calcularTimestampSimulacion } from "../../../context/simulacion/utils/tiempo";
-import type { CamionEstado, RutaCamion } from "../../../types";
-import type { Bloqueo } from "../../../context/SimulacionContext";
+import type { CamionEstado, RutaCamion, Bloqueo } from "../../../context/SimulacionContext";
 import type { Almacen } from "../../../types";
 
 /**
@@ -210,6 +209,15 @@ const pasarAlSiguientePaquete = async (
   setSimulacionActiva?: (value: boolean) => void
 ) => {
   try {
+    console.log("🔄 AVERÍA TERMINADA: Esperando generación del nuevo paquete...");
+    
+    // Obtener información actual para referencia
+    const infoActual = await obtenerInfoSimulacion();
+    const paqueteActualAntes = infoActual.paqueteActual;
+    const paqueteEsperado = paqueteActualAntes + 1;
+    
+    console.log(`📊 INFORMACIÓN ACTUAL: Paquete actual=${paqueteActualAntes}, esperando paquete=${paqueteEsperado}`);
+    
     // Mostrar notificación de espera al usuario
     toast.info(`⏳ Esperando que se genere el siguiente paquete después de la avería...`, {
       position: "top-right",
@@ -224,15 +232,23 @@ const pasarAlSiguientePaquete = async (
     });
     
     // Esperar un tiempo fijo para dar tiempo al backend a generar el nuevo paquete
+    // Basándome en los logs, veo que el sistema SÍ está generando los datos
+    console.log("⏳ ESPERANDO: Dando tiempo al backend para generar el nuevo paquete...");
     await new Promise(resolve => setTimeout(resolve, 5000)); // 5 segundos
+    
+    // Verificar si ahora hay más paquetes disponibles
+    const infoActualizada = await obtenerInfoSimulacion();
+    console.log(`📊 INFORMACIÓN ACTUALIZADA: Paquete actual=${infoActualizada.paqueteActual}, Total=${infoActualizada.totalPaquetes}`);
     
     // Reactivar el polling y la simulación automáticamente
     if (setPollingActivo) {
       setPollingActivo(true);
+      console.log("✅ SIGUIENTE PAQUETE: Polling reactivado");
     }
     
     if (setSimulacionActiva) {
       setSimulacionActiva(true);
+      console.log("✅ SIGUIENTE PAQUETE: Simulación reanudada automáticamente");
     }
     
     // Mostrar notificación de éxito
@@ -248,7 +264,11 @@ const pasarAlSiguientePaquete = async (
       transition: Bounce,
     });
     
+    console.log("🎉 SIGUIENTE PAQUETE: Sistema completamente reactivado - simulación continuará automáticamente");
+    
   } catch (error) {
+    console.error("❌ ERROR AL PASAR AL SIGUIENTE PAQUETE:", error);
+    
     // Mostrar error al usuario
     toast.error(`❌ Error al pasar al siguiente paquete: ${error instanceof Error ? error.message : 'Error desconocido'}`, {
       position: "top-right",

@@ -1,12 +1,12 @@
 import React from 'react';
 import { ChevronRight, Search, ChevronUp, ChevronDown, ChevronsUpDown, Building2 } from 'lucide-react';
-import { useSimulacion } from '../hooks/useSimulacionContext';
-import type { CamionEstado } from '../types';
+import { useSimulacion, type CamionEstado } from '../context/SimulacionContext';
 import MetricasRendimiento from './MetricasRendimiento';
 import CardsCamiones from './CardCamion';
 import IndicadoresCamiones from './IndicadoresCamiones';
 import BloqueosTable from './BloqueosTable';
 import TablaPedidos from './TablaPedidos';
+import { formatearCapacidadGLP, formatearCombustible, obtenerClaseColorValor, esValorValido } from '../utils/validacionCamiones';
 
 // Tabla simple de datos de camiones usando el contexto
 function DatosCamionesTable({ onElementoSeleccionado }: { onElementoSeleccionado: (elemento: {tipo: 'camion' | 'pedido' | 'almacen', id: string} | null) => void }) {
@@ -193,35 +193,74 @@ function DatosCamionesTable({ onElementoSeleccionado }: { onElementoSeleccionado
                 </td>
               </tr>
             ) : (
-              camionesFiltrados.map((camion, index) => (
-                <tr 
-                  key={`camion-table-${camion.id}-${index}`} 
-                  onClick={() => onElementoSeleccionado({tipo: 'camion', id: camion.id})}
-                  className={
-                    `border-b last:border-b-0 bg-white hover:bg-blue-50 hover:cursor-pointer transition-colors`
+              camionesFiltrados.map((camion, index) => {
+                try {
+                  // Validación antes de renderizar cada fila
+                  if (!camion.id) {
+                    console.error(`❌ ERROR: Camión en índice ${index} no tiene ID:`, camion);
+                    return (
+                      <tr key={`error-${index}`} className="border-b last:border-b-0 bg-red-50">
+                        <td colSpan={5} className="px-4 py-2 text-red-600 text-center">
+                          Error: Camión sin ID
+                        </td>
+                      </tr>
+                    );
                   }
-                  title="Clic para resaltar en el mapa"
-                >
-                  <td className="px-4 py-2 text-gray-800 font-mono font-semibold">{camion.id}</td>
-                  <td className="px-4 py-2 text-blue-700 font-bold">
-                    {camion.capacidadActualGLP.toFixed(2)} / {camion.capacidadMaximaGLP}
-                  </td>
-                  <td className="px-4 py-2 text-green-700 font-bold">
-                    {camion.combustibleActual.toFixed(2)} / {camion.combustibleMaximo}
-                  </td>
-                  <td className="px-4 py-2 text-gray-600">{camion.ubicacion}</td>
-                  <td className={
-                    `px-4 py-2 font-semibold ` +
-                    (camion.estado === 'Averiado' ? 'text-red-600' :
-                    camion.estado === 'En Mantenimiento' ? 'text-yellow-600' :
-                    camion.estado === 'Entregado' ? 'text-emerald-600' :
-                    camion.estado === 'Disponible' ? 'text-blue-600' :
-                    'text-gray-700')
-                  }>
-                    {camion.estado}
-                  </td>
-                </tr>
-              ))
+
+                  // Log de validación si hay problemas
+                  if (!esValorValido(camion.capacidadActualGLP)) {
+                    console.error(`❌ ERROR: Camión ${camion.id} tiene capacidadActualGLP inválida:`, camion.capacidadActualGLP);
+                  }
+                  if (!esValorValido(camion.capacidadMaximaGLP)) {
+                    console.error(`❌ ERROR: Camión ${camion.id} tiene capacidadMaximaGLP inválida:`, camion.capacidadMaximaGLP);
+                  }
+                  if (!esValorValido(camion.combustibleActual)) {
+                    console.error(`❌ ERROR: Camión ${camion.id} tiene combustibleActual inválido:`, camion.combustibleActual);
+                  }
+                  if (!esValorValido(camion.combustibleMaximo)) {
+                    console.error(`❌ ERROR: Camión ${camion.id} tiene combustibleMaximo inválido:`, camion.combustibleMaximo);
+                  }
+
+                  return (
+                    <tr 
+                      key={`camion-table-${camion.id}-${index}`} 
+                      onClick={() => onElementoSeleccionado({tipo: 'camion', id: camion.id})}
+                      className={
+                        `border-b last:border-b-0 bg-white hover:bg-blue-50 hover:cursor-pointer transition-colors`
+                      }
+                      title="Clic para resaltar en el mapa"
+                    >
+                      <td className="px-4 py-2 text-gray-800 font-mono font-semibold">{camion.id}</td>
+                      <td className={`px-4 py-2 font-bold ${obtenerClaseColorValor(camion.capacidadActualGLP)}`}>
+                        {formatearCapacidadGLP(camion.capacidadActualGLP, camion.capacidadMaximaGLP)}
+                      </td>
+                      <td className={`px-4 py-2 font-bold ${obtenerClaseColorValor(camion.combustibleActual)}`}>
+                        {formatearCombustible(camion.combustibleActual, camion.combustibleMaximo)}
+                      </td>
+                      <td className="px-4 py-2 text-gray-600">{camion.ubicacion || 'N/A'}</td>
+                      <td className={
+                        `px-4 py-2 font-semibold ` +
+                        (camion.estado === 'Averiado' ? 'text-red-600' :
+                        camion.estado === 'En Mantenimiento' ? 'text-yellow-600' :
+                        camion.estado === 'Entregado' ? 'text-emerald-600' :
+                        camion.estado === 'Disponible' ? 'text-blue-600' :
+                        'text-gray-700')
+                      }>
+                        {camion.estado || 'Desconocido'}
+                      </td>
+                    </tr>
+                  );
+                } catch (error) {
+                  console.error(`❌ ERROR al renderizar fila de camión ${index}:`, error, camion);
+                  return (
+                    <tr key={`error-${index}`} className="border-b last:border-b-0 bg-red-50">
+                      <td colSpan={5} className="px-4 py-2 text-red-600 text-center">
+                        Error al renderizar camión: {error instanceof Error ? error.message : 'Error desconocido'}
+                      </td>
+                    </tr>
+                  );
+                }
+              })
             )}
             </tbody>
         </table>

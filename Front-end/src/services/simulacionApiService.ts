@@ -1,88 +1,68 @@
 import type { Individuo } from "../types";
 import { API_URLS } from "../config/api";
 
-/**
- * Obtiene el mejor individuo (paquete) de la simulación sin parámetros de fecha
- * @returns Promise con el paquete actual
- * @deprecated Use obtenerMejorIndividuo with fecha parameter instead
- */
-export async function getMejorIndividuo(): Promise<Individuo> {
+export async function getMejorIndividuo(fechaInicio: string): Promise<Individuo> {
   try {
-    const response = await fetch(`${API_URLS.MEJOR_INDIVIDUO}`);
-    
+    console.log("Iniciando solicitud al servidor (GET con fecha). Fecha: " + fechaInicio);
+
+    // Construir URL con parámetro de consulta
+    const url = `${API_URLS.MEJOR_INDIVIDUO}?fecha=${encodeURIComponent(fechaInicio)}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+      // No se debe enviar body en un GET
+    });
+
+    console.log("Respuesta recibida:", {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries())
+    });
+
+    // Verificar el tipo de contenido
     const contentType = response.headers.get("content-type");
-    
+    console.log("Content-Type:", contentType);
+
     if (!contentType || !contentType.includes("application/json")) {
+      console.error("Tipo de contenido inválido:", contentType);
       throw new Error("La respuesta del servidor no es JSON válido");
     }
 
     if (response.status === 204) {
+      console.log("No hay datos disponibles (204)");
       throw new Error("No hay datos disponibles en este momento");
     }
 
     if (!response.ok) {
       const errorData = await response.json();
+      console.error("Error en la respuesta:", errorData);
       throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
-    
+    console.log("Datos recibidos:", data);
+
     if (!data) {
+      console.error("Respuesta vacía");
       throw new Error("La respuesta está vacía");
     }
 
     return data as Individuo;
   } catch (error) {
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      throw new Error('Error de conexión: No se pudo conectar con el servidor');
-    }
+    console.error("Error al obtener el mejor individuo:", error);
     throw error;
   }
 }
 
 /**
- * Inicia una nueva simulación con una fecha específica usando GET
+ * Inicia una nueva simulación con una fecha específica
  * @param fechaInicio - Fecha y hora de inicio en formato ISO (YYYY-MM-DDTHH:MM:SS)
  * @returns Promise con el mensaje de confirmación
  */
 export async function iniciarSimulacion(fechaInicio: string): Promise<string> {
-  try {
-    const url = new URL(API_URLS.INICIAR_SIMULACION);
-    url.searchParams.append('fecha', fechaInicio);
-    
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      const errorMessage = errorText || `Error del servidor (${response.status})`;
-      throw new Error(`Error al iniciar simulación: ${errorMessage}`);
-    }
-
-    const mensaje = await response.text();
-    if (!mensaje) {
-      throw new Error('El servidor no proporcionó una respuesta válida');
-    }
-    
-    return mensaje;
-  } catch (error) {
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      throw new Error('Error de conexión: No se pudo conectar con el servidor');
-    }
-    throw error;
-  }
-}
-
-/**
- * Inicia una nueva simulación con una fecha específica usando POST
- * @param fechaInicio - Fecha y hora de inicio en formato ISO (YYYY-MM-DDTHH:MM:SS)
- * @returns Promise con el mensaje de confirmación
- */
-export async function iniciarSimulacionPost(fechaInicio: string): Promise<string> {
   try {
     console.log("Iniciando simulación con fecha:", fechaInicio);
     
@@ -115,17 +95,56 @@ export async function iniciarSimulacionPost(fechaInicio: string): Promise<string
  * @returns Promise con el mensaje de confirmación
  */
 export async function reiniciarSimulacion(): Promise<string> {
-  const response = await fetch(`${API_URLS.REINICIAR_SIMULACION}`, {
-    method: 'GET'
-  });
+  try {
+    console.log("Reiniciando simulación...");
+    
+    const response = await fetch(`${API_URLS.REINICIAR_SIMULACION}`, {
+      method: 'GET'
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Error ${response.status}: ${errorText}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+
+    const mensaje = await response.text();
+    console.log("Simulación reiniciada exitosamente:", mensaje);
+    return mensaje;
+  } catch (error) {
+    console.error("Error al reiniciar simulación:", error);
+    throw error;
   }
+}
 
-  const mensaje = await response.text();
-  return mensaje;
+/**
+ * Obtiene información sobre el estado de la simulación
+ * @returns Promise con la información de la simulación
+ */
+export async function obtenerInfoSimulacion(): Promise<{
+  totalPaquetes: number;
+  paqueteActual: number;
+  enProceso: boolean;
+  tiempoActual: string;
+}> {
+  try {
+    // console.log("Obteniendo información de simulación...");
+    
+    const response = await fetch(`${API_URLS.INFO_SIMULACION}`, {
+      method: 'GET'
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+
+    const info = await response.json();
+    // console.log("Información de simulación obtenida:", info);
+    return info;
+  } catch (error) {
+    console.error("Error al obtener información de simulación:", error);
+    throw error;
+  }
 }
 
 /**
@@ -133,62 +152,24 @@ export async function reiniciarSimulacion(): Promise<string> {
  * @returns Promise con el mensaje de confirmación
  */
 export async function eliminarPaquetesFuturos(): Promise<string> {
-  const response = await fetch(`${API_URLS.ELIMINAR_PAQUETES_FUTUROS}`, {
-    method: 'DELETE'
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Error ${response.status}: ${errorText}`);
-  }
-
-  const mensaje = await response.text();
-  return mensaje;
-}
-
-/**
- * Obtiene el mejor individuo (paquete) de la simulación para una fecha específica
- * @param fecha - Fecha en formato ISO (YYYY-MM-DDTHH:MM:SS)
- * @returns Promise con el paquete o null si no hay paquetes disponibles
- */
-export async function obtenerMejorIndividuo(fecha: string): Promise<Individuo | null> {
   try {
-    const url = new URL(API_URLS.MEJOR_INDIVIDUO);
-    url.searchParams.append('fecha', fecha);
+    console.log("🗑️ PAQUETES: Eliminando paquetes futuros de la simulación...");
     
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      }
+    const response = await fetch(`${API_URLS.ELIMINAR_PAQUETES_FUTUROS}`, {
+      method: 'DELETE'
     });
-
-    if (response.status === 204) {
-      return null;
-    }
 
     if (!response.ok) {
       const errorText = await response.text();
-      const errorMessage = errorText || `Error del servidor (${response.status})`;
-      throw new Error(`Error al obtener paquete: ${errorMessage}`);
+      console.error("❌ PAQUETES: Error al eliminar paquetes futuros:", errorText);
+      throw new Error(`Error ${response.status}: ${errorText}`);
     }
 
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      throw new Error("La respuesta del servidor no es JSON válido");
-    }
-
-    const data = await response.json();
-    
-    if (!data) {
-      return null;
-    }
-
-    return data as Individuo;
+    const mensaje = await response.text();
+    console.log("✅ PAQUETES: Paquetes futuros eliminados exitosamente:", mensaje);
+    return mensaje;
   } catch (error) {
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      throw new Error('Error de conexión: No se pudo conectar con el servidor');
-    }
+    console.error("Error al eliminar paquetes futuros:", error);
     throw error;
   }
 }
@@ -196,32 +177,47 @@ export async function obtenerMejorIndividuo(fecha: string): Promise<Individuo | 
 /**
  * Obtiene el siguiente paquete disponible en la simulación
  * @returns Promise con el siguiente paquete o null si no hay más paquetes
- * @deprecated Use obtenerMejorIndividuo instead
  */
 export async function obtenerSiguientePaquete(): Promise<Individuo | null> {
-  const response = await fetch(`${API_URLS.MEJOR_INDIVIDUO}`, {
-    method: 'GET'
-  });
+  try {
+    console.log("📦 PAQUETES: Obteniendo siguiente paquete de la simulación...");
+    
+    // Usar la fecha actual como parámetro por defecto
+    const fechaActual = new Date().toISOString();
+    const url = `${API_URLS.MEJOR_INDIVIDUO}?fecha=${encodeURIComponent(fechaActual)}`;
+    
+    const response = await fetch(url, {
+      method: 'GET'
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Error ${response.status}: ${errorText}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ PAQUETES: Error al obtener siguiente paquete:", errorText);
+      throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.error("❌ PAQUETES: Tipo de contenido inválido:", contentType);
+      throw new Error("La respuesta del servidor no es JSON válido");
+    }
+
+    if (response.status === 204) {
+      console.log("⏳ PAQUETES: No hay más paquetes disponibles (204)");
+      return null;
+    }
+
+    const data = await response.json();
+    
+    if (!data) {
+      console.log("⏳ PAQUETES: Respuesta vacía - no hay más paquetes");
+      return null;
+    }
+
+    console.log("✅ PAQUETES: Siguiente paquete obtenido exitosamente");
+    return data;
+  } catch (error) {
+    console.error("❌ PAQUETES: Error al obtener siguiente paquete:", error);
+    throw error;
   }
-
-  const contentType = response.headers.get("content-type");
-  if (!contentType || !contentType.includes("application/json")) {
-    throw new Error("La respuesta del servidor no es JSON válido");
-  }
-
-  if (response.status === 204) {
-    return null;
-  }
-
-  const data = await response.json();
-  
-  if (!data) {
-    return null;
-  }
-
-  return data;
 }

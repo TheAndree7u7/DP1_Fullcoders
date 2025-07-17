@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
-import { useSimulacion } from "../hooks/useSimulacionContext";
+import { useSimulacion,  } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
 
 const Navbar: React.FC = () => {
@@ -11,25 +11,6 @@ const Navbar: React.FC = () => {
   const { tiempoTranscurridoSimulado, tiempoRealSimulacion } = useSimulacion();
   const location = useLocation();
   const navigate = useNavigate();
-
-  // Helper function to convert seconds to HH:MM:SS format
-  const formatSecondsToHMS = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // Helper function to format date for display
-  const formatDateForDisplay = (date: Date | null): string => {
-    if (!date) return "00:00:00";
-    return date.toLocaleTimeString('es-ES', { 
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -69,7 +50,7 @@ const Navbar: React.FC = () => {
         <img src={logo} alt="logo" className="w-[24px] h-[24px]" />
         <div className="font-bold text-[14px] text-[#1890FF]">GLPSoft</div>
         <div className="text-black font-bold text-xl">
-          {getTituloVista()} - {formatearTiempoTranscurrido(formatSecondsToHMS(tiempoTranscurridoSimulado))}
+          {getTituloVista()} - {formatearTiempoTranscurrido(tiempoTranscurridoSimulado)}
         </div>
       </div>
       
@@ -97,7 +78,7 @@ const Navbar: React.FC = () => {
         <div className="flex items-center space-x-2">
           <div className="text-gray-600 text-sm">⏱️ Duracion de la simulacion:</div>
           <div className="font-mono font-bold text-[#1890FF] text-lg bg-gray-100 px-3 py-1 rounded">
-            {formatDateForDisplay(tiempoRealSimulacion)}
+            {tiempoRealSimulacion}
           </div>
         </div>
       </div>
