@@ -25,13 +25,15 @@ public class IndividuoDto {
     private List<BloqueoDto> bloqueos;
     private List<AlmacenDto> almacenes;
     private LocalDateTime fechaHoraSimulacion;
-    
+    private LocalDateTime fechaHoraInicioIntervalo;
+    private LocalDateTime fechaHoraFinIntervalo;
 
     public IndividuoDto(Individuo individuo, List<Pedido> pedidos, List<Bloqueo> bloqueos) {
         this(individuo, pedidos, bloqueos, LocalDateTime.now());
     }
 
-    public IndividuoDto(Individuo individuo, List<Pedido> pedidos, List<Bloqueo> bloqueos, LocalDateTime fechaSimulacion) {
+    public IndividuoDto(Individuo individuo, List<Pedido> pedidos, List<Bloqueo> bloqueos,
+            LocalDateTime fechaSimulacion) {
         this.fechaHoraSimulacion = fechaSimulacion;
 
         this.cromosoma = new ArrayList<>();

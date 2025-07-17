@@ -26,8 +26,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties.Data;
 import org.springframework.http.HttpStatus;
 
-
-
 @RestController
 @RequestMapping("/api/simulacion")
 @CrossOrigin(origins = "*") // O usa "http://localhost:5173" para mayor seguridad
@@ -37,15 +35,15 @@ public class SimulacionController {
     // Variable de control para verificar si la simulación ha sido iniciada
     private static boolean simulacionIniciada = false;
 
-
     @GetMapping("/mejor")
     public IndividuoDto obtenerMejorIndividuoPorFecha(@RequestParam String fecha) {
-        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/mejor (por fecha)");        // Validar que la fecha no sea nula o vacía
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/mejor (por fecha)"); // Validar que la fecha no sea
+                                                                                      // nula o vacía
         if (fecha == null || fecha.isEmpty()) {
             System.out.println("❌ Error: Fecha no proporcionada en la solicitud");
             return null;
         }
-        
+
         LocalDateTime fechaDateTime;
         try {
             // Parsear la fecha del parámetro
@@ -55,7 +53,7 @@ public class SimulacionController {
             return null;
         }
 
-        if(!simulacionIniciada){
+        if (!simulacionIniciada) {
             // Brindamos una advertencia e iniciamos la simulación
             System.out.println("⚠️ Advertencia: La simulación no ha sido iniciada. Iniciando simulación...");
             Simulacion.configurarSimulacionSemanal(fechaDateTime);
@@ -64,12 +62,14 @@ public class SimulacionController {
             System.out.println("✅ Simulación ya iniciada, continuando con la fecha: " + fechaDateTime);
         }
 
-        // Calcular el intervalo de tiempo en minutos entre la fecha inicial y la fecha actual
-        Parametros.diferenciaTiempoMinRequest = (int) ChronoUnit.MINUTES.between(Parametros.fecha_inicial, fechaDateTime);
+        // Calcular el intervalo de tiempo en minutos entre la fecha inicial y la fecha
+        // actual
+        Parametros.diferenciaTiempoMinRequest = (int) ChronoUnit.MINUTES.between(Parametros.fecha_inicial,
+                fechaDateTime);
         Parametros.actualizarParametrosGlobales(fechaDateTime);
         Simulacion.actualizarEstadoGlobal(fechaDateTime);
         System.out.println("🧩 Pedidos a enviar unidos para la fecha: " +
-         Simulacion.pedidosEnviar.size());
+                Simulacion.pedidosEnviar.size());
         System.out.println("🧬 Ejecutando algoritmo genético para la fecha: " + fechaDateTime);
 
         // Algoritmo Genético
@@ -80,6 +80,9 @@ public class SimulacionController {
                 Simulacion.pedidosEnviar,
                 Simulacion.bloqueosActivos,
                 fechaDateTime);
+        // Esta es la fecha que se envia al front
+        mejorIndividuoDto.setFechaHoraInicioIntervalo(fechaDateTime);
+        mejorIndividuoDto.setFechaHoraFinIntervalo(fechaDateTime.plusMinutes(Parametros.intervaloTiempo));
         for (Bloqueo bloqueo : Simulacion.bloqueosActivos) {
             bloqueo.desactivarBloqueo();
         }
@@ -87,11 +90,9 @@ public class SimulacionController {
         return mejorIndividuoDto;
     }
 
-
-
     @GetMapping("/iniciar")
     public ResponseEntity<String> iniciarSimulacion(@RequestParam String fecha) {
-        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/iniciar");
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/iniciar (GET)");
         System.out.println("📅 Fecha recibida: " + fecha);
         try {
             // Validar que la fecha no sea nula
@@ -103,6 +104,27 @@ public class SimulacionController {
             Simulacion.configurarSimulacionSemanal(fechaDateTime);
             simulacionIniciada = true; // Marcar que la simulación ha sido iniciada
             String mensaje = "Simulación iniciada correctamente con fecha: " + fecha;
+            System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
+            return ResponseEntity.ok(mensaje);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fatal inicializar");
+        }
+    }
+
+    @PostMapping("/iniciar")
+    public ResponseEntity<String> iniciarSimulacionPost(@RequestBody SimulacionRequest request) {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/iniciar (POST)");
+        System.out.println("📅 Fecha recibida: " + request.getFechaInicio());
+        try {
+            // Validar que la fecha no sea nula
+            if (request.getFechaInicio() == null) {
+                System.out.println("❌ Error: Fecha de inicio es nula");
+                return ResponseEntity.badRequest().body("Error: La fecha de inicio no puede ser nula");
+            }
+            LocalDateTime fechaDateTime = request.getFechaInicio();
+            Simulacion.configurarSimulacionSemanal(fechaDateTime);
+            simulacionIniciada = true; // Marcar que la simulación ha sido iniciada
+            String mensaje = "Simulación iniciada correctamente con fecha: " + request.getFechaInicio();
             System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
             return ResponseEntity.ok(mensaje);
         } catch (Exception e) {

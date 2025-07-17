@@ -41,7 +41,7 @@ export async function getMejorIndividuo(): Promise<Individuo> {
 }
 
 /**
- * Inicia una nueva simulación con una fecha específica
+ * Inicia una nueva simulación con una fecha específica usando GET
  * @param fechaInicio - Fecha y hora de inicio en formato ISO (YYYY-MM-DDTHH:MM:SS)
  * @returns Promise con el mensaje de confirmación
  */
@@ -73,6 +73,39 @@ export async function iniciarSimulacion(fechaInicio: string): Promise<string> {
     if (error instanceof TypeError && error.message.includes('fetch')) {
       throw new Error('Error de conexión: No se pudo conectar con el servidor');
     }
+    throw error;
+  }
+}
+
+/**
+ * Inicia una nueva simulación con una fecha específica usando POST
+ * @param fechaInicio - Fecha y hora de inicio en formato ISO (YYYY-MM-DDTHH:MM:SS)
+ * @returns Promise con el mensaje de confirmación
+ */
+export async function iniciarSimulacionPost(fechaInicio: string): Promise<string> {
+  try {
+    console.log("Iniciando simulación con fecha:", fechaInicio);
+    
+    const response = await fetch(`${API_URLS.INICIAR_SIMULACION}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fechaInicio: fechaInicio
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+
+    const mensaje = await response.text();
+    console.log("Simulación iniciada exitosamente:", mensaje);
+    return mensaje;
+  } catch (error) {
+    console.error("Error al iniciar simulación:", error);
     throw error;
   }
 }
