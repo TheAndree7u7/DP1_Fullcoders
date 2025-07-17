@@ -209,6 +209,7 @@ public class Simulacion {
 
     public static void simularIntervalo(LocalDateTime fechaActual) {
         // Verificar que la fecha inicial esté configurada
+        System.out.println("******************INICIO DE LA ITERACION**************");
         if (Parametros.fecha_inicial == null) {
             System.err.println("❌ Error: Parametros.fecha_inicial es null. Configurando con fecha actual.");
             Parametros.fecha_inicial = fechaActual;
@@ -227,7 +228,7 @@ public class Simulacion {
         // fecha de inicio
         // !BUSCA TODOS LOS PEDIDOS con fecha menor a la fecha actual pero mayor a la
         // fecha de inicio
-        System.out.println("******************INICIO DE LA ITERACION**************");
+
         System.out.println("Tiempo actual: " + fechaActual);
         System.out.println("Pedidos por enviar al algoritmo genetico: " + pedidosDelIntervalo.size());
         Camion.imprimirDatosCamiones(DataLoader.camiones);
@@ -288,6 +289,135 @@ public class Simulacion {
         }
         EstadoManager.imprimirResumenEstados();
         System.out.println("********************FIN DE ITERACION****************************");
+    }
+
+    /**
+     * Simula un intervalo de tiempo y devuelve el DTO con los resultados.
+     * Esta función es síncrona y bloquea hasta completar la simulación del
+     * intervalo.
+     * 
+     * @param fechaActual Fecha y hora actual para la simulación
+     * @return IndividuoDto con los resultados de la simulación del intervalo
+     */
+    public static IndividuoDto simularIntervaloDto(LocalDateTime fechaActual) {
+        // Verificar que la fecha inicial esté configurada
+        System.out.println("******************INICIO DE LA ITERACION**************");
+        if (Parametros.fecha_inicial == null) {
+            System.err.println("❌ Error: Parametros.fecha_inicial es null. Configurando con fecha actual.");
+            Parametros.fecha_inicial = fechaActual;
+            System.out.println("Fecha inicial: " + Parametros.fecha_inicial);
+            System.out.println("-----------------------------");
+            // !DEBERIA COLOCAR LA FECHA FINAL EN FUNCION AL TIPO DE SIMULACION
+        }
+
+        // !BUSCA TODOS LOS PEDIDOS con fecha menor a la fecha actual pero mayor a la
+        // fecha de inicio
+        // Arreglado: corregida la sintaxis de los paréntesis y la lógica del filtro
+        // Cantidad de pedisdos sin entregar en todo el dataloader
+        Long cantidadPedidosSinEntregar = DataLoader.pedidos.stream()
+                .filter(pedido -> !pedido.getEstado().equals(EstadoPedido.ENTREGADO))
+                .count();
+        System.out.println("Cantidad de pedidos sin entregar en todo el dataloader: " + cantidadPedidosSinEntregar);
+        System.out.println("-----------------------------");
+        Long cantidadPedidosDelIntervalo = DataLoader.pedidos.stream()
+                .filter(pedido -> pedido.getFechaRegistro().isAfter(Parametros.fecha_inicial) &&
+                        pedido.getFechaRegistro().isBefore(fechaActual.minusMinutes(Parametros.intervaloTiempo)))
+                .count();
+        System.out.println("Cantidad de pedidos del intervalo: " + cantidadPedidosDelIntervalo);
+        System.out.println("-----------------------------");
+        List<Pedido> pedidosDelIntervalo = DataLoader.pedidos.stream()
+                .filter(pedido -> pedido.getFechaRegistro().isAfter(Parametros.fecha_inicial) &&
+                        pedido.getFechaRegistro().isBefore(fechaActual.minusMinutes(Parametros.intervaloTiempo)) &&
+                        !pedido.getEstado().equals(EstadoPedido.ENTREGADO))
+                .collect(Collectors.toList());
+
+        System.out.println("Fecha inicial: " + Parametros.fecha_inicial);
+        System.out.println("-----------------------------");
+        System.out.println("Tiempo actual: " + fechaActual);
+        System.out.println("Pedidos por enviar al algoritmo genetico: " + pedidosDelIntervalo.size());
+        Camion.imprimirDatosCamiones(DataLoader.camiones);
+
+        // !Actualiza con respecto al gen anterior de cada camion
+        List<Bloqueo> bloqueosActivos = EstadoManager.actualizarBloqueos(fechaActual);
+        EstadoManager.actualizarEstadoGlobal(fechaActual, pedidosDelIntervalo);
+
+        if (pedidosDelIntervalo.isEmpty()) {
+            System.out.println("No hay pedidos por atender en este momento.");
+        }
+
+        IndividuoDto resultadoDto = null;
+
+        try {
+            // ! Quiero saber las posiciones actuales de los camiones en el mapa
+            Camion.imprimirDatosCamiones(DataLoader.camiones);
+            // ?====Crear el algoritmo genetico====
+            AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance(),
+                    pedidosDelIntervalo);
+            // ? Ejecutar el algoritmo genetico
+            algoritmoGenetico.ejecutarAlgoritmo();
+            // ? Crear el paquete de mejor individuo
+            IndividuoDto mejorIndividuoDto = new IndividuoDto(
+                    algoritmoGenetico.getMejorIndividuo(),
+                    pedidosDelIntervalo, bloqueosActivos, fechaActual);
+            mejorIndividuoDto.setFechaHoraInicioIntervalo(fechaActual);
+            mejorIndividuoDto.setFechaHoraFinIntervalo(
+                    fechaActual.plusMinutes(Parametros.intervaloTiempo));
+            mejorIndividuoDto.cortarNodos(Parametros.intervaloTiempo);
+
+            // Asignar el resultado
+            resultadoDto = mejorIndividuoDto;
+
+            // Aplicar el estado final de los camiones permanentemente
+            // CamionStateApplier.aplicarEstadoFinalCamiones(algoritmoGenetico.getMejorIndividuo());
+
+            // Agregar al historial para el frontend
+            GestorHistorialSimulacion.agregarPaquete(mejorIndividuoDto);
+
+        } catch (Exception e) {
+            System.err.println("❌ Error en algoritmo genético en tiempo " + fechaActual + ": "
+                    + e.getMessage());
+            e.printStackTrace();
+
+            // Crear un paquete de emergencia en lugar de no generar nada
+            try {
+                System.out
+                        .println("🚑 Creando paquete de emergencia para tiempo " + fechaActual);
+                Individuo individuoEmergencia = IndividuoFactory.crearIndividuoVacio();
+                IndividuoDto paqueteEmergencia = new IndividuoDto(individuoEmergencia,
+                        pedidosDelIntervalo, bloqueosActivos, fechaActual);
+
+                paqueteEmergencia.setFechaHoraInicioIntervalo(fechaActual);
+                paqueteEmergencia.setFechaHoraFinIntervalo(
+                        fechaActual.plusMinutes(Parametros.intervaloTiempo));
+
+                // Asignar el resultado de emergencia
+                resultadoDto = paqueteEmergencia;
+
+                GestorHistorialSimulacion.agregarPaquete(paqueteEmergencia);
+            } catch (Exception e2) {
+                System.err
+                        .println("❌ Error al crear paquete de emergencia: " + e2.getMessage());
+                e2.printStackTrace();
+
+                // Crear un DTO vacío como último recurso
+                Individuo individuoVacio = IndividuoFactory.crearIndividuoVacio();
+                resultadoDto = new IndividuoDto(individuoVacio,
+                        new ArrayList<>(), new ArrayList<>(), fechaActual);
+                resultadoDto.setFechaHoraInicioIntervalo(fechaActual);
+                resultadoDto.setFechaHoraFinIntervalo(
+                        fechaActual.plusMinutes(Parametros.intervaloTiempo));
+            }
+        }
+
+        // ! Desactivar los bloqueos activos
+        for (Bloqueo bloqueo : bloqueosActivos) {
+            bloqueo.desactivarBloqueo();
+        }
+        EstadoManager.imprimirResumenEstados();
+
+        System.out.println("===================FIN DE ITERACION========================");
+
+        return resultadoDto;
     }
 
     /**

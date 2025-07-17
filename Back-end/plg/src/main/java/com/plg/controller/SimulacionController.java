@@ -109,9 +109,10 @@ public class SimulacionController {
             return ResponseEntity.badRequest().body("Error al parsear la fecha");
         }
         // !aca genera el paquete de mejor individuo
-        Simulacion.simularIntervalo(fechaSimulacion);
+        // Simulacion.simularIntervalo(fechaSimulacion);
 
-        IndividuoDto siguientePaquete = Simulacion.obtenerSiguientePaquete();
+        IndividuoDto siguientePaquete = Simulacion.simularIntervaloDto(fechaSimulacion);
+        System.out.println("✅ ENDPOINT RESPUESTA: Paquete generado correctamente");
 
         // Ejemplo de uso desde el frontend o Postman:
         // GET http://localhost:8080/api/simulacion/mejor/2024-06-10T12:00:00
@@ -121,7 +122,7 @@ public class SimulacionController {
             // Si no hay más paquetes, esperar un poco por si se está generando uno nuevo
             try {
                 Thread.sleep(100); // Espera breve
-                siguientePaquete = Simulacion.obtenerSiguientePaquete();
+                siguientePaquete = Simulacion.simularIntervaloDto(fechaSimulacion);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
@@ -287,8 +288,8 @@ public class SimulacionController {
             }
             com.plg.utils.simulacion.GestorHistorialSimulacion.limpiarHistorialCompleto();
 
-            // Pedir mejor individuo
-            Simulacion.simularIntervalo(request.getFechaInicio());
+            // // Pedir mejor individuo
+            // Simulacion.simularIntervalo(request.getFechaInicio());
 
             String mensaje = "Simulación iniciada correctamente con fecha: " + request.getFechaInicio();
             System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);

@@ -271,7 +271,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   // Monitoreo de cambios en datos de camiones para detectar inconsistencias
   useEffect(() => {
     try {
-      console.log("🔍 MONITOREO: Verificando consistencia de datos de camiones...");
+      // console.log("🔍 MONITOREO: Verificando consistencia de datos de camiones...");
       
       if (!camiones || !Array.isArray(camiones)) {
         console.error("❌ ERROR: camiones no es un array válido en monitoreo:", camiones);
@@ -315,7 +315,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       });
       
-      console.log(`✅ MONITOREO COMPLETADO: ${camiones.length} camiones, ${rutasCamiones.length} rutas`);
+      // console.log(`✅ MONITOREO COMPLETADO: ${camiones.length} camiones, ${rutasCamiones.length} rutas`);
       
     } catch (error) {
       console.error("❌ ERROR en monitoreo de camiones:", error);
