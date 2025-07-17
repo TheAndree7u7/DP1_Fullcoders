@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSimulacion } from '../context/SimulacionContext';
 import { formatearTiempoTranscurridoCompleto } from '../context/simulacion/utils/tiempo';
-
-// Constante que define cuánto tiempo (en segundos) representa cada nodo en la simulación
-const SEGUNDOS_POR_NODO = 36;
+import { SEGUNDOS_POR_NODO, NODOS_PARA_ACTUALIZACION } from '../context/simulacion/types';
 
 // Estilos CSS en línea
 const styles = {
@@ -74,10 +72,10 @@ const calcularHoraExactaSimulacion = (
   const duracionTotal = fechaFin.getTime() - fechaInicio.getTime();
   //
   // Calcular el progreso actual basado en el nodo actual
-  // Asumiendo que hay 100 nodos por intervalo (sin importar la duración)
-  const NODOS_POR_INTERVALO = 25;
+  // Usando la constante unificada de nodos por intervalo
+  const NODOS_POR_INTERVALO = NODOS_PARA_ACTUALIZACION;
   
-  // Calcular el progreso dentro del intervalo actual (0-100)
+  // Calcular el progreso dentro del intervalo actual (0-1)
   const progresoEnIntervalo = Math.min(horaActual / NODOS_POR_INTERVALO, 1);
   const tiempoTranscurrido = duracionTotal * progresoEnIntervalo;
   

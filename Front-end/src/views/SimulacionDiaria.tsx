@@ -9,10 +9,8 @@ import { useSimulacion,  } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
 import ControlSimulacion from "../components/ControlSimulacion";
 import IndicadorPaqueteActual from "../components/IndicadorPaqueteActual";
+import { SEGUNDOS_POR_NODO } from "../context/simulacion/types";
 
-
-// Constante que define cuánto tiempo (en segundos) representa cada nodo en la simulación
-const SEGUNDOS_POR_NODO = 36;
 
 const SimulacionDiaria: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
@@ -95,7 +93,7 @@ const SimulacionDiaria: React.FC = () => {
         <div className="flex items-center gap-4">
           {/* Indicador compacto del paquete actual */}
           <div className="bg-[#334155] rounded-lg px-3 py-1">
-            <IndicadorPaqueteActual variant="compact" showProgress={false} showTime={false} />
+            <IndicadorPaqueteActual />
           </div>
           {tiempoSimulado && (
             <div className="text-sm flex items-center gap-4">
@@ -136,11 +134,7 @@ const SimulacionDiaria: React.FC = () => {
               </div>
               {/* Indicador detallado del paquete actual */}
               <div className="lg:col-span-1">
-                <IndicadorPaqueteActual 
-                  variant="detailed" 
-                  showProgress={true} 
-                  showTime={true}
-                />
+                <IndicadorPaqueteActual />
               </div>
             </div>
           </div>

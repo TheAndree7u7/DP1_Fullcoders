@@ -4,9 +4,7 @@ import Navbar from "../components/Navbar";
 import RightMenu from "../components/RightMenu";
 import { ChevronLeft } from "lucide-react";
 import { useSimulacion } from "../context/SimulacionContext";
-
-// Constante que define cuánto tiempo (en segundos) representa cada nodo en la simulación
-const SEGUNDOS_POR_NODO = 36;
+import { SEGUNDOS_POR_NODO } from "../context/simulacion/types";
 
 const SimulacionSemanal: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);

@@ -17,7 +17,7 @@ import {
   HORA_INICIAL,
   HORA_PRIMERA_ACTUALIZACION,
   NODOS_PARA_ACTUALIZACION,
-  HORAS_POR_ACTUALIZACION,
+  SEGUNDOS_POR_NODO,
 } from "./simulacion";
 
 // Importar tipos
@@ -169,11 +169,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Calculamos qué nodo estamos dentro del ciclo actual (0-99)
       const nodoEnCicloActual = horaActual % NODOS_PARA_ACTUALIZACION;
 
-      // Calculamos el avance por nodo (segundos totales de 2 horas divididos por nodos totales)
-      const segundosPorNodo = (HORAS_POR_ACTUALIZACION * 60 * 60) / NODOS_PARA_ACTUALIZACION;
-
       // Calculamos segundos adicionales solo para el incremento local dentro del ciclo actual
-      const segundosAdicionales = nodoEnCicloActual * segundosPorNodo;
+      const segundosAdicionales = nodoEnCicloActual * SEGUNDOS_POR_NODO;
 
       // Crea nueva fecha sumando los segundos
       const nuevaFecha = new Date(fechaBase.getTime() + segundosAdicionales * 1000);

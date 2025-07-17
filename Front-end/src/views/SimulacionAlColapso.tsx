@@ -9,10 +9,8 @@ import { useSimulacion,  } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
 import ControlSimulacion from "../components/ControlSimulacion";
 import IndicadorPaqueteActual from "../components/IndicadorPaqueteActual";
+import { SEGUNDOS_POR_NODO } from "../context/simulacion/types";
 
-
-// Constante que define cuánto tiempo (en segundos) representa cada nodo en la simulación
-const SEGUNDOS_POR_NODO = 36;
 
 const SimulacionSemanal: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
