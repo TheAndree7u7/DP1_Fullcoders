@@ -76,27 +76,91 @@ export const cargarDatos = async (
       }
     });
 
-    // Procesar estado de camiones
-    const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
-      const gen = data.cromosoma.find((g: Gen) => g.camion.codigo === ruta.id);
-      const camion = gen?.camion;
-      
-      return {
-        id: ruta.id,
-        ubicacion: ruta.ruta[0],
-        porcentaje: 0,
-        estado: camion?.estado === "DISPONIBLE" ? "Disponible" : "En Camino",
-        capacidadActualGLP: camion?.capacidadActualGLP ?? 0,
-        capacidadMaximaGLP: camion?.capacidadMaximaGLP ?? 0,
-        combustibleActual: camion?.combustibleActual ?? 0,
-        combustibleMaximo: camion?.combustibleMaximo ?? 0,
-        distanciaMaxima: camion?.distanciaMaxima ?? 0,
-        pesoCarga: camion?.pesoCarga ?? 0,
-        pesoCombinado: camion?.pesoCombinado ?? 0,
-        tara: camion?.tara ?? 0,
-        tipo: camion?.tipo ?? "",
-        velocidadPromedio: camion?.velocidadPromedio ?? 0,
-      };
+    // Procesar estado de camiones con validaciones
+    console.log("🔍 VALIDACIÓN: Procesando estado de camiones desde backend...");
+    const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta, index) => {
+      try {
+        const gen = data.cromosoma.find((g: Gen) => g.camion.codigo === ruta.id);
+        const camion = gen?.camion;
+        
+        // Validar que el camión existe
+        if (!camion) {
+          console.error(`❌ ERROR: No se encontró camión para ruta ${ruta.id} en el cromosoma`);
+          throw new Error(`Camión no encontrado para ruta ${ruta.id}`);
+        }
+        
+        // Validar propiedades críticas del camión
+        if (!camion.codigo) {
+          console.error(`❌ ERROR: Camión en índice ${index} no tiene código:`, camion);
+        }
+        
+        if (typeof camion.capacidadActualGLP !== 'number' || isNaN(camion.capacidadActualGLP)) {
+          console.error(`❌ ERROR: Camión ${camion.codigo} tiene capacidadActualGLP inválida:`, camion.capacidadActualGLP);
+        }
+        
+        if (typeof camion.capacidadMaximaGLP !== 'number' || isNaN(camion.capacidadMaximaGLP)) {
+          console.error(`❌ ERROR: Camión ${camion.codigo} tiene capacidadMaximaGLP inválida:`, camion.capacidadMaximaGLP);
+        }
+        
+        if (typeof camion.combustibleActual !== 'number' || isNaN(camion.combustibleActual)) {
+          console.error(`❌ ERROR: Camión ${camion.codigo} tiene combustibleActual inválido:`, camion.combustibleActual);
+        }
+        
+        if (typeof camion.combustibleMaximo !== 'number' || isNaN(camion.combustibleMaximo)) {
+          console.error(`❌ ERROR: Camión ${camion.codigo} tiene combustibleMaximo inválido:`, camion.combustibleMaximo);
+        }
+        
+        // Validar ruta
+        if (!ruta.ruta || ruta.ruta.length === 0) {
+          console.error(`❌ ERROR: Ruta ${ruta.id} está vacía:`, ruta);
+        }
+        
+        const camionEstado: CamionEstado = {
+          id: ruta.id,
+          ubicacion: ruta.ruta[0] || '(0,0)',
+          porcentaje: 0,
+          estado: camion?.estado === "DISPONIBLE" ? "Disponible" : "En Camino",
+          capacidadActualGLP: typeof camion.capacidadActualGLP === 'number' && !isNaN(camion.capacidadActualGLP) ? camion.capacidadActualGLP : 0,
+          capacidadMaximaGLP: typeof camion.capacidadMaximaGLP === 'number' && !isNaN(camion.capacidadMaximaGLP) ? camion.capacidadMaximaGLP : 0,
+          combustibleActual: typeof camion.combustibleActual === 'number' && !isNaN(camion.combustibleActual) ? camion.combustibleActual : 0,
+          combustibleMaximo: typeof camion.combustibleMaximo === 'number' && !isNaN(camion.combustibleMaximo) ? camion.combustibleMaximo : 0,
+          distanciaMaxima: typeof camion.distanciaMaxima === 'number' && !isNaN(camion.distanciaMaxima) ? camion.distanciaMaxima : 0,
+          pesoCarga: typeof camion.pesoCarga === 'number' && !isNaN(camion.pesoCarga) ? camion.pesoCarga : 0,
+          pesoCombinado: typeof camion.pesoCombinado === 'number' && !isNaN(camion.pesoCombinado) ? camion.pesoCombinado : 0,
+          tara: typeof camion.tara === 'number' && !isNaN(camion.tara) ? camion.tara : 0,
+          tipo: camion?.tipo ?? "",
+          velocidadPromedio: typeof camion.velocidadPromedio === 'number' && !isNaN(camion.velocidadPromedio) ? camion.velocidadPromedio : 0,
+        };
+        
+        console.log(`✅ Camión ${camionEstado.id} procesado correctamente:`, {
+          estado: camionEstado.estado,
+          capacidadGLP: `${camionEstado.capacidadActualGLP}/${camionEstado.capacidadMaximaGLP}`,
+          combustible: `${camionEstado.combustibleActual}/${camionEstado.combustibleMaximo}`,
+          ubicacion: camionEstado.ubicacion
+        });
+        
+        return camionEstado;
+        
+      } catch (error) {
+        console.error(`❌ ERROR al procesar camión en índice ${index}:`, error, { ruta, gen: data.cromosoma[index] });
+        // Retornar un camión por defecto para evitar errores de renderizado
+        return {
+          id: ruta.id || `error-${index}`,
+          ubicacion: '(0,0)',
+          porcentaje: 0,
+          estado: 'Averiado' as const,
+          capacidadActualGLP: 0,
+          capacidadMaximaGLP: 0,
+          combustibleActual: 0,
+          combustibleMaximo: 0,
+          distanciaMaxima: 0,
+          pesoCarga: 0,
+          pesoCombinado: 0,
+          tara: 0,
+          tipo: 'ERROR',
+          velocidadPromedio: 0,
+        };
+      }
     });
 
     // Extraer bloqueos

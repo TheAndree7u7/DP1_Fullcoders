@@ -192,35 +192,88 @@ function DatosCamionesTable({ onElementoSeleccionado }: { onElementoSeleccionado
                 </td>
               </tr>
             ) : (
-              camionesFiltrados.map((camion, index) => (
-                <tr 
-                  key={`camion-table-${camion.id}-${index}`} 
-                  onClick={() => onElementoSeleccionado({tipo: 'camion', id: camion.id})}
-                  className={
-                    `border-b last:border-b-0 bg-white hover:bg-blue-50 hover:cursor-pointer transition-colors`
+              camionesFiltrados.map((camion, index) => {
+                try {
+                  // Validación antes de renderizar cada fila
+                  if (!camion.id) {
+                    console.error(`❌ ERROR: Camión en índice ${index} no tiene ID:`, camion);
+                    return (
+                      <tr key={`error-${index}`} className="border-b last:border-b-0 bg-red-50">
+                        <td colSpan={5} className="px-4 py-2 text-red-600 text-center">
+                          Error: Camión sin ID
+                        </td>
+                      </tr>
+                    );
                   }
-                  title="Clic para resaltar en el mapa"
-                >
-                  <td className="px-4 py-2 text-gray-800 font-mono font-semibold">{camion.id}</td>
-                  <td className="px-4 py-2 text-blue-700 font-bold">
-                    {camion.capacidadActualGLP.toFixed(2)} / {camion.capacidadMaximaGLP}
-                  </td>
-                  <td className="px-4 py-2 text-green-700 font-bold">
-                    {camion.combustibleActual.toFixed(2)} / {camion.combustibleMaximo}
-                  </td>
-                  <td className="px-4 py-2 text-gray-600">{camion.ubicacion}</td>
-                  <td className={
-                    `px-4 py-2 font-semibold ` +
-                    (camion.estado === 'Averiado' ? 'text-red-600' :
-                    camion.estado === 'En Mantenimiento' ? 'text-yellow-600' :
-                    camion.estado === 'Entregado' ? 'text-emerald-600' :
-                    camion.estado === 'Disponible' ? 'text-blue-600' :
-                    'text-gray-700')
-                  }>
-                    {camion.estado}
-                  </td>
-                </tr>
-              ))
+
+                  // Validar propiedades numéricas
+                  const capacidadActualGLP = typeof camion.capacidadActualGLP === 'number' && !isNaN(camion.capacidadActualGLP) 
+                    ? camion.capacidadActualGLP 
+                    : 0;
+                  const capacidadMaximaGLP = typeof camion.capacidadMaximaGLP === 'number' && !isNaN(camion.capacidadMaximaGLP) 
+                    ? camion.capacidadMaximaGLP 
+                    : 0;
+                  const combustibleActual = typeof camion.combustibleActual === 'number' && !isNaN(camion.combustibleActual) 
+                    ? camion.combustibleActual 
+                    : 0;
+                  const combustibleMaximo = typeof camion.combustibleMaximo === 'number' && !isNaN(camion.combustibleMaximo) 
+                    ? camion.combustibleMaximo 
+                    : 0;
+
+                  // Log de validación si hay problemas
+                  if (typeof camion.capacidadActualGLP !== 'number' || isNaN(camion.capacidadActualGLP)) {
+                    console.error(`❌ ERROR: Camión ${camion.id} tiene capacidadActualGLP inválida:`, camion.capacidadActualGLP);
+                  }
+                  if (typeof camion.capacidadMaximaGLP !== 'number' || isNaN(camion.capacidadMaximaGLP)) {
+                    console.error(`❌ ERROR: Camión ${camion.id} tiene capacidadMaximaGLP inválida:`, camion.capacidadMaximaGLP);
+                  }
+                  if (typeof camion.combustibleActual !== 'number' || isNaN(camion.combustibleActual)) {
+                    console.error(`❌ ERROR: Camión ${camion.id} tiene combustibleActual inválido:`, camion.combustibleActual);
+                  }
+                  if (typeof camion.combustibleMaximo !== 'number' || isNaN(camion.combustibleMaximo)) {
+                    console.error(`❌ ERROR: Camión ${camion.id} tiene combustibleMaximo inválido:`, camion.combustibleMaximo);
+                  }
+
+                  return (
+                    <tr 
+                      key={`camion-table-${camion.id}-${index}`} 
+                      onClick={() => onElementoSeleccionado({tipo: 'camion', id: camion.id})}
+                      className={
+                        `border-b last:border-b-0 bg-white hover:bg-blue-50 hover:cursor-pointer transition-colors`
+                      }
+                      title="Clic para resaltar en el mapa"
+                    >
+                      <td className="px-4 py-2 text-gray-800 font-mono font-semibold">{camion.id}</td>
+                      <td className="px-4 py-2 text-blue-700 font-bold">
+                        {capacidadActualGLP.toFixed(2)} / {capacidadMaximaGLP}
+                      </td>
+                      <td className="px-4 py-2 text-green-700 font-bold">
+                        {combustibleActual.toFixed(2)} / {combustibleMaximo}
+                      </td>
+                      <td className="px-4 py-2 text-gray-600">{camion.ubicacion || 'N/A'}</td>
+                      <td className={
+                        `px-4 py-2 font-semibold ` +
+                        (camion.estado === 'Averiado' ? 'text-red-600' :
+                        camion.estado === 'En Mantenimiento' ? 'text-yellow-600' :
+                        camion.estado === 'Entregado' ? 'text-emerald-600' :
+                        camion.estado === 'Disponible' ? 'text-blue-600' :
+                        'text-gray-700')
+                      }>
+                        {camion.estado || 'Desconocido'}
+                      </td>
+                    </tr>
+                  );
+                } catch (error) {
+                  console.error(`❌ ERROR al renderizar fila de camión ${index}:`, error, camion);
+                  return (
+                    <tr key={`error-${index}`} className="border-b last:border-b-0 bg-red-50">
+                      <td colSpan={5} className="px-4 py-2 text-red-600 text-center">
+                        Error al renderizar camión: {error instanceof Error ? error.message : 'Error desconocido'}
+                      </td>
+                    </tr>
+                  );
+                }
+              })
             )}
             </tbody>
         </table>

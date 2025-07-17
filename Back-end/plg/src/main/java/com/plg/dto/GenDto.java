@@ -43,8 +43,8 @@ public class GenDto {
      */
     public void cortarNodos(int tiempoMinutosIntervalo) {
         int numero_de_nodos_que_puede_recorrer_el_camion = (int) (tiempoMinutosIntervalo * 100 / 120);
-        System.out.println(
-                "numero_de_nodos_que_puede_recorrer_el_camion: " + numero_de_nodos_que_puede_recorrer_el_camion);
+        // System.out.println(
+        //         "numero_de_nodos_que_puede_recorrer_el_camion: " + numero_de_nodos_que_puede_recorrer_el_camion);
 
         // Verificar que la lista de nodos no sea null y tenga elementos
         if (this.nodos == null) {
@@ -64,8 +64,8 @@ public class GenDto {
         int nodosDisponibles = this.nodos.size();
         int nodosACortar = Math.min(numero_de_nodos_que_puede_recorrer_el_camion, nodosDisponibles);
 
-        System.out.println("nodos disponibles: " + nodosDisponibles);
-        System.out.println("nodos a cortar: " + nodosACortar);
+        // System.out.println("nodos disponibles: " + nodosDisponibles);
+        // System.out.println("nodos a cortar: " + nodosACortar);
 
         // Cortar los nodos de la ruta final solo si hay nodos para cortar
         if (nodosACortar > 0) {

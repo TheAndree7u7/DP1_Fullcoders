@@ -268,6 +268,60 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     return cleanup;
   }, [pollingActivo, simulacionActiva, fechaInicioSimulacion]);
 
+  // Monitoreo de cambios en datos de camiones para detectar inconsistencias
+  useEffect(() => {
+    try {
+      console.log("🔍 MONITOREO: Verificando consistencia de datos de camiones...");
+      
+      if (!camiones || !Array.isArray(camiones)) {
+        console.error("❌ ERROR: camiones no es un array válido en monitoreo:", camiones);
+        return;
+      }
+      
+      if (!rutasCamiones || !Array.isArray(rutasCamiones)) {
+        console.error("❌ ERROR: rutasCamiones no es un array válido en monitoreo:", rutasCamiones);
+        return;
+      }
+      
+      // Verificar consistencia entre camiones y rutas
+      const camionesSinRuta = camiones.filter(camion => 
+        !rutasCamiones.some(ruta => ruta.id === camion.id)
+      );
+      
+      const rutasSinCamion = rutasCamiones.filter(ruta => 
+        !camiones.some(camion => camion.id === ruta.id)
+      );
+      
+      if (camionesSinRuta.length > 0) {
+        console.warn("⚠️ ADVERTENCIA: Camiones sin ruta correspondiente:", camionesSinRuta.map(c => c.id));
+      }
+      
+      if (rutasSinCamion.length > 0) {
+        console.warn("⚠️ ADVERTENCIA: Rutas sin camión correspondiente:", rutasSinCamion.map(r => r.id));
+      }
+      
+      // Verificar datos nulos o inválidos en camiones
+      camiones.forEach((camion, index) => {
+        if (!camion.id) {
+          console.error(`❌ ERROR: Camión en índice ${index} no tiene ID en monitoreo:`, camion);
+        }
+        
+        if (typeof camion.capacidadActualGLP !== 'number' || isNaN(camion.capacidadActualGLP)) {
+          console.error(`❌ ERROR: Camión ${camion.id} tiene capacidadActualGLP inválida en monitoreo:`, camion.capacidadActualGLP);
+        }
+        
+        if (typeof camion.combustibleActual !== 'number' || isNaN(camion.combustibleActual)) {
+          console.error(`❌ ERROR: Camión ${camion.id} tiene combustibleActual inválido en monitoreo:`, camion.combustibleActual);
+        }
+      });
+      
+      console.log(`✅ MONITOREO COMPLETADO: ${camiones.length} camiones, ${rutasCamiones.length} rutas`);
+      
+    } catch (error) {
+      console.error("❌ ERROR en monitoreo de camiones:", error);
+    }
+  }, [camiones, rutasCamiones]);
+
   // ============================
   // FUNCIONES DE GESTIÓN DE DATOS
   // ============================
@@ -374,7 +428,23 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    */
   const cargarDatosSimulacion = async () => {
     try {
+      console.log("🔄 CARGANDO: Iniciando carga de datos de simulación...");
       const datos = await cargarDatos(fechaInicioSimulacion);
+      
+      // Validación de datos recibidos
+      console.log("🔍 VALIDACIÓN: Verificando datos recibidos del backend...");
+      
+      if (!datos.nuevasRutas || !Array.isArray(datos.nuevasRutas)) {
+        console.error("❌ ERROR: nuevasRutas no es un array válido:", datos.nuevasRutas);
+        throw new Error("Datos de rutas inválidos recibidos del backend");
+      }
+      
+      if (!datos.nuevosCamiones || !Array.isArray(datos.nuevosCamiones)) {
+        console.error("❌ ERROR: nuevosCamiones no es un array válido:", datos.nuevosCamiones);
+        throw new Error("Datos de camiones inválidos recibidos del backend");
+      }
+      
+      console.log(`✅ DATOS RECIBIDOS: ${datos.nuevasRutas.length} rutas, ${datos.nuevosCamiones.length} camiones`);
       
       // Actualizar fechas del paquete actual siendo consumido
       if (datos.fechaHoraInicioIntervalo) {
@@ -398,23 +468,54 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
 
-      // Eliminar duplicados antes de establecer las rutas
-      const rutasUnicas = datos.nuevasRutas.filter((ruta, index, array) => 
-        array.findIndex(r => r.id === ruta.id) === index
-      );
+      // Validar y eliminar duplicados antes de establecer las rutas
+      console.log("🔍 VALIDACIÓN: Procesando rutas...");
+      const rutasUnicas = datos.nuevasRutas.filter((ruta, index, array) => {
+        if (!ruta.id) {
+          console.error(`❌ ERROR: Ruta en índice ${index} no tiene ID:`, ruta);
+          return false;
+        }
+        return array.findIndex(r => r.id === ruta.id) === index;
+      });
       setRutasCamiones(rutasUnicas);
+      console.log(`✅ RUTAS PROCESADAS: ${rutasUnicas.length} rutas únicas`);
 
-      // Eliminar duplicados antes de establecer los camiones
-      const camionesUnicos = datos.nuevosCamiones.filter((camion, index, array) => 
-        array.findIndex(c => c.id === camion.id) === index
-      );
+      // Validar y eliminar duplicados antes de establecer los camiones
+      console.log("🔍 VALIDACIÓN: Procesando camiones...");
+      const camionesUnicos = datos.nuevosCamiones.filter((camion, index, array) => {
+        if (!camion.id) {
+          console.error(`❌ ERROR: Camión en índice ${index} no tiene ID:`, camion);
+          return false;
+        }
+        
+        // Validar propiedades críticas
+        if (typeof camion.capacidadActualGLP !== 'number' || isNaN(camion.capacidadActualGLP)) {
+          console.error(`❌ ERROR: Camión ${camion.id} tiene capacidadActualGLP inválida:`, camion.capacidadActualGLP);
+        }
+        if (typeof camion.combustibleActual !== 'number' || isNaN(camion.combustibleActual)) {
+          console.error(`❌ ERROR: Camión ${camion.id} tiene combustibleActual inválido:`, camion.combustibleActual);
+        }
+        
+        return array.findIndex(c => c.id === camion.id) === index;
+      });
       setCamiones(camionesUnicos);
+      console.log(`✅ CAMIONES PROCESADOS: ${camionesUnicos.length} camiones únicos`);
 
-      setBloqueos(datos.bloqueos);
+      // Validar bloqueos
+      if (datos.bloqueos && Array.isArray(datos.bloqueos)) {
+        setBloqueos(datos.bloqueos);
+        console.log(`✅ BLOQUEOS PROCESADOS: ${datos.bloqueos.length} bloqueos`);
+      } else {
+        console.warn("⚠️ ADVERTENCIA: No hay bloqueos válidos, estableciendo array vacío");
+        setBloqueos([]);
+      }
 
       // Gestionar almacenes: priorizar los que vienen del backend, sino mantener los actuales
-      if (datos.almacenes && datos.almacenes.length > 0) {
+      if (datos.almacenes && Array.isArray(datos.almacenes) && datos.almacenes.length > 0) {
         setAlmacenes(datos.almacenes);
+        console.log(`✅ ALMACENES PROCESADOS: ${datos.almacenes.length} almacenes`);
+      } else {
+        console.warn("⚠️ ADVERTENCIA: No hay almacenes válidos del backend, manteniendo almacenes actuales");
       }
 
       setHoraActual(HORA_PRIMERA_ACTUALIZACION);
@@ -425,8 +526,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Incrementar el contador de paquetes consumidos
       setPaqueteActualConsumido(prev => prev + 1);
+      
+      console.log("✅ CARGA COMPLETADA: Datos de simulación cargados exitosamente");
     } catch (error) {
-      console.error("Error al cargar datos de simulación:", error);
+      console.error("❌ ERROR CRÍTICO al cargar datos de simulación:", error);
       throw error;
     }
   };
