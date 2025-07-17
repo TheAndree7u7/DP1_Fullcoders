@@ -8,6 +8,7 @@ import {
   puedenCargarseArchivos, 
   formatearTamanoArchivo 
 } from './cargar_archivos';
+import { iniciarSimulacion, obtenerInfoSimulacion } from '../services/simulacionApiService';
 
 interface CargaArchivosSimulacionProps {
   onArchivosCargados: (estado: EstadoCargaArchivos) => void;
@@ -20,7 +21,12 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
   onContinuar,
   onSaltarCarga
 }) => {
-  const { fechaInicioSimulacion, setFechaInicioSimulacion } = useSimulacion();
+  const { 
+    fechaInicioSimulacion, 
+    setFechaInicioSimulacion,
+    limpiarEstadoParaNuevaSimulacion,
+    iniciarPollingPrimerPaquete
+  } = useSimulacion();
   const [estadoCarga, setEstadoCarga] = useState<EstadoCargaArchivos>({
     ventas: { cargado: false, errores: [] },
     bloqueos: { cargado: false, errores: [] },
@@ -28,6 +34,9 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
   });
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [fechaSimulacion, setFechaSimulacion] = useState<string>(fechaInicioSimulacion || new Date().toISOString().substring(0, 10) + 'T00:00');
+  const [cargando, setCargando] = useState(false);
+  const [mensaje, setMensaje] = useState<string>('');
+  const [tipoMensaje, setTipoMensaje] = useState<'success' | 'error' | 'info'>('info');
 
   const fileInputVentasRef = useRef<HTMLInputElement>(null);
   const fileInputBloqueosRef = useRef<HTMLInputElement>(null);
@@ -59,9 +68,75 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
     setMostrarConfirmacion(true);
   };
 
-  const confirmarSaltarCarga = () => {
+  const confirmarSaltarCarga = async () => {
+    if (!fechaSimulacion) {
+      setMensaje('Por favor, selecciona una fecha y hora válidas');
+      setTipoMensaje('error');
+      return;
+    }
+
+    setCargando(true);
+    setMensaje('Iniciando simulación con datos de prueba...');
+    setTipoMensaje('info');
     setMostrarConfirmacion(false);
-    onSaltarCarga();
+
+    try {
+      console.log("===================🚀 FRONTEND: Iniciando SIMULACIÓN CON DATOS DE PRUEBA==============");
+      const fechaHoraISO = fechaSimulacion;
+      
+      // 1. Guarda la fecha de inicio en el contexto global
+      setFechaInicioSimulacion(fechaHoraISO);
+
+      // 2. Inicia la simulación en el backend
+      setMensaje('Configurando simulación en el backend...');
+      await iniciarSimulacion(fechaHoraISO);
+      
+      setMensaje('Simulación iniciada exitosamente. Cargando datos...');
+      setTipoMensaje('success');
+      
+      console.log("🚀 FRONTEND: Simulación iniciada en backend, limpiando estado...");
+      
+      // Limpiar el estado y cargar nuevos datos
+      await limpiarEstadoParaNuevaSimulacion();
+      console.log("🧹 FRONTEND: Estado limpiado y datos cargados para nueva simulación");
+      
+      setMensaje('Iniciando visualización automática...');
+      
+      // Iniciar el polling para obtener el primer paquete automáticamente
+      iniciarPollingPrimerPaquete();
+      console.log("🔄 FRONTEND: Polling iniciado para obtener primer paquete automáticamente");
+      
+      // Actualizar información después de unos segundos para dar tiempo al backend
+      setTimeout(async () => {
+        try {
+          const info = await obtenerInfoSimulacion();
+          console.log("📊 FRONTEND: Info de simulación actualizada:", info);
+          
+          if (info.enProceso) {
+            setMensaje('Simulación en progreso - Los datos se actualizan automáticamente');
+            setTipoMensaje('success');
+          } else {
+            setMensaje('Simulación completada o detenida');
+            setTipoMensaje('info');
+          }
+        } catch (error) {
+          console.error('Error al actualizar info:', error);
+          setMensaje('Simulación iniciada pero no se pudo obtener el estado');
+          setTipoMensaje('error');
+        }
+      }, 3000); // Esperamos 3 segundos para que el backend empiece a generar paquetes
+      
+      // Llamar a la función original para continuar con el flujo
+      onSaltarCarga();
+      
+    } catch (error) {
+      console.error('Error al iniciar simulación:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      setMensaje(`Error al iniciar simulación: ${errorMessage}`);
+      setTipoMensaje('error');
+    } finally {
+      setCargando(false);
+    }
   };
 
   const cancelarSaltarCarga = () => {
@@ -307,6 +382,40 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Indicador de estado */}
+      {(cargando || mensaje) && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+            <div className="flex items-center mb-4">
+              {cargando && (
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
+              )}
+              <h3 className="text-lg font-semibold text-gray-900">
+                {cargando ? 'Iniciando simulación...' : 'Estado'}
+              </h3>
+            </div>
+            
+            {mensaje && (
+              <p className={`text-sm mb-4 ${
+                tipoMensaje === 'error' ? 'text-red-600' : 
+                tipoMensaje === 'success' ? 'text-green-600' : 
+                'text-blue-600'
+              }`}>
+                {mensaje}
+              </p>
+            )}
+            
+            {cargando && (
+              <div className="flex justify-center">
+                <div className="animate-pulse text-sm text-gray-500">
+                  Por favor espera...
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Modal de Confirmación */}
       {mostrarConfirmacion && (
