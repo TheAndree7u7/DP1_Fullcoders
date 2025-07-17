@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.http.ResponseEntity;
@@ -94,13 +95,14 @@ public class SimulacionController {
         System.out.println("✅ Simulación reanudada después de avería");
     }
 
-    @GetMapping("/mejor/{fecha}")
-    public ResponseEntity<?> obtenerMejorIndividuo(@PathVariable String fecha) {
+    @GetMapping("/mejor")
+    public ResponseEntity<?> obtenerMejorIndividuoPorFecha(@RequestParam String fecha) {
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/mejor");
-        // Este método debe aceptar @PathVariable String fecha como parámetro.
+        // Este método debe aceptar @RequestParam String fecha como parámetro.
         // Ejemplo de firma correcta:
-        // @GetMapping("/mejor/{fecha}")
-        // public IndividuoDto obtenerMejorIndividuo(@PathVariable String fecha) { ... }
+        // @GetMapping("/mejor")
+        // public IndividuoDto obtenerMejorIndividuoPorFecha(@RequestParam String fecha)
+        // { ... }
 
         LocalDateTime fechaSimulacion;
         try {
@@ -116,7 +118,7 @@ public class SimulacionController {
         System.out.println("✅ ENDPOINT RESPUESTA: Paquete generado correctamente");
 
         // Ejemplo de uso desde el frontend o Postman:
-        // GET http://localhost:8080/api/simulacion/mejor/2024-06-10T12:00:00
+        // GET http://localhost:8080/api/simulacion/mejor?fecha=2024-06-10T12:00:00
 
         if (siguientePaquete == null) {
             System.out.println("⏳ No hay paquetes disponibles, esperando...");

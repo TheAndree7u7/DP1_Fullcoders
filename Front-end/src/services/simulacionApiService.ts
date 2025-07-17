@@ -5,8 +5,8 @@ export async function getMejorIndividuo(fechaInicio: string): Promise<Individuo>
   try {
     console.log("Iniciando solicitud al servidor (GET con fecha). Fecha: " + fechaInicio);
 
-    // Codificar la fecha para la URL
-    const url = `${API_URLS.MEJOR_INDIVIDUO}/${encodeURIComponent(fechaInicio)}`;
+    // Construir URL con parámetro de consulta
+    const url = `${API_URLS.MEJOR_INDIVIDUO}?fecha=${encodeURIComponent(fechaInicio)}`;
 
     const response = await fetch(url, {
       method: 'GET',
@@ -182,7 +182,11 @@ export async function obtenerSiguientePaquete(): Promise<Individuo | null> {
   try {
     console.log("📦 PAQUETES: Obteniendo siguiente paquete de la simulación...");
     
-    const response = await fetch(`${API_URLS.MEJOR_INDIVIDUO}`, {
+    // Usar la fecha actual como parámetro por defecto
+    const fechaActual = new Date().toISOString();
+    const url = `${API_URLS.MEJOR_INDIVIDUO}?fecha=${encodeURIComponent(fechaActual)}`;
+    
+    const response = await fetch(url, {
       method: 'GET'
     });
 
