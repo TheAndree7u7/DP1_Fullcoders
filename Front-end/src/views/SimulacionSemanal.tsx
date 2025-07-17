@@ -7,8 +7,7 @@ import BottomMenu from "../components/BottomMenu";
 import { ChevronLeft } from "lucide-react";
 import { useSimulacion } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
-import ControlSimulacion from "../components/ControlSimulacion";
-import IndicadorPaqueteActual from "../components/IndicadorPaqueteActual";
+ 
 
 const SimulacionSemanal: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
@@ -27,7 +26,7 @@ const SimulacionSemanal: React.FC = () => {
   // Estado para resaltar elementos en el mapa
   const [elementoResaltado, setElementoResaltado] = useState<{tipo: 'camion' | 'pedido' | 'almacen', id: string} | null>(null);
   // Estado para el panel de control
-  const [controlPanelExpandido, setControlPanelExpandido] = useState(false);
+
 
   // Actualizar la hora simulada solo cuando cambia la fecha del backend
   useEffect(() => {
@@ -100,32 +99,8 @@ const SimulacionSemanal: React.FC = () => {
         </div>
       </div>
       
-      {/* Panel de control de simulación */}
-      <div className="px-4 py-2">
-        <div className="flex items-center justify-between mb-2">
-          <button
-            onClick={() => setControlPanelExpandido(!controlPanelExpandido)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-          >
-            {controlPanelExpandido ? '🔼 Ocultar Control' : '🔽 Mostrar Control de Simulación'}
-          </button>
-        </div>
-        
-        {controlPanelExpandido && (
-          <div className="transition-all duration-300">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Control de simulación */}
-              <div className="lg:col-span-2">
-                <ControlSimulacion />
-              </div>
-              {/* Indicador detallado del paquete actual */}
-              <div className="lg:col-span-1">
-                <IndicadorPaqueteActual />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      
+      
       
       {/* Contenido principal - ahora con altura dinámica */}
       <div className={`flex flex-row flex-1 gap-4 px-4 overflow-hidden relative transition-all duration-300 ${bottomMenuExpandido ? 'pb-4' : ''}`}>
