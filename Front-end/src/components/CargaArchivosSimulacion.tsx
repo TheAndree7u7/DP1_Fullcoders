@@ -27,7 +27,7 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
     camiones: { cargado: false, errores: [] }
   });
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
-  const [fechaSimulacion, setFechaSimulacion] = useState<string>(fechaInicioSimulacion || '');
+  const [fechaSimulacion, setFechaSimulacion] = useState<string>(fechaInicioSimulacion || new Date().toISOString().substring(0, 10) + 'T00:00');
 
   const fileInputVentasRef = useRef<HTMLInputElement>(null);
   const fileInputBloqueosRef = useRef<HTMLInputElement>(null);
@@ -74,18 +74,46 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
         <h2 className="text-2xl font-bold text-gray-900 mb-6">
           Cargar Archivos para Simulación Semanal
         </h2>
-        {/* Campo para seleccionar la fecha de simulación */}
+        {/* Campo para seleccionar la fecha y hora de simulación */}
         <div className="mb-6">
-          <label className="block text-gray-700 font-medium mb-2" htmlFor="fechaSimulacion">
-            Fecha de inicio de la simulación
+          <label className="block text-gray-700 font-medium mb-2">
+            Fecha y hora de inicio de la simulación
           </label>
-          <input
-            id="fechaSimulacion"
-            type="date"
-            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={fechaSimulacion ? fechaSimulacion.substring(0, 10) : ''}
-            onChange={e => setFechaSimulacion(e.target.value)}
-          />
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm text-gray-600 mb-1" htmlFor="fechaSimulacion">
+                Fecha
+              </label>
+              <input
+                id="fechaSimulacion"
+                type="date"
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={fechaSimulacion ? fechaSimulacion.substring(0, 10) : ''}
+                onChange={e => {
+                  const nuevaFecha = e.target.value;
+                  const horaActual = fechaSimulacion ? fechaSimulacion.substring(11) : '00:00';
+                  setFechaSimulacion(`${nuevaFecha}T${horaActual}`);
+                }}
+              />
+            </div>
+            
+            <div className="flex-1">
+              <label className="block text-sm text-gray-600 mb-1" htmlFor="horaSimulacion">
+                Hora
+              </label>
+              <input
+                id="horaSimulacion"
+                type="time"
+                className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={fechaSimulacion ? fechaSimulacion.substring(11, 16) : '00:00'}
+                onChange={e => {
+                  const fechaActual = fechaSimulacion ? fechaSimulacion.substring(0, 10) : new Date().toISOString().substring(0, 10);
+                  const nuevaHora = e.target.value;
+                  setFechaSimulacion(`${fechaActual}T${nuevaHora}:00`);
+                }}
+              />
+            </div>
+          </div>
         </div>
         
         <div className="mb-6">
