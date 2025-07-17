@@ -7,7 +7,7 @@
 export { parseCoord } from "./coordenadas";
 
 // Utilidades de camiones
-export { calcularRotacion } from "./camiones";
+export { calcularRotacion, esCoordenadaValida } from "./camiones";
 
 // Utilidades de pedidos
 export { getPedidosPendientes } from "./pedidos";

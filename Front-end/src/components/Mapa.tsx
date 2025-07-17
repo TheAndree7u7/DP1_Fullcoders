@@ -13,6 +13,16 @@ import {
   getPedidosPendientes,
   handleAveriar 
 } from './mapa/utils';
+// Función de validación de coordenadas definida localmente para evitar problemas de importación
+const esCoordenadaValida = (coord: Coordenada | undefined | null): coord is Coordenada => {
+  return coord !== null && 
+         coord !== undefined && 
+         typeof coord === 'object' &&
+         typeof coord.x === 'number' && 
+         typeof coord.y === 'number' &&
+         !isNaN(coord.x) && 
+         !isNaN(coord.y);
+};
 import { formatearCapacidadGLP, formatearCombustible } from '../utils/validacionCamiones';
 
 interface CamionVisual {
@@ -122,20 +132,33 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
         currentPos = parseCoord(estadoCamion.ubicacion);
       }
       
+      // Asegurar que currentPos sea siempre una coordenada válida
+      if (!esCoordenadaValida(currentPos)) {
+        console.warn('🚨 MAPA: Coordenada actual inválida para camión:', info.id, currentPos);
+        currentPos = { x: 0, y: 0 }; // Coordenada por defecto
+      }
+      
       let rotacion = 0;
       
       if (estadoCamion && rutaCoords.length > 1) {
         const porcentaje = estadoCamion.porcentaje;
         const currentIdx = Math.floor(porcentaje);
         
-        // Si hay un siguiente nodo en la ruta, calcular dirección hacia él
-        if (currentIdx + 1 < rutaCoords.length) {
-          const nextPos = rutaCoords[currentIdx + 1];
-          rotacion = calcularRotacion(currentPos, nextPos);
-        } else if (currentIdx > 0) {
-          // Si estamos en el último nodo, usar la dirección del último movimiento
-          const prevPos = rutaCoords[currentIdx - 1];
-          rotacion = calcularRotacion(prevPos, currentPos);
+        // Validar que currentPos sea válido antes de usarlo
+        if (esCoordenadaValida(currentPos)) {
+          // Si hay un siguiente nodo en la ruta, calcular dirección hacia él
+          if (currentIdx + 1 < rutaCoords.length) {
+            const nextPos = rutaCoords[currentIdx + 1];
+            if (esCoordenadaValida(nextPos)) {
+              rotacion = calcularRotacion(currentPos, nextPos);
+            }
+          } else if (currentIdx > 0) {
+            // Si estamos en el último nodo, usar la dirección del último movimiento
+            const prevPos = rutaCoords[currentIdx - 1];
+            if (esCoordenadaValida(prevPos)) {
+              rotacion = calcularRotacion(prevPos, currentPos);
+            }
+          }
         }
       }
       
