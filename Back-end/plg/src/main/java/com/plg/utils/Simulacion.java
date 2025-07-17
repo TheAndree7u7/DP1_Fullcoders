@@ -208,6 +208,11 @@ public class Simulacion {
     }
 
     public static void simularIntervalo(LocalDateTime fechaActual) {
+        // Verificar que la fecha inicial esté configurada
+        if (Parametros.fecha_inicial == null) {
+            System.err.println("❌ Error: Parametros.fecha_inicial es null. Configurando con fecha actual.");
+            Parametros.fecha_inicial = fechaActual;
+        }
         // !BUSCA TODOS LOS PEDIDOS con fecha menor a la fecha actual pero mayor a la
         // fecha de inicio
         // Arreglado: corregida la sintaxis de los paréntesis y la lógica del filtro
