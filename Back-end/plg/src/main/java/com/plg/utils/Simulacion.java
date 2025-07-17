@@ -321,6 +321,19 @@ public class Simulacion {
                         pedido.getFechaRegistro().isBefore(fechaActual))
                 .count();
         System.out.println("Cantidad de pedidos del intervalo: " + cantidadPedidosDelIntervalo);
+
+        // Quiero saber la fecha minima y maxima de los pedidos
+        LocalDateTime fechaMinimaPedidos = DataLoader.pedidos.stream()
+                .map(Pedido::getFechaRegistro)
+                .min(LocalDateTime::compareTo)
+                .orElse(null);
+        LocalDateTime fechaMaximaPedidos = DataLoader.pedidos.stream()
+                .map(Pedido::getFechaRegistro)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+        System.out.println("Fecha minima de los pedidos: " + fechaMinimaPedidos);
+        System.out.println("Fecha maxima de los pedidos: " + fechaMaximaPedidos);
+
         System.out.println("-----------------------------");
 
         // Agregar más logs de debug para entender qué está pasando

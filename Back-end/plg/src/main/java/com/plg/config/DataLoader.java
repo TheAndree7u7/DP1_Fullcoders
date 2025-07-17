@@ -93,30 +93,188 @@ public class DataLoader {
         return averias;
     }
 
+    /**
+     * Detecta automáticamente todos los archivos de pedidos disponibles en la
+     * carpeta data/pedidos.
+     * Solo lee archivos del año 2025.
+     * 
+     * @return Lista de rutas de archivos de pedidos encontrados
+     */
+    private static List<String> detectarArchivosPedidos() {
+        List<String> archivosEncontrados = new ArrayList<>();
+
+        // Lista de archivos del año 2025 (enero a diciembre)
+        String[] archivosConocidos = {
+                "data/pedidos/ventas202501.txt", // Enero
+                "data/pedidos/ventas202502.txt", // Febrero
+                "data/pedidos/ventas202503.txt", // Marzo
+                "data/pedidos/ventas202504.txt", // Abril
+                "data/pedidos/ventas202505.txt", // Mayo
+                "data/pedidos/ventas202506.txt", // Junio
+                "data/pedidos/ventas202507.txt", // Julio
+                "data/pedidos/ventas202508.txt", // Agosto
+                "data/pedidos/ventas202509.txt", // Septiembre
+                "data/pedidos/ventas202510.txt", // Octubre
+                "data/pedidos/ventas202511.txt", // Noviembre
+                "data/pedidos/ventas202512.txt" // Diciembre
+        };
+
+        // Verificar qué archivos existen realmente
+        for (String archivo : archivosConocidos) {
+            try {
+                if (Herramientas.class.getClassLoader().getResourceAsStream(archivo) != null) {
+                    archivosEncontrados.add(archivo);
+                    System.out.println("✅ Archivo de pedidos encontrado: " + archivo);
+                } else {
+                    System.out.println("❌ Archivo de pedidos no encontrado: " + archivo);
+                }
+            } catch (Exception e) {
+                System.err.println("⚠️ Error verificando archivo: " + archivo + " - " + e.getMessage());
+            }
+        }
+
+        return archivosEncontrados;
+    }
+
+    /**
+     * Calcula las fechas mínima y máxima de registro de los pedidos cargados.
+     * 
+     * @param pedidos Lista de pedidos para analizar
+     * @return Array con [fechaMinima, fechaMaxima] o [null, null] si no hay pedidos
+     */
+    private static LocalDateTime[] calcularFechasMinMax(List<Pedido> pedidos) {
+        if (pedidos == null || pedidos.isEmpty()) {
+            System.out.println("⚠️ No hay pedidos para calcular fechas mínima y máxima");
+            return new LocalDateTime[] { null, null };
+        }
+
+        LocalDateTime fechaMinima = pedidos.stream()
+                .map(Pedido::getFechaRegistro)
+                .filter(fecha -> fecha != null)
+                .min(LocalDateTime::compareTo)
+                .orElse(null);
+
+        LocalDateTime fechaMaxima = pedidos.stream()
+                .map(Pedido::getFechaRegistro)
+                .filter(fecha -> fecha != null)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+
+        if (fechaMinima != null && fechaMaxima != null) {
+            System.out.println("📅 Rango de fechas de pedidos:");
+            System.out.println("   • Fecha mínima: "
+                    + fechaMinima.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+            System.out.println("   • Fecha máxima: "
+                    + fechaMaxima.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+
+            // Calcular duración total
+            long diasEntreFechas = java.time.Duration.between(fechaMinima, fechaMaxima).toDays();
+            System.out.println("   • Duración total: " + diasEntreFechas + " días");
+        }
+
+        return new LocalDateTime[] { fechaMinima, fechaMaxima };
+    }
+
+    /**
+     * Detecta automáticamente todos los archivos de bloqueos disponibles en la
+     * carpeta data/bloqueos.
+     * 
+     * @return Lista de rutas de archivos de bloqueos encontrados
+     */
+    private static List<String> detectarArchivosBloqueos() {
+        List<String> archivosEncontrados = new ArrayList<>();
+
+        // Lista de archivos conocidos basada en la estructura de carpetas
+        String[] archivosConocidos = {
+                "data/bloqueos/202501.bloqueos.txt",
+                "data/bloqueos/202502.bloqueos.txt",
+                "data/bloqueos/202503.bloqueos.txt",
+                "data/bloqueos/202504.bloqueos.txt",
+                "data/bloqueos/202505.bloqueos.txt",
+                "data/bloqueos/202506.bloqueos.txt",
+                "data/bloqueos/202507.bloqueos.txt",
+                "data/bloqueos/202508.bloqueos.txt",
+                "data/bloqueos/202509.bloqueos.txt",
+                "data/bloqueos/202510.bloqueos.txt",
+                "data/bloqueos/202511.bloqueos.txt",
+                "data/bloqueos/202512.bloqueos.txt"
+        };
+
+        // Verificar qué archivos existen realmente
+        for (String archivo : archivosConocidos) {
+            try {
+                if (Herramientas.class.getClassLoader().getResourceAsStream(archivo) != null) {
+                    archivosEncontrados.add(archivo);
+                    System.out.println("✅ Archivo de bloqueos encontrado: " + archivo);
+                } else {
+                    System.out.println("❌ Archivo de bloqueos no encontrado: " + archivo);
+                }
+            } catch (Exception e) {
+                System.err.println("⚠️ Error verificando archivo: " + archivo + " - " + e.getMessage());
+            }
+        }
+
+        return archivosEncontrados;
+    }
+
     public static List<Pedido> initializePedidos() throws InvalidDataFormatException, IOException {
         // Limpiar la lista de pedidos antes de cargar nuevos
         PedidoFactory.pedidos.clear();
 
-        List<String> lines = Herramientas.readAllLines(getPathPedidos());
         List<Pedido> pedidosOriginales = new ArrayList<>();
+        List<String> archivosLeidos = new ArrayList<>();
 
-        // Primero crear todos los pedidos originales
-        for (String line : lines) {
-            Pedido pedido = PedidoFactory.crearPedido(line);
+        // Detectar archivos disponibles
+        List<String> archivosDisponibles = detectarArchivosPedidos();
 
-            // Validar y corregir coordenadas del pedido
-            Coordenada coordenadaOriginal = pedido.getCoordenada();
-            Coordenada coordenadaCorregida = validarYCorregirCoordenada(coordenadaOriginal);
+        if (archivosDisponibles.isEmpty()) {
+            System.err.println("❌ No se encontraron archivos de pedidos disponibles");
+            throw new IOException("No se encontraron archivos de pedidos para cargar");
+        }
 
-            if (!coordenadaOriginal.equals(coordenadaCorregida)) {
-                System.err.println("⚠️ Pedido " + pedido.getCodigo() + " tenía coordenadas inválidas: " +
-                        coordenadaOriginal + " → Corregidas a: " + coordenadaCorregida);
-                pedido.setCoordenada(coordenadaCorregida);
+        // Leer todos los archivos de pedidos disponibles
+        try {
+            for (String archivo : archivosDisponibles) {
+                try {
+                    List<String> lines = Herramientas.readAllLines(archivo);
+                    System.out.println("📁 Leyendo archivo: " + archivo + " - " + lines.size() + " líneas");
+
+                    // Procesar cada línea del archivo
+                    for (String line : lines) {
+                        Pedido pedido = PedidoFactory.crearPedido(line, archivo);
+
+                        // Validar y corregir coordenadas del pedido
+                        Coordenada coordenadaOriginal = pedido.getCoordenada();
+                        Coordenada coordenadaCorregida = validarYCorregirCoordenada(coordenadaOriginal);
+
+                        if (!coordenadaOriginal.equals(coordenadaCorregida)) {
+                            System.err.println("⚠️ Pedido " + pedido.getCodigo() + " tenía coordenadas inválidas: " +
+                                    coordenadaOriginal + " → Corregidas a: " + coordenadaCorregida);
+                            pedido.setCoordenada(coordenadaCorregida);
+                        }
+
+                        pedido.setFechaLimite(pedido.getFechaRegistro().plusHours((long) pedido.getHorasLimite()));
+                        pedidosOriginales.add(pedido);
+                    }
+
+                    archivosLeidos.add(archivo);
+
+                } catch (IOException e) {
+                    // Si no se puede leer un archivo, continuar con el siguiente
+                    System.err.println("⚠️ No se pudo leer el archivo: " + archivo + " - " + e.getMessage());
+                } catch (Exception e) {
+                    // Si hay error en el procesamiento, continuar con el siguiente archivo
+                    System.err.println("⚠️ Error procesando archivo: " + archivo + " - " + e.getMessage());
+                }
             }
 
-            pedido.setFechaLimite(pedido.getFechaRegistro().plusHours((long) pedido.getHorasLimite()));
-            pedidosOriginales.add(pedido);
+        } catch (Exception e) {
+            System.err.println("❌ Error general al leer archivos de pedidos: " + e.getMessage());
+            throw e;
         }
+
+        System.out.println("📊 Total de archivos leídos exitosamente: " + archivosLeidos.size());
+        System.out.println("📊 Total de pedidos originales cargados: " + pedidosOriginales.size());
 
         // Ahora procesar cada pedido para dividirlo si es necesario
         List<Pedido> pedidosFinales = new ArrayList<>();
@@ -144,13 +302,65 @@ public class DataLoader {
 
         // Mostrar estadísticas
         System.out.println("\n=== ESTADÍSTICAS DE CARGA DE PEDIDOS ===");
+        System.out.println("📁 Archivos leídos: " + archivosLeidos.size());
         System.out.println("📊 Pedidos originales leídos: " + totalPedidosOriginales);
         System.out.println("📊 Pedidos que requirieron división: " + pedidosDivididos);
         System.out.println("📊 Total de pedidos finales: " + pedidos.size());
 
+        // Calcular y mostrar fechas mínima y máxima
+        LocalDateTime[] fechasMinMax = calcularFechasMinMax(pedidos);
+
+        // Mostrar estadísticas por mes si es posible
+        mostrarEstadisticasPorMes(pedidos);
+
         mostrarEstadisticasCapacidad();
 
         return pedidos;
+    }
+
+    /**
+     * Muestra estadísticas de pedidos agrupados por mes.
+     * 
+     * @param pedidos Lista de pedidos para analizar
+     */
+    private static void mostrarEstadisticasPorMes(List<Pedido> pedidos) {
+        if (pedidos == null || pedidos.isEmpty()) {
+            return;
+        }
+
+        System.out.println("\n📊 ESTADÍSTICAS POR MES:");
+
+        // Agrupar pedidos por mes
+        Map<Integer, Long> pedidosPorMes = pedidos.stream()
+                .filter(p -> p.getFechaRegistro() != null)
+                .collect(java.util.stream.Collectors.groupingBy(
+                        p -> p.getFechaRegistro().getMonthValue(),
+                        java.util.stream.Collectors.counting()));
+
+        // Mostrar estadísticas por mes
+        for (int mes = 1; mes <= 12; mes++) {
+            Long cantidad = pedidosPorMes.getOrDefault(mes, 0L);
+            String nombreMes = obtenerNombreMes(mes);
+            System.out.println("   • " + nombreMes + ": " + cantidad + " pedidos");
+        }
+
+        // Mostrar total
+        long total = pedidosPorMes.values().stream().mapToLong(Long::longValue).sum();
+        System.out.println("   • TOTAL: " + total + " pedidos");
+    }
+
+    /**
+     * Obtiene el nombre del mes en español.
+     * 
+     * @param mes Número del mes (1-12)
+     * @return Nombre del mes en español
+     */
+    private static String obtenerNombreMes(int mes) {
+        String[] nombresMeses = {
+                "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        };
+        return nombresMeses[mes];
     }
 
     /**
@@ -550,10 +760,50 @@ public class DataLoader {
     }
 
     public static void initializeBloqueos() throws InvalidDataFormatException, IOException {
-        List<String> lines = Herramientas.readAllLines(getPathBloqueos());
-        for (String line : lines) {
-            Bloqueo bloqueo = new Bloqueo(line);
-            bloqueos.add(bloqueo);
+        // Limpiar la lista de bloqueos antes de cargar nuevos
+        bloqueos.clear();
+
+        List<String> archivosLeidos = new ArrayList<>();
+
+        // Detectar archivos disponibles
+        List<String> archivosDisponibles = detectarArchivosBloqueos();
+
+        if (archivosDisponibles.isEmpty()) {
+            System.err.println("❌ No se encontraron archivos de bloqueos disponibles");
+            throw new IOException("No se encontraron archivos de bloqueos para cargar");
         }
+
+        // Leer todos los archivos de bloqueos disponibles
+        try {
+            for (String archivo : archivosDisponibles) {
+                try {
+                    List<String> lines = Herramientas.readAllLines(archivo);
+                    System.out.println("🚧 Leyendo archivo de bloqueos: " + archivo + " - " + lines.size() + " líneas");
+
+                    // Procesar cada línea del archivo
+                    for (String line : lines) {
+                        Bloqueo bloqueo = new Bloqueo(line);
+                        bloqueos.add(bloqueo);
+                    }
+
+                    archivosLeidos.add(archivo);
+
+                } catch (IOException e) {
+                    // Si no se puede leer un archivo, continuar con el siguiente
+                    System.err
+                            .println("⚠️ No se pudo leer el archivo de bloqueos: " + archivo + " - " + e.getMessage());
+                } catch (Exception e) {
+                    // Si hay error en el procesamiento, continuar con el siguiente archivo
+                    System.err.println("⚠️ Error procesando archivo de bloqueos: " + archivo + " - " + e.getMessage());
+                }
+            }
+
+        } catch (Exception e) {
+            System.err.println("❌ Error general al leer archivos de bloqueos: " + e.getMessage());
+            throw e;
+        }
+
+        System.out.println("🚧 Total de archivos de bloqueos leídos exitosamente: " + archivosLeidos.size());
+        System.out.println("🚧 Total de bloqueos cargados: " + bloqueos.size());
     }
 }

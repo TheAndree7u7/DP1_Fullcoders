@@ -46,11 +46,32 @@ public class Herramientas {
         return fechaInicial;
     }
 
-    public static LocalDateTime fechaNameArchivo(String file_name){
+    /**
+     * Método para leer fechas del formato ##d##h##m especificando el mes.
+     * 
+     * @param fecha Fecha en formato ##d##h##m
+     * @param mes   Mes en formato MM (ej: "01" para enero)
+     * @return LocalDateTime parseada
+     */
+    public static LocalDateTime readFechaConMes(String fecha, String mes) {
+        String[] partes = fecha.split("[dhm]");
+        DateTimeFormatter formatoFechaHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        String anho = Parametros.anho;
+        String dia = partes[0];
+        String hora = partes[1];
+        String minutos = partes[2];
+
+        LocalDateTime fechaInicial = LocalDateTime.parse(dia + "/" + mes + "/" + anho + " " + hora + ":" + minutos,
+                formatoFechaHora);
+
+        return fechaInicial;
+    }
+
+    public static LocalDateTime fechaNameArchivo(String file_name) {
         String mes = file_name.substring(10, 12);
         String anho = file_name.substring(6, 10);
         DateTimeFormatter formatoFechaHora = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        return LocalDateTime.parse("01/"+mes+"/"+anho+" 00:00", formatoFechaHora);
+        return LocalDateTime.parse("01/" + mes + "/" + anho + " 00:00", formatoFechaHora);
     }
 
 }
