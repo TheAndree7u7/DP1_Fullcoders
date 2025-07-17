@@ -68,6 +68,9 @@ import {
   iniciarContadorTiempo as iniciarContadorTiempoUtil,
 } from "./simulacion/utils";
 
+// Importar utilidades de validación
+import { esValorValido } from "../utils/validacionCamiones";
+
 // ============================
 // CREACIÓN DEL CONTEXTO
 // ============================
@@ -306,11 +309,11 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
           console.error(`❌ ERROR: Camión en índice ${index} no tiene ID en monitoreo:`, camion);
         }
         
-        if (typeof camion.capacidadActualGLP !== 'number' || isNaN(camion.capacidadActualGLP)) {
+        if (!esValorValido(camion.capacidadActualGLP)) {
           console.error(`❌ ERROR: Camión ${camion.id} tiene capacidadActualGLP inválida en monitoreo:`, camion.capacidadActualGLP);
         }
         
-        if (typeof camion.combustibleActual !== 'number' || isNaN(camion.combustibleActual)) {
+        if (!esValorValido(camion.combustibleActual)) {
           console.error(`❌ ERROR: Camión ${camion.id} tiene combustibleActual inválido en monitoreo:`, camion.combustibleActual);
         }
       });
@@ -489,10 +492,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         }
         
         // Validar propiedades críticas
-        if (typeof camion.capacidadActualGLP !== 'number' || isNaN(camion.capacidadActualGLP)) {
+        if (!esValorValido(camion.capacidadActualGLP)) {
           console.error(`❌ ERROR: Camión ${camion.id} tiene capacidadActualGLP inválida:`, camion.capacidadActualGLP);
         }
-        if (typeof camion.combustibleActual !== 'number' || isNaN(camion.combustibleActual)) {
+        if (!esValorValido(camion.combustibleActual)) {
           console.error(`❌ ERROR: Camión ${camion.id} tiene combustibleActual inválido:`, camion.combustibleActual);
         }
         

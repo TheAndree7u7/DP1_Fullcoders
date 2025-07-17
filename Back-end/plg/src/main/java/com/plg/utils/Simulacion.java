@@ -314,19 +314,39 @@ public class Simulacion {
         // fecha de inicio
         // Arreglado: corregida la sintaxis de los paréntesis y la lógica del filtro
         // Cantidad de pedisdos sin entregar en todo el dataloader
-        Long cantidadPedidosSinEntregar = DataLoader.pedidos.stream()
-                .filter(pedido -> !pedido.getEstado().equals(EstadoPedido.ENTREGADO))
-                .count();
-        System.out.println("Cantidad de pedidos sin entregar en todo el dataloader: " + cantidadPedidosSinEntregar);
-        System.out.println("-----------------------------");
+        // Corregir el contador de debug (línea 323)
         Long cantidadPedidosDelIntervalo = DataLoader.pedidos.stream()
-                .filter(pedido -> pedido.getFechaRegistro().isAfter(Parametros.fecha_inicial) &&
-                        pedido.getFechaRegistro().isBefore(fechaActual.minusMinutes(Parametros.intervaloTiempo)))
+                .filter(pedido -> (pedido.getFechaRegistro().isAfter(Parametros.fecha_inicial) ||
+                        pedido.getFechaRegistro().isEqual(Parametros.fecha_inicial)) &&
+                        pedido.getFechaRegistro().isBefore(fechaActual))
                 .count();
         System.out.println("Cantidad de pedidos del intervalo: " + cantidadPedidosDelIntervalo);
         System.out.println("-----------------------------");
+
+        // Agregar más logs de debug para entender qué está pasando
+        System.out.println("🔍 DEBUG: Analizando pedidos...");
+        System.out.println("   • Total de pedidos en DataLoader: " + DataLoader.pedidos.size());
+        System.out.println("   • Fecha inicial: " + Parametros.fecha_inicial);
+        System.out.println("   • Fecha actual: " + fechaActual);
+
+        // Mostrar algunos ejemplos de pedidos para debug
+        DataLoader.pedidos.stream()
+                .limit(5)
+                .forEach(pedido -> {
+                    System.out.println("   • Pedido " + pedido.getCodigo() +
+                            " - Fecha: " + pedido.getFechaRegistro() +
+                            " - Estado: " + pedido.getEstado() +
+                            " - Cumple condición: " +
+                            ((pedido.getFechaRegistro().isAfter(Parametros.fecha_inicial) ||
+                                    pedido.getFechaRegistro().isEqual(Parametros.fecha_inicial)) &&
+                                    pedido.getFechaRegistro().isBefore(fechaActual) &&
+                                    !pedido.getEstado().equals(EstadoPedido.ENTREGADO)));
+                });
+
+        // Corregir el filtro principal
         List<Pedido> pedidosDelIntervalo = DataLoader.pedidos.stream()
-                .filter(pedido -> pedido.getFechaRegistro().isAfter(Parametros.fecha_inicial) &&
+                .filter(pedido -> (pedido.getFechaRegistro().isAfter(Parametros.fecha_inicial) ||
+                        pedido.getFechaRegistro().isEqual(Parametros.fecha_inicial)) &&
                         pedido.getFechaRegistro().isBefore(fechaActual) &&
                         !pedido.getEstado().equals(EstadoPedido.ENTREGADO))
                 .collect(Collectors.toList());

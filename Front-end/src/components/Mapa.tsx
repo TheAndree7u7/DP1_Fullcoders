@@ -13,6 +13,7 @@ import {
   getPedidosPendientes,
   handleAveriar 
 } from './mapa/utils';
+import { formatearCapacidadGLP, formatearCombustible } from '../utils/validacionCamiones';
 
 interface CamionVisual {
   id: string;
@@ -576,8 +577,8 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                 <div className="text-xs mb-2">
                   Estado: {camion.estado}<br />
                   Pedidos asignados: {numPedidos}<br />
-                  Capacidad GLP: {camion.capacidadActualGLP.toFixed(2)} / {camion.capacidadMaximaGLP}<br />
-                  Combustible: {camion.combustibleActual.toFixed(2)} / {camion.combustibleMaximo}<br />
+                  Capacidad GLP: {formatearCapacidadGLP(camion.capacidadActualGLP, camion.capacidadMaximaGLP)}<br />
+                  Combustible: {formatearCombustible(camion.combustibleActual, camion.combustibleMaximo)}<br />
                   Distancia máxima: {camion.distanciaMaxima.toFixed(2)} km<br />
                   Peso carga: {camion.pesoCarga.toFixed(2)}<br />
                   Peso combinado: {camion.pesoCombinado.toFixed(2)}<br />
@@ -620,8 +621,8 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                 <div className="text-xs mb-2">
                   Estado: {camion.estado}<br />
                   Pedidos asignados: {numPedidos}<br />
-                  Capacidad GLP: {camion.capacidadActualGLP.toFixed(2)} / {camion.capacidadMaximaGLP}<br />
-                  Combustible: {camion.combustibleActual.toFixed(2)} / {camion.combustibleMaximo}<br />
+                  Capacidad GLP: {formatearCapacidadGLP(camion.capacidadActualGLP, camion.capacidadMaximaGLP)}<br />
+                  Combustible: {formatearCombustible(camion.combustibleActual, camion.combustibleMaximo)}<br />
                   Distancia máxima: {camion.distanciaMaxima.toFixed(2)} km<br />
                   Peso carga: {camion.pesoCarga.toFixed(2)}<br />
                   Peso combinado: {camion.pesoCombinado.toFixed(2)}<br />

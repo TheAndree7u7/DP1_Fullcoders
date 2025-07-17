@@ -3,6 +3,7 @@ import { useSimulacion } from '../context/SimulacionContext';
 import Camion from '../assets/camion.svg';
 import { getCamionColorByState } from '../config/colors';
 import { useEffect } from 'react';
+import { esValorValido } from '../utils/validacionCamiones';
 
 const CardsCamiones: React.FC = () => {
   const { camiones, rutasCamiones } = useSimulacion();
@@ -30,23 +31,23 @@ const CardsCamiones: React.FC = () => {
             console.error(`❌ ERROR: Camión ${index} no tiene ID:`, camion);
           }
           
-          if (typeof camion.capacidadActualGLP !== 'number' || isNaN(camion.capacidadActualGLP)) {
+          if (!esValorValido(camion.capacidadActualGLP)) {
             console.error(`❌ ERROR: Camión ${camion.id} tiene capacidadActualGLP inválida:`, camion.capacidadActualGLP);
           }
           
-          if (typeof camion.capacidadMaximaGLP !== 'number' || isNaN(camion.capacidadMaximaGLP)) {
+          if (!esValorValido(camion.capacidadMaximaGLP)) {
             console.error(`❌ ERROR: Camión ${camion.id} tiene capacidadMaximaGLP inválida:`, camion.capacidadMaximaGLP);
           }
           
-          if (typeof camion.combustibleActual !== 'number' || isNaN(camion.combustibleActual)) {
+          if (!esValorValido(camion.combustibleActual)) {
             console.error(`❌ ERROR: Camión ${camion.id} tiene combustibleActual inválido:`, camion.combustibleActual);
           }
           
-          if (typeof camion.combustibleMaximo !== 'number' || isNaN(camion.combustibleMaximo)) {
+          if (!esValorValido(camion.combustibleMaximo)) {
             console.error(`❌ ERROR: Camión ${camion.id} tiene combustibleMaximo inválido:`, camion.combustibleMaximo);
           }
           
-          if (typeof camion.porcentaje !== 'number' || isNaN(camion.porcentaje)) {
+          if (!esValorValido(camion.porcentaje)) {
             console.error(`❌ ERROR: Camión ${camion.id} tiene porcentaje inválido:`, camion.porcentaje);
           }
           
@@ -113,7 +114,7 @@ const CardsCamiones: React.FC = () => {
             return null;
           }
           
-          if (typeof camion.porcentaje !== 'number' || isNaN(camion.porcentaje)) {
+          if (!esValorValido(camion.porcentaje)) {
             console.error(`❌ ERROR: Camión ${camion.id} tiene porcentaje inválido para renderizar:`, camion.porcentaje);
             return null;
           }

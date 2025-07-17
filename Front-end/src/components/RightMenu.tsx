@@ -6,6 +6,7 @@ import CardsCamiones from './CardCamion';
 import IndicadoresCamiones from './IndicadoresCamiones';
 import BloqueosTable from './BloqueosTable';
 import TablaPedidos from './TablaPedidos';
+import { formatearCapacidadGLP, formatearCombustible, obtenerClaseColorValor, esValorValido } from '../utils/validacionCamiones';
 
 // Tabla simple de datos de camiones usando el contexto
 function DatosCamionesTable({ onElementoSeleccionado }: { onElementoSeleccionado: (elemento: {tipo: 'camion' | 'pedido' | 'almacen', id: string} | null) => void }) {
@@ -206,31 +207,17 @@ function DatosCamionesTable({ onElementoSeleccionado }: { onElementoSeleccionado
                     );
                   }
 
-                  // Validar propiedades numéricas
-                  const capacidadActualGLP = typeof camion.capacidadActualGLP === 'number' && !isNaN(camion.capacidadActualGLP) 
-                    ? camion.capacidadActualGLP 
-                    : 0;
-                  const capacidadMaximaGLP = typeof camion.capacidadMaximaGLP === 'number' && !isNaN(camion.capacidadMaximaGLP) 
-                    ? camion.capacidadMaximaGLP 
-                    : 0;
-                  const combustibleActual = typeof camion.combustibleActual === 'number' && !isNaN(camion.combustibleActual) 
-                    ? camion.combustibleActual 
-                    : 0;
-                  const combustibleMaximo = typeof camion.combustibleMaximo === 'number' && !isNaN(camion.combustibleMaximo) 
-                    ? camion.combustibleMaximo 
-                    : 0;
-
                   // Log de validación si hay problemas
-                  if (typeof camion.capacidadActualGLP !== 'number' || isNaN(camion.capacidadActualGLP)) {
+                  if (!esValorValido(camion.capacidadActualGLP)) {
                     console.error(`❌ ERROR: Camión ${camion.id} tiene capacidadActualGLP inválida:`, camion.capacidadActualGLP);
                   }
-                  if (typeof camion.capacidadMaximaGLP !== 'number' || isNaN(camion.capacidadMaximaGLP)) {
+                  if (!esValorValido(camion.capacidadMaximaGLP)) {
                     console.error(`❌ ERROR: Camión ${camion.id} tiene capacidadMaximaGLP inválida:`, camion.capacidadMaximaGLP);
                   }
-                  if (typeof camion.combustibleActual !== 'number' || isNaN(camion.combustibleActual)) {
+                  if (!esValorValido(camion.combustibleActual)) {
                     console.error(`❌ ERROR: Camión ${camion.id} tiene combustibleActual inválido:`, camion.combustibleActual);
                   }
-                  if (typeof camion.combustibleMaximo !== 'number' || isNaN(camion.combustibleMaximo)) {
+                  if (!esValorValido(camion.combustibleMaximo)) {
                     console.error(`❌ ERROR: Camión ${camion.id} tiene combustibleMaximo inválido:`, camion.combustibleMaximo);
                   }
 
@@ -244,11 +231,11 @@ function DatosCamionesTable({ onElementoSeleccionado }: { onElementoSeleccionado
                       title="Clic para resaltar en el mapa"
                     >
                       <td className="px-4 py-2 text-gray-800 font-mono font-semibold">{camion.id}</td>
-                      <td className="px-4 py-2 text-blue-700 font-bold">
-                        {capacidadActualGLP.toFixed(2)} / {capacidadMaximaGLP}
+                      <td className={`px-4 py-2 font-bold ${obtenerClaseColorValor(camion.capacidadActualGLP)}`}>
+                        {formatearCapacidadGLP(camion.capacidadActualGLP, camion.capacidadMaximaGLP)}
                       </td>
-                      <td className="px-4 py-2 text-green-700 font-bold">
-                        {combustibleActual.toFixed(2)} / {combustibleMaximo}
+                      <td className={`px-4 py-2 font-bold ${obtenerClaseColorValor(camion.combustibleActual)}`}>
+                        {formatearCombustible(camion.combustibleActual, camion.combustibleMaximo)}
                       </td>
                       <td className="px-4 py-2 text-gray-600">{camion.ubicacion || 'N/A'}</td>
                       <td className={
