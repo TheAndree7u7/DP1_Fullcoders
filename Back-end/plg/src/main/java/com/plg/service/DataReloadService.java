@@ -12,6 +12,7 @@ import com.plg.entity.Pedido;
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidDataFormatException;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -45,6 +46,24 @@ public class DataReloadService {
             List<Mantenimiento> mantenimientos = recargarMantenimientos();
             recargarBloqueos();
 
+            // Calcular fechas mínima y máxima de los pedidos
+            LocalDateTime fechaMinimaPedidos = null;
+            LocalDateTime fechaMaximaPedidos = null;
+
+            if (!pedidos.isEmpty()) {
+                fechaMinimaPedidos = pedidos.stream()
+                        .map(Pedido::getFechaRegistro)
+                        .filter(fecha -> fecha != null)
+                        .min(LocalDateTime::compareTo)
+                        .orElse(null);
+
+                fechaMaximaPedidos = pedidos.stream()
+                        .map(Pedido::getFechaRegistro)
+                        .filter(fecha -> fecha != null)
+                        .max(LocalDateTime::compareTo)
+                        .orElse(null);
+            }
+
             // Crear resultado con estadísticas
             DataReloadResult resultado = new DataReloadResult(
                     almacenes.size(),
@@ -52,7 +71,9 @@ public class DataReloadService {
                     pedidos.size(),
                     averias.size(),
                     mantenimientos.size(),
-                    DataLoader.bloqueos.size());
+                    DataLoader.bloqueos.size(),
+                    fechaMinimaPedidos,
+                    fechaMaximaPedidos);
 
             System.out.println("✅ Recarga de datos completada exitosamente");
             System.out.println("📊 Estadísticas de recarga: " + resultado);
@@ -148,15 +169,20 @@ public class DataReloadService {
         private final int cantidadAverias;
         private final int cantidadMantenimientos;
         private final int cantidadBloqueos;
+        private final LocalDateTime fechaMinimaPedidos;
+        private final LocalDateTime fechaMaximaPedidos;
 
         public DataReloadResult(int cantidadAlmacenes, int cantidadCamiones, int cantidadPedidos,
-                int cantidadAverias, int cantidadMantenimientos, int cantidadBloqueos) {
+                int cantidadAverias, int cantidadMantenimientos, int cantidadBloqueos,
+                LocalDateTime fechaMinimaPedidos, LocalDateTime fechaMaximaPedidos) {
             this.cantidadAlmacenes = cantidadAlmacenes;
             this.cantidadCamiones = cantidadCamiones;
             this.cantidadPedidos = cantidadPedidos;
             this.cantidadAverias = cantidadAverias;
             this.cantidadMantenimientos = cantidadMantenimientos;
             this.cantidadBloqueos = cantidadBloqueos;
+            this.fechaMinimaPedidos = fechaMinimaPedidos;
+            this.fechaMaximaPedidos = fechaMaximaPedidos;
         }
 
         // Getters
@@ -184,12 +210,21 @@ public class DataReloadService {
             return cantidadBloqueos;
         }
 
+        public LocalDateTime getFechaMinimaPedidos() {
+            return fechaMinimaPedidos;
+        }
+
+        public LocalDateTime getFechaMaximaPedidos() {
+            return fechaMaximaPedidos;
+        }
+
         @Override
         public String toString() {
             return String.format(
-                    "DataReloadResult{almacenes=%d, camiones=%d, pedidos=%d, averias=%d, mantenimientos=%d, bloqueos=%d}",
+                    "DataReloadResult{almacenes=%d, camiones=%d, pedidos=%d, averias=%d, mantenimientos=%d, bloqueos=%d, fechaMinimaPedidos=%s, fechaMaximaPedidos=%s}",
                     cantidadAlmacenes, cantidadCamiones, cantidadPedidos,
-                    cantidadAverias, cantidadMantenimientos, cantidadBloqueos);
+                    cantidadAverias, cantidadMantenimientos, cantidadBloqueos,
+                    fechaMinimaPedidos, fechaMaximaPedidos);
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.plg.dto;
 
+import java.time.LocalDateTime;
+
 /**
  * DTO para representar el resultado de la recarga de datos del sistema.
  * Implementa el principio de encapsulación al agrupar datos relacionados
@@ -13,11 +15,14 @@ public class DataReloadDto {
     private final int cantidadAverias;
     private final int cantidadMantenimientos;
     private final int cantidadBloqueos;
+    private final LocalDateTime fechaMinimaPedidos;
+    private final LocalDateTime fechaMaximaPedidos;
     private final String mensaje;
     private final boolean exito;
 
     public DataReloadDto(int cantidadAlmacenes, int cantidadCamiones, int cantidadPedidos,
             int cantidadAverias, int cantidadMantenimientos, int cantidadBloqueos,
+            LocalDateTime fechaMinimaPedidos, LocalDateTime fechaMaximaPedidos,
             String mensaje, boolean exito) {
         this.cantidadAlmacenes = cantidadAlmacenes;
         this.cantidadCamiones = cantidadCamiones;
@@ -25,6 +30,8 @@ public class DataReloadDto {
         this.cantidadAverias = cantidadAverias;
         this.cantidadMantenimientos = cantidadMantenimientos;
         this.cantidadBloqueos = cantidadBloqueos;
+        this.fechaMinimaPedidos = fechaMinimaPedidos;
+        this.fechaMaximaPedidos = fechaMaximaPedidos;
         this.mensaje = mensaje;
         this.exito = exito;
     }
@@ -32,16 +39,18 @@ public class DataReloadDto {
     // Constructor para caso de éxito
     public static DataReloadDto crearExitoso(int cantidadAlmacenes, int cantidadCamiones,
             int cantidadPedidos, int cantidadAverias,
-            int cantidadMantenimientos, int cantidadBloqueos) {
+            int cantidadMantenimientos, int cantidadBloqueos,
+            LocalDateTime fechaMinimaPedidos, LocalDateTime fechaMaximaPedidos) {
         return new DataReloadDto(
                 cantidadAlmacenes, cantidadCamiones, cantidadPedidos,
                 cantidadAverias, cantidadMantenimientos, cantidadBloqueos,
+                fechaMinimaPedidos, fechaMaximaPedidos,
                 "Recarga de datos completada exitosamente", true);
     }
 
     // Constructor para caso de error
     public static DataReloadDto crearError(String mensajeError) {
-        return new DataReloadDto(0, 0, 0, 0, 0, 0, mensajeError, false);
+        return new DataReloadDto(0, 0, 0, 0, 0, 0, null, null, mensajeError, false);
     }
 
     // Getters
@@ -69,6 +78,14 @@ public class DataReloadDto {
         return cantidadBloqueos;
     }
 
+    public LocalDateTime getFechaMinimaPedidos() {
+        return fechaMinimaPedidos;
+    }
+
+    public LocalDateTime getFechaMaximaPedidos() {
+        return fechaMaximaPedidos;
+    }
+
     public String getMensaje() {
         return mensaje;
     }
@@ -80,8 +97,9 @@ public class DataReloadDto {
     @Override
     public String toString() {
         return String.format(
-                "DataReloadDto{exito=%s, mensaje='%s', almacenes=%d, camiones=%d, pedidos=%d, averias=%d, mantenimientos=%d, bloqueos=%d}",
+                "DataReloadDto{exito=%s, mensaje='%s', almacenes=%d, camiones=%d, pedidos=%d, averias=%d, mantenimientos=%d, bloqueos=%d, fechaMinimaPedidos=%s, fechaMaximaPedidos=%s}",
                 exito, mensaje, cantidadAlmacenes, cantidadCamiones, cantidadPedidos,
-                cantidadAverias, cantidadMantenimientos, cantidadBloqueos);
+                cantidadAverias, cantidadMantenimientos, cantidadBloqueos,
+                fechaMinimaPedidos, fechaMaximaPedidos);
     }
 }

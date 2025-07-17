@@ -50,7 +50,9 @@ public class DataReloadController {
                     resultado.getCantidadPedidos(),
                     resultado.getCantidadAverias(),
                     resultado.getCantidadMantenimientos(),
-                    resultado.getCantidadBloqueos());
+                    resultado.getCantidadBloqueos(),
+                    resultado.getFechaMinimaPedidos(),
+                    resultado.getFechaMaximaPedidos());
 
             System.out.println("✅ ENDPOINT RESPUESTA: Recarga completada exitosamente");
             System.out.println("📊 Datos recargados: " + dto);
