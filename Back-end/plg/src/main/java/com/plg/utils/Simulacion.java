@@ -212,6 +212,7 @@ public class Simulacion {
         if (Parametros.fecha_inicial == null) {
             System.err.println("❌ Error: Parametros.fecha_inicial es null. Configurando con fecha actual.");
             Parametros.fecha_inicial = fechaActual;
+            // !DEBERIA COLOCAR LA FECHA FINAL EN FUNCION AL TIPO DE SIMULACION
         }
         // !BUSCA TODOS LOS PEDIDOS con fecha menor a la fecha actual pero mayor a la
         // fecha de inicio

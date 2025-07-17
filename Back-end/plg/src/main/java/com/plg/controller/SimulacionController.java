@@ -108,6 +108,7 @@ public class SimulacionController {
             System.err.println("❌ Error al parsear la fecha recibida: " + fecha);
             return ResponseEntity.badRequest().body("Error al parsear la fecha");
         }
+        // !aca genera el paquete de mejor individuo
         Simulacion.simularIntervalo(fechaSimulacion);
 
         IndividuoDto siguientePaquete = Simulacion.obtenerSiguientePaquete();
@@ -284,40 +285,11 @@ public class SimulacionController {
                 System.out.println("❌ Error: Fecha de inicio es nula");
                 return ResponseEntity.badRequest().body("Error: La fecha de inicio no puede ser nula");
             }
-            // ACTIVAR bandera de inicialización
-            DataLoader.inicializando = true;
+            com.plg.utils.simulacion.GestorHistorialSimulacion.limpiarHistorialCompleto();
+
             // Pedir mejor individuo
             Simulacion.simularIntervalo(request.getFechaInicio());
 
-            // Detener cualquier simulación anterior
-            //// detenerSimulacionActual();
-            System.out.println("🛑 Simulación anterior detenida (si existía)");
-
-            // Verificar estado del sistema antes de iniciar
-            System.out.println("🔍 DIAGNÓSTICO DEL SISTEMA:");
-            System.out.println("   • Almacenes disponibles: " + com.plg.config.DataLoader.almacenes.size());
-            System.out.println("   • Camiones disponibles: " + com.plg.config.DataLoader.camiones.size());
-            System.out.println("   • Mapa inicializado: " + (com.plg.entity.Mapa.getInstance() != null));
-
-            // Verificar camiones disponibles (no en mantenimiento)
-            long camionesDisponibles = com.plg.config.DataLoader.camiones.stream()
-                    .filter(camion -> camion.getEstado() != com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
-                    .count();
-            System.out.println("   • Camiones no en mantenimiento: " + camionesDisponibles);
-
-            if (camionesDisponibles == 0) {
-                System.out.println("⚠️ ADVERTENCIA: Todos los camiones están en mantenimiento");
-            }
-
-            System.out.println("🔧 Configurando simulación con fecha: " + request.getFechaInicio());
-
-            // Limpiar historial anterior antes de iniciar nueva simulación
-            com.plg.utils.simulacion.GestorHistorialSimulacion.limpiarHistorialCompleto();
-
-            // Configurar la simulación con la fecha enviada desde el frontend
-            Simulacion.configurarSimulacion(request.getFechaInicio());
-            // DESACTIVAR bandera de inicialización
-            DataLoader.inicializando = false;
             String mensaje = "Simulación iniciada correctamente con fecha: " + request.getFechaInicio();
             System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
 

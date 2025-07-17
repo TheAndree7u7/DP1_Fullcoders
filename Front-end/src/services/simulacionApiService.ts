@@ -3,7 +3,7 @@ import { API_URLS } from "../config/api";
 
 export async function getMejorIndividuo(fechaInicio: string): Promise<Individuo> {
   try {
-    console.log("Iniciando solicitud al servidor (GET con fecha)...");
+    console.log("Iniciando solicitud al servidor (GET con fecha). Fecha: " + fechaInicio);
 
     // Codificar la fecha para la URL
     const url = `${API_URLS.MEJOR_INDIVIDUO}/${encodeURIComponent(fechaInicio)}`;
