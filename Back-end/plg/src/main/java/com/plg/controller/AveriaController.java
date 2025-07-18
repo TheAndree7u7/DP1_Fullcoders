@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.plg.dto.request.AveriaConEstadoRequest;
 import com.plg.dto.request.AveriaRequest;
 import com.plg.entity.Averia;
 import com.plg.entity.EstadoCamion;
@@ -69,7 +70,7 @@ public class AveriaController {
             return ResponseEntity.ok(averiaService.listar()
                     .stream()
                     .filter(a -> a.getCamion() != null
-                    && a.getCamion().getCodigo().equals(codigoCamion))
+                            && a.getCamion().getCodigo().equals(codigoCamion))
                     .toList());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -134,11 +135,11 @@ public class AveriaController {
      * Lista averías por camión y tipo de incidente.
      */
     @GetMapping("/camion-tipo")
-    public ResponseEntity<?> listarPorCamionYTipo(@RequestParam String codigoCamion, @RequestParam String tipoIncidente) {
+    public ResponseEntity<?> listarPorCamionYTipo(@RequestParam String codigoCamion,
+            @RequestParam String tipoIncidente) {
         try {
             return ResponseEntity.ok(
-                    averiaService.listarPorCamionYTipo(codigoCamion, tipoIncidente)
-            );
+                    averiaService.listarPorCamionYTipo(codigoCamion, tipoIncidente));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Error al filtrar averías por camión y tipo: " + e.getMessage());
@@ -150,8 +151,7 @@ public class AveriaController {
      * EN_MANTENIMIENTO_POR_AVERIA.
      */
     @PostMapping("/averiar-camion")
-    public ResponseEntity<?> averiarCamion(@RequestBody AveriaRequest request
-    ) {
+    public ResponseEntity<?> averiarCamion(@RequestBody AveriaRequest request) {
         try {
             Averia averia = averiaService.agregar(request);
             camionService.cambiarEstado(request.getCodigoCamion(), EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA);
@@ -176,6 +176,78 @@ public class AveriaController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al actualizar estados de camiones averiados: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Agrega una nueva avería con estado completo de la simulación.
+     * Este endpoint recibe tanto los datos de la avería como el estado
+     * completo de la simulación en el momento de la avería.
+     */
+    @PostMapping("/averiar-camion-con-estado")
+    public ResponseEntity<?> averiarCamionConEstado(@RequestBody AveriaConEstadoRequest request) {
+        try {
+            // Validaciones básicas
+            if (request.getCodigoCamion() == null || request.getCodigoCamion().trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("El código del camión es obligatorio");
+            }
+            if (request.getTipoIncidente() == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("El tipo de incidente es obligatorio");
+            }
+            if (request.getEstadoSimulacion() == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("El estado de la simulación es obligatorio");
+            }
+
+            // Procesar la avería con estado completo
+            // Averia averia = averiaService.agregar(request.toAveriaRequest());
+            Averia averia = new Averia();
+            // Cambiar el estado del camión
+            camionService.cambiarEstado(request.getCodigoCamion(), EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA);
+
+            // Crear respuesta con información adicional
+            return ResponseEntity.status(HttpStatus.CREATED).body(new AveriaConEstadoResponse(
+                    averia,
+                    "Avería creada exitosamente con estado completo de la simulación",
+                    request.getEstadoSimulacion().getTimestamp(),
+                    request.getEstadoSimulacion().getHoraSimulacion()));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error al crear avería con estado completo: " + e.getMessage());
+        }
+    }
+
+    public static class AveriaConEstadoResponse {
+        private Averia averia;
+        private String mensaje;
+        private String timestampEstado;
+        private String horaSimulacion;
+
+        public AveriaConEstadoResponse(Averia averia, String mensaje, String timestampEstado, String horaSimulacion) {
+            this.averia = averia;
+            this.mensaje = mensaje;
+            this.timestampEstado = timestampEstado;
+            this.horaSimulacion = horaSimulacion;
+        }
+
+        // Getters
+        public Averia getAveria() {
+            return averia;
+        }
+
+        public String getMensaje() {
+            return mensaje;
+        }
+
+        public String getTimestampEstado() {
+            return timestampEstado;
+        }
+
+        public String getHoraSimulacion() {
+            return horaSimulacion;
         }
     }
 }
