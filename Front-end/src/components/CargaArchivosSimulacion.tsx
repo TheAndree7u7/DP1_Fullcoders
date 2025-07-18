@@ -9,6 +9,7 @@ import {
   formatearTamanoArchivo 
 } from './cargar_archivos';
 import { iniciarSimulacion, obtenerInfoSimulacion } from '../services/simulacionApiService';
+import DragAndDropZone from './DragAndDropZone';
 
 interface CargaArchivosSimulacionProps {
   onArchivosCargados: (estado: EstadoCargaArchivos) => void;
@@ -38,6 +39,16 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState<string>('');
   const [tipoMensaje, setTipoMensaje] = useState<'success' | 'error' | 'info'>('info');
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [archivosClasificados, setArchivosClasificados] = useState<{
+    [key: string]: File[];
+  }>({
+    ventas: [],
+    bloqueos: [],
+    camiones: [],
+    mantenimiento: [],
+    noClasificados: []
+  });
 
   const fileInputVentasRef = useRef<HTMLInputElement>(null);
   const fileInputBloqueosRef = useRef<HTMLInputElement>(null);
@@ -62,6 +73,31 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
       setEstadoCarga(nuevoEstado);
       onArchivosCargados(nuevoEstado);
     });
+  };
+
+  // Función para manejar archivos clasificados por drag and drop
+  const handleFileClassified = async (file: File, tipo: 'ventas' | 'bloqueos' | 'camiones' | 'mantenimiento') => {
+    setArchivosClasificados(prev => ({
+      ...prev,
+      [tipo]: [...prev[tipo], file]
+    }));
+    
+    // Procesar el archivo inmediatamente
+    await handleCargaArchivo(file, tipo);
+  };
+
+  // Función para manejar múltiples archivos
+  const handleFilesDrop = (files: File[]) => {
+    console.log(`Se procesaron ${files.length} archivos`);
+    
+    // Mostrar mensaje de éxito
+    setMensaje(`Se procesaron ${files.length} archivos. Revisa el estado de cada sección.`);
+    setTipoMensaje('success');
+    
+    // Limpiar mensaje después de 3 segundos
+    setTimeout(() => {
+      setMensaje('');
+    }, 3000);
   };
 
 
@@ -198,6 +234,39 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
           <p className="text-gray-600 mb-4">
             Para continuar con la simulación semanal, debes cargar los siguientes archivos:
           </p>
+        </div>
+
+        {/* Zona de Drag and Drop */}
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm mr-2">🚀</span>
+            Carga Rápida - Arrastra y Suelta Múltiples Archivos
+          </h3>
+          
+          <DragAndDropZone
+            onFilesDrop={handleFilesDrop}
+            onFileClassified={handleFileClassified}
+            isDragOver={isDragOver}
+            setIsDragOver={setIsDragOver}
+          />
+          
+          {/* Resumen de archivos clasificados */}
+          {Object.values(archivosClasificados).some(archivos => archivos.length > 0) && (
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="text-sm font-semibold text-blue-800 mb-2">Archivos Clasificados:</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                {Object.entries(archivosClasificados).map(([tipo, archivos]) => {
+                  if (archivos.length === 0) return null;
+                  return (
+                    <div key={tipo} className="bg-white rounded p-2">
+                      <span className="font-medium text-gray-700 capitalize">{tipo}:</span>
+                      <span className="text-gray-600 ml-1">{archivos.length}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Sección de Archivos de Ventas */}
