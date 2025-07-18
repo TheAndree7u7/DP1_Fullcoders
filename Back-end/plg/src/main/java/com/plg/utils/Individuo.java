@@ -6,12 +6,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import com.plg.utils.Parametros;
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
-import com.plg.entity.EstadoPedido;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -91,6 +90,10 @@ public class Individuo {
         guardarEstadoActual();
         Collections.shuffle(camionesDisponibles);
         for (Camion camion : camionesDisponibles) {
+            // Validacion si el camion tiene GLP para entregar
+            if (camion.getCapacidadActualGLP() <= 0) {
+                continue; // Si el camión no tiene GLP, saltar a la siguiente iteración
+            }
             int intentos = 0;
             boolean asignado = false;
             while (intentos < 10 && !asignado && !pedidosMezclados.isEmpty()) {

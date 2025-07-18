@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -232,13 +233,8 @@ public class Mapa {
         
         Nodo inicio = getNodo(nodo1.getCoordenada());
         Nodo destino = getNodo(nodo2.getCoordenada());
-        
-        
         PriorityQueue<Nodo> openSet = new PriorityQueue<>((a, b) -> Double.compare(a.getFScore(), b.getFScore()));
-        Map<Nodo, Nodo> cameFrom = new HashMap<>(); // Cambiar a HashMap para mejor rendimiento
-        Set<Nodo> closedSet = new HashSet<>(); // Agregar conjunto cerrado
-
-        
+        Map<Nodo, Nodo> cameFrom = new LinkedHashMap<>();
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
                 Nodo nodo = getNodo(i, j);
@@ -254,24 +250,11 @@ public class Mapa {
         while (!openSet.isEmpty()) {
 
             Nodo nodoActual = openSet.poll();
-            
-            // Verificar si ya procesamos este nodo
-            if (closedSet.contains(nodoActual)) {
-                continue;
-            }
-            closedSet.add(nodoActual);
-            
             if (nodoActual.equals(destino)) {
-                List<Nodo> ruta = reconstruirRuta(cameFrom, nodoActual);
-                return ruta;
+                return reconstruirRuta(cameFrom, nodoActual);
             }
             
             for (Nodo vecino : getAdj(nodoActual.getCoordenada())) {
-                // Saltar nodos ya procesados
-                if (closedSet.contains(vecino)) {
-                    continue;
-                }
-                
                 // Permitir llegar a un nodo bloqueado solo si es el destino
                 if (vecino.isBloqueado() && !vecino.equals(destino)) {
                     continue;
