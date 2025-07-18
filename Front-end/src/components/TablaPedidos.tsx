@@ -68,36 +68,63 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  // Extraer todos los pedidos de las rutas de camiones
+  // Extraer y agrupar pedidos por código para evitar duplicados
   const todosPedidos = React.useMemo(() => {
-    const pedidos: Array<Pedido & { camionId: string; estadoCamion: string }> = [];
+    const pedidosMap = new Map<string, Pedido & { 
+      camionesAsignados: string[]; 
+      estadosCamiones: string[];
+      volumenTotal: number;
+      volumenPendiente: number;
+      estadoPedido: string;
+    }>();
     
     rutasCamiones.forEach(ruta => {
       const camion = camiones.find(c => c.id === ruta.id);
       const estadoCamion = camion?.estado || 'Desconocido';
       
       ruta.pedidos.forEach(pedido => {
-        // Inferir el estado del pedido basado en el estado del camión y otros factores
-        let estadoPedido = pedido.estado || 'PENDIENTE';
-        
-        if (estadoCamion === 'Entregado') {
-          estadoPedido = 'ENTREGADO';
-        } else if (estadoCamion === 'En Camino' || estadoCamion === 'Disponible') {
-          estadoPedido = 'EN_TRANSITO';
-        } else if (estadoCamion === 'Averiado') {
-          estadoPedido = 'RETRASO';
+        if (!pedidosMap.has(pedido.codigo)) {
+          // Crear nuevo pedido agrupado
+          pedidosMap.set(pedido.codigo, {
+            ...pedido,
+            camionesAsignados: [ruta.id],
+            estadosCamiones: [estadoCamion],
+            volumenTotal: pedido.volumenGLPAsignado,
+            volumenPendiente: pedido.volumenGLPAsignado,
+            estadoPedido: 'PENDIENTE'
+          });
+        } else {
+          // Agregar camión al pedido existente
+          const pedidoExistente = pedidosMap.get(pedido.codigo)!;
+          pedidoExistente.camionesAsignados.push(ruta.id);
+          pedidoExistente.estadosCamiones.push(estadoCamion);
         }
-        
-        pedidos.push({
-          ...pedido,
-          estado: estadoPedido,
-          camionId: ruta.id,
-          estadoCamion
-        });
       });
     });
+
+    // Calcular estado final de cada pedido basado en los estados de sus camiones
+    const pedidosAgrupados = Array.from(pedidosMap.values()).map(pedido => {
+      const todosEntregados = pedido.estadosCamiones.every(estado => estado === 'Entregado');
+      const algunoEnCamino = pedido.estadosCamiones.some(estado => estado === 'En Camino' || estado === 'Disponible');
+      const algunoAveriado = pedido.estadosCamiones.some(estado => estado === 'Averiado');
+      
+      let estadoFinal = 'PENDIENTE';
+      if (todosEntregados) {
+        estadoFinal = 'ENTREGADO';
+      } else if (algunoEnCamino) {
+        estadoFinal = 'EN_TRANSITO';
+      } else if (algunoAveriado) {
+        estadoFinal = 'RETRASO';
+      }
+      
+      return {
+        ...pedido,
+        estado: estadoFinal,
+        estadoPedido: estadoFinal
+      };
+    });
     
-    return pedidos;
+    return pedidosAgrupados;
   }, [rutasCamiones, camiones]);
 
      // Función para manejar el ordenamiento
@@ -111,7 +138,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
    };
 
    // Función para obtener el valor a ordenar
-   const getSortValue = (pedido: Pedido & { camionId: string; estadoCamion: string }, column: string) => {
+   const getSortValue = (pedido: any, column: string) => {
      switch (column) {
        case 'codigo':
          return pedido.codigo;
@@ -120,7 +147,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
        case 'ubicacion':
          return `${pedido.coordenada.x},${pedido.coordenada.y}`;
        case 'camion':
-         return pedido.camionId;
+         return pedido.camionesAsignados ? pedido.camionesAsignados.join(', ') : '';
        case 'glp':
          return pedido.volumenGLPAsignado || 0;
        case 'fechaRegistro':
@@ -148,7 +175,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
          pedido.codigo.toLowerCase().includes(terminoBusqueda) ||
          `${pedido.coordenada.x},${pedido.coordenada.y}`.includes(terminoBusqueda) ||
          `(${pedido.coordenada.x},${pedido.coordenada.y})`.includes(terminoBusqueda) ||
-         pedido.camionId.toLowerCase().includes(terminoBusqueda) ||
+         (pedido.camionesAsignados && pedido.camionesAsignados.some((camion: string) => camion.toLowerCase().includes(terminoBusqueda))) ||
          (pedido.estado || 'PENDIENTE').toLowerCase().includes(terminoBusqueda) ||
          formatearFecha(pedido.fechaRegistro).toLowerCase().includes(terminoBusqueda) ||
          formatearFecha(pedido.fechaLimite).toLowerCase().includes(terminoBusqueda)
@@ -290,7 +317,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
                    className="flex items-center gap-1 hover:text-blue-600 transition-colors"
                    title="Ordenar por Camión"
                  >
-                   <span>Camión</span>
+                   <span>Camiones Asignados</span>
                    {renderSortIcon('camion')}
                  </button>
                </th>
@@ -334,9 +361,9 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
                 </td>
               </tr>
             ) : (
-                             pedidosFiltrados.map((pedido, idx) => (
+                             pedidosFiltrados.map((pedido) => (
                  <tr 
-                   key={`${pedido.codigo}-${idx}`} 
+                   key={pedido.codigo} 
                    onClick={() => onElementoSeleccionado && onElementoSeleccionado({tipo: 'pedido', id: pedido.codigo})}
                    className="border-b last:border-b-0 bg-white hover:bg-yellow-50 hover:cursor-pointer transition-colors"
                    title="Clic para resaltar en el mapa"
@@ -353,8 +380,26 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
                    <td className="px-4 py-2 text-gray-600">
                      ({pedido.coordenada.x}, {pedido.coordenada.y})
                    </td>
-                   <td className="px-4 py-2 text-blue-700 font-bold">
-                     {pedido.camionId}
+                   <td className="px-4 py-2">
+                     {pedido.camionesAsignados && pedido.camionesAsignados.length > 0 ? (
+                       <div className="space-y-1">
+                         <div className="text-xs text-gray-600">
+                           {pedido.camionesAsignados.length} camión{pedido.camionesAsignados.length > 1 ? 'es' : ''}
+                         </div>
+                         <div className="flex flex-wrap gap-1">
+                           {pedido.camionesAsignados.map((camionId: string) => (
+                             <span
+                               key={camionId}
+                               className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold"
+                             >
+                               {camionId}
+                             </span>
+                           ))}
+                         </div>
+                       </div>
+                     ) : (
+                       <span className="text-gray-500">Sin asignar</span>
+                     )}
                    </td>
                    <td className="px-4 py-2 text-purple-700 font-bold">
                      {pedido.volumenGLPAsignado?.toFixed(2) || 'N/A'}

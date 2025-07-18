@@ -67,4 +67,37 @@ export const obtenerClaseColorValor = (value: number): string => {
   } else {
     return "text-red-600 font-bold";
   }
+};
+
+/**
+ * Calcula la cantidad de GLP que entregará un camión específico
+ * @param camionId - ID del camión
+ * @param rutasCamiones - Array de rutas de camiones
+ * @param camiones - Array de estados de camiones
+ * @returns Cantidad total de GLP que entregará el camión
+ */
+export const calcularGLPEntregaPorCamion = (
+  camionId: string,
+  rutasCamiones: any[],
+  camiones: any[]
+): number => {
+  const ruta = rutasCamiones.find(r => r.id === camionId);
+  const camion = camiones.find(c => c.id === camionId);
+  
+  if (!ruta || !camion) {
+    return 0;
+  }
+
+  let totalEntrega = 0;
+  
+  // Sumar la cantidad que entregará a cada pedido
+  ruta.pedidos.forEach((pedido: any) => {
+    const cantidadEntrega = Math.min(
+      pedido.volumenGLPAsignado,
+      camion.capacidadActualGLP || 0
+    );
+    totalEntrega += cantidadEntrega;
+  });
+
+  return totalEntrega;
 }; 
