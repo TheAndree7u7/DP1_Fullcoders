@@ -23,6 +23,16 @@ export const ejemplos: EjemploArchivo[] = [
 01d02h40m-01d22h32m:57,30,57,45
 01d03h54m-01d21h25m:25,25,30,25,30,30,35,30
 01d05h05m-01d21h37m:42,08,42,15,47,15,47,27,55,27`
+  },
+  {
+    nombre: "camiones.txt",
+    descripcion: "Archivo de camiones",
+    tipo: "camiones",
+    formato: "Formato: TIPO,cantidad (TIPO: TA, TB, TC, TD)",
+    contenido: `TA,2
+TB,4
+TC,3
+TD,2`
   }
 ];
 

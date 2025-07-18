@@ -2,7 +2,7 @@ import type { EstadoCargaArchivos } from "../../types";
 
 // Función para verificar si se pueden cargar todos los archivos
 export const puedenCargarseArchivos = (estadoCarga: EstadoCargaArchivos): boolean => {
-  return estadoCarga.ventas.cargado && estadoCarga.bloqueos.cargado;
+  return estadoCarga.ventas.cargado && estadoCarga.bloqueos.cargado && estadoCarga.camiones.cargado;
 };
 
 // Función para formatear el tamaño del archivo en KB

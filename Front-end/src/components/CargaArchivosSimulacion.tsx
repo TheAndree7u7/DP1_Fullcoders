@@ -40,6 +40,7 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
 
   const fileInputVentasRef = useRef<HTMLInputElement>(null);
   const fileInputBloqueosRef = useRef<HTMLInputElement>(null);
+  const fileInputCamionesRef = useRef<HTMLInputElement>(null);
 
   // Cuando cambia la fecha local, actualizar el contexto global
   useEffect(() => {
@@ -334,6 +335,78 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
                 const file = e.target.files?.[0];
                 if (file) {
                   handleCargaArchivo(file, 'bloqueos');
+                }
+              }}
+              className="hidden"
+            />
+          </div>
+        </div>
+
+        {/* Sección de Archivos de Camiones */}
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2">3</span>
+            Archivo de Camiones
+          </h3>
+          
+          <div className="bg-gray-50 rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-gray-700">Estado:</span>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                estadoCarga.camiones.cargado 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {estadoCarga.camiones.cargado ? 'Cargado' : 'Pendiente'}
+              </span>
+            </div>
+            
+            {estadoCarga.camiones.archivo && (
+              <div className="bg-white rounded p-3 mb-3">
+                <p className="text-sm text-gray-600">
+                  <strong>Archivo:</strong> {estadoCarga.camiones.archivo.nombre}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <strong>Tamaño:</strong> {formatearTamanoArchivo(estadoCarga.camiones.archivo.tamano)} KB
+                </p>
+              </div>
+            )}
+
+            {estadoCarga.camiones.errores.length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded p-3 mb-3">
+                <p className="text-sm font-medium text-red-800 mb-2">Errores encontrados:</p>
+                <ul className="text-sm text-red-700 space-y-1">
+                  {estadoCarga.camiones.errores.map((error, index) => (
+                    <li key={index}>• {error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => fileInputCamionesRef.current?.click()}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Seleccionar Archivo
+              </button>
+              
+              <button
+                onClick={() => descargarEjemplo(ejemplos[2])}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Descargar Ejemplo
+              </button>
+            </div>
+
+            <input
+              ref={fileInputCamionesRef}
+              type="file"
+              accept=".txt"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  handleCargaArchivo(file, 'camiones');
                 }
               }}
               className="hidden"
