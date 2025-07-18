@@ -13,6 +13,7 @@ import type {
   Bloqueo,
   IndividuoConBloqueos
 } from "./types";
+import type { Pedido } from "../../types";
 
 /**
  * @function limpiarEstadoParaNuevaSimulacion
@@ -22,6 +23,7 @@ export const limpiarEstadoParaNuevaSimulacion = (
   setCamiones: (camiones: CamionEstado[]) => void,
   setRutasCamiones: (rutas: RutaCamion[]) => void,
   setBloqueos: (bloqueos: Bloqueo[]) => void,
+  setPedidosNoAsignados: (pedidos: Pedido[]) => void,
   setFechaHoraSimulacion: (fecha: string | null) => void,
   setFechaHoraInicioIntervalo: (fecha: string | null) => void,
   setFechaHoraFinIntervalo: (fecha: string | null) => void,
@@ -48,6 +50,7 @@ export const limpiarEstadoParaNuevaSimulacion = (
   setCamiones([]);
   setRutasCamiones([]);
   setBloqueos([]);
+  setPedidosNoAsignados([]);
   setFechaHoraSimulacion(null);
   // NO limpiar fechaInicioSimulacion para mantenerla durante toda la simulación semanal
   setFechaHoraInicioIntervalo(null);
@@ -93,6 +96,7 @@ export const limpiarSimulacionCompleta = (
   setCamiones: (camiones: CamionEstado[]) => void,
   setRutasCamiones: (rutas: RutaCamion[]) => void,
   setBloqueos: (bloqueos: Bloqueo[]) => void,
+  setPedidosNoAsignados: (pedidos: Pedido[]) => void,
   setFechaHoraSimulacion: (fecha: string | null) => void,
   setFechaInicioSimulacion: (fecha: string | null) => void,
   setFechaHoraInicioIntervalo: (fecha: string | null) => void,
@@ -117,6 +121,7 @@ export const limpiarSimulacionCompleta = (
   setCamiones([]);
   setRutasCamiones([]);
   setBloqueos([]);
+  setPedidosNoAsignados([]);
   setFechaHoraSimulacion(null);
   setFechaInicioSimulacion(null); // Limpiar fecha de inicio para nueva simulación semanal
   setFechaHoraInicioIntervalo(null);

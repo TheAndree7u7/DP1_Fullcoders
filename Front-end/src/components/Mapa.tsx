@@ -59,6 +59,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
     camiones, 
     rutasCamiones, 
     almacenes, 
+    pedidosNoAsignados,
     avanzarHora, 
     cargando, 
     bloqueos, 
@@ -93,7 +94,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
   // DEBUG: Verificar que almacenes llega al componente
   // console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
 
-  const pedidosPendientes = getPedidosPendientes(rutasCamiones, camiones);
+  const pedidosPendientes = getPedidosPendientes(rutasCamiones, camiones, pedidosNoAsignados);
   //console.log('👥 MAPA: Pedidos pendientes (clientes):', pedidosPendientes);
   //console.log('🚚 MAPA: Estado de camiones:', camiones);
 

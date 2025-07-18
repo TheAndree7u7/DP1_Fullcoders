@@ -69,6 +69,7 @@ export interface SimulacionContextType {
   camiones: CamionEstado[];
   rutasCamiones: RutaCamion[];
   almacenes: Almacen[];
+  pedidosNoAsignados: Pedido[];
   fechaHoraSimulacion: string | null;
   fechaInicioSimulacion: string | null;
   fechaHoraInicioIntervalo: string | null;
@@ -106,6 +107,7 @@ export interface SimulacionContextType {
 export type IndividuoConBloqueos = Individuo & {
   bloqueos?: Bloqueo[];
   almacenes?: Almacen[];
+  pedidos?: Pedido[]; // Array de pedidos no asignados
   fechaHoraSimulacion?: string;
   fechaHoraInicioIntervalo?: string;
   fechaHoraFinIntervalo?: string;

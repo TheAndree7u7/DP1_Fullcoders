@@ -10,7 +10,7 @@ import type {
   Bloqueo, 
   IndividuoConBloqueos
 } from "./types";
-import type { Almacen } from "../../types";
+import type { Almacen, Pedido } from "../../types";
 import type { Gen, Nodo } from "../../types";
 
 
@@ -27,6 +27,7 @@ export const cargarDatos = async (
   nuevosCamiones: CamionEstado[];
   bloqueos: Bloqueo[];
   almacenes: Almacen[];
+  pedidosNoAsignados: Pedido[];
   fechaHoraSimulacion: string | null;
   fechaHoraInicioIntervalo: string | null;
   fechaHoraFinIntervalo: string | null;
@@ -74,6 +75,18 @@ export const cargarDatos = async (
       } else {
         console.log(`Camión ${ruta.id} no tiene pedidos asignados`);
       }
+    });
+
+    // Procesar pedidos no asignados (array pedidos del JSON)
+    const pedidosNoAsignados: Pedido[] = data.pedidos || [];
+    console.log("🔍 Verificando pedidos no asignados:", {
+      total: pedidosNoAsignados.length,
+      pedidos: pedidosNoAsignados.map(p => ({
+        codigo: p.codigo,
+        coordenada: p.coordenada,
+        volumenGLPAsignado: p.volumenGLPAsignado,
+        estado: p.estado
+      }))
     });
 
     // Procesar estado de camiones con validaciones
@@ -174,6 +187,7 @@ export const cargarDatos = async (
       nuevosCamiones,
       bloqueos,
       almacenes,
+      pedidosNoAsignados,
       fechaHoraSimulacion,
       fechaHoraInicioIntervalo,
       fechaHoraFinIntervalo,

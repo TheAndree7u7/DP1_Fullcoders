@@ -17,6 +17,8 @@ const getColorByEstado = (estado: string) => {
       return 'bg-red-100 text-red-800 border-red-300';
     case 'RETRASO':
       return 'bg-orange-100 text-orange-800 border-orange-300';
+    case 'NO_ASIGNADO':
+      return 'bg-gray-100 text-gray-800 border-gray-300';
     default:
       return 'bg-gray-100 text-gray-800 border-gray-300';
   }
@@ -34,6 +36,8 @@ const getIconByEstado = (estado: string) => {
     case 'CANCELADO':
       return <Package className="w-4 h-4" />;
     case 'RETRASO':
+      return <Package className="w-4 h-4" />;
+    case 'NO_ASIGNADO':
       return <Package className="w-4 h-4" />;
     default:
       return <Package className="w-4 h-4" />;
@@ -62,7 +66,7 @@ interface TablaPedidosProps {
 }
 
 const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) => {
-  const { rutasCamiones, camiones } = useSimulacion();
+  const { rutasCamiones, camiones, pedidosNoAsignados } = useSimulacion();
   const [filtroEstado, setFiltroEstado] = useState<string>('TODOS');
   const [busqueda, setBusqueda] = useState<string>('');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -78,6 +82,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
       estadoPedido: string;
     }>();
     
+    // Procesar pedidos asignados a camiones
     rutasCamiones.forEach(ruta => {
       const camion = camiones.find(c => c.id === ruta.id);
       const estadoCamion = camion?.estado || 'Desconocido';
@@ -102,8 +107,32 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
       });
     });
 
+    // Procesar pedidos no asignados
+    pedidosNoAsignados.forEach(pedido => {
+      if (!pedidosMap.has(pedido.codigo)) {
+        // Crear nuevo pedido no asignado
+        pedidosMap.set(pedido.codigo, {
+          ...pedido,
+          camionesAsignados: [],
+          estadosCamiones: [],
+          volumenTotal: pedido.volumenGLPAsignado,
+          volumenPendiente: pedido.volumenGLPAsignado,
+          estadoPedido: 'NO_ASIGNADO'
+        });
+      }
+    });
+
     // Calcular estado final de cada pedido basado en los estados de sus camiones
     const pedidosAgrupados = Array.from(pedidosMap.values()).map(pedido => {
+      // Si no tiene camiones asignados, es NO_ASIGNADO
+      if (pedido.camionesAsignados.length === 0) {
+        return {
+          ...pedido,
+          estado: 'NO_ASIGNADO',
+          estadoPedido: 'NO_ASIGNADO'
+        };
+      }
+
       const todosEntregados = pedido.estadosCamiones.every(estado => estado === 'Entregado');
       const algunoEnCamino = pedido.estadosCamiones.some(estado => estado === 'En Camino' || estado === 'Disponible');
       const algunoAveriado = pedido.estadosCamiones.some(estado => estado === 'Averiado');
@@ -125,7 +154,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
     });
     
     return pedidosAgrupados;
-  }, [rutasCamiones, camiones]);
+  }, [rutasCamiones, camiones, pedidosNoAsignados]);
 
      // Función para manejar el ordenamiento
    const handleSort = (column: string) => {
@@ -138,7 +167,13 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
    };
 
    // Función para obtener el valor a ordenar
-   const getSortValue = (pedido: any, column: string) => {
+   const getSortValue = (pedido: Pedido & { 
+     camionesAsignados: string[]; 
+     estadosCamiones: string[];
+     volumenTotal: number;
+     volumenPendiente: number;
+     estadoPedido: string;
+   }, column: string) => {
      switch (column) {
        case 'codigo':
          return pedido.codigo;

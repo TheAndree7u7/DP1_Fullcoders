@@ -6,7 +6,7 @@
  */
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import type { Almacen, Gen, Nodo } from "../types";
+import type { Almacen, Gen, Nodo, Pedido } from "../types";
 
 // ============================
 // IMPORTACIONES DE TIPOS Y CONSTANTES
@@ -110,6 +110,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [rutasCamiones, setRutasCamiones] = useState<RutaCamion[]>([]);
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
+  const [pedidosNoAsignados, setPedidosNoAsignados] = useState<Pedido[]>([]);
   
   // Estados de control de actualización
   const [nodosRestantesAntesDeActualizar, setNodosRestantesAntesDeActualizar] =
@@ -432,6 +433,15 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         setAlmacenes(data.almacenes);
       }
 
+      // Procesar pedidos no asignados
+      if (data.pedidos) {
+        setPedidosNoAsignados(data.pedidos);
+        console.log(`✅ TRANSICIÓN: ${data.pedidos.length} pedidos no asignados procesados`);
+      } else {
+        setPedidosNoAsignados([]);
+        console.log("⚠️ TRANSICIÓN: No hay pedidos no asignados en la solución precargada");
+      }
+
       // CRÍTICO: Reiniciar el tiempo de simulación para sincronizar con el nuevo intervalo
       // Esto evita que el reloj siga avanzando mientras los camiones empiezan desde 0
       setHoraActual(0); // Reiniciar el nodo actual
@@ -534,6 +544,15 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (data.almacenes && data.almacenes.length > 0) {
         setAlmacenes(data.almacenes);
+      }
+
+      // Procesar pedidos no asignados
+      if (data.pedidos) {
+        setPedidosNoAsignados(data.pedidos);
+        console.log(`✅ NUEVA SOLUCIÓN: ${data.pedidos.length} pedidos no asignados procesados`);
+      } else {
+        setPedidosNoAsignados([]);
+        console.log("⚠️ NUEVA SOLUCIÓN: No hay pedidos no asignados en la solución recalculada");
       }
 
       // CRÍTICO: Calcular la nueva hora actual basada en el tiempo transcurrido
@@ -673,6 +692,15 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         console.warn("⚠️ ADVERTENCIA: No hay almacenes válidos del backend, manteniendo almacenes actuales");
       }
 
+      // Procesar pedidos no asignados
+      if (datos.pedidosNoAsignados && Array.isArray(datos.pedidosNoAsignados)) {
+        setPedidosNoAsignados(datos.pedidosNoAsignados);
+        console.log(`✅ PEDIDOS NO ASIGNADOS PROCESADOS: ${datos.pedidosNoAsignados.length} pedidos`);
+      } else {
+        console.warn("⚠️ ADVERTENCIA: No hay pedidos no asignados válidos, estableciendo array vacío");
+        setPedidosNoAsignados([]);
+      }
+
       // CRÍTICO: Reiniciar el tiempo de simulación para sincronizar con el nuevo intervalo
       // Esto evita que el reloj siga avanzando mientras los camiones empiezan desde 0
       setHoraActual(0); // Reiniciar el nodo actual
@@ -779,6 +807,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         setCamiones,
         setRutasCamiones,
         setBloqueos,
+        setPedidosNoAsignados,
         setFechaHoraSimulacion,
         setFechaHoraInicioIntervalo,
         setFechaHoraFinIntervalo,
@@ -823,6 +852,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         setCamiones,
         setRutasCamiones,
         setBloqueos,
+        setPedidosNoAsignados,
         setFechaHoraSimulacion,
         setFechaHoraInicioIntervalo,
         setFechaHoraFinIntervalo,
@@ -860,6 +890,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setCamiones,
       setRutasCamiones,
       setBloqueos,
+      setPedidosNoAsignados,
       setFechaHoraSimulacion,
       setFechaHoraInicioIntervalo,
       setFechaHoraFinIntervalo,
@@ -892,6 +923,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setCamiones,
       setRutasCamiones,
       setBloqueos,
+      setPedidosNoAsignados,
       setFechaHoraSimulacion,
       setFechaInicioSimulacion,
       setFechaHoraInicioIntervalo,
@@ -965,6 +997,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     camiones,
     rutasCamiones,
     almacenes,
+    pedidosNoAsignados,
     bloqueos,
     cargando,
     

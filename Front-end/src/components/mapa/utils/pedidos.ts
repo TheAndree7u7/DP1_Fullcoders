@@ -11,14 +11,17 @@ import { parseCoord } from "./coordenadas";
  * Función para obtener los pedidos pendientes (no entregados) de todas las rutas
  * @param {RutaCamion[]} rutasCamiones - Array de rutas de camiones
  * @param {CamionEstado[]} camiones - Array de estados de camiones
+ * @param {Pedido[]} pedidosNoAsignados - Array de pedidos no asignados a ningún camión
  * @returns {Pedido[]} Array de pedidos pendientes con cantidad pendiente calculada
  */
 export const getPedidosPendientes = (
   rutasCamiones: RutaCamion[],
-  camiones: CamionEstado[]
+  camiones: CamionEstado[],
+  pedidosNoAsignados: Pedido[] = []
 ): Pedido[] => {
   const pedidosMap = new Map<string, Pedido>();
   
+  // Procesar pedidos asignados a camiones
   rutasCamiones.forEach(ruta => {
     const camionActual = camiones.find(c => c.id === ruta.id);
     if (!camionActual) {
@@ -42,7 +45,7 @@ export const getPedidosPendientes = (
     // Para cada pedido de esta ruta, verificar si ya fue visitado
     ruta.pedidos.forEach((pedido: Pedido) => {
       // Buscar el índice del nodo que corresponde a este pedido
-              const indicePedidoEnRuta = ruta.ruta.findIndex((nodo: string) => {
+      const indicePedidoEnRuta = ruta.ruta.findIndex((nodo: string) => {
         // Validar que el nodo existe y es un string
         if (!nodo || typeof nodo !== 'string') {
           return false;
@@ -84,6 +87,13 @@ export const getPedidosPendientes = (
         }
       }
     });
+  });
+
+  // Agregar pedidos no asignados
+  pedidosNoAsignados.forEach(pedido => {
+    if (!pedidosMap.has(pedido.codigo)) {
+      pedidosMap.set(pedido.codigo, { ...pedido });
+    }
   });
 
   return Array.from(pedidosMap.values());
