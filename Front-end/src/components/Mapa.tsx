@@ -344,6 +344,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                       opacity={0.8}
                     >
                       <animate
+                        key={`${pedido.codigo}-animate-r`}
                         attributeName="r"
                         values="20;30;20"
                         dur="2s"
@@ -409,12 +410,14 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                       opacity={0.8}
                     >
                       <animate
+                        key={`${almacen.id}-animate-r`}
                         attributeName="r"
                         values="25;35;25"
                         dur="2s"
                         repeatCount="indefinite"
                       />
                       <animate
+                        key={`${almacen.id}-animate-opacity`}
                         attributeName="opacity"
                         values="0.6;1;0.6"
                         dur="2s"
@@ -424,6 +427,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                   )}
                   
                   <image
+                    key={`${almacen.id}-icon`}
                     href={almacen.tipo === 'CENTRAL' ? almacenCentralIcon : almacenIntermedioIcon}
                     x={almacen.coordenada.x * CELL_SIZE - 20}
                     y={almacen.coordenada.y * CELL_SIZE - 20}
@@ -439,6 +443,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                     }}
                   />
                   <text
+                    key={`${almacen.id}-label`}
                     x={almacen.coordenada.x * CELL_SIZE}
                     y={almacen.coordenada.y * CELL_SIZE + 30}
                     textAnchor="middle"
@@ -539,6 +544,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                            style={{ transition: 'all 0.8s linear' }}
                          >
                            <animateTransform
+                             key={`${camion.id}-animate-transform`}
                              attributeName="transform"
                              type="rotate"
                              values="0 0 0;360 0 0"
@@ -546,6 +552,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                              repeatCount="indefinite"
                            />
                            <animate
+                             key={`${camion.id}-animate-opacity`}
                              attributeName="opacity"
                              values="0.7;1;0.7"
                              dur="1.5s"
