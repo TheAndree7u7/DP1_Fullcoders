@@ -42,6 +42,13 @@ public class Simulacion {
         Mapa.getInstance().limpiarMapa();
         // 3. Creamos un nuevo dataLoader para la simulación semanal
         Parametros.dataLoader = new DataLoader();
+
+        // 4. Limpiamos las listas de pedidos
+        pedidosPorAtender.clear();
+        pedidosPlanificados.clear();
+        pedidosEntregados.clear();
+        pedidosEnviar.clear();
+        
     }
 
     public static void actualizarEstadoGlobal(LocalDateTime fechaActual) {

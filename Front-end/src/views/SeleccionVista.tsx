@@ -1,17 +1,12 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import semanalImg from "../assets/semanal.svg";
 import diarioImg from "../assets/diario.svg";
 import colapsoImg from "../assets/colapso.svg";
 import logo from "../assets/logo.png";
-import { dataReloadService } from "../services/dataReloadService";
-import type { DataReloadResponse } from "../services/dataReloadService";
-import { toast } from 'react-toastify';
 
 const SeleccionVista: React.FC = () => {
   const navigate = useNavigate();
-  const [recargando, setRecargando] = useState(false);
-  const [resumenRecarga, setResumenRecarga] = useState<DataReloadResponse | null>(null);
 
   const opciones = [
     {
@@ -44,31 +39,8 @@ const SeleccionVista: React.FC = () => {
   ];
 
   const handleSeleccionVista = async (opcion: typeof opciones[0]) => {
-    if (opcion.id === "semanal") {
-      // Para simulación semanal, recargar datos primero
-      setRecargando(true);
-      try {
-        const resultado = await dataReloadService.recargarTodos();
-        setResumenRecarga(resultado);
-        if (resultado.exito) {
-          toast.success(resultado.mensaje || "Recarga de datos exitosa");
-          // Navegar después de un breve delay para mostrar el resumen
-          setTimeout(() => {
-            navigate(opcion.ruta);
-          }, 2000);
-        } else {
-          toast.error(resultado.mensaje || 'Error en la recarga de datos');
-          setRecargando(false);
-        }
-      } catch (error) {
-        const mensaje = error instanceof Error ? error.message : "Error desconocido al recargar los datos";
-        toast.error(mensaje);
-        setRecargando(false);
-      }
-    } else {
-      // Para otras vistas, navegar directamente
-      navigate(opcion.ruta);
-    }
+    // Para todas las vistas, navegar directamente
+    navigate(opcion.ruta);
   };
 
   return (
@@ -180,50 +152,6 @@ const SeleccionVista: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Modal de carga para recarga de datos */}
-      {recargando && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md mx-4">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Recargando datos para simulación semanal
-              </h3>
-              <p className="text-gray-600 text-sm">
-                Por favor espera mientras se cargan los datos más recientes...
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de resumen de recarga */}
-      {resumenRecarga && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
-            <div className="text-center">
-              <div className="text-green-600 text-4xl mb-4">
-                ✅
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Datos recargados correctamente
-              </h3>
-              <div className="text-left text-sm text-gray-700 space-y-1 mb-4">
-                <div><b>Almacenes:</b> {resumenRecarga.cantidadAlmacenes}</div>
-                <div><b>Camiones:</b> {resumenRecarga.cantidadCamiones}</div>
-                <div><b>Pedidos:</b> {resumenRecarga.cantidadPedidos}</div>
-                <div><b>Averías:</b> {resumenRecarga.cantidadAverias}</div>
-                <div><b>Mantenimientos:</b> {resumenRecarga.cantidadMantenimientos}</div>
-                <div><b>Bloqueos:</b> {resumenRecarga.cantidadBloqueos}</div>
-              </div>
-              <p className="text-green-800 font-semibold text-sm">
-                Redirigiendo a la simulación semanal...
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
