@@ -23,7 +23,7 @@ const esCoordenadaValida = (coord: Coordenada | undefined | null): coord is Coor
          !isNaN(coord.x) && 
          !isNaN(coord.y);
 };
-import { formatearCapacidadGLP, formatearCombustible } from '../utils/validacionCamiones';
+import { formatearCapacidadGLP, formatearCombustible, calcularGLPEntregaPorCamion } from '../utils/validacionCamiones';
 
 interface CamionVisual {
   id: string;
@@ -331,6 +331,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                   {/* Círculo de resaltado para pedidos */}
                   {esResaltado && (
                     <circle
+                      key={`${pedido.codigo}-highlight`}
                       cx={pedido.coordenada.x * CELL_SIZE}
                       cy={pedido.coordenada.y * CELL_SIZE}
                       r={25}
@@ -350,6 +351,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                   )}
                   
                   <image
+                    key={`${pedido.codigo}-icon`}
                     href={clienteIcon}
                     x={pedido.coordenada.x * CELL_SIZE - 15}
                     y={pedido.coordenada.y * CELL_SIZE - 15}
@@ -357,6 +359,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                     height={30}
                   />
                   <text
+                    key={`${pedido.codigo}-label`}
                     x={pedido.coordenada.x * CELL_SIZE}
                     y={pedido.coordenada.y * CELL_SIZE + 25}
                     textAnchor="middle"
@@ -367,6 +370,19 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                     strokeWidth="0.5"
                   >
                     {pedido.codigo}
+                  </text>
+                  <text
+                    key={`${pedido.codigo}-volume`}
+                    x={pedido.coordenada.x * CELL_SIZE}
+                    y={pedido.coordenada.y * CELL_SIZE + 37}
+                    textAnchor="middle"
+                    fontSize="8"
+                    fill="#dc2626"
+                    fontWeight="bold"
+                    stroke="#fff"
+                    strokeWidth="0.5"
+                  >
+                    {pedido.volumenGLPAsignado.toFixed(1)}m³
                   </text>
                 </g>
               );
@@ -580,6 +596,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
           const camion = camiones.find(c => c.id === tooltipCamion);
           const ruta = rutasCamiones.find(r => r.id === tooltipCamion);
           const numPedidos = ruta?.pedidos?.length || 0;
+          const glpEntrega = calcularGLPEntregaPorCamion(tooltipCamion, rutasCamiones, camiones);
           
           return (
             <div
@@ -601,6 +618,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                   Estado: {camion.estado}<br />
                   Pedidos asignados: {numPedidos}<br />
                   Capacidad GLP: {formatearCapacidadGLP(camion.capacidadActualGLP, camion.capacidadMaximaGLP)}<br />
+                  GLP a entregar: {glpEntrega.toFixed(2)} m³<br />
                   Combustible: {formatearCombustible(camion.combustibleActual, camion.combustibleMaximo)}<br />
                   Distancia máxima: {camion.distanciaMaxima.toFixed(2)} km<br />
                   Peso carga: {camion.pesoCarga.toFixed(2)}<br />
@@ -624,6 +642,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
           const ruta = rutasCamiones.find(r => r.id === clickedCamion);
           const numPedidos = ruta?.pedidos?.length || 0;
           const esAveriado = camion?.estado === 'Averiado';
+          const glpEntrega = calcularGLPEntregaPorCamion(clickedCamion, rutasCamiones, camiones);
           
           return (
             <div
@@ -645,6 +664,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                   Estado: {camion.estado}<br />
                   Pedidos asignados: {numPedidos}<br />
                   Capacidad GLP: {formatearCapacidadGLP(camion.capacidadActualGLP, camion.capacidadMaximaGLP)}<br />
+                  GLP a entregar: {glpEntrega.toFixed(2)} m³<br />
                   Combustible: {formatearCombustible(camion.combustibleActual, camion.combustibleMaximo)}<br />
                   Distancia máxima: {camion.distanciaMaxima.toFixed(2)} km<br />
                   Peso carga: {camion.pesoCarga.toFixed(2)}<br />
