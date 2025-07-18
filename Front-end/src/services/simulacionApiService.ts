@@ -127,18 +127,23 @@ export async function obtenerInfoSimulacion(): Promise<{
   tiempoActual: string;
 }> {
   try {
-    // console.log("Obteniendo información de simulación...");
-    
-    const response = await fetch(`${API_URLS.INFO_SIMULACION}`, {
-      method: 'GET'
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Error ${response.status}: ${errorText}`);
+     console.log("Obteniendo información de simulación...");
+    const info = {
+      totalPaquetes: 199999999,
+      paqueteActual: 991919191919,
+      enProceso: true,
+      tiempoActual: "1999-01-01T00:00:00Z"
     }
+    // const response = await fetch(`${API_URLS.INFO_SIMULACION}`, {
+    //   method: 'GET'
+    // });
 
-    const info = await response.json();
+    // if (!response.ok) {
+    //   const errorText = await response.text();
+    //   throw new Error(`Error ${response.status}: ${errorText}`);
+    // }
+
+    // const info = await response.json();
     // console.log("Información de simulación obtenida:", info);
     return info;
   } catch (error) {
