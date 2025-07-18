@@ -94,11 +94,32 @@ export const formatearTiempoTranscurridoCompleto = (
 };
 
 /**
+ * @function formatearFechaParaBackend
+ * @description Convierte una fecha a formato LocalDateTime compatible con el backend (sin zona horaria)
+ * @param {Date | string} fecha - Fecha a formatear
+ * @returns {string} Fecha en formato YYYY-MM-DDTHH:mm:ss
+ */
+export const formatearFechaParaBackend = (fecha: Date | string): string => {
+  if (typeof fecha === 'string') {
+    // Si ya es una fecha en formato LocalDateTime, devolverla tal como está
+    if (fecha.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/)) {
+      return fecha;
+    }
+    // Si es una fecha ISO con zona horaria, convertirla
+    const date = new Date(fecha);
+    return date.toISOString().slice(0, 19);
+  } else {
+    // Si es un objeto Date, convertir a LocalDateTime
+    return fecha.toISOString().slice(0, 19);
+  }
+};
+
+/**
  * @function calcularTimestampSimulacion
  * @description Calcula el timestamp correcto de simulación usando la fecha base con hora 00:00:00 y la horaSimulacion calculada
  * @param {string | null} fechaHoraSimulacion - Fecha y hora base de la simulación del backend
  * @param {string} horaSimulacion - Hora actual de la simulación ya calculada (formato HH:MM:SS)
- * @returns {string} Timestamp ISO de la simulación combinada
+ * @returns {string} Timestamp en formato LocalDateTime compatible con el backend (sin zona horaria)
  */
 export const calcularTimestampSimulacion = (
   fechaHoraSimulacion: string | null,
@@ -107,7 +128,7 @@ export const calcularTimestampSimulacion = (
   // Si no hay fecha de simulación, devolver timestamp actual como fallback
   if (!fechaHoraSimulacion) {
     console.warn("⚠️ No hay fechaHoraSimulacion disponible, usando timestamp actual como fallback");
-    return new Date().toISOString();
+    return formatearFechaParaBackend(new Date());
   }
 
   // Extraer solo la fecha (sin hora) de fechaHoraSimulacion de manera más directa
@@ -120,7 +141,8 @@ export const calcularTimestampSimulacion = (
   const segundos = parseInt(partesHora[2]);
   
   // Crear el timestamp completo combinando fecha + hora de simulación
-  const fechaSimulacionCompleta = `${fechaOriginal}T${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}.000Z`;
+  // Formato LocalDateTime: YYYY-MM-DDTHH:mm:ss (sin zona horaria)
+  const fechaSimulacionCompleta = `${fechaOriginal}T${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
   
   console.log("📅 TIMESTAMP SIMULACIÓN:", {
     fechaHoraSimulacionOriginal: fechaHoraSimulacion,

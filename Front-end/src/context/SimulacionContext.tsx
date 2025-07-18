@@ -443,10 +443,134 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Incrementar el contador de paquetes consumidos
       setPaqueteActualConsumido(prev => prev + 1);
       
-      console.log("✅ TRANSICIÓN: Tiempo de simulación reiniciado para sincronizar con nuevo intervalo");
-      console.log("===============================================FIN========================================================");
+      console.log("✅ TRANSICIÓN: Solución precargada aplicada exitosamente");
     } catch (error) {
       console.error("❌ TRANSICIÓN: Error al aplicar solución precargada:", error);
+      throw error;
+    }
+  };
+
+  /**
+   * @function aplicarNuevaSolucionDespuesAveria
+   * @description Aplica la nueva solución recalculada después de una avería, manteniendo la continuidad temporal
+   */
+  const aplicarNuevaSolucionDespuesAveria = async (data: IndividuoConBloqueos) => {
+    try {
+      console.log("🔄============================= NUEVA SOLUCIÓN: Aplicando solución recalculada después de avería======================================");
+      
+      // CRÍTICO: Calcular el tiempo transcurrido desde el inicio del intervalo actual
+      let tiempoTranscurridoEnIntervalo = 0;
+      if (fechaHoraInicioIntervalo && data.fechaHoraInicioIntervalo) {
+        const inicioIntervaloActual = new Date(fechaHoraInicioIntervalo);
+        const inicioNuevoIntervalo = new Date(data.fechaHoraInicioIntervalo);
+        const diferenciaMs = inicioNuevoIntervalo.getTime() - inicioIntervaloActual.getTime();
+        tiempoTranscurridoEnIntervalo = Math.floor(diferenciaMs / (1000 * 60)); // Convertir a minutos
+      }
+      
+      console.log("🔄 NUEVA SOLUCIÓN: Tiempo transcurrido en intervalo actual:", tiempoTranscurridoEnIntervalo, "minutos");
+      console.log("🔄 NUEVA SOLUCIÓN: Hora actual antes del cambio:", horaActual);
+      
+      // Actualizar fechas del nuevo intervalo
+      if (data.fechaHoraInicioIntervalo) {
+        setFechaHoraInicioIntervalo(data.fechaHoraInicioIntervalo);
+      }
+      if (data.fechaHoraFinIntervalo) {
+        setFechaHoraFinIntervalo(data.fechaHoraFinIntervalo);
+      }
+      console.log("🔄 NUEVA SOLUCIÓN: Fecha de inicio del intervalo", data.fechaHoraInicioIntervalo);
+      console.log("🔄 NUEVA SOLUCIÓN: Fecha de fin del intervalo", data.fechaHoraFinIntervalo);
+      
+      // Actualizar fecha y hora de la simulación
+      if (data.fechaHoraSimulacion) {
+        setFechaHoraSimulacion(data.fechaHoraSimulacion);
+        const fecha = new Date(data.fechaHoraSimulacion);
+        setDiaSimulacion(fecha.getDate());
+      }
+
+      // Procesar nuevas rutas de camiones
+      const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => ({
+        id: gen.camion.codigo,
+        ruta: gen.nodos.map((n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`),
+        puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
+        pedidos: gen.pedidos,
+      }));
+
+      setRutasCamiones(nuevasRutas);
+
+      // Procesar nuevo estado de camiones
+      const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
+        const gen = data.cromosoma.find((g: Gen) => g.camion.codigo === ruta.id);
+        const camion = gen?.camion;
+        
+        return {
+          id: ruta.id,
+          ubicacion: ruta.ruta[0], // Empezar desde el inicio de la nueva ruta
+          porcentaje: 0, // Reiniciar progreso del camión
+          estado: camion?.estado === 'DISPONIBLE' ? 'Disponible' : 'En Camino',
+          capacidadActualGLP: camion?.capacidadActualGLP ?? 0,
+          capacidadMaximaGLP: camion?.capacidadMaximaGLP ?? 0,
+          combustibleActual: camion?.combustibleActual ?? 0,
+          combustibleMaximo: camion?.combustibleMaximo ?? 0,
+          distanciaMaxima: camion?.distanciaMaxima ?? 0,
+          pesoCarga: camion?.pesoCarga ?? 0,
+          pesoCombinado: camion?.pesoCombinado ?? 0,
+          tara: camion?.tara ?? 0,
+          tipo: camion?.tipo ?? '',
+          velocidadPromedio: camion?.velocidadPromedio ?? 0,
+        };
+      });
+
+      setCamiones(nuevosCamiones);
+
+      // Actualizar bloqueos y almacenes
+      if (data.bloqueos) {
+        setBloqueos(data.bloqueos);
+      } else {
+        setBloqueos([]);
+      }
+
+      if (data.almacenes && data.almacenes.length > 0) {
+        setAlmacenes(data.almacenes);
+      }
+
+      // CRÍTICO: Calcular la nueva hora actual basada en el tiempo transcurrido
+      // El intervalo del backend es de 30 minutos, así que calculamos cuántos nodos han pasado
+      const NODOS_POR_INTERVALO = 25; // 25 nodos por intervalo de 30 minutos (según types.ts)
+      const nodosTranscurridos = Math.floor((tiempoTranscurridoEnIntervalo / 30) * NODOS_POR_INTERVALO);
+      const nuevaHoraActual = Math.max(0, nodosTranscurridos);
+      
+      console.log("🔄 NUEVA SOLUCIÓN: Cálculo de nueva hora actual:");
+      console.log("   - Tiempo transcurrido:", tiempoTranscurridoEnIntervalo, "minutos");
+      console.log("   - Nodos por intervalo:", NODOS_POR_INTERVALO);
+      console.log("   - Nodos transcurridos:", nodosTranscurridos);
+      console.log("   - Nueva hora actual:", nuevaHoraActual);
+      
+      // Establecer la nueva hora actual
+      setHoraActual(nuevaHoraActual);
+      
+      // Calcular nodos restantes basado en la nueva hora
+      const nodosRestantes = Math.max(0, NODOS_POR_INTERVALO - nuevaHoraActual);
+      setNodosRestantesAntesDeActualizar(nodosRestantes);
+      
+      console.log("🔄 NUEVA SOLUCIÓN: Nodos restantes para actualización:", nodosRestantes);
+      
+      // Reiniciar solo los contadores de actualización
+      setEsperandoActualizacion(false);
+      setSolicitudAnticipadaEnviada(false);
+      setProximaSolucionCargada(null);
+
+      // Asegurar que el estado de carga esté en false después de aplicar datos
+      setCargando(false);
+
+      // Incrementar el contador de paquetes consumidos
+      setPaqueteActualConsumido(prev => prev + 1);
+      
+      console.log("✅ NUEVA SOLUCIÓN: Solución recalculada aplicada exitosamente después de avería");
+      console.log("✅ NUEVA SOLUCIÓN: Simulación continuará desde la hora:", nuevaHoraActual);
+      console.log("✅ NUEVA SOLUCIÓN: Nodos restantes para próxima actualización:", nodosRestantes);
+    } catch (error) {
+      console.error("❌ NUEVA SOLUCIÓN: Error al aplicar solución recalculada:", error);
+      throw error;
     }
   };
 
@@ -879,6 +1003,9 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     
     // Funciones de información
     obtenerInfoPaqueteActual,
+    
+    // Funciones de recálculo después de avería
+    aplicarNuevaSolucionDespuesAveria,
     
     // Setters
     setSimulacionActiva,

@@ -4,12 +4,12 @@
  */
 
 import { averiarCamionConEstado } from "../../../services/averiaApiService";
-import {  obtenerInfoSimulacion } from "../../../services/simulacionApiService";
+import { obtenerInfoSimulacion, recalcularAlgoritmoDespuesAveria } from "../../../services/simulacionApiService";
 import { toast, Bounce } from 'react-toastify';
 import { pausarSimulacion as pausarSimulacionUtil } from "../../../context/simulacion/utils/controles";
 import { capturarEstadoCompleto, generarResumenEstado, type EstadoSimulacionCompleto } from "../../../context/simulacion/utils/estado";
 import { calcularTimestampSimulacion } from "../../../context/simulacion/utils/tiempo";
-import type { CamionEstado, RutaCamion, Bloqueo } from "../../../context/SimulacionContext";
+import type { CamionEstado, RutaCamion, Bloqueo, IndividuoConBloqueos } from "../../../context/simulacion/types";
 import type { Almacen } from "../../../types";
 
 /**
@@ -22,6 +22,7 @@ import type { Almacen } from "../../../types";
  * @param {(value: boolean) => void} setSimulacionActiva - Función para controlar el estado de la simulación
  * @param {Object} estadoSimulacion - Estado completo actual de la simulación
  * @param {(value: boolean) => void} setPollingActivo - Función para detener el polling de paquetes
+ * @param {(data: IndividuoConBloqueos) => Promise<void>} aplicarNuevaSolucionDespuesAveria - Función para aplicar nueva solución
  * @returns {Promise<void>}
  */
 export const handleAveriar = async (
@@ -44,8 +45,13 @@ export const handleAveriar = async (
     almacenes: Almacen[];
     bloqueos: Bloqueo[];
   },
-  setPollingActivo?: (value: boolean) => void
+  setPollingActivo?: (value: boolean) => void,
+  aplicarNuevaSolucionDespuesAveria?: (data: IndividuoConBloqueos) => Promise<void>,
+  setFechaInicioSimulacion?: (fecha: string) => void
 ): Promise<void> => {
+  // Variable para capturar la fecha final del nuevo paquete generado después de la avería
+  let fechaHoraFinNuevoPaquete: string | null = null;
+  
   setAveriando(camionId + '-' + tipo);
   
   // Calcular el timestamp correcto de simulación
@@ -122,8 +128,41 @@ export const handleAveriar = async (
     console.log("📅 TIMESTAMP USADO PARA AVERÍA:", fechaHoraReporte);
     await averiarCamionConEstado(camionId, tipo, fechaHoraReporte, estadoCompleto);
     
-    // 9. Mostrar toast de éxito
-    toast.success(`🚛💥 Camión ${camionId} averiado (Tipo ${tipo}) - Simulación pausada y paquetes futuros eliminados`, {
+    // 9. NUEVO: Recalcular algoritmo genético con fecha actual
+    console.log("🧬 RECALCULANDO: Ejecutando algoritmo genético después de avería...");
+    
+    try {
+      const nuevaSolucion = await recalcularAlgoritmoDespuesAveria(fechaHoraReporte);
+      
+      // Capturar la fecha final del nuevo paquete para el siguiente polling
+      fechaHoraFinNuevoPaquete = nuevaSolucion.fechaHoraFinIntervalo || null;
+      console.log("📅 NUEVO PAQUETE: Fecha final del nuevo paquete generado:", fechaHoraFinNuevoPaquete);
+      
+      // 10. Aplicar la nueva solución al contexto
+      if (aplicarNuevaSolucionDespuesAveria) {
+        console.log("🔄 APLICANDO: Nueva solución después de avería...");
+        await aplicarNuevaSolucionDespuesAveria(nuevaSolucion);
+        console.log("✅ NUEVA SOLUCIÓN: Aplicada exitosamente");
+      } else {
+        console.warn("⚠️ No se pudo aplicar nueva solución - función no disponible");
+      }
+    } catch (error) {
+      console.error("❌ ERROR al recalcular algoritmo después de avería:", error);
+      toast.warning("⚠️ No se pudo recalcular el algoritmo después de la avería, pero la avería se registró correctamente", {
+        position: "top-right",
+        autoClose: 8000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+    }
+    
+    // 11. Mostrar toast de éxito
+    toast.success(`🚛💥 Camión ${camionId} averiado (Tipo ${tipo}) - Algoritmo recalculado y nueva solución aplicada`, {
       position: "top-right",
       autoClose: 6000,
       hideProgressBar: false,
@@ -143,7 +182,9 @@ export const handleAveriar = async (
       camionAveriado: true,
       paquetesFuturosEliminados: true,
       simulacionPausada: true,
-      pollingDetenido: !!setPollingActivo
+      pollingDetenido: !!setPollingActivo,
+      algoritmoRecalculado: true,
+      nuevaSolucionAplicada: !!aplicarNuevaSolucionDespuesAveria
     });
     
   } catch (error) {
@@ -175,7 +216,9 @@ export const handleAveriar = async (
     console.log("🔚 PROCESO DE AVERÍA FINALIZADO");
     
     // Pasar inmediatamente al siguiente paquete después de la avería
-    pasarAlSiguientePaquete(setPollingActivo, setSimulacionActiva);
+    // Usar la fecha final del nuevo paquete generado después de la avería
+    console.log("🔄 PASANDO AL SIGUIENTE PAQUETE: Usando fecha final del nuevo paquete:", fechaHoraFinNuevoPaquete);
+    pasarAlSiguientePaquete(setPollingActivo, setSimulacionActiva, fechaHoraFinNuevoPaquete, setFechaInicioSimulacion);
   }
 };
 
@@ -184,10 +227,14 @@ export const handleAveriar = async (
  * Espera un tiempo fijo y luego reactiva el polling y la simulación para permitir la continuación
  * @param setPollingActivo - Función para controlar el polling de paquetes
  * @param setSimulacionActiva - Función para controlar el estado de la simulación
+ * @param fechaHoraFinIntervalo - Fecha final del nuevo paquete generado después de la avería
+ * @param setFechaInicioSimulacion - Función para actualizar la fecha de inicio de simulación
  */
 const pasarAlSiguientePaquete = async (
   setPollingActivo?: (value: boolean) => void,
-  setSimulacionActiva?: (value: boolean) => void
+  setSimulacionActiva?: (value: boolean) => void,
+  fechaHoraFinIntervalo?: string | null,
+  setFechaInicioSimulacion?: (fecha: string) => void
 ) => {
   try {
     console.log("🔄 AVERÍA TERMINADA: Esperando generación del nuevo paquete...");
@@ -213,13 +260,29 @@ const pasarAlSiguientePaquete = async (
     });
     
     // Esperar un tiempo fijo para dar tiempo al backend a generar el nuevo paquete
-    // Basándome en los logs, veo que el sistema SÍ está generando los datos
     console.log("⏳ ESPERANDO: Dando tiempo al backend para generar el nuevo paquete...");
     await new Promise(resolve => setTimeout(resolve, 5000)); // 5 segundos
     
     // Verificar si ahora hay más paquetes disponibles
     const infoActualizada = await obtenerInfoSimulacion();
     console.log(`📊 INFORMACIÓN ACTUALIZADA: Paquete actual=${infoActualizada.paqueteActual}, Total=${infoActualizada.totalPaquetes}`);
+    
+    // CRÍTICO: Si tenemos la fecha final del nuevo paquete, actualizar la fecha de inicio de simulación
+    if (fechaHoraFinIntervalo && setFechaInicioSimulacion) {
+      console.log("📅 SIGUIENTE PAQUETE: Actualizando fecha de inicio de simulación con fecha final del nuevo paquete:", fechaHoraFinIntervalo);
+      
+      // Actualizar la fecha de inicio de simulación para que el polling continúe desde la fecha correcta
+      setFechaInicioSimulacion(fechaHoraFinIntervalo);
+      console.log("✅ SIGUIENTE PAQUETE: Fecha de inicio de simulación actualizada para continuar desde:", fechaHoraFinIntervalo);
+    } else {
+      console.warn("⚠️ SIGUIENTE PAQUETE: No se pudo actualizar la fecha de inicio de simulación");
+      if (!fechaHoraFinIntervalo) {
+        console.warn("   - No se tiene la fecha final del nuevo paquete");
+      }
+      if (!setFechaInicioSimulacion) {
+        console.warn("   - No se tiene acceso a setFechaInicioSimulacion");
+      }
+    }
     
     // Reactivar el polling y la simulación automáticamente
     if (setPollingActivo) {

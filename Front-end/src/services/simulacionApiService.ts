@@ -1,5 +1,6 @@
 import type { Individuo } from "../types";
 import { API_URLS } from "../config/api";
+import { formatearFechaParaBackend } from "../context/simulacion/utils/tiempo";
 
 export async function getMejorIndividuo(fechaInicio: string): Promise<Individuo> {
   try {
@@ -162,8 +163,8 @@ export async function obtenerSiguientePaquete(): Promise<Individuo | null> {
   try {
     console.log("📦 PAQUETES: Obteniendo siguiente paquete de la simulación...");
     
-    // Usar la fecha actual como parámetro por defecto
-    const fechaActual = new Date().toISOString();
+    // Usar la fecha actual como parámetro por defecto en formato LocalDateTime
+    const fechaActual = formatearFechaParaBackend(new Date());
     const url = `${API_URLS.MEJOR_INDIVIDUO}?fecha=${encodeURIComponent(fechaActual)}`;
     
     const response = await fetch(url, {
@@ -198,6 +199,57 @@ export async function obtenerSiguientePaquete(): Promise<Individuo | null> {
     return data;
   } catch (error) {
     console.error("❌ PAQUETES: Error al obtener siguiente paquete:", error);
+    throw error;
+  }
+}
+
+/**
+ * Recalcula el algoritmo genético después de una avería usando la fecha y hora actual de la simulación
+ * @param fechaHoraActual - Fecha y hora actual de la simulación en formato ISO
+ * @returns Promise con la nueva solución calculada
+ */
+export async function recalcularAlgoritmoDespuesAveria(fechaHoraActual: string): Promise<Individuo> {
+  try {
+    console.log("🧬 RECALCULANDO: Ejecutando algoritmo genético para fecha actual:", fechaHoraActual);
+    
+    // Llamar al endpoint con la fecha actual de la simulación
+    const url = `${API_URLS.MEJOR_INDIVIDUO}?fecha=${encodeURIComponent(fechaHoraActual)}`;
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    console.log("🧬 RECALCULANDO: Respuesta recibida:", {
+      status: response.status,
+      statusText: response.statusText
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ RECALCULANDO: Error al recalcular algoritmo:", errorText);
+      throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.error("❌ RECALCULANDO: Tipo de contenido inválido:", contentType);
+      throw new Error("La respuesta del servidor no es JSON válido");
+    }
+
+    const data = await response.json();
+    
+    if (!data) {
+      console.error("❌ RECALCULANDO: Respuesta vacía");
+      throw new Error("La respuesta está vacía");
+    }
+
+    console.log("✅ RECALCULANDO: Nuevo algoritmo ejecutado exitosamente");
+    return data as Individuo;
+  } catch (error) {
+    console.error("❌ RECALCULANDO: Error al recalcular algoritmo:", error);
     throw error;
   }
 }

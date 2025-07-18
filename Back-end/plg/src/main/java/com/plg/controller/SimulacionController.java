@@ -37,6 +37,7 @@ public class SimulacionController {
 
     @GetMapping("/mejor")
     public IndividuoDto obtenerMejorIndividuoPorFecha(@RequestParam String fecha) {
+        System.out.println("==========INICIO==========");
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/mejor (por fecha)"); // Validar que la fecha no sea
                                                                                       // nula o vacía
         if (fecha == null || fecha.isEmpty()) {
@@ -52,7 +53,9 @@ public class SimulacionController {
             System.out.println("❌ Error: Formato de fecha inválido: " + fecha);
             return null;
         }
-
+        System.out.println("==========Fecha de inicio del intervalo: " + fechaDateTime);
+        System.out.println(
+                "==========Fecha de fin del intervalo: " + fechaDateTime.plusMinutes(Parametros.intervaloTiempo));
         if (!simulacionIniciada) {
             // Brindamos una advertencia e iniciamos la simulación
             System.out.println("⚠️ Advertencia: La simulación no ha sido iniciada. Iniciando simulación...");
@@ -87,6 +90,7 @@ public class SimulacionController {
             bloqueo.desactivarBloqueo();
         }
         System.out.println("✅ Mejor individuo generado y retornado para la fecha: " + fechaDateTime);
+        System.out.println("____________FIN____________");
         return mejorIndividuoDto;
     }
 

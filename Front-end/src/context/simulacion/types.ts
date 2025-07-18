@@ -97,6 +97,7 @@ export interface SimulacionContextType {
   limpiarSimulacionCompleta: () => void;
   obtenerInfoPaqueteActual: () => { inicio: string | null; fin: string | null; numero: number };
   setFechaInicioSimulacion: (fecha: string) => void;
+  aplicarNuevaSolucionDespuesAveria: (data: IndividuoConBloqueos) => Promise<void>;
 }
 
 /**
