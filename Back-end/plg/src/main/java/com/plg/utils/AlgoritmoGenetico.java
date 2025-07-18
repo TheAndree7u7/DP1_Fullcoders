@@ -6,13 +6,10 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import com.plg.config.DataLoader;
 import com.plg.entity.Camion;
+import com.plg.entity.EstadoCamion;
 import com.plg.entity.Mapa;
 import com.plg.entity.Pedido;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 
 public class AlgoritmoGenetico {
 
@@ -266,8 +263,8 @@ public class AlgoritmoGenetico {
             // Asignar pedidos basándose en proximidad geográfica
             while (!pedidosDisponibles.isEmpty()) {
                 // Seleccionar camión disponible
-                List<Camion> camionesDisponibles = Simulacion.camiones.stream()
-                    .filter(c -> c.isDisponible())
+                List<Camion> camionesDisponibles = Parametros.dataLoader.camiones.stream()
+                    .filter(c -> c.getEstado() == EstadoCamion.DISPONIBLE)
                     .collect(Collectors.toList());
 
                 if (camionesDisponibles.isEmpty())
@@ -622,8 +619,8 @@ public class AlgoritmoGenetico {
             List<Gen> cromosoma = new ArrayList<>();
 
             // Ordenar camiones por capacidad (mayor a menor)
-            List<Camion> camionesOrdenados = Simulacion.camiones.stream()
-                .filter(c -> c.isDisponible())
+            List<Camion> camionesOrdenados = Parametros.dataLoader.camiones.stream()
+                .filter(c -> c.getEstado() == EstadoCamion.DISPONIBLE)
                 .sorted((c1, c2) -> Double.compare(c2.getCapacidadActualGLP(), c1.getCapacidadActualGLP()))
                 .collect(Collectors.toList());
 
@@ -665,8 +662,8 @@ public class AlgoritmoGenetico {
             List<Gen> cromosoma = new ArrayList<>();
             Collections.shuffle(pedidosDisponibles); // Aleatorizar
 
-            List<Camion> camionesDisponibles = Simulacion.camiones.stream()
-                    .filter(c -> c.isDisponible())
+            List<Camion> camionesDisponibles = Parametros.dataLoader.camiones.stream()
+                    .filter(c -> c.getEstado() == EstadoCamion.DISPONIBLE)
                     .collect(Collectors.toList());
 
             // Distribuir pedidos de forma más inteligente
@@ -732,8 +729,8 @@ public class AlgoritmoGenetico {
             List<Gen> cromosoma = new ArrayList<>();
 
             // Usar primer camión disponible
-            Camion camion = Simulacion.camiones.stream()
-                    .filter(c -> c.isDisponible())
+            Camion camion = Parametros.dataLoader.camiones.stream()
+                    .filter(c -> c.getEstado() == EstadoCamion.DISPONIBLE)
                     .findFirst()
                     .orElse(null);
 
@@ -803,8 +800,8 @@ public class AlgoritmoGenetico {
             List<Gen> cromosoma = new ArrayList<>();
 
             // Usar un solo camión para todos los pedidos posibles
-            Camion camion = Simulacion.camiones.stream()
-                    .filter(c -> c.isDisponible())
+            Camion camion = Parametros.dataLoader.camiones.stream()
+                    .filter(c -> c.getEstado() == EstadoCamion.DISPONIBLE)
                     .findFirst()
                     .orElse(null);
 
@@ -839,7 +836,7 @@ public class AlgoritmoGenetico {
             double pesoAcumulado = 0.0;
 
             for (Pedido pedido : pedidos) {
-                double pesoPedido = pedido.getCantidad() * 0.5; // Estimación de peso
+                double pesoPedido = pedido.getVolumenGLPAsignado() * 0.5; // Estimación de peso
                 if (pesoAcumulado + pesoPedido <= capacidadDisponible) {
                     seleccionados.add(pedido);
                     pesoAcumulado += pesoPedido;
