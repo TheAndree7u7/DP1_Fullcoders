@@ -15,11 +15,15 @@ import com.plg.entity.EstadoPedido;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class Gen {
 
     private int posNodo = 0;
@@ -29,7 +33,6 @@ public class Gen {
     private List<Nodo> rutaFinal;
     private List<Pedido> pedidos;
     private double fitness;
-
 
     public Gen(Camion camion, List<Nodo> nodosOriginal) {
         this.camion = camion;
@@ -50,7 +53,8 @@ public class Gen {
         }
     }
 
-    public String descripcionDistanciaLejana(double distanciaMaxima, double distanciaCalculada, Nodo nodo1, Nodo nodo2) {
+    public String descripcionDistanciaLejana(double distanciaMaxima, double distanciaCalculada, Nodo nodo1,
+            Nodo nodo2) {
         return "El camion con código " + camion.getCodigo()
                 + " no puede recorrer la distancia de " + distanciaCalculada
                 + " km. La distancia máxima es de " + distanciaMaxima
@@ -72,16 +76,19 @@ public class Gen {
             double distanciaMaxima = camion.calcularDistanciaMaxima();
             if (distanciaMaxima < distanciaCalculada) {
                 fitness = Double.POSITIVE_INFINITY;
-                this.descripcion = descripcionDistanciaLejana(distanciaMaxima, distanciaCalculada, posicionActual, destino);
+                this.descripcion = descripcionDistanciaLejana(distanciaMaxima, distanciaCalculada, posicionActual,
+                        destino);
                 break;
             }
             if (destino instanceof Pedido) {
-                ResultadoEntrega resultado = procesarEntregaPedido((Pedido) destino, rutaAstar, fechaLlegada, fitness, posicionActual, i);
+                ResultadoEntrega resultado = procesarEntregaPedido((Pedido) destino, rutaAstar, fechaLlegada, fitness,
+                        posicionActual, i);
                 fitness = resultado.fitness;
                 fechaLlegada = resultado.fechaLlegada;
                 posicionActual = resultado.posicionActual;
                 rutaEntradaBloqueada = resultado.rutaEntradaBloqueada;
-                if (fitness == Double.POSITIVE_INFINITY) break;
+                if (fitness == Double.POSITIVE_INFINITY)
+                    break;
             } else if (destino instanceof Almacen || destino instanceof Camion) {
                 posicionActual = procesarNodoRecarga(destino, rutaAstar, i);
                 rutaEntradaBloqueada = null;
@@ -89,7 +96,8 @@ public class Gen {
                 posicionActual = procesarNodoNormal(destino, rutaAstar, i);
             }
             if (rutaEntradaBloqueada != null && i + 1 < nodos.size()) {
-                ResultadoSalidaBloqueo resultadoSalida = procesarRutaSalidaBloqueo(rutaEntradaBloqueada, fitness, posicionActual);
+                ResultadoSalidaBloqueo resultadoSalida = procesarRutaSalidaBloqueo(rutaEntradaBloqueada, fitness,
+                        posicionActual);
                 fitness = resultadoSalida.fitness;
                 posicionActual = resultadoSalida.posicionActual;
                 rutaEntradaBloqueada = null;
@@ -100,7 +108,8 @@ public class Gen {
     }
 
     // Auxiliar para procesar la entrega de un pedido
-    private ResultadoEntrega procesarEntregaPedido(Pedido pedido, List<Nodo> rutaAstar, LocalDateTime fechaLlegada, double fitness, Nodo posicionActual, int i) {
+    private ResultadoEntrega procesarEntregaPedido(Pedido pedido, List<Nodo> rutaAstar, LocalDateTime fechaLlegada,
+            double fitness, Nodo posicionActual, int i) {
         double tiempoLlegadaHoras = rutaAstar.size() / camion.getVelocidadPromedio() + 0.25;
         LocalDateTime nuevaFechaLlegada = fechaLlegada.plusMinutes((long) (tiempoLlegadaHoras * 60));
         boolean dentroDeLimite = pedido.getFechaLimite() == null || !nuevaFechaLlegada.isAfter(pedido.getFechaLimite());
@@ -109,7 +118,8 @@ public class Gen {
         double glpPorPedido = camion.getCapacidadActualGLP() / cantidadPedidosAsignados;
         double volumenPendiente = pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado();
         double volumenAEntregar = Math.min(glpPorPedido, volumenPendiente);
-        boolean entregadoCompleto = (pedido.getVolumenGLPEntregado() + volumenAEntregar) >= pedido.getVolumenGLPAsignado();
+        boolean entregadoCompleto = (pedido.getVolumenGLPEntregado() + volumenAEntregar) >= pedido
+                .getVolumenGLPAsignado();
         if (dentroDeLimite) {
             fitness += rutaAstar.size();
             camion.actualizarCombustible(rutaAstar.size());
@@ -130,7 +140,8 @@ public class Gen {
             List<Nodo> rutaEntradaBloqueada = pedido.isBloqueado() ? new ArrayList<>(rutaAstar) : null;
             return new ResultadoEntrega(fitness, nuevaFechaLlegada, pedido, rutaEntradaBloqueada);
         } else {
-            this.descripcion = "El pedido " + pedido.getCodigo() + " no puede ser entregado a tiempo. Fecha límite: " + pedido.getFechaLimite() + ", fecha llegada: " + nuevaFechaLlegada;
+            this.descripcion = "El pedido " + pedido.getCodigo() + " no puede ser entregado a tiempo. Fecha límite: "
+                    + pedido.getFechaLimite() + ", fecha llegada: " + nuevaFechaLlegada;
             return new ResultadoEntrega(Double.POSITIVE_INFINITY, nuevaFechaLlegada, posicionActual, null);
         }
     }
@@ -155,7 +166,8 @@ public class Gen {
     }
 
     // Auxiliar para procesar rutas de salida de bloqueos
-    private ResultadoSalidaBloqueo procesarRutaSalidaBloqueo(List<Nodo> rutaEntradaBloqueada, double fitness, Nodo posicionActual) {
+    private ResultadoSalidaBloqueo procesarRutaSalidaBloqueo(List<Nodo> rutaEntradaBloqueada, double fitness,
+            Nodo posicionActual) {
         List<Nodo> rutaSalida = new ArrayList<>(rutaEntradaBloqueada);
         Collections.reverse(rutaSalida);
         rutaSalida.remove(0);
@@ -173,16 +185,20 @@ public class Gen {
         LocalDateTime fechaLlegada;
         Nodo posicionActual;
         List<Nodo> rutaEntradaBloqueada;
-        ResultadoEntrega(double fitness, LocalDateTime fechaLlegada, Nodo posicionActual, List<Nodo> rutaEntradaBloqueada) {
+
+        ResultadoEntrega(double fitness, LocalDateTime fechaLlegada, Nodo posicionActual,
+                List<Nodo> rutaEntradaBloqueada) {
             this.fitness = fitness;
             this.fechaLlegada = fechaLlegada;
             this.posicionActual = posicionActual;
             this.rutaEntradaBloqueada = rutaEntradaBloqueada;
         }
     }
+
     private static class ResultadoSalidaBloqueo {
         double fitness;
         Nodo posicionActual;
+
         ResultadoSalidaBloqueo(double fitness, Nodo posicionActual) {
             this.fitness = fitness;
             this.posicionActual = posicionActual;

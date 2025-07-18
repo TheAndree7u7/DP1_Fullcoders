@@ -37,8 +37,13 @@ public class IndividuoDto {
         this.fechaHoraSimulacion = fechaSimulacion;
 
         this.cromosoma = new ArrayList<>();
-        for (Gen gen : individuo.getCromosoma()) {
-            cromosoma.add(new GenDto(gen));
+        // Validación null-safe para el individuo
+        if (individuo != null && individuo.getCromosoma() != null) {
+            for (Gen gen : individuo.getCromosoma()) {
+                if (gen != null) {
+                    cromosoma.add(new GenDto(gen));
+                }
+            }
         }
 
         this.pedidos = new ArrayList<>();

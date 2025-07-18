@@ -152,20 +152,71 @@ public class Individuo {
     }
 
     public double calcularFitness() {
-        this.fitness = 0.0;
-        this.descripcion = ""; // Reiniciar la descripción
-        guardarEstadoActual(); // Guardar el estado actual antes de calcular el fitness
-        for (Gen gen : cromosoma) {
-            double fitnessGen = gen.calcularFitness();
-            if (fitnessGen == Double.POSITIVE_INFINITY) {
-                this.descripcion = gen.getDescripcion(); // Guardar la descripción del error
-                restaurarEstadoActual();
-                return Double.POSITIVE_INFINITY; // Si algún gen tiene fitness máximo, el individuo es inválido
+        try {
+            // Usar la nueva calculadora de fitness multinivel
+            this.fitness = FitnessCalculator.calcularFitnessMultinivel(this);
+            this.descripcion = ""; // Limpiar descripción si el cálculo fue exitoso
+            
+            // Si el fitness sigue siendo muy alto, generar descripción explicativa
+            if (this.fitness > 50000.0) {
+                this.descripcion = generarDescripcionProblemas();
+                LoggerUtil.logWarning("⚠️ Fitness alto detectado: " + this.fitness + " - " + this.descripcion);
+            } else {
+                LoggerUtil.log("✅ Fitness calculado exitosamente: " + this.fitness);
             }
-            fitness += fitnessGen; 
+            
+            return this.fitness;
+            
+        } catch (Exception e) {
+            LoggerUtil.logError("❌ Error calculando fitness: " + e.getMessage());
+            this.descripcion = "Error en cálculo de fitness: " + e.getMessage();
+            this.fitness = 100000.0; // Penalización por error, pero no infinito
+            return this.fitness;
         }
-        restaurarEstadoActual();
-        return fitness;
+    }
+    
+    /**
+     * Genera descripción de los problemas encontrados en la solución
+     */
+    private String generarDescripcionProblemas() {
+        StringBuilder problemas = new StringBuilder("Problemas detectados: ");
+        
+        try {
+            // Verificar problemas en genes
+            int genesProblematicos = 0;
+            for (Gen gen : cromosoma) {
+                if (gen.getFitness() == Double.POSITIVE_INFINITY) {
+                    genesProblematicos++;
+                }
+            }
+            
+            if (genesProblematicos > 0) {
+                problemas.append(genesProblematicos).append(" genes con fitness infinito. ");
+            }
+            
+            // Verificar pedidos no entregados
+            long pedidosNoEntregados = pedidos.stream()
+                .filter(p -> p.getVolumenGLPEntregado() == 0)
+                .count();
+                
+            if (pedidosNoEntregados > 0) {
+                problemas.append(pedidosNoEntregados).append(" pedidos sin entregar. ");
+            }
+            
+            // Verificar camiones en mantenimiento
+            long camionesMantenimiento = cromosoma.stream()
+                .filter(gen -> gen.getCamion().getEstado() == com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
+                .count();
+                
+            if (camionesMantenimiento > 0) {
+                problemas.append(camionesMantenimiento).append(" camiones en mantenimiento. ");
+            }
+            
+        } catch (Exception e) {
+            problemas.append("Error analizando problemas: ").append(e.getMessage());
+        }
+        
+        return problemas.toString();
     }
 
     public void guardarEstadoActual() {

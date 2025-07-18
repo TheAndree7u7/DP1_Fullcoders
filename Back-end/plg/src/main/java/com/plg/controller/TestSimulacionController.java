@@ -3,9 +3,11 @@ package com.plg.controller;
 import com.plg.utils.Simulacion;
 import com.plg.utils.AlgoritmoGenetico;
 import com.plg.utils.Parametros;
+import com.plg.utils.Individuo;
 import com.plg.dto.IndividuoDto;
 import com.plg.dto.EstadisticasPedidosDto;
 import com.plg.utils.simulacion.GestorHistorialSimulacion;
+import com.plg.entity.Mapa;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -22,12 +24,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/test-simulacion")
 @CrossOrigin(origins = "*")
 public class TestSimulacionController {
 
+    private static final Logger logger = LoggerFactory.getLogger(TestSimulacionController.class);
     private static final AtomicBoolean simulacionEnProceso = new AtomicBoolean(false);
     private static final AtomicInteger contadorSimulaciones = new AtomicInteger(0);
     private static final List<String> historialLogs = new ArrayList<>();
@@ -240,12 +245,19 @@ public class TestSimulacionController {
                     Simulacion.actualizarEstadoGlobal(fechaActual);
 
                     // Ejecutar algoritmo genético
-                    AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(com.plg.entity.Mapa.getInstance());
+                    AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance());
                     algoritmoGenetico.ejecutarAlgoritmo();
+
+                    // Validar que se obtuvo un individuo válido
+                    Individuo mejorIndividuo = algoritmoGenetico.getMejorIndividuo();
+                    if (mejorIndividuo == null) {
+                        logger.error("⚠️ CRÍTICO: Algoritmo genético retornó null para fecha: {}", fechaActual);
+                        throw new RuntimeException("Error crítico: No se pudo generar solución para " + fechaActual);
+                    }
 
                     // Crear y guardar individuo
                     IndividuoDto mejorIndividuoDto = new IndividuoDto(
-                            algoritmoGenetico.getMejorIndividuo(),
+                            mejorIndividuo,
                             Simulacion.pedidosEnviar,
                             Simulacion.bloqueosActivos,
                             fechaActual);
