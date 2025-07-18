@@ -59,7 +59,7 @@ public class SimulacionController {
             Simulacion.configurarSimulacionSemanal(fechaDateTime);
             simulacionIniciada = true; // Marcar que la simulación ha sido iniciada
         } else {
-            System.out.println("✅ Simulación ya iniciada, continuando con la fecha: " + fechaDateTime);
+            System.out.println("✅ Continuando con la fecha: " + fechaDateTime);
         }
 
         // Calcular el intervalo de tiempo en minutos entre la fecha inicial y la fecha
@@ -124,7 +124,7 @@ public class SimulacionController {
             LocalDateTime fechaDateTime = request.getFechaInicio();
             Simulacion.configurarSimulacionSemanal(fechaDateTime);
             simulacionIniciada = true; // Marcar que la simulación ha sido iniciada
-            String mensaje = "Simulación iniciada correctamente con fecha: " + request.getFechaInicio();
+            String mensaje = "SIMULACION INICIADA: " + request.getFechaInicio();
             System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
             return ResponseEntity.ok(mensaje);
         } catch (Exception e) {
