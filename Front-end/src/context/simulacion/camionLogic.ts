@@ -42,26 +42,34 @@ export const avanzarCamion = (
     };
   }
 
-  // En un mapa reticular, cada paso entre nodos adyacentes es exactamente 1km
-  const distanciaRecorrida = 1; // 1km por paso/nodo en mapa reticular
-
-  // Adaptar el camión para usar las funciones de cálculo
-  const camionAdaptado = adaptarCamionParaCalculos(camion);
-
-  // Calcular consumo de combustible usando la función de utilidad
-  const consumoCombustible = calcularConsumoGalones(
-    camionAdaptado,
-    distanciaRecorrida,
-  );
-
-  // Actualizar combustible actual (no puede ser menor que 0)
-  const nuevoCombustible = Math.max(
-    0,
-    camion.combustibleActual - consumoCombustible,
-  );
-
   // Mover el camión a la nueva posición
   const nuevaUbicacion = ruta.ruta[siguientePaso];
+  
+  // Verificar si el camión realmente se movió a una nueva ubicación
+  const ubicacionActual = camion.ubicacion;
+  const seMovio = ubicacionActual !== nuevaUbicacion;
+  
+  // Solo consumir combustible si el camión se movió
+  let nuevoCombustible = camion.combustibleActual;
+  if (seMovio) {
+    // En un mapa reticular, cada paso entre nodos adyacentes es exactamente 1km
+    const distanciaRecorrida = 1; // 1km por paso/nodo en mapa reticular
+
+    // Adaptar el camión para usar las funciones de cálculo
+    const camionAdaptado = adaptarCamionParaCalculos(camion);
+
+    // Calcular consumo de combustible usando la función de utilidad
+    const consumoCombustible = calcularConsumoGalones(
+      camionAdaptado,
+      distanciaRecorrida,
+    );
+
+    // Actualizar combustible actual (no puede ser menor que 0)
+    nuevoCombustible = Math.max(
+      0,
+      camion.combustibleActual - consumoCombustible,
+    );
+  }
 
   // Verificar si hay pedidos para entregar en la NUEVA ubicación
   let nuevoGLP = camion.capacidadActualGLP;
