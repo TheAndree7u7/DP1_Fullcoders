@@ -8,27 +8,39 @@ import type { Pedido } from "../../../types";
 import { parseCoord } from "./coordenadas";
 
 /**
+ * Interfaz extendida para pedidos con información de asignación y estado
+ */
+export interface PedidoConAsignacion extends Pedido {
+  esNoAsignado: boolean;
+  estadoPedido: string; // 'NO_ASIGNADO', 'PENDIENTE', 'EN_TRANSITO', 'ENTREGADO', 'RETRASO'
+}
+
+/**
  * Función para obtener los pedidos pendientes (no entregados) de todas las rutas
  * @param {RutaCamion[]} rutasCamiones - Array de rutas de camiones
  * @param {CamionEstado[]} camiones - Array de estados de camiones
  * @param {Pedido[]} pedidosNoAsignados - Array de pedidos no asignados a ningún camión
- * @returns {Pedido[]} Array de pedidos pendientes con cantidad pendiente calculada
+ * @returns {PedidoConAsignacion[]} Array de pedidos pendientes con información de asignación y estado
  */
 export const getPedidosPendientes = (
   rutasCamiones: RutaCamion[],
   camiones: CamionEstado[],
   pedidosNoAsignados: Pedido[] = []
-): Pedido[] => {
-  const pedidosMap = new Map<string, Pedido>();
+): PedidoConAsignacion[] => {
+  const pedidosMap = new Map<string, PedidoConAsignacion>();
   
   // Procesar pedidos asignados a camiones
   rutasCamiones.forEach(ruta => {
     const camionActual = camiones.find(c => c.id === ruta.id);
     if (!camionActual) {
-      // Si no hay estado del camión, mostrar todos los pedidos
+      // Si no hay estado del camión, mostrar todos los pedidos como pendientes
       ruta.pedidos.forEach((pedido: Pedido) => {
         if (!pedidosMap.has(pedido.codigo)) {
-          pedidosMap.set(pedido.codigo, { ...pedido });
+          pedidosMap.set(pedido.codigo, { 
+            ...pedido,
+            esNoAsignado: false,
+            estadoPedido: 'PENDIENTE'
+          });
         }
       });
       return;
@@ -60,14 +72,32 @@ export const getPedidosPendientes = (
         }
       });
 
+      // Determinar el estado del pedido basado en la posición del camión
+      let estadoPedido = 'PENDIENTE';
+      if (camionActual.estado === 'En Camino' || camionActual.estado === 'Disponible') {
+        estadoPedido = 'EN_TRANSITO';
+      } else if (camionActual.estado === 'Averiado') {
+        estadoPedido = 'RETRASO';
+      }
+
       // Si el pedido está en un nodo que aún no ha sido visitado, procesarlo
       if (indicePedidoEnRuta === -1 || indicePedidoEnRuta > posicionActual) {
         if (!pedidosMap.has(pedido.codigo)) {
           // Crear nuevo pedido con la cantidad pendiente inicializada
           pedidosMap.set(pedido.codigo, { 
             ...pedido,
-            volumenGLPAsignado: pedido.volumenGLPAsignado // Cantidad total pendiente
+            volumenGLPAsignado: pedido.volumenGLPAsignado, // Cantidad total pendiente
+            esNoAsignado: false,
+            estadoPedido: estadoPedido
           });
+        } else {
+          // Actualizar el estado del pedido existente si es más prioritario
+          const pedidoExistente = pedidosMap.get(pedido.codigo)!;
+          if (estadoPedido === 'EN_TRANSITO' && pedidoExistente.estadoPedido === 'PENDIENTE') {
+            pedidoExistente.estadoPedido = 'EN_TRANSITO';
+          } else if (estadoPedido === 'RETRASO') {
+            pedidoExistente.estadoPedido = 'RETRASO';
+          }
         }
       } else {
         // El camión ya visitó este pedido, reducir la cantidad pendiente
@@ -92,7 +122,11 @@ export const getPedidosPendientes = (
   // Agregar pedidos no asignados
   pedidosNoAsignados.forEach(pedido => {
     if (!pedidosMap.has(pedido.codigo)) {
-      pedidosMap.set(pedido.codigo, { ...pedido });
+      pedidosMap.set(pedido.codigo, { 
+        ...pedido,
+        esNoAsignado: true,
+        estadoPedido: 'NO_ASIGNADO'
+      });
     }
   });
 

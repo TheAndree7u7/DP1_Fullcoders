@@ -24,6 +24,7 @@ const esCoordenadaValida = (coord: Coordenada | undefined | null): coord is Coor
          !isNaN(coord.y);
 };
 import { formatearCapacidadGLP, formatearCombustible, calcularGLPEntregaPorCamion } from '../utils/validacionCamiones';
+import type { PedidoConAsignacion } from "./mapa/utils/pedidos";
 
 interface CamionVisual {
   id: string;
@@ -226,6 +227,31 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                 <span className="text-xs text-gray-700">Cliente</span>
               </div>
               
+              {/* Cliente No Asignado */}
+              <div className="flex items-center gap-1.5">
+                <img src={clienteIcon} alt="Cliente No Asignado" className="w-4 h-4" style={{ filter: 'grayscale(100%) brightness(0.7)' }} />
+                <span className="text-xs text-gray-700">Cliente N/A</span>
+              </div>
+              
+              {/* Estados de pedidos */}
+              <div className="pt-1 border-t border-gray-200">
+                <div className="text-xs font-medium text-gray-600 mb-1">Estados Pedidos:</div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">Pendiente</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">En Tránsito</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-gray-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">No Asignado</span>
+                  </div>
+                </div>
+              </div>
+              
               {/* Camión */}
               <div className="flex items-center gap-1.5">
                 <svg width="16" height="12" viewBox="0 0 16 12" className="border border-gray-300 rounded">
@@ -326,9 +352,38 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
             ))}
 
             {/* Clientes/Pedidos */}
-            {pedidosPendientes.map(pedido => {
+            {pedidosPendientes.map((pedido: PedidoConAsignacion) => {
               //console.log('👤 MAPA: Renderizando cliente:', pedido.codigo, 'en posición:', pedido.coordenada);
               const esResaltado = elementoResaltado?.tipo === 'pedido' && elementoResaltado?.id === pedido.codigo;
+              const estadoPedido = pedido.estadoPedido;
+              
+              // Colores según el estado del pedido
+              let colorTexto, colorVolumen, filtroIcono;
+              
+              switch (estadoPedido) {
+                case 'NO_ASIGNADO':
+                  colorTexto = '#6b7280'; // Gris
+                  colorVolumen = '#6b7280';
+                  filtroIcono = 'grayscale(100%) brightness(0.7)';
+                  break;
+                case 'EN_TRANSITO':
+                  colorTexto = '#16a34a'; // Verde
+                  colorVolumen = '#16a34a';
+                  filtroIcono = 'none';
+                  break;
+                case 'RETRASO':
+                  colorTexto = '#dc2626'; // Rojo
+                  colorVolumen = '#dc2626';
+                  filtroIcono = 'none';
+                  break;
+                case 'PENDIENTE':
+                default:
+                  colorTexto = '#dc2626'; // Rojo
+                  colorVolumen = '#dc2626';
+                  filtroIcono = 'none';
+                  break;
+              }
+              
               return (
                 <g key={pedido.codigo}>
                   {/* Círculo de resaltado para pedidos */}
@@ -354,6 +409,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                     </circle>
                   )}
                   
+                  {/* Icono del cliente con filtro según estado */}
                   <image
                     key={`${pedido.codigo}-icon`}
                     href={clienteIcon}
@@ -361,27 +417,34 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                     y={pedido.coordenada.y * CELL_SIZE - 15}
                     width={30}
                     height={30}
+                    style={{
+                      filter: filtroIcono
+                    }}
                   />
+                  
+                  {/* Etiqueta del código */}
                   <text
                     key={`${pedido.codigo}-label`}
                     x={pedido.coordenada.x * CELL_SIZE}
                     y={pedido.coordenada.y * CELL_SIZE + 25}
                     textAnchor="middle"
                     fontSize="10"
-                    fill="#dc2626"
+                    fill={colorTexto}
                     fontWeight="bold"
                     stroke="#fff"
                     strokeWidth="0.5"
                   >
                     {pedido.codigo}
                   </text>
+                  
+                  {/* Volumen GLP */}
                   <text
                     key={`${pedido.codigo}-volume`}
                     x={pedido.coordenada.x * CELL_SIZE}
                     y={pedido.coordenada.y * CELL_SIZE + 37}
                     textAnchor="middle"
                     fontSize="8"
-                    fill="#dc2626"
+                    fill={colorVolumen}
                     fontWeight="bold"
                     stroke="#fff"
                     strokeWidth="0.5"
