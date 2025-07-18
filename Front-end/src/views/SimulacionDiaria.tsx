@@ -4,15 +4,12 @@ import Navbar from "../components/Navbar";
 import BloqueosTable from "../components/BloqueosTable";
 import RightMenu from "../components/RightMenu";
 import BottomMenu from "../components/BottomMenu";
-import { ChevronLeft, ChevronUp } from "lucide-react";
-import { useSimulacion,  } from "../context/SimulacionContext";
+import { ChevronLeft } from "lucide-react";
+import { useSimulacion } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
-import ControlSimulacion from "../components/ControlSimulacion";
-import IndicadorPaqueteActual from "../components/IndicadorPaqueteActual";
-import { SEGUNDOS_POR_NODO } from "../context/simulacion/types";
+ 
 
-
-const SimulacionDiaria: React.FC = () => {
+const SimulacionSemanal: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
   const [bottomMenuExpandido, setBottomMenuExpandido] = useState(false);
   const { 
@@ -29,12 +26,8 @@ const SimulacionDiaria: React.FC = () => {
   // Estado para resaltar elementos en el mapa
   const [elementoResaltado, setElementoResaltado] = useState<{tipo: 'camion' | 'pedido' | 'almacen', id: string} | null>(null);
   // Estado para el panel de control
-  const [controlPanelExpandido, setControlPanelExpandido] = useState(false);
 
 
-  
-
-  
   // Actualizar la hora simulada solo cuando cambia la fecha del backend
   useEffect(() => {
     if (fechaHoraSimulacion) {
@@ -42,10 +35,6 @@ const SimulacionDiaria: React.FC = () => {
       setTiempoSimulado(new Date(fechaHoraSimulacion));
     }
   }, [fechaHoraSimulacion]);
-  
-
-
-
 
   // Efecto para escuchar clicks en los botones de la navbar
   useEffect(() => {
@@ -88,13 +77,9 @@ const SimulacionDiaria: React.FC = () => {
   return (
     <div className="bg-[#F5F5F5] w-screen h-screen flex flex-col pt-16">
       <Navbar />
-      <div className="bg-[#1E293B] text-white py-2 px-4 flex justify-between items-center">
-        <h1 className="font-bold">Ejecución en Tiempo Real - {formatearTiempoTranscurrido(tiempoTranscurridoSimulado)}</h1>
+      <div className="bg-[#10093B] text-white py-2 px-4 flex justify-between items-center">
+        <h1 className="font-bold">Ejecución Semanal - {formatearTiempoTranscurrido(tiempoTranscurridoSimulado)}</h1>
         <div className="flex items-center gap-4">
-          {/* Indicador compacto del paquete actual */}
-          <div className="bg-[#334155] rounded-lg px-3 py-1">
-            <IndicadorPaqueteActual />
-          </div>
           {tiempoSimulado && (
             <div className="text-sm flex items-center gap-4">
               <div>
@@ -107,39 +92,15 @@ const SimulacionDiaria: React.FC = () => {
               </div>
               <div>
                 <span className="mr-2">Seg/nodo:</span>
-                <span className="font-bold text-blue-300">{SEGUNDOS_POR_NODO}</span>
+                <span className="font-bold text-blue-300">36</span>
               </div>
             </div>
           )}
         </div>
       </div>
       
-      {/* Panel de control de simulación */}
-      <div className="px-4 py-2">
-        <div className="flex items-center justify-between mb-2">
-          <button
-            onClick={() => setControlPanelExpandido(!controlPanelExpandido)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-          >
-            {controlPanelExpandido ? '🔼 Ocultar Control' : '🔽 Mostrar Control de Simulación'}
-          </button>
-        </div>
-        
-        {controlPanelExpandido && (
-          <div className="transition-all duration-300">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Control de simulación */}
-              <div className="lg:col-span-2">
-                <ControlSimulacion />
-              </div>
-              {/* Indicador detallado del paquete actual */}
-              <div className="lg:col-span-1">
-                <IndicadorPaqueteActual />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      
+      
       
       {/* Contenido principal - ahora con altura dinámica */}
       <div className={`flex flex-row flex-1 gap-4 px-4 overflow-hidden relative transition-all duration-300 ${bottomMenuExpandido ? 'pb-4' : ''}`}>
@@ -221,26 +182,15 @@ const SimulacionDiaria: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Botón flotante para mostrar menú inferior */}
-      {!bottomMenuExpandido && panel === 'camiones' && (
-        <button
-          onClick={() => setBottomMenuExpandido(true)}
-          className="absolute bottom-4 right-4 z-20 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg p-3 transition-all duration-200"
-          title="Mostrar ruta del camión"
-        >
-          <ChevronUp size={20} />
-        </button>
-      )}
-
-      {/* Menú inferior - ahora empuja el contenido hacia arriba */}
-      <div className={`transition-all duration-300 ${bottomMenuExpandido ? 'flex-shrink-0' : 'h-0 overflow-hidden'}`}>
-        <BottomMenu expanded={bottomMenuExpandido} setExpanded={setBottomMenuExpandido} camionSeleccionadoExterno={camionSeleccionadoExterno} />
-      </div>
-
-
+      
+      {/* Menú inferior */}
+      <BottomMenu 
+        expanded={bottomMenuExpandido} 
+        setExpanded={setBottomMenuExpandido}
+        camionSeleccionadoExterno={camionSeleccionadoExterno}
+      />
     </div>
   );
 };
 
-export default SimulacionDiaria;
+export default SimulacionSemanal;
