@@ -6,7 +6,7 @@
  */
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import type { Almacen, Gen, Nodo } from "../types";
+import type { Almacen, Gen, Nodo, Pedido } from "../types";
 
 // ============================
 // IMPORTACIONES DE TIPOS Y CONSTANTES
@@ -106,6 +106,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [camiones, setCamiones] = useState<CamionEstado[]>([]);
   const [rutasCamiones, setRutasCamiones] = useState<RutaCamion[]>([]);
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
+  const [pedidosIndividuo, setPedidosIndividuo] = useState<Pedido[]>([]); // Array de pedidos del individuo
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
   
   // Estados de control de actualización
@@ -418,7 +419,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setCamiones(nuevosCamiones);
 
-      // Actualizar bloqueos y almacenes
+      // Actualizar bloqueos, almacenes y pedidos
       if (data.bloqueos) {
         setBloqueos(data.bloqueos);
       } else {
@@ -427,6 +428,15 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (data.almacenes && data.almacenes.length > 0) {
         setAlmacenes(data.almacenes);
+      }
+
+      // Actualizar pedidos del individuo
+      if (data.pedidos && Array.isArray(data.pedidos)) {
+        console.log(`✅ TRANSICIÓN: Procesando ${data.pedidos.length} pedidos del individuo`);
+        setPedidosIndividuo(data.pedidos);
+      } else {
+        console.warn("⚠️ TRANSICIÓN: No hay pedidos en el individuo, estableciendo array vacío");
+        setPedidosIndividuo([]);
       }
 
       // CRÍTICO: Reiniciar el tiempo de simulación para sincronizar con el nuevo intervalo
@@ -544,6 +554,15 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         console.log(`✅ ALMACENES PROCESADOS: ${datos.almacenes.length} almacenes`);
       } else {
         console.warn("⚠️ ADVERTENCIA: No hay almacenes válidos del backend, manteniendo almacenes actuales");
+      }
+
+      // Gestionar pedidos del individuo
+      if (datos.pedidos && Array.isArray(datos.pedidos)) {
+        console.log(`✅ CARGANDO: Procesando ${datos.pedidos.length} pedidos del individuo`);
+        setPedidosIndividuo(datos.pedidos);
+      } else {
+        console.warn("⚠️ CARGANDO: No hay pedidos en el individuo, estableciendo array vacío");
+        setPedidosIndividuo([]);
       }
 
       // CRÍTICO: Reiniciar el tiempo de simulación para sincronizar con el nuevo intervalo
@@ -672,6 +691,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         setSimulacionActiva,
         setPollingActivo,
         setCargando,
+        setPedidosIndividuo,
         fechaInicioSimulacion
       );
 
@@ -716,6 +736,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         setSimulacionActiva,
         setPollingActivo,
         setCargando,
+        setPedidosIndividuo,
         fechaInicioSimulacion
       );
 
@@ -753,6 +774,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setSimulacionActiva,
       setPollingActivo,
       setCargando,
+      setPedidosIndividuo,
       fechaInicioSimulacion
     );
   };
@@ -783,7 +805,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setPaqueteActualConsumido,
       setSimulacionActiva,
       setPollingActivo,
-      setCargando
+      setCargando,
+      setPedidosIndividuo
     );
   };
 
@@ -840,6 +863,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     camiones,
     rutasCamiones,
     almacenes,
+    pedidosIndividuo,
     bloqueos,
     cargando,
     

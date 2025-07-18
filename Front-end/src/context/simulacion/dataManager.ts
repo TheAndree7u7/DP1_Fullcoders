@@ -10,7 +10,7 @@ import type {
   Bloqueo, 
   IndividuoConBloqueos
 } from "./types";
-import type { Almacen } from "../../types";
+import type { Almacen, Pedido } from "../../types";
 import type { Gen, Nodo } from "../../types";
 
 
@@ -27,6 +27,7 @@ export const cargarDatos = async (
   nuevosCamiones: CamionEstado[];
   bloqueos: Bloqueo[];
   almacenes: Almacen[];
+  pedidos: Pedido[]; // Array de pedidos del individuo
   fechaHoraSimulacion: string | null;
   fechaHoraInicioIntervalo: string | null;
   fechaHoraFinIntervalo: string | null;
@@ -169,11 +170,16 @@ export const cargarDatos = async (
     // Gestionar almacenes
     const almacenes: Almacen[] = data.almacenes || [];
 
+    // Extraer pedidos del individuo
+    const pedidos: Pedido[] = data.pedidos || [];
+    console.log(`✅ DATOS: Extracting ${pedidos.length} pedidos from individuo`);
+
     return {
       nuevasRutas,
       nuevosCamiones,
       bloqueos,
       almacenes,
+      pedidos,
       fechaHoraSimulacion,
       fechaHoraInicioIntervalo,
       fechaHoraFinIntervalo,

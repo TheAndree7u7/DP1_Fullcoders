@@ -7,14 +7,13 @@ import {
   HORA_INICIAL, 
   NODOS_PARA_ACTUALIZACION
 } from "./types";
-import type {
-  CamionEstado,
-  RutaCamion,
-  Bloqueo,
+import type { 
+  CamionEstado, 
+  RutaCamion, 
+  Bloqueo, 
   IndividuoConBloqueos
 } from "./types";
-
-/**
+import type { Pedido } from "../../types";/**
  * @function limpiarEstadoParaNuevaSimulacion
  * @description Limpia el estado para una nueva simulación y carga los primeros datos
  */
@@ -40,6 +39,7 @@ export const limpiarEstadoParaNuevaSimulacion = (
   setSimulacionActiva: (activa: boolean) => void,
   setPollingActivo: (activo: boolean) => void,
   setCargando: (cargando: boolean) => void,
+  setPedidosIndividuo: (pedidos: Pedido[]) => void,
   fechaInicioSimulacion: string | null
 ): void => {
   console.log("🧹 LIMPIEZA: Limpiando estado para nueva simulación...");
@@ -48,6 +48,7 @@ export const limpiarEstadoParaNuevaSimulacion = (
   setCamiones([]);
   setRutasCamiones([]);
   setBloqueos([]);
+  setPedidosIndividuo([]);
   setFechaHoraSimulacion(null);
   // NO limpiar fechaInicioSimulacion para mantenerla durante toda la simulación semanal
   setFechaHoraInicioIntervalo(null);
@@ -109,7 +110,8 @@ export const limpiarSimulacionCompleta = (
   setPaqueteActualConsumido: (paquete: number) => void,
   setSimulacionActiva: (activa: boolean) => void,
   setPollingActivo: (activo: boolean) => void,
-  setCargando: (cargando: boolean) => void
+  setCargando: (cargando: boolean) => void,
+  setPedidosIndividuo: (pedidos: Pedido[]) => void
 ): void => {
   console.log("🧹 LIMPIEZA COMPLETA: Limpiando toda la simulación incluyendo fecha de inicio...");
 
@@ -117,6 +119,7 @@ export const limpiarSimulacionCompleta = (
   setCamiones([]);
   setRutasCamiones([]);
   setBloqueos([]);
+  setPedidosIndividuo([]);
   setFechaHoraSimulacion(null);
   setFechaInicioSimulacion(null); // Limpiar fecha de inicio para nueva simulación semanal
   setFechaHoraInicioIntervalo(null);

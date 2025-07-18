@@ -62,7 +62,7 @@ interface TablaPedidosProps {
 }
 
 const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) => {
-  const { rutasCamiones, camiones } = useSimulacion();
+  const { rutasCamiones, camiones, pedidosIndividuo } = useSimulacion();
   const [filtroEstado, setFiltroEstado] = useState<string>('TODOS');
   const [busqueda, setBusqueda] = useState<string>('');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
@@ -78,6 +78,23 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
       estadoPedido: string;
     }>();
     
+    // 1. Primero agregar todos los pedidos del individuo (que pueden no tener camiones asignados)
+    if (pedidosIndividuo && Array.isArray(pedidosIndividuo)) {
+      pedidosIndividuo.forEach(pedido => {
+        if (!pedidosMap.has(pedido.codigo)) {
+          pedidosMap.set(pedido.codigo, {
+            ...pedido,
+            camionesAsignados: [],
+            estadosCamiones: [],
+            volumenTotal: pedido.volumenGLPAsignado,
+            volumenPendiente: pedido.volumenGLPAsignado - (pedido.volumenGLPEntregado || 0),
+            estadoPedido: (pedido.volumenGLPEntregado || 0) >= pedido.volumenGLPAsignado ? 'ENTREGADO' : 'PENDIENTE'
+          });
+        }
+      });
+    }
+    
+    // 2. Luego procesar las rutas de camiones para agregar asignaciones
     rutasCamiones.forEach(ruta => {
       const camion = camiones.find(c => c.id === ruta.id);
       const estadoCamion = camion?.estado || 'Desconocido';
@@ -138,6 +155,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
    };
 
    // Función para obtener el valor a ordenar
+   // Nota: Usando 'any' porque los pedidos pueden tener propiedades adicionales del backend
    const getSortValue = (pedido: any, column: string) => {
      switch (column) {
        case 'codigo':
@@ -150,6 +168,8 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
          return pedido.camionesAsignados ? pedido.camionesAsignados.join(', ') : '';
        case 'glp':
          return pedido.volumenGLPAsignado || 0;
+       case 'volumenEntregado':
+         return pedido.volumenGLPEntregado || 0;
        case 'fechaRegistro':
          return pedido.fechaRegistro || '';
        case 'fechaLimite':
@@ -333,6 +353,16 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
                </th>
                <th className="px-4 py-2 text-left font-semibold text-black">
                  <button
+                   onClick={() => handleSort('volumenEntregado')}
+                   className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                   title="Ordenar por Volumen Entregado"
+                 >
+                   <span>Volumen Entregado</span>
+                   {renderSortIcon('volumenEntregado')}
+                 </button>
+               </th>
+               <th className="px-4 py-2 text-left font-semibold text-black">
+                 <button
                    onClick={() => handleSort('fechaRegistro')}
                    className="flex items-center gap-1 hover:text-blue-600 transition-colors"
                    title="Ordenar por Fecha de Registro"
@@ -356,7 +386,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
           <tbody>
             {pedidosFiltrados.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
                   No hay pedidos para mostrar
                 </td>
               </tr>
@@ -403,6 +433,9 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
                    </td>
                    <td className="px-4 py-2 text-purple-700 font-bold">
                      {pedido.volumenGLPAsignado?.toFixed(2) || 'N/A'}
+                   </td>
+                   <td className="px-4 py-2 text-green-700 font-bold">
+                     {pedido.volumenGLPEntregado?.toFixed(2) || '0.00'}
                    </td>
                    <td className="px-4 py-2 text-gray-600">
                      <div className="flex items-center gap-1">

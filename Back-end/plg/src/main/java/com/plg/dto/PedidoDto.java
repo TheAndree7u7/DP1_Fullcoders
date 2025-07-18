@@ -14,6 +14,7 @@ public class PedidoDto {
     private CoordenadaDto coordenada;
     private double horasLimite;
     private double volumenGLPAsignado;
+    private double volumenGLPEntregado;
     private EstadoPedido estado;
     private LocalDateTime fechaRegistro;
     private LocalDateTime fechaLimite;
@@ -23,6 +24,7 @@ public class PedidoDto {
         this.coordenada = new CoordenadaDto(pedido.getCoordenada());
         this.horasLimite = pedido.getHorasLimite();
         this.volumenGLPAsignado = pedido.getVolumenGLPAsignado();
+        this.volumenGLPEntregado = pedido.getVolumenGLPEntregado();
         this.estado = pedido.getEstado();
         this.fechaRegistro = pedido.getFechaRegistro();
         this.fechaLimite = pedido.getFechaLimite();

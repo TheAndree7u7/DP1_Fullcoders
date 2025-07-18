@@ -137,6 +137,7 @@ export interface Pedido {
   horasLimite: number;
   fechaRegistro: string; // LocalDateTime como string ISO
   volumenGLPAsignado: number;
+  volumenGLPEntregado: number; // Nueva propiedad para el volumen entregado
   estado: EstadoPedidoFrontend | string; // Permitir strings para compatibilidad
   fechaLimite: string; // LocalDateTime como string ISO
   // Propiedades opcionales del Nodo para compatibilidad con backend

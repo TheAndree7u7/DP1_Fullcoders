@@ -91,6 +91,9 @@ public class Individuo {
         guardarEstadoActual();
         Collections.shuffle(camionesDisponibles);
         for (Camion camion : camionesDisponibles) {
+            
+    
+
             int intentos = 0;
             boolean asignado = false;
             while (intentos < 10 && !asignado && !pedidosMezclados.isEmpty()) {
