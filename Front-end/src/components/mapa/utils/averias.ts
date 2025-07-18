@@ -4,7 +4,7 @@
  */
 
 import { averiarCamionConEstado } from "../../../services/averiaApiService";
-import { eliminarPaquetesFuturos, obtenerInfoSimulacion } from "../../../services/simulacionApiService";
+import {  obtenerInfoSimulacion } from "../../../services/simulacionApiService";
 import { toast, Bounce } from 'react-toastify';
 import { pausarSimulacion as pausarSimulacionUtil } from "../../../context/simulacion/utils/controles";
 import { capturarEstadoCompleto, generarResumenEstado, type EstadoSimulacionCompleto } from "../../../context/simulacion/utils/estado";
@@ -115,26 +115,7 @@ export const handleAveriar = async (
     
     // 7. CRÍTICO: Eliminar paquetes futuros - esta operación debe ser exitosa
     console.log("🗑️ ELIMINANDO PAQUETES FUTUROS (CRÍTICO)...");
-    try {
-      await eliminarPaquetesFuturos();
-      console.log("✅ Paquetes futuros eliminados exitosamente");
-    } catch (error) {
-      console.error("❌ ERROR CRÍTICO al eliminar paquetes futuros:", error);
-      // Mostrar error específico al usuario
-      toast.error(`❌ Error crítico: No se pudieron eliminar los paquetes futuros. La avería podría no procesarse correctamente.`, {
-        position: "top-right",
-        autoClose: 8000,
-        hideProgressBar: false,
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Bounce,
-      });
-      // Re-lanzar el error para que se maneje en el catch principal
-      throw new Error(`Error crítico al eliminar paquetes futuros: ${error}`);
-    }
+ 
     
     // 8. Enviar avería con estado completo al backend (ahora incluye el camión averiado)
     console.log("📡 ENVIANDO AVERÍA CON ESTADO COMPLETO (CAMIÓN AVERIADO)...");

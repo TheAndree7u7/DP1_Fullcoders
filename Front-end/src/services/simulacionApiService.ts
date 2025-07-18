@@ -147,32 +147,7 @@ export async function obtenerInfoSimulacion(): Promise<{
   }
 }
 
-/**
- * Elimina los paquetes futuros de la simulación, manteniendo solo el actual
- * @returns Promise con el mensaje de confirmación
- */
-export async function eliminarPaquetesFuturos(): Promise<string> {
-  try {
-    console.log("🗑️ PAQUETES: Eliminando paquetes futuros de la simulación...");
-    
-    const response = await fetch(`${API_URLS.ELIMINAR_PAQUETES_FUTUROS}`, {
-      method: 'DELETE'
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("❌ PAQUETES: Error al eliminar paquetes futuros:", errorText);
-      throw new Error(`Error ${response.status}: ${errorText}`);
-    }
-
-    const mensaje = await response.text();
-    console.log("✅ PAQUETES: Paquetes futuros eliminados exitosamente:", mensaje);
-    return mensaje;
-  } catch (error) {
-    console.error("Error al eliminar paquetes futuros:", error);
-    throw error;
-  }
-}
+ 
 
 /**
  * Obtiene el siguiente paquete disponible en la simulación
