@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Repository;
 
+import com.plg.config.DataLoader;
 import com.plg.utils.Parametros;
 import com.plg.dto.CamionDto;
 import com.plg.entity.Camion;
@@ -14,12 +15,13 @@ import com.plg.entity.Camion;
  */
 @Repository
 public class CamionRepository {
+    DataLoader dataLoader = new DataLoader();
 
     /**
      * Obtiene la lista completa de camiones.
      */
     public List<Camion> findAll() {
-        return Parametros.dataLoader.camiones;
+        return dataLoader.camiones;
     }
 
     /**
@@ -49,7 +51,8 @@ public class CamionRepository {
      */
     public Map<String, Long> countByEstado() {
         return findAll().stream()
-                .collect(java.util.stream.Collectors.groupingBy(c -> c.getEstado().name(), java.util.stream.Collectors.counting()));
+                .collect(java.util.stream.Collectors.groupingBy(c -> c.getEstado().name(),
+                        java.util.stream.Collectors.counting()));
     }
 
     /**
