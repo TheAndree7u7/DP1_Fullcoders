@@ -29,7 +29,18 @@ export const getPedidosPendientes = (
 ): PedidoConAsignacion[] => {
   const pedidosMap = new Map<string, PedidoConAsignacion>();
   
-  // Procesar pedidos asignados a camiones
+  // PASO 1: Crear un set de códigos de pedidos que están en las rutas de los camiones
+  const pedidosEnRutasSet = new Set<string>();
+  rutasCamiones.forEach(ruta => {
+    ruta.pedidos.forEach(pedido => {
+      pedidosEnRutasSet.add(pedido.codigo);
+    });
+  });
+  
+  console.log('🔍 DEBUG: Pedidos en rutas de camiones:', Array.from(pedidosEnRutasSet));
+  console.log('🔍 DEBUG: Pedidos no asignados del backend:', pedidosNoAsignados.map(p => p.codigo));
+  
+  // PASO 2: Procesar TODOS los pedidos que están en las rutas de los camiones
   rutasCamiones.forEach(ruta => {
     const camionActual = camiones.find(c => c.id === ruta.id);
     if (!camionActual) {
@@ -84,6 +95,7 @@ export const getPedidosPendientes = (
       if (indicePedidoEnRuta === -1 || indicePedidoEnRuta > posicionActual) {
         if (!pedidosMap.has(pedido.codigo)) {
           // Crear nuevo pedido con la cantidad pendiente inicializada
+          console.log('✅ DEBUG: Agregando pedido en ruta:', pedido.codigo, 'estado:', estadoPedido, 'camión:', ruta.id);
           pedidosMap.set(pedido.codigo, { 
             ...pedido,
             volumenGLPAsignado: pedido.volumenGLPAsignado, // Cantidad total pendiente
@@ -95,8 +107,10 @@ export const getPedidosPendientes = (
           const pedidoExistente = pedidosMap.get(pedido.codigo)!;
           if (estadoPedido === 'EN_TRANSITO' && pedidoExistente.estadoPedido === 'PENDIENTE') {
             pedidoExistente.estadoPedido = 'EN_TRANSITO';
+            console.log('🔄 DEBUG: Actualizando estado a EN_TRANSITO:', pedido.codigo);
           } else if (estadoPedido === 'RETRASO') {
             pedidoExistente.estadoPedido = 'RETRASO';
+            console.log('🔄 DEBUG: Actualizando estado a RETRASO:', pedido.codigo);
           }
         }
       } else {
@@ -119,16 +133,27 @@ export const getPedidosPendientes = (
     });
   });
 
-  // Agregar pedidos no asignados
+  // PASO 3: Agregar SOLO los pedidos que NO están en las rutas de los camiones
   pedidosNoAsignados.forEach(pedido => {
-    if (!pedidosMap.has(pedido.codigo)) {
+    // Verificar que el pedido NO esté en las rutas de los camiones
+    if (!pedidosEnRutasSet.has(pedido.codigo)) {
+      console.log('✅ DEBUG: Agregando pedido NO en rutas (realmente no asignado):', pedido.codigo);
       pedidosMap.set(pedido.codigo, { 
         ...pedido,
         esNoAsignado: true,
         estadoPedido: 'NO_ASIGNADO'
       });
+    } else {
+      console.log('⚠️ DEBUG: Pedido del array no asignados SÍ está en rutas de camiones:', pedido.codigo);
     }
   });
 
-  return Array.from(pedidosMap.values());
+  const resultado = Array.from(pedidosMap.values());
+  console.log('🔍 DEBUG: Pedidos procesados:', resultado.map(p => ({
+    codigo: p.codigo,
+    estado: p.estadoPedido,
+    esNoAsignado: p.esNoAsignado
+  })));
+  
+  return resultado;
 }; 
