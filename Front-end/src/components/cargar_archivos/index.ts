@@ -2,4 +2,4 @@
 export { validarArchivoVentas, validarArchivoBloqueos, validarArchivoCamiones, validarArchivoMantenimiento } from './validadores';
 export { ejemplos, descargarEjemplo } from './ejemplos';
 export { manejarCargaArchivo } from './manejadorArchivos';
-export { puedenCargarseArchivos, formatearTamanoArchivo } from './utilidades'; 
+export { puedenCargarseArchivos, formatearTamanoArchivo, descargarArchivoCargado } from './utilidades'; 

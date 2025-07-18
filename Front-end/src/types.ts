@@ -594,21 +594,25 @@ export interface DatosMantenimiento {
 export interface EstadoCargaArchivos {
   ventas: {
     cargado: boolean;
+    cargando?: boolean;
     archivo?: ArchivoCarga;
     errores: string[];
   };
   bloqueos: {
     cargado: boolean;
+    cargando?: boolean;
     archivo?: ArchivoCarga;
     errores: string[];
   };
   camiones: {
     cargado: boolean;
+    cargando?: boolean;
     archivo?: ArchivoCarga;
     errores: string[];
   };
   mantenimiento: {
     cargado: boolean;
+    cargando?: boolean;
     archivo?: ArchivoCarga;
     errores: string[];
   };
