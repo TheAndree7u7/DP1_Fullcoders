@@ -99,6 +99,29 @@ class CargaArchivosService {
     }
   }
 
+  // Cargar archivo de mantenimiento preventivo
+  async cargarArchivoMantenimiento(archivo: ArchivoCarga): Promise<CargaArchivosResponse> {
+    try {
+      const formData = new FormData();
+      const blob = new Blob([archivo.contenido], { type: 'text/plain' });
+      formData.append('archivo', blob, archivo.nombre);
+
+      const response = await fetch(`${API_BASE_URL}/api/simulacion/cargar-mantenimiento`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      return {
+        success: false,
+        message: `Error al cargar archivo de mantenimiento: ${error}`,
+        errores: [error instanceof Error ? error.message : 'Error desconocido']
+      };
+    }
+  }
+
   // Cargar todos los archivos de una vez
   async cargarTodosLosArchivos(estadoCarga: EstadoCargaArchivos): Promise<CargaArchivosResponse> {
     try {
@@ -134,6 +157,14 @@ class CargaArchivosService {
         }
       }
 
+      // Cargar archivo de mantenimiento si está disponible
+      if (estadoCarga.mantenimiento.cargado && estadoCarga.mantenimiento.archivo) {
+        const resultadoMantenimiento = await this.cargarArchivoMantenimiento(estadoCarga.mantenimiento.archivo);
+        if (!resultadoMantenimiento.success) {
+          errores.push(`Mantenimiento: ${resultadoMantenimiento.message}`);
+        }
+      }
+
       if (errores.length > 0) {
         return {
           success: false,
@@ -160,6 +191,7 @@ class CargaArchivosService {
     ventas: boolean;
     bloqueos: boolean;
     camiones: boolean;
+    mantenimiento: boolean;
   }> {
     try {
       const response = await fetch(`${API_BASE_URL}/api/simulacion/estado-archivos`);
@@ -169,7 +201,8 @@ class CargaArchivosService {
       return {
         ventas: false,
         bloqueos: false,
-        camiones: false
+        camiones: false,
+        mantenimiento: false
       };
     }
   }

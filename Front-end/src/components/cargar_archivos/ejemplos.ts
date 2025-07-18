@@ -33,6 +33,22 @@ export const ejemplos: EjemploArchivo[] = [
 TB,4
 TC,3
 TD,2`
+  },
+  {
+    nombre: "mantpreventivo.txt",
+    descripcion: "Archivo de mantenimiento preventivo",
+    tipo: "mantenimiento",
+    formato: "Formato: aaaammdd:TTNN (ej: 20250401:TA01)",
+    contenido: `20250401:TA01
+20250403:TD01
+20250405:TC01
+20250407:TB01
+20250410:TD02
+20250413:TD03
+20250416:TB02
+20250419:TD04
+20250422:TC02
+20250425:TD05`
   }
 ];
 

@@ -554,7 +554,7 @@ export type PedidoLegacy = {
 export interface ArchivoCarga {
   nombre: string;
   contenido: string;
-  tipo: 'ventas' | 'bloqueos' | 'camiones';
+  tipo: 'ventas' | 'bloqueos' | 'camiones' | 'mantenimiento';
   fechaCreacion: Date;
   tamano: number;
 }
@@ -584,6 +584,13 @@ export interface DatosCamion {
   velocidadPromedio: number;
 }
 
+export interface DatosMantenimiento {
+  fecha: string; // Formato: "20250401" (aaaammdd)
+  codigoCamion: string; // Formato: "TA01" (TTNN)
+  tipo: TipoCamion;
+  numero: number;
+}
+
 export interface EstadoCargaArchivos {
   ventas: {
     cargado: boolean;
@@ -600,13 +607,18 @@ export interface EstadoCargaArchivos {
     archivo?: ArchivoCarga;
     errores: string[];
   };
+  mantenimiento: {
+    cargado: boolean;
+    archivo?: ArchivoCarga;
+    errores: string[];
+  };
 }
 
 export interface EjemploArchivo {
   nombre: string;
   descripcion: string;
   contenido: string;
-  tipo: 'ventas' | 'bloqueos' | 'camiones';
+  tipo: 'ventas' | 'bloqueos' | 'camiones' | 'mantenimiento';
   formato: string;
 }
 
@@ -614,5 +626,5 @@ export interface ValidacionArchivo {
   esValido: boolean;
   errores: string[];
   advertencias: string[];
-  datosParseados?: DatosVentas[] | DatosBloqueo[] | DatosCamion[];
+  datosParseados?: DatosVentas[] | DatosBloqueo[] | DatosCamion[] | DatosMantenimiento[];
 }

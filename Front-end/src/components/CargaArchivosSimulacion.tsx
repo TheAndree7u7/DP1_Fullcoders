@@ -30,7 +30,8 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
   const [estadoCarga, setEstadoCarga] = useState<EstadoCargaArchivos>({
     ventas: { cargado: false, errores: [] },
     bloqueos: { cargado: false, errores: [] },
-    camiones: { cargado: false, errores: [] }
+    camiones: { cargado: false, errores: [] },
+    mantenimiento: { cargado: false, errores: [] }
   });
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [fechaSimulacion, setFechaSimulacion] = useState<string>(fechaInicioSimulacion || new Date().toISOString().substring(0, 10) + 'T00:00');
@@ -41,6 +42,7 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
   const fileInputVentasRef = useRef<HTMLInputElement>(null);
   const fileInputBloqueosRef = useRef<HTMLInputElement>(null);
   const fileInputCamionesRef = useRef<HTMLInputElement>(null);
+  const fileInputMantenimientoRef = useRef<HTMLInputElement>(null);
 
   // Cuando cambia la fecha local, actualizar el contexto global
   useEffect(() => {
@@ -54,7 +56,7 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
   // Función para manejar la carga de archivos
   const handleCargaArchivo = async (
     archivo: File, 
-    tipo: 'ventas' | 'bloqueos' | 'camiones'
+    tipo: 'ventas' | 'bloqueos' | 'camiones' | 'mantenimiento'
   ) => {
     await manejarCargaArchivo(archivo, tipo, estadoCarga, (nuevoEstado) => {
       setEstadoCarga(nuevoEstado);
@@ -407,6 +409,78 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
                 const file = e.target.files?.[0];
                 if (file) {
                   handleCargaArchivo(file, 'camiones');
+                }
+              }}
+              className="hidden"
+            />
+          </div>
+        </div>
+
+        {/* Sección de Archivos de Mantenimiento Preventivo */}
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2">4</span>
+            Archivo de Mantenimiento Preventivo
+          </h3>
+          
+          <div className="bg-gray-50 rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-gray-700">Estado:</span>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                estadoCarga.mantenimiento.cargado 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {estadoCarga.mantenimiento.cargado ? 'Cargado' : 'Pendiente'}
+              </span>
+            </div>
+            
+            {estadoCarga.mantenimiento.archivo && (
+              <div className="bg-white rounded p-3 mb-3">
+                <p className="text-sm text-gray-600">
+                  <strong>Archivo:</strong> {estadoCarga.mantenimiento.archivo.nombre}
+                </p>
+                <p className="text-sm text-gray-600">
+                  <strong>Tamaño:</strong> {formatearTamanoArchivo(estadoCarga.mantenimiento.archivo.tamano)} KB
+                </p>
+              </div>
+            )}
+
+            {estadoCarga.mantenimiento.errores.length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded p-3 mb-3">
+                <p className="text-sm font-medium text-red-800 mb-2">Errores encontrados:</p>
+                <ul className="text-sm text-red-700 space-y-1">
+                  {estadoCarga.mantenimiento.errores.map((error, index) => (
+                    <li key={index}>• {error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => fileInputMantenimientoRef.current?.click()}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Seleccionar Archivo
+              </button>
+              
+              <button
+                onClick={() => descargarEjemplo(ejemplos[3])}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Descargar Ejemplo
+              </button>
+            </div>
+
+            <input
+              ref={fileInputMantenimientoRef}
+              type="file"
+              accept=".txt"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  handleCargaArchivo(file, 'mantenimiento');
                 }
               }}
               className="hidden"

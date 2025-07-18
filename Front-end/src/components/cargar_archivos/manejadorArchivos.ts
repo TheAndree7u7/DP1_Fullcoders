@@ -1,10 +1,10 @@
 import type { ArchivoCarga, EstadoCargaArchivos } from "../../types";
-import { validarArchivoVentas, validarArchivoBloqueos, validarArchivoCamiones } from "./validadores";
+import { validarArchivoVentas, validarArchivoBloqueos, validarArchivoCamiones, validarArchivoMantenimiento } from "./validadores";
 
 // Función para manejar la carga de archivos
 export const manejarCargaArchivo = async (
   archivo: File, 
-  tipo: 'ventas' | 'bloqueos' | 'camiones',
+  tipo: 'ventas' | 'bloqueos' | 'camiones' | 'mantenimiento',
   estadoCarga: EstadoCargaArchivos,
   onArchivosCargados: (estado: EstadoCargaArchivos) => void
 ): Promise<void> => {
@@ -26,6 +26,8 @@ export const manejarCargaArchivo = async (
       validacion = validarArchivoBloqueos(contenido);
     } else if (tipo === 'camiones') {
       validacion = validarArchivoCamiones(contenido);
+    } else if (tipo === 'mantenimiento') {
+      validacion = validarArchivoMantenimiento(contenido);
     } else {
       validacion = { esValido: false, errores: ['Tipo de archivo no soportado'], advertencias: [] };
     }
