@@ -25,13 +25,11 @@ export const avanzarHora = async (
   nodosRestantesAntesDeActualizar: number,
   solicitudAnticipadaEnviada: boolean,
   proximaSolucionCargada: IndividuoConBloqueos | null,
-  fechaInicioSimulacion: string | null,
   setCamiones: (camiones: CamionEstado[]) => void,
   setHoraActual: (hora: number | ((prev: number) => number)) => void,
   setNodosRestantesAntesDeActualizar: (nodos: number) => void,
   setEsperandoActualizacion: (esperando: boolean) => void,
   setSolicitudAnticipadaEnviada: (enviada: boolean) => void,
-  setProximaSolucionCargada: (solucion: IndividuoConBloqueos | null) => void,
   cargarSolucionAnticipada: () => Promise<void>,
   aplicarSolucionPrecargada: (data: IndividuoConBloqueos) => Promise<void>,
   cargarDatosSimulacion: () => Promise<void>

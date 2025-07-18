@@ -29,6 +29,9 @@ import type {
   IndividuoConBloqueos,
 } from "./simulacion";
 
+// Re-exportar tipos para uso en otros archivos
+export type { CamionEstado, RutaCamion } from "./simulacion";
+
 // ============================
 // IMPORTACIONES DE MÓDULOS REFACTORIZADOS
 // ============================
@@ -721,13 +724,11 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       nodosRestantesAntesDeActualizar,
       solicitudAnticipadaEnviada,
       proximaSolucionCargada,
-      fechaInicioSimulacion,
       setCamiones,
       setHoraActual,
       setNodosRestantesAntesDeActualizar,
       setEsperandoActualizacion,
       setSolicitudAnticipadaEnviada,
-      setProximaSolucionCargada,
       cargarSolucionAnticipadaLocal,
       aplicarSolucionPrecargada,
       cargarDatosSimulacion

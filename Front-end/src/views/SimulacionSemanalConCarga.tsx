@@ -11,7 +11,8 @@ const SimulacionSemanalConCarga: React.FC = () => {
   const [estadoCarga, setEstadoCarga] = useState<EstadoCargaArchivos>({
     ventas: { cargado: false, errores: [] },
     bloqueos: { cargado: false, errores: [] },
-    camiones: { cargado: false, errores: [] }
+    camiones: { cargado: false, errores: [] },
+    mantenimiento: { cargado: false, errores: [] }
   });
   const [cargando, setCargando] = useState(false);
   const navigate = useNavigate();
