@@ -169,10 +169,7 @@ public class Camion extends Nodo {
         if (intermedio < gen.getRutaFinal().size()) {
             Coordenada nuevaCoordenada = gen.getRutaFinal().get(intermedio).getCoordenada();
             setCoordenada(nuevaCoordenada);
-            // Imprimimos la coordenada para realizar debug
-            System.out.println("Camión " + codigo + " se mueve a la coordenada: " + nuevaCoordenada);
-            // Actualizamos el estado del camión en el mapa
-
+    
         }
 
         // Recorremos la ruta 
