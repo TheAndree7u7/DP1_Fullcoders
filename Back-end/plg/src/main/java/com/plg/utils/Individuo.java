@@ -124,7 +124,7 @@ public class Individuo {
             if (camion.getTipo() == TipoCamion.TD) {
                 maxPedidosPorCamion = 1;
             } else if (camion.getTipo() == TipoCamion.TA) {
-                maxPedidosPorCamion = 3;
+                maxPedidosPorCamion = 2;
             } else if (camion.getTipo() == TipoCamion.TB) {
                 maxPedidosPorCamion = 2;
             } else if (camion.getTipo() == TipoCamion.TC) {
