@@ -312,7 +312,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
       </div>
 
       {/* Tabla de pedidos */}
-      <div className="flex-1 min-h-0 overflow-y-auto rounded-lg shadow border border-gray-200 bg-white">
+      <div className="flex-1 min-h-0 overflow-auto rounded-lg shadow border border-gray-200 bg-white">
                  <table className="min-w-full table-auto text-sm bg-white">
            <thead className="sticky top-0 bg-gray-50 z-10">
              <tr className="border-b border-gray-200">

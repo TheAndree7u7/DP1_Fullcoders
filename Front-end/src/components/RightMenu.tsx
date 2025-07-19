@@ -535,13 +535,10 @@ interface RightMenuProps {
 
 const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded, onElementoSeleccionado }) => {
   const [panel, setPanel] = React.useState<'camiones' | 'bloqueos' | 'metricas' | 'estadoCamiones' | 'pedidos' | 'almacenes'>('camiones');
-  // Estados para expandir/contraer secciones en panel camiones
-  // Solo una sección expandida a la vez (acordeón)
-  // const [expandedSection, setExpandedSection] = React.useState<'estado' | 'datos'>('estado');
   if (!expanded) return null;
 
   return (
-    <div className="transition-all duration-300 bg-white rounded-xl p-4 shadow-md h-full flex flex-col">
+    <div className="transition-all duration-300 bg-white rounded-xl p-4 shadow-md h-full flex flex-col w-120 min-w-120 max-w-120">
       <button
         onClick={() => setExpanded(false)}
         className="self-end mb-2"
