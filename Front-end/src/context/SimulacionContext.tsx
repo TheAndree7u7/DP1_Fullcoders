@@ -429,15 +429,33 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         const gen = data.cromosoma.find((g: Gen) => g.camion.codigo === ruta.id);
         const camion = gen?.camion;
         const anterior = camiones.find(c => c.id === ruta.id);
-        const ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
+        
+        // NUEVA LÓGICA: Teletransporte para camiones averiados
+        let ubicacion: string;
+        let porcentaje: number;
+        
+        if (anterior && anterior.estado === "Averiado") {
+          // Si el camión estaba averiado, teletransportarlo a su nueva posición en el cromosoma
+          ubicacion = ruta.ruta[0]; // Primera posición de la nueva ruta
+          porcentaje = 0; // Reiniciar progreso
+          console.log(`🚛💥 TELETRANSPORTE: Camión ${ruta.id} averiado teletransportado de ${anterior.ubicacion} a ${ubicacion}`);
+        } else {
+          // Para camiones no averiados, mantener lógica anterior
+          ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
+          porcentaje = 0;
+        }
         
         // Verificar si el camión está en el almacén central (posición 0,0)
         const estaEnAlmacenCentral = ubicacion === '(0,0)' || ubicacion === '(0, 0)';
         
-        // Mapear estados del backend al frontend solo si no está en almacén central
+        // Mapear estados del backend al frontend
         let estadoFrontend: "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "Entregado";
         
-        if (estaEnAlmacenCentral) {
+        if (anterior && anterior.estado === "Averiado") {
+          // Si el camión estaba averiado, mantenerlo como averiado pero en nueva posición
+          estadoFrontend = "Averiado";
+          console.log(`🚛💥 ESTADO: Camión ${ruta.id} mantiene estado 'Averiado' en nueva posición ${ubicacion}`);
+        } else if (estaEnAlmacenCentral) {
           // Si está en almacén central, mantener estado simple
           estadoFrontend = camion?.estado === 'DISPONIBLE' ? 'Disponible' : 'En Camino';
         } else {
@@ -448,7 +466,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         return {
           id: ruta.id,
           ubicacion,
-          porcentaje: 0,
+          porcentaje,
           estado: estadoFrontend,
           capacidadActualGLP: camion?.capacidadActualGLP ?? 0,
           capacidadMaximaGLP: camion?.capacidadMaximaGLP ?? 0,
@@ -553,15 +571,33 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         const gen = data.cromosoma.find((g: Gen) => g.camion.codigo === ruta.id);
         const camion = gen?.camion;
         const anterior = camiones.find(c => c.id === ruta.id);
-        const ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
+        
+        // NUEVA LÓGICA: Teletransporte para camiones averiados
+        let ubicacion: string;
+        let porcentaje: number;
+        
+        if (anterior && anterior.estado === "Averiado") {
+          // Si el camión estaba averiado, teletransportarlo a su nueva posición en el cromosoma
+          ubicacion = ruta.ruta[0]; // Primera posición de la nueva ruta
+          porcentaje = 0; // Reiniciar progreso
+          console.log(`🚛💥 TELETRANSPORTE: Camión ${ruta.id} averiado teletransportado de ${anterior.ubicacion} a ${ubicacion}`);
+        } else {
+          // Para camiones no averiados, mantener lógica anterior
+          ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
+          porcentaje = 0;
+        }
         
         // Verificar si el camión está en el almacén central (posición 0,0)
         const estaEnAlmacenCentral = ubicacion === '(0,0)' || ubicacion === '(0, 0)';
         
-        // Mapear estados del backend al frontend solo si no está en almacén central
+        // Mapear estados del backend al frontend
         let estadoFrontend: "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "Entregado";
         
-        if (estaEnAlmacenCentral) {
+        if (anterior && anterior.estado === "Averiado") {
+          // Si el camión estaba averiado, mantenerlo como averiado pero en nueva posición
+          estadoFrontend = "Averiado";
+          console.log(`🚛💥 ESTADO: Camión ${ruta.id} mantiene estado 'Averiado' en nueva posición ${ubicacion}`);
+        } else if (estaEnAlmacenCentral) {
           // Si está en almacén central, mantener estado simple
           estadoFrontend = camion?.estado === 'DISPONIBLE' ? 'Disponible' : 'En Camino';
         } else {
@@ -572,7 +608,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         return {
           id: ruta.id,
           ubicacion,
-          porcentaje: 0,
+          porcentaje,
           estado: estadoFrontend,
           capacidadActualGLP: camion?.capacidadActualGLP ?? 0,
           capacidadMaximaGLP: camion?.capacidadMaximaGLP ?? 0,
