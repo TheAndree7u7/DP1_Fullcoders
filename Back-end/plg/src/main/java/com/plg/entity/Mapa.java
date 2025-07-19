@@ -225,47 +225,10 @@ public class Mapa {
     }
 
     public List<Nodo> aStar(Nodo nodo1, Nodo nodo2) {
-        // Validaciones de entrada
-        if (nodo1 == null || nodo2 == null || nodo1.getCoordenada() == null || nodo2.getCoordenada() == null) {
-            System.err.println("⚠️ A*: Nodos de entrada inválidos");
-            return Collections.emptyList();
-        }
-        // PRUEBA DEPURACIÓN
-        // 41 - 47
-        Coordenada coordenada1 = new Coordenada(9,14);
-        Coordenada coordenada2 = new Coordenada(8,12);
-        System.out.println("🔄 HOLLAAAAA" + coordenada1 + " " + coordenada2);
-
-        System.out.println("ALMACENES");
-        List<Almacen> almacenes = Parametros.dataLoader.almacenes;
-        for (Almacen almacen : almacenes) {
-            System.out.println("Almacen Nombre: " + almacen.getNombre() + " Almacen: " + almacen.getCoordenada() + " Capacidad GLP: " + almacen.getCapacidadActualGLP());
-        }
-
-        Nodo inicio = getNodo(coordenada1);
-        Nodo destino = getNodo(coordenada2);
-        // Si origen y destino son el mismo, devolver ruta directa
-        if (inicio.equals(destino)) {
-            return Collections.singletonList(inicio);
-        }
-
-        // Verificar si el destino está bloqueado y buscar el nodo libre más cercano
-        Nodo destinoFinal = destino;
-        if (destino.isBloqueado()) {
-            System.out.println("🔄 A*: El destino está bloqueado");
-        }
-
-        // Intentar A* sin pasar por nodos bloqueados
-        List<Nodo> ruta = intentarAStar(inicio, destinoFinal);
-        return ruta;
-    }
-
-    private List<Nodo> intentarAStar(Nodo inicio, Nodo destino) {
+        Nodo inicio = getNodo(nodo1.getCoordenada());
+        Nodo destino = getNodo(nodo2.getCoordenada());
         PriorityQueue<Nodo> openSet = new PriorityQueue<>((a, b) -> Double.compare(a.getFScore(), b.getFScore()));
         Map<Nodo, Nodo> cameFrom = new HashMap<>();
-        Map<Nodo, Integer> cost_so_far = new HashMap<>();
-
-        // Inicializar scores
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
                 Nodo nodo = getNodo(i, j);
@@ -273,60 +236,40 @@ public class Mapa {
                 nodo.setFScore(Double.POSITIVE_INFINITY);
             }
         }
-
         inicio.setGScore(0);
         inicio.setFScore(calcularHeuristica(inicio, destino));
-        cost_so_far.put(inicio, 0);
         openSet.add(inicio);
-
         while (!openSet.isEmpty()) {
-   
             Nodo nodoActual = openSet.poll();
-
             if (nodoActual.equals(destino)) {
-                List<Nodo> ruta = reconstruirRuta(cameFrom, nodoActual);
-
-                return ruta;
+                return reconstruirRuta(cameFrom, nodoActual);
             }
-
             for (Nodo vecino : getAdj(nodoActual.getCoordenada())) {
-
                 // Permitir llegar a un nodo bloqueado solo si es el destino
                 if (vecino.isBloqueado() && !vecino.equals(destino)) {
                     continue;
                 }
-
                 double tentativeGScore = nodoActual.getGScore() + 1;
-                // Validamos que el vecino no esta en cost_so_far
-                boolean valido1 = cost_so_far.containsKey(vecino);
-                if (!valido1 || tentativeGScore < vecino.getGScore()) {
+                if (tentativeGScore < vecino.getGScore()) {
                     cameFrom.put(vecino, nodoActual);
                     vecino.setGScore(tentativeGScore);
                     vecino.setFScore(tentativeGScore + calcularHeuristica(vecino, destino));
-                    openSet.add(vecino);
+                    if (!openSet.contains(vecino)) {
+                        openSet.add(vecino);
+                    }
                 }
             }
         }
 
-
         System.out.println(
                 "⚠️ A*: No se encontró ruta entre " + inicio.getCoordenada() + " y " + destino.getCoordenada());
-        // Imprimir el el cameFrom para depuración
-        System.out.println("CameFrom: " + cameFrom);
+
         return Collections.singletonList(destino);
     }
 
     private List<Nodo> reconstruirRuta(Map<Nodo, Nodo> cameFrom, Nodo nodoActual) {
         List<Nodo> ruta = new ArrayList<>();
-           System.out.println("ALMACENES");
-        List<Almacen> almacenes = Parametros.dataLoader.almacenes;
-        for (Almacen almacen : almacenes) {
-            System.out.println("Almacen Nombre: " + almacen.getNombre() + " Almacen: " + almacen.getCoordenada() + " Capacidad GLP: " + almacen.getCapacidadActualGLP());
-        }
-
         while (nodoActual != null) {
-            // Imprimimos el nodo actual para depuración
-            System.out.println("Nodo:" + nodoActual);
             ruta.add(nodoActual);
             nodoActual = cameFrom.get(nodoActual);
         }
