@@ -1,6 +1,7 @@
 package com.plg.utils;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -62,9 +63,10 @@ public class Simulacion {
     public static List<Pedido> actualizarPedidosEnRango() {
         // 1. Obtenemos todos los pedidos del fechaActual < x < fechaActual + intervaloTiempo
         LocalDateTime fecha_inferior = Parametros.fecha_inicial.minusMinutes(Parametros.intervaloTiempo);
+        LocalDateTime fecha_superior = Parametros.fecha_inicial.plusMinutes(1);
         List<Pedido> pedidosEnRango = Parametros.dataLoader.pedidos.stream()
                 .filter(pedido -> pedido.getFechaRegistro().isAfter(fecha_inferior)
-                        && pedido.getFechaRegistro().isBefore(Parametros.fecha_inicial))
+                        && pedido.getFechaRegistro().isBefore(fecha_superior))
                 .collect(Collectors.toList());
         
         // 2. Unimos pedidosEnRango con pedidosPlanificados
