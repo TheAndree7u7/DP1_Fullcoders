@@ -58,6 +58,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
     camiones, 
     rutasCamiones, 
     almacenes, 
+    pedidosNoAsignados,
     avanzarHora, 
     cargando, 
     bloqueos, 
@@ -91,7 +92,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
   // DEBUG: Verificar que almacenes llega al componente
   // console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
 
-  const pedidosPendientes = getPedidosPendientes(rutasCamiones, camiones);
+  const pedidosPendientes = getPedidosPendientes(rutasCamiones, camiones, pedidosNoAsignados);
   //console.log('👥 MAPA: Pedidos pendientes (clientes):', pedidosPendientes);
   //console.log('🚚 MAPA: Estado de camiones:', camiones);
 
@@ -222,7 +223,31 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                 <img src={clienteIcon} alt="Cliente" className="w-4 h-4" />
                 <span className="text-xs text-gray-700">Cliente</span>
               </div>
+                            
+              {/* Cliente No Asignado */}
+              <div className="flex items-center gap-1.5">
+                <img src={clienteIcon} alt="Cliente No Asignado" className="w-4 h-4" style={{ filter: 'grayscale(100%) brightness(0.7)' }} />
+                <span className="text-xs text-gray-700">Cliente N/A</span>
+              </div>
               
+              {/* Estados de pedidos */}
+              <div className="pt-1 border-t border-gray-200">
+                <div className="text-xs font-medium text-gray-600 mb-1">Estados Pedidos:</div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">Pendiente</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">En Tránsito</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-gray-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">No Asignado</span>
+                  </div>
+                </div>
+              </div>
               {/* Camión */}
               <div className="flex items-center gap-1.5">
                 <svg width="16" height="12" viewBox="0 0 16 12" className="border border-gray-300 rounded">
@@ -392,6 +417,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
             {almacenes.map(almacen => {
               // console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
               const esResaltado = elementoResaltado?.tipo === 'almacen' && elementoResaltado?.id === almacen.id;
+              
               return (
                 <g key={almacen.id} style={{ cursor: 'pointer' }}>
                   {/* Círculo de resaltado para almacenes */}
