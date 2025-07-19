@@ -128,11 +128,34 @@ export const cargarDatos = async (
           console.error(`❌ ERROR: Ruta ${ruta.id} está vacía:`, ruta);
         }
         
+        // Verificar si el camión está en el almacén central (posición 0,0)
+        const ubicacion = ruta.ruta[0] || '(0,0)';
+        const estaEnAlmacenCentral = ubicacion === '(0,0)' || ubicacion === '(0, 0)';
+        
+        // Mapear estados del backend al frontend solo si no está en almacén central
+        let estadoFrontend: "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "Entregado";
+        
+        if (estaEnAlmacenCentral) {
+          // Si está en almacén central, mantener estado simple
+          estadoFrontend = camion?.estado === 'DISPONIBLE' ? 'Disponible' : 'En Camino';
+        } else {
+          // Si no está en almacén central, aplicar mapeo completo de estados
+          if (camion?.estado === 'DISPONIBLE') {
+            estadoFrontend = 'Disponible';
+          } else if (camion?.estado === 'EN_MANTENIMIENTO_POR_AVERIA' || camion?.estado === 'INMOVILIZADO_POR_AVERIA') {
+            estadoFrontend = 'Averiado';
+          } else if (camion?.estado === 'EN_MANTENIMIENTO' || camion?.estado === 'EN_MANTENIMIENTO_PREVENTIVO' || camion?.estado === 'EN_MANTENIMIENTO_CORRECTIVO') {
+            estadoFrontend = 'En Mantenimiento';
+          } else {
+            estadoFrontend = 'En Camino';
+          }
+        }
+        
         const camionEstado: CamionEstado = {
           id: ruta.id,
-          ubicacion: ruta.ruta[0] || '(0,0)',
+          ubicacion: ubicacion,
           porcentaje: 0,
-          estado: camion?.estado === "DISPONIBLE" ? "Disponible" : "En Camino",
+          estado: estadoFrontend,
           capacidadActualGLP: typeof camion.capacidadActualGLP === 'number' && !isNaN(camion.capacidadActualGLP) ? camion.capacidadActualGLP : 0,
           capacidadMaximaGLP: typeof camion.capacidadMaximaGLP === 'number' && !isNaN(camion.capacidadMaximaGLP) ? camion.capacidadMaximaGLP : 0,
           combustibleActual: typeof camion.combustibleActual === 'number' && !isNaN(camion.combustibleActual) ? camion.combustibleActual : 0,

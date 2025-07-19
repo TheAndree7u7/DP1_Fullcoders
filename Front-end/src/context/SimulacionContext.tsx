@@ -75,6 +75,26 @@ import {
 import { esValorValido } from "../utils/validacionCamiones";
 
 // ============================
+// FUNCIONES AUXILIARES
+// ============================
+
+/**
+ * @function mapearEstadoBackendAFrontend
+ * @description Mapea los estados del backend a los estados del frontend
+ */
+const mapearEstadoBackendAFrontend = (estadoBackend: string | undefined): "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "Entregado" => {
+  if (estadoBackend === 'DISPONIBLE') {
+    return 'Disponible';
+  } else if (estadoBackend === 'EN_MANTENIMIENTO_POR_AVERIA' || estadoBackend === 'INMOVILIZADO_POR_AVERIA') {
+    return 'Averiado';
+  } else if (estadoBackend === 'EN_MANTENIMIENTO' || estadoBackend === 'EN_MANTENIMIENTO_PREVENTIVO' || estadoBackend === 'EN_MANTENIMIENTO_CORRECTIVO') {
+    return 'En Mantenimiento';
+  } else {
+    return 'En Camino';
+  }
+};
+
+// ============================
 // CREACIÓN DEL CONTEXTO
 // ============================
 
@@ -411,11 +431,25 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         const anterior = camiones.find(c => c.id === ruta.id);
         const ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
         
+        // Verificar si el camión está en el almacén central (posición 0,0)
+        const estaEnAlmacenCentral = ubicacion === '(0,0)' || ubicacion === '(0, 0)';
+        
+        // Mapear estados del backend al frontend solo si no está en almacén central
+        let estadoFrontend: "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "Entregado";
+        
+        if (estaEnAlmacenCentral) {
+          // Si está en almacén central, mantener estado simple
+          estadoFrontend = camion?.estado === 'DISPONIBLE' ? 'Disponible' : 'En Camino';
+        } else {
+          // Si no está en almacén central, aplicar mapeo completo de estados
+          estadoFrontend = mapearEstadoBackendAFrontend(camion?.estado);
+        }
+        
         return {
           id: ruta.id,
           ubicacion,
           porcentaje: 0,
-          estado: camion?.estado === 'DISPONIBLE' ? 'Disponible' : 'En Camino',
+          estado: estadoFrontend,
           capacidadActualGLP: camion?.capacidadActualGLP ?? 0,
           capacidadMaximaGLP: camion?.capacidadMaximaGLP ?? 0,
           combustibleActual: camion?.combustibleActual ?? 0,
@@ -521,11 +555,25 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         const anterior = camiones.find(c => c.id === ruta.id);
         const ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
         
+        // Verificar si el camión está en el almacén central (posición 0,0)
+        const estaEnAlmacenCentral = ubicacion === '(0,0)' || ubicacion === '(0, 0)';
+        
+        // Mapear estados del backend al frontend solo si no está en almacén central
+        let estadoFrontend: "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "Entregado";
+        
+        if (estaEnAlmacenCentral) {
+          // Si está en almacén central, mantener estado simple
+          estadoFrontend = camion?.estado === 'DISPONIBLE' ? 'Disponible' : 'En Camino';
+        } else {
+          // Si no está en almacén central, aplicar mapeo completo de estados
+          estadoFrontend = mapearEstadoBackendAFrontend(camion?.estado);
+        }
+        
         return {
           id: ruta.id,
           ubicacion,
           porcentaje: 0,
-          estado: camion?.estado === 'DISPONIBLE' ? 'Disponible' : 'En Camino',
+          estado: estadoFrontend,
           capacidadActualGLP: camion?.capacidadActualGLP ?? 0,
           capacidadMaximaGLP: camion?.capacidadMaximaGLP ?? 0,
           combustibleActual: camion?.combustibleActual ?? 0,
