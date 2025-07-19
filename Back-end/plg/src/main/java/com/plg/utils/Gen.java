@@ -28,6 +28,8 @@ public class Gen {
     private List<Nodo> nodos;
     private List<Nodo> rutaFinal;
     private List<Pedido> pedidos;
+    private List<Camion> camionesAveriados;
+    private List<Almacen> almacenesIntermedios;
     private double fitness;
 
 
@@ -36,17 +38,19 @@ public class Gen {
         this.nodos = nodosOriginal;
         this.rutaFinal = new ArrayList<>();
         this.pedidos = new ArrayList<>();
+        this.camionesAveriados = new ArrayList<>();
+        this.almacenesIntermedios = new ArrayList<>();
     }
 
     private void recargarCamion(Camion camion, Nodo nodo) {
-        if (nodo instanceof Almacen || nodo instanceof Camion) {
-            camion.setCombustibleActual(camion.getCombustibleMaximo());
-            camion.setCapacidadActualGLP(camion.getCapacidadMaximaGLP());
-            if (nodo instanceof Almacen) {
-                Almacen almacen = (Almacen) nodo;
-                almacen.setCapacidadActualGLP(almacen.getCapacidadActualGLP() - camion.getCapacidadMaximaGLP());
-                almacen.setCapacidadActualCombustible(almacen.getCapacidadActualCombustible() - camion.getCombustibleMaximo());
-            }
+        if (nodo instanceof Almacen){
+            Almacen almacenRecarga = (Almacen) nodo;
+            almacenRecarga.recargarGlPCamion(camion);
+        }
+
+        if(nodo instanceof Camion) {
+            Camion camionRecarga = (Camion) nodo;
+            camionRecarga.recargarGlPSiAveriado(camion);
         }
     }
 
@@ -68,13 +72,13 @@ public class Gen {
         for (int i = 0; i < nodos.size(); i++) {
             Nodo destino = nodos.get(i);
             List<Nodo> rutaAstar = Mapa.getInstance().aStar(posicionActual, destino);
-            double distanciaCalculada = rutaAstar.size();
-            double distanciaMaxima = camion.calcularDistanciaMaxima();
-            if (distanciaMaxima < distanciaCalculada) {
-                fitness = Double.POSITIVE_INFINITY;
-                this.descripcion = descripcionDistanciaLejana(distanciaMaxima, distanciaCalculada, posicionActual, destino);
-                break;
-            }
+            // double distanciaCalculada = rutaAstar.size();
+            // double distanciaMaxima = camion.calcularDistanciaMaxima();
+            // if (distanciaMaxima < distanciaCalculada) {
+            //     fitness = Double.POSITIVE_INFINITY;
+            //     this.descripcion = descripcionDistanciaLejana(distanciaMaxima, distanciaCalculada, posicionActual, destino);
+            //     break;
+            // }
             if (destino instanceof Pedido) {
                 ResultadoEntrega resultado = procesarEntregaPedido((Pedido) destino, rutaAstar, fechaLlegada, fitness, posicionActual, i);
                 fitness = resultado.fitness;
@@ -123,10 +127,6 @@ public class Gen {
                 rutaAstar.remove(0);
             }
             rutaFinal.addAll(rutaAstar);
-            int nodosParada = (int) Math.ceil(camion.getVelocidadPromedio() * 0.25);
-            for (int j = 0; j < nodosParada; j++) {
-                rutaFinal.add(pedido);
-            }
             List<Nodo> rutaEntradaBloqueada = pedido.isBloqueado() ? new ArrayList<>(rutaAstar) : null;
             return new ResultadoEntrega(fitness, nuevaFechaLlegada, pedido, rutaEntradaBloqueada);
         } else {
@@ -152,6 +152,26 @@ public class Gen {
         }
         rutaFinal.addAll(rutaAstar);
         return destino;
+    }
+
+    public List<Nodo> construirRutaFinalApi(){
+        List <Nodo> rutaApi = new ArrayList<>();
+        for (Nodo nodo : rutaFinal) {
+            if (nodo instanceof Pedido && this.getPedidos().contains(nodo)) {
+                // Agregamos 12 veces el mismo
+                for (int j = 0; j < 12; j++) {
+                    rutaApi.add(nodo);
+                }
+            } else if (nodo instanceof Camion && this.getCamionesAveriados().contains(nodo)) {
+                for (int j = 0; j < 12; j++) {
+                    rutaApi.add(nodo);
+                }
+            } else {
+                // Si es un nodo normal, lo agregamos una sola vez
+                rutaApi.add(nodo);
+            }
+        }
+        return rutaApi;
     }
 
     // Auxiliar para procesar rutas de salida de bloqueos

@@ -12,6 +12,7 @@ import com.plg.entity.Camion;
 import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
+import com.plg.entity.TipoCamion;
 import com.plg.entity.EstadoCamion;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -54,7 +55,7 @@ public class Individuo {
 
         ordenarPedidosPorFechaVencimiento(pedidosOrdenados, fechaActual);
         asignarPedidosACamiones(camionesDisponibles, pedidosOrdenados, cromosoma, fechaActual);
-        asignarAlmacenesIntermediosEntrePedidos();
+        // asignarAlmacenesIntermediosEntrePedidos();
 
         for (Gen gen : cromosoma) {
             gen.getNodos().add(almacenCentral);
@@ -83,25 +84,7 @@ public class Individuo {
 
     }
 
-    private void asignarAlmacenesIntermediosEntrePedidos() {
-        List<Almacen> almacenes = Parametros.dataLoader.almacenes;
-        Random selectorDeGen = new Random();
-        for (Gen gen : cromosoma) {
-            List<Nodo> nodos = gen.getNodos();
-            if (nodos.size() > 3) { // al menos dos pedidos y un almacén central
-                // Insertar almacén intermedio con cierta probabilidad entre dos pedidos
-                for (int i = 1; i < nodos.size() - 2; i++) { // entre el primer pedido y el penúltimo
-                    if (selectorDeGen.nextDouble() < 0.7) { // 70% de probabilidad
-                        // Elegir aleatoriamente entre almacén 1 o 2 si existen
-                        Almacen almacenIntermedio = almacenes.size() > 2 ? almacenes.get(1 + selectorDeGen.nextInt(2))
-                                : almacenes.get(1);
-                        nodos.add(i + 1, almacenIntermedio);
-                        i++; // saltar el almacén recién insertado para evitar inserciones consecutivas
-                    }
-                }
-            }
-        }
-    }
+
 
     /**
      * Asigna pedidos a camiones según la lógica definida.
@@ -109,74 +92,51 @@ public class Individuo {
      */
     private void asignarPedidosACamiones(List<Camion> camionesDisponibles, List<Pedido> pedidosOrdenados,
             List<Gen> cromosoma, LocalDateTime fechaActual) {
+
+        
+
         int maxPedidosPorCamion = 2;
         guardarEstadoActual();
+        // Creamos una lista con los camiones averiados para ir quitando 
+        // conforme los camiones disponibles les vayan
+        // quitando glp
+        List<Camion> camionesAveriados = Parametros.dataLoader.camiones.stream()
+                .filter(c -> c.getEstado() == EstadoCamion.INMOVILIZADO_POR_AVERIA)
+                .toList();
+        
+        List<Almacen> almacenesDisponibles = new ArrayList<>(Parametros.dataLoader.almacenes);
         Collections.shuffle(camionesDisponibles);
         for (Camion camion : camionesDisponibles) {
             double distanciaCamion = 0;
             // Validación si el camión tiene poco GLP disponible
             if (camion.getCapacidadActualGLP() < 5) {
-
-                List<Almacen> almacenes = Parametros.dataLoader.almacenes;
-                Almacen almacenSecundario1 = almacenes.get(1);
-                Almacen almacenSecundario2 = almacenes.get(2);
-
-                // Determinar el almacén secundario más cercano
-                Almacen almacenCercano = Mapa.calcularDistancia(camion.getCoordenada(),
-                        almacenSecundario1.getCoordenada()) < Mapa.calcularDistancia(camion.getCoordenada(),
-                                almacenSecundario2.getCoordenada())
-                                        ? almacenSecundario1
-                                        : almacenSecundario2;
-
-                // Calcular distancia total: hasta el almacén cercano y regreso al central
-                double distanciaAlmacenCercano = Mapa.calcularDistancia(camion.getCoordenada(),
-                        almacenCercano.getCoordenada());
-                double distanciaRegreso = Mapa.calcularDistancia(almacenCercano.getCoordenada(),
-                        almacenes.get(0).getCoordenada());
-                double distanciaTotal = distanciaAlmacenCercano + distanciaRegreso;
-
-                // Verificar si el camión puede realizar el recorrido
-                if (distanciaTotal > camion.calcularDistanciaMaxima()) {
-                    continue; // No asignar pedidos si no puede llegar y regresar
-                } else {
-                    distanciaCamion = distanciaTotal;
-                    // Lo agregamos a los nodos del gen
-                    Gen gen = cromosoma.stream()
-                            .filter(g -> g.getCamion().getCodigo().equals(camion.getCodigo())).findFirst().orElse(null);
-                    if (gen != null) {
-                        gen.getNodos().add(almacenCercano);
+                // Priorizamos los camiones averiados
+                double distanciaTotal = planificarCamionesAveriados(camionesAveriados, camion);
+                if (distanciaTotal < 0) {
+                    distanciaTotal = planificarAlmacenSecundarioCercano(almacenesDisponibles, camion);
+                    if (distanciaTotal < 0) {
+                        // Si no puede ir al almacén secundario, no asignamos pedidos a este camión
+                        continue;
                     }
-                }
+                } 
+                distanciaCamion += distanciaTotal;
             }
+            if (camion.getTipo() == TipoCamion.TD) {
+                maxPedidosPorCamion = 1;
+            } else if (camion.getTipo() == TipoCamion.TA) {
+                maxPedidosPorCamion = 3;
+            } else if (camion.getTipo() == TipoCamion.TB) {
+                maxPedidosPorCamion = 2;
+            } else if (camion.getTipo() == TipoCamion.TC) {
+                maxPedidosPorCamion = 2;
+            }
+            List<Pedido> seleccionados = seleccionarPedidosParaCamion(camion, pedidosOrdenados,
+                    maxPedidosPorCamion);
 
-            List<Pedido> seleccionados = new ArrayList<>();
-            for (Pedido pedido : pedidosOrdenados) {
-                if (pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado() > 0) {
-                    seleccionados.add(pedido);
-                    if (seleccionados.size() == maxPedidosPorCamion)
-                        break;
-                }
-            }
             if (seleccionados.isEmpty())
                 break;
-            // Asignar pedidos al camión y simular entrega de GLP
-            // Ordenamos pedidos seleccionados por distancia al camión
-            seleccionados.sort((p1, p2) -> {
-                double distanciaP1 = Mapa.calcularDistancia(camion.getCoordenada(), p1.getCoordenada());
-                double distanciaP2 = Mapa.calcularDistancia(camion.getCoordenada(), p2.getCoordenada());
-                return Double.compare(distanciaP1, distanciaP2);
-            });
 
-            // Verificamos si el camion tiene suficiente combustible para llegar a todos los
-            // pedidos y volver al almacen central
-            double distanciaTotal = 0;
-            for (Pedido pedido : seleccionados) {
-                distanciaTotal += Mapa.calcularDistancia(camion.getCoordenada(), pedido.getCoordenada());
-            }
-            Almacen almacenCentral = Parametros.dataLoader.almacenes.get(0);
-            distanciaTotal += Mapa.calcularDistancia(almacenCentral.getCoordenada(), camion.getCoordenada());
-
-            distanciaCamion += distanciaTotal;
+            distanciaCamion += calculoDistanciaTotalRecorrido(camion, seleccionados);
             if (distanciaCamion > camion.calcularDistanciaMaxima()) {
                 continue; // No asignar si el camión no puede cubrir la distancia total
             }
@@ -193,11 +153,122 @@ public class Individuo {
                     gen.getNodos().add(pedido);
                 }
             }
-            pedidosOrdenados.removeIf(p -> p.getVolumenGLPAsignado() - p.getVolumenGLPEntregado() == 0);
+            pedidosOrdenados.removeIf(p -> Math.abs(p.getVolumenGLPAsignado() - p.getVolumenGLPEntregado()) < 0.001);
         }
 
         restaurarEstadoActual();
 
+    }
+    public double planificarCamionesAveriados(List<Camion> camionesAveriados, Camion camion) {
+        // Planifica el traslado a un almacén secundario cercano
+        if (camionesAveriados.isEmpty()) {
+            return -1; // No hay camiones averiados para planificar
+        }
+        // Seleccionamos un camión averiado aleatorio
+        Random random = new Random();
+        Camion camionAveriado = camionesAveriados.get(random.nextInt(camionesAveriados.size()));
+
+        // Calcular distancia total: hasta el camión averiado y regreso al central
+        double distanciaCamionAveriado = Mapa.calcularDistancia(camion.getCoordenada(),
+                camionAveriado.getCoordenada());
+        double distanciaRegreso = Mapa.calcularDistancia(camionAveriado.getCoordenada(),
+                Parametros.dataLoader.almacenes.get(0).getCoordenada());
+        double distanciaTotal = distanciaCamionAveriado + distanciaRegreso;
+
+
+        // Verificar si el camión puede realizar el recorrido
+        boolean valido2 = camionAveriado.getCapacidadActualGLP() > 0;
+        // Ahora debemos validar que dicho almacen tenga GLP suficiente
+
+        if (distanciaTotal > camion.calcularDistanciaMaxima() || !valido2) {
+            return -1;
+        } else {
+            Gen gen = cromosoma.stream()
+                    .filter(g -> g.getCamion().getCodigo().equals(camion.getCodigo())).findFirst().orElse(null);
+            if (gen != null) {
+                gen.getNodos().add(camionAveriado);
+                gen.getCamionesAveriados().add(camionAveriado);
+            }
+        }
+        camionAveriado.recargarGlPSiAveriado(camion);
+        if(camionAveriado.getCapacidadActualGLP() <= 0) {
+            // Si el camión averiado no tiene GLP, lo removemos de la lista de camiones averiados
+            camionesAveriados.remove(camionAveriado);
+        }
+        return distanciaTotal; // Retorna la distancia total del recorrido
+    }
+
+    public double planificarAlmacenSecundarioCercano(List<Almacen> almacenes, Camion camion) {
+        //  Puede que algunos de los almacenes ya no exista
+        Almacen almacenCercano = null;
+        if (almacenes.size() == 3) {
+            almacenCercano = Mapa.calcularDistancia(camion.getCoordenada(),
+                    almacenes.get(1).getCoordenada()) < Mapa.calcularDistancia(camion.getCoordenada(),
+                            almacenes.get(2).getCoordenada())
+                                    ? almacenes.get(1)
+                                    : almacenes.get(2);
+        }else if (almacenes.size() == 2){
+            // Si hay dos almacenes, planificamos al más cercano
+            almacenCercano = almacenes.get(1);
+        }else {
+            // Si solo hay un almacén, no podemos planificar
+            return -1;
+        }
+        // Calcular distancia total: hasta el almacén cercano y regreso al central
+        double distanciaAlmacenCercano = Mapa.calcularDistancia(camion.getCoordenada(),
+                almacenCercano.getCoordenada());
+        double distanciaRegreso = Mapa.calcularDistancia(almacenCercano.getCoordenada(),
+                almacenes.get(0).getCoordenada());
+        double distanciaTotal = distanciaAlmacenCercano + distanciaRegreso;
+        // Verificar si el camión puede realizar el recorrido
+        boolean valido2 = almacenCercano.getCapacidadActualGLP() > 0;
+        // Ahora debemos validar que dicho almacen tenga GLP suficiente
+        if (distanciaTotal > camion.calcularDistanciaMaxima() || !valido2) {
+            return -1;
+        } else {
+            Gen gen = cromosoma.stream()
+                    .filter(g -> g.getCamion().getCodigo().equals(camion.getCodigo())).findFirst().orElse(null);
+            if (gen != null) {
+                gen.getNodos().add(almacenCercano);
+                gen.getAlmacenesIntermedios().add(almacenCercano);
+            }
+        }
+        almacenCercano.recargarGlPCamion(camion);
+        if (almacenCercano.getCapacidadActualGLP() <= 0) {
+            almacenes.remove(almacenCercano);
+        }
+        return distanciaTotal; // Retorna la distancia total del recorrido
+    }
+
+    private List<Pedido> seleccionarPedidosParaCamion(Camion camion, List<Pedido> pedidosOrdenados,
+            int maxPedidosPorCamion) {
+        List<Pedido> seleccionados = new ArrayList<>();
+        for (Pedido pedido : pedidosOrdenados) {
+            if (pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado() > 0) {
+                seleccionados.add(pedido);
+                if (seleccionados.size() == maxPedidosPorCamion)
+                    break;
+            }
+        }
+        return seleccionados;
+    }
+
+    private double calculoDistanciaTotalRecorrido(Camion camion, List<Pedido> seleccionados) {
+        seleccionados.sort((p1, p2) -> {
+            double distanciaP1 = Mapa.calcularDistancia(camion.getCoordenada(), p1.getCoordenada());
+            double distanciaP2 = Mapa.calcularDistancia(camion.getCoordenada(), p2.getCoordenada());
+            return Double.compare(distanciaP1, distanciaP2);
+        });
+
+        // Verificamos si el camion tiene suficiente combustible para llegar a todos los
+        // pedidos y volver al almacen central
+        double distanciaTotal = 0;
+        for (Pedido pedido : seleccionados) {
+            distanciaTotal += Mapa.calcularDistancia(camion.getCoordenada(), pedido.getCoordenada());
+        }
+        Almacen almacenCentral = Parametros.dataLoader.almacenes.get(0);
+        distanciaTotal += Mapa.calcularDistancia(almacenCentral.getCoordenada(), camion.getCoordenada());
+        return distanciaTotal;
     }
 
     /**

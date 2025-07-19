@@ -25,7 +25,6 @@ import com.plg.utils.simulacion.UtilesSimulacion;
 
 public class Simulacion {
 
-    public static Set<Pedido> pedidosPorAtender = new LinkedHashSet<>();
     public static Set<Pedido> pedidosPlanificados = new LinkedHashSet<>();
     public static Set<Pedido> pedidosEntregados = new LinkedHashSet<>();
     public static List<Bloqueo> bloqueosActivos = new ArrayList<>();
@@ -44,7 +43,7 @@ public class Simulacion {
         Parametros.dataLoader = new DataLoader();
 
         // 4. Limpiamos las listas de pedidos
-        pedidosPorAtender.clear();
+
         pedidosPlanificados.clear();
         pedidosEntregados.clear();
         pedidosEnviar.clear();
@@ -122,7 +121,7 @@ public class Simulacion {
         List<Camion> camiones = Parametros.dataLoader.camiones;
 
         for (Camion camion : camiones) {
-            camion.actualizarEstado(pedidosPorAtender, pedidosPlanificados,
+            camion.actualizarEstado(pedidosPlanificados,
                     pedidosEntregados);
         }
     }
