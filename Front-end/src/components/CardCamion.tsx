@@ -11,7 +11,7 @@ const CardsCamiones: React.FC = () => {
   // Validación de datos de camiones
   useEffect(() => {
     try {
-      console.log('🔍 VALIDACIÓN: Verificando consistencia de datos de camiones...');
+      // console.log('🔍 VALIDACIÓN: Verificando consistencia de datos de camiones...');
       
       if (!camiones || !Array.isArray(camiones)) {
         console.error('❌ ERROR: camiones no es un array válido:', camiones);

@@ -60,22 +60,22 @@ export const cargarDatos = async (
     }));
 
     // Log para verificar los pedidos que llegan del backend
-    console.log("🔍 Verificando pedidos en las rutas:");
-    nuevasRutas.forEach((ruta) => {
-      if (ruta.pedidos && ruta.pedidos.length > 0) {
-        console.log(`Camión ${ruta.id} tiene ${ruta.pedidos.length} pedidos:`, ruta.pedidos);
-        ruta.pedidos.forEach((pedido, index) => {
-          console.log(`  Pedido ${index + 1}:`, {
-            codigo: pedido.codigo,
-            coordenada: pedido.coordenada,
-            volumenGLPAsignado: pedido.volumenGLPAsignado,
-            estado: pedido.estado,
-          });
-        });
-      } else {
-        console.log(`Camión ${ruta.id} no tiene pedidos asignados`);
-      }
-    });
+    // console.log("🔍 Verificando pedidos en las rutas:");
+    // nuevasRutas.forEach((ruta) => {
+    //   if (ruta.pedidos && ruta.pedidos.length > 0) {
+    //     console.log(`Camión ${ruta.id} tiene ${ruta.pedidos.length} pedidos:`, ruta.pedidos);
+    //     ruta.pedidos.forEach((pedido, index) => {
+    //       console.log(`  Pedido ${index + 1}:`, {
+    //         codigo: pedido.codigo,
+    //         coordenada: pedido.coordenada,
+    //         volumenGLPAsignado: pedido.volumenGLPAsignado,
+    //         estado: pedido.estado,
+    //       });
+    //     });
+    //   } else {
+    //     console.log(`Camión ${ruta.id} no tiene pedidos asignados`);
+    //   }
+    // });
 
     // Procesar pedidos no asignados (array pedidos del JSON)
     const pedidosNoAsignados: Pedido[] = data.pedidos || [];
@@ -90,7 +90,7 @@ export const cargarDatos = async (
     });
 
     // Procesar estado de camiones con validaciones
-    console.log("🔍 VALIDACIÓN: Procesando estado de camiones desde backend...");
+    // console.log("🔍 VALIDACIÓN: Procesando estado de camiones desde backend...");
     const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta, index) => {
       try {
         const gen = data.cromosoma.find((g: Gen) => g.camion.codigo === ruta.id);
@@ -145,12 +145,12 @@ export const cargarDatos = async (
           velocidadPromedio: typeof camion.velocidadPromedio === 'number' && !isNaN(camion.velocidadPromedio) ? camion.velocidadPromedio : 0,
         };
         
-        console.log(`✅ Camión ${camionEstado.id} procesado correctamente:`, {
-          estado: camionEstado.estado,
-          capacidadGLP: `${camionEstado.capacidadActualGLP}/${camionEstado.capacidadMaximaGLP}`,
-          combustible: `${camionEstado.combustibleActual}/${camionEstado.combustibleMaximo}`,
-          ubicacion: camionEstado.ubicacion
-        });
+        // console.log(`✅ Camión ${camionEstado.id} procesado correctamente:`, {
+        //   estado: camionEstado.estado,
+        //   capacidadGLP: `${camionEstado.capacidadActualGLP}/${camionEstado.capacidadMaximaGLP}`,
+        //   combustible: `${camionEstado.combustibleActual}/${camionEstado.combustibleMaximo}`,
+        //   ubicacion: camionEstado.ubicacion
+        // });
         
         return camionEstado;
         

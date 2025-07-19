@@ -606,7 +606,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       const datos = await cargarDatos(fechaInicioSimulacion);
       
       // Validación de datos recibidos
-      console.log("🔍 VALIDACIÓN: Verificando datos recibidos del backend...");
+      // console.log("🔍 VALIDACIÓN: Verificando datos recibidos del backend...");
       
       if (!datos.nuevasRutas || !Array.isArray(datos.nuevasRutas)) {
         console.error("❌ ERROR: nuevasRutas no es un array válido:", datos.nuevasRutas);
@@ -643,7 +643,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       // Validar y eliminar duplicados antes de establecer las rutas
-      console.log("🔍 VALIDACIÓN: Procesando rutas...");
+      // console.log("🔍 VALIDACIÓN: Procesando rutas...");
       const rutasUnicas = datos.nuevasRutas.filter((ruta, index, array) => {
         if (!ruta.id) {
           console.error(`❌ ERROR: Ruta en índice ${index} no tiene ID:`, ruta);
@@ -655,7 +655,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log(`✅ RUTAS PROCESADAS: ${rutasUnicas.length} rutas únicas`);
 
       // Validar y eliminar duplicados antes de establecer los camiones
-      console.log("🔍 VALIDACIÓN: Procesando camiones...");
+      // console.log("🔍 VALIDACIÓN: Procesando camiones...");
       const camionesUnicos = datos.nuevosCamiones.filter((camion, index, array) => {
         if (!camion.id) {
           console.error(`❌ ERROR: Camión en índice ${index} no tiene ID:`, camion);
