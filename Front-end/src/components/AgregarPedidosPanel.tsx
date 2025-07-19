@@ -65,9 +65,9 @@ const AgregarPedidosPanel: React.FC = () => {
   const [pedidoIndividual, setPedidoIndividual] = useState({
     coordenadaX: 0,
     coordenadaY: 0,
-    nombreCliente: 'Cliente Default',
-    glp: 1,
-    horasLimite: 6
+    nombreCliente: '',
+    glp: 0,
+    horasLimite: 0
   });
 
   const handleArchivoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -208,29 +208,79 @@ const AgregarPedidosPanel: React.FC = () => {
   const handleAgregarPedidoIndividual = async () => {
     // Validar campos
     if (!pedidoIndividual.nombreCliente.trim()) {
-      alert('Por favor ingrese el nombre del cliente');
+      toast.error('Por favor ingrese el nombre del cliente', {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
       return;
     }
 
     if (pedidoIndividual.glp <= 0) {
-      alert('El volumen GLP debe ser mayor a 0');
+      toast.error('El volumen GLP debe ser mayor a 0', {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
       return;
     }
 
     // Validar horas límite (debe ser mayor o igual a 4)
     if (pedidoIndividual.horasLimite < 4) {
-      alert('Las horas límite deben ser mayor o igual a 4 horas. El pedido será omitido.');
+      toast.warning('Las horas límite deben ser mayor o igual a 4 horas. El pedido será omitido.', {
+        position: "top-right",
+        autoClose: 6000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
       return;
     }
 
     // Validar coordenadas
     if (pedidoIndividual.coordenadaX < 0 || pedidoIndividual.coordenadaX >= MAP_WIDTH) {
-      alert(`La coordenada X debe estar entre 0 y ${MAP_WIDTH - 1}`);
+      toast.error(`La coordenada X debe estar entre 0 y ${MAP_WIDTH - 1}`, {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
       return;
     }
 
     if (pedidoIndividual.coordenadaY < 0 || pedidoIndividual.coordenadaY >= MAP_HEIGHT) {
-      alert(`La coordenada Y debe estar entre 0 y ${MAP_HEIGHT - 1}`);
+      toast.error(`La coordenada Y debe estar entre 0 y ${MAP_HEIGHT - 1}`, {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
       return;
     }
 
@@ -275,9 +325,9 @@ const AgregarPedidosPanel: React.FC = () => {
       setPedidoIndividual({
         coordenadaX: 0,
         coordenadaY: 0,
-        nombreCliente: 'Cliente Default',
-        glp: 1,
-        horasLimite: 6
+        nombreCliente: '',
+        glp: 0,
+        horasLimite: 0
       });
       
     } catch (error) {
@@ -344,9 +394,9 @@ const AgregarPedidosPanel: React.FC = () => {
     setPedidoIndividual({
       coordenadaX: 0,
       coordenadaY: 0,
-      nombreCliente: 'Cliente Default',
-      glp: 1,
-      horasLimite: 6
+      nombreCliente: '',
+      glp: 0,
+      horasLimite: 0
     });
   };
 
