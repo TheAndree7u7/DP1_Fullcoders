@@ -276,4 +276,11 @@ public class Mapa {
         Collections.reverse(ruta);
         return ruta;
     }
+
+    public static double calcularDistancia(Coordenada coord1, Coordenada coord2) {
+        return Math.abs(coord1.getColumna() - coord2.getColumna()) +
+                Math.abs(coord1.getFila() - coord2.getFila());
+    }
+
+
 }
