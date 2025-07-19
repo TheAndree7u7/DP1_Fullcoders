@@ -44,19 +44,64 @@ const ModalAgregarPedidos: React.FC<ModalAgregarPedidosProps> = ({
     setSimulacionActiva
   } = useSimulacion();
 
-  // Campos para pedido individual
-  const [pedidoIndividual, setPedidoIndividual] = useState({
-    año: new Date().getFullYear(),
-    mes: new Date().getMonth() + 1,
-    dia: new Date().getDate(),
-    hora: 0,
-    minuto: 0,
-    coordenadaX: 0,
-    coordenadaY: 0,
-    nombreCliente: '',
-    glp: 0,
-    horasLimite: 0
+  // Calcular timestamp de simulación actual
+  const timestampSimulacion = calcularTimestampSimulacion(
+    fechaHoraSimulacion,
+    horaSimulacion
+  );
+
+  // Función para extraer fecha y hora del timestamp de simulación
+  const extraerFechaHoraSimulacion = () => {
+    if (!timestampSimulacion) {
+      return {
+        año: new Date().getFullYear(),
+        mes: new Date().getMonth() + 1,
+        dia: new Date().getDate(),
+        hora: 0,
+        minuto: 0
+      };
+    }
+
+    // El timestamp tiene formato: "YYYY-MM-DD HH:mm:ss"
+    const fecha = new Date(timestampSimulacion);
+    return {
+      año: fecha.getFullYear(),
+      mes: fecha.getMonth() + 1,
+      dia: fecha.getDate(),
+      hora: fecha.getHours(),
+      minuto: fecha.getMinutes()
+    };
+  };
+
+  // Campos para pedido individual - inicializados con fecha de simulación actual
+  const [pedidoIndividual, setPedidoIndividual] = useState(() => {
+    const fechaSimulacion = extraerFechaHoraSimulacion();
+    return {
+      año: fechaSimulacion.año,
+      mes: fechaSimulacion.mes,
+      dia: fechaSimulacion.dia,
+      hora: fechaSimulacion.hora,
+      minuto: fechaSimulacion.minuto,
+      coordenadaX: 0,
+      coordenadaY: 0,
+      nombreCliente: '',
+      glp: 0,
+      horasLimite: 0
+    };
   });
+
+  // Efecto para actualizar la fecha automáticamente cuando cambie el timestamp de simulación
+  React.useEffect(() => {
+    const fechaSimulacion = extraerFechaHoraSimulacion();
+    setPedidoIndividual(prev => ({
+      ...prev,
+      año: fechaSimulacion.año,
+      mes: fechaSimulacion.mes,
+      dia: fechaSimulacion.dia,
+      hora: fechaSimulacion.hora,
+      minuto: fechaSimulacion.minuto
+    }));
+  }, [timestampSimulacion]);
 
   if (!isOpen) return null;
 
@@ -136,7 +181,7 @@ const ModalAgregarPedidos: React.FC<ModalAgregarPedidosProps> = ({
         horaSimulacion
       );
       
-      console.log("📅 TIMESTAMP SIMULACIÓN:", timestampSimulacion);
+      // console.log("📅 TIMESTAMP SIMULACIÓN:", timestampSimulacion);
       
       // 4. Recalcular algoritmo genético
       console.log("🧬 RECALCULANDO ALGORITMO GENÉTICO...");
@@ -267,13 +312,14 @@ const ModalAgregarPedidos: React.FC<ModalAgregarPedidosProps> = ({
         datos: [pedido]
       });
       
-      // Limpiar formulario
+      // Limpiar formulario con fecha de simulación actual
+      const fechaSimulacion = extraerFechaHoraSimulacion();
       setPedidoIndividual({
-        año: new Date().getFullYear(),
-        mes: new Date().getMonth() + 1,
-        dia: new Date().getDate(),
-        hora: 0,
-        minuto: 0,
+        año: fechaSimulacion.año,
+        mes: fechaSimulacion.mes,
+        dia: fechaSimulacion.dia,
+        hora: fechaSimulacion.hora,
+        minuto: fechaSimulacion.minuto,
         coordenadaX: 0,
         coordenadaY: 0,
         nombreCliente: '',
@@ -398,72 +444,110 @@ const ModalAgregarPedidos: React.FC<ModalAgregarPedidosProps> = ({
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-700 mb-4">Información del Pedido</h3>
             
-            {/* Fecha y hora */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Año
-                </label>
-                <input
-                  type="number"
-                  value={pedidoIndividual.año}
-                  onChange={(e) => setPedidoIndividual(prev => ({ ...prev, año: parseInt(e.target.value) }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  min={2020}
-                  max={2030}
-                />
+            {/* Fecha y hora de registro */}
+            <div>
+              <div className="mb-3">
+                <h4 className="text-md font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                  📅 Fecha y Hora de Registro del Pedido
+                </h4>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-700 mb-2">
+                    <strong>🕐 Timestamp de Simulación Actual:</strong> {timestampSimulacion || 'No disponible'}
+                  </p>
+                  <p className="text-xs text-blue-600">
+                    Esta fecha se actualiza automáticamente según el tiempo de simulación actual. 
+                    Puedes modificarla manualmente si necesitas registrar el pedido en un momento específico.
+                  </p>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Mes
-                </label>
-                <input
-                  type="number"
-                  value={pedidoIndividual.mes}
-                  onChange={(e) => setPedidoIndividual(prev => ({ ...prev, mes: parseInt(e.target.value) }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  min={1}
-                  max={12}
-                />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Año
+                  </label>
+                  <input
+                    type="number"
+                    value={pedidoIndividual.año}
+                    onChange={(e) => setPedidoIndividual(prev => ({ ...prev, año: parseInt(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min={2020}
+                    max={2030}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Mes
+                  </label>
+                  <input
+                    type="number"
+                    value={pedidoIndividual.mes}
+                    onChange={(e) => setPedidoIndividual(prev => ({ ...prev, mes: parseInt(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min={1}
+                    max={12}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Día
+                  </label>
+                  <input
+                    type="number"
+                    value={pedidoIndividual.dia}
+                    onChange={(e) => setPedidoIndividual(prev => ({ ...prev, dia: parseInt(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min={1}
+                    max={31}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Hora
+                  </label>
+                  <input
+                    type="number"
+                    value={pedidoIndividual.hora}
+                    onChange={(e) => setPedidoIndividual(prev => ({ ...prev, hora: parseInt(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min={0}
+                    max={23}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Minutos
+                  </label>
+                  <input
+                    type="number"
+                    value={pedidoIndividual.minuto}
+                    onChange={(e) => setPedidoIndividual(prev => ({ ...prev, minuto: parseInt(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min={0}
+                    max={59}
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Día
-                </label>
-                <input
-                  type="number"
-                  value={pedidoIndividual.dia}
-                  onChange={(e) => setPedidoIndividual(prev => ({ ...prev, dia: parseInt(e.target.value) }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  min={1}
-                  max={31}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Hora
-                </label>
-                <input
-                  type="number"
-                  value={pedidoIndividual.hora}
-                  onChange={(e) => setPedidoIndividual(prev => ({ ...prev, hora: parseInt(e.target.value) }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  min={0}
-                  max={23}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Minutos
-                </label>
-                <input
-                  type="number"
-                  value={pedidoIndividual.minuto}
-                  onChange={(e) => setPedidoIndividual(prev => ({ ...prev, minuto: parseInt(e.target.value) }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  min={0}
-                  max={59}
-                />
+              
+              {/* Botón para sincronizar con timestamp actual */}
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const fechaSimulacion = extraerFechaHoraSimulacion();
+                    setPedidoIndividual(prev => ({
+                      ...prev,
+                      año: fechaSimulacion.año,
+                      mes: fechaSimulacion.mes,
+                      dia: fechaSimulacion.dia,
+                      hora: fechaSimulacion.hora,
+                      minuto: fechaSimulacion.minuto
+                    }));
+                  }}
+                  className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
+                >
+                  🔄 Sincronizar con Timestamp de Simulación Actual
+                </button>
               </div>
             </div>
 
@@ -568,6 +652,20 @@ const ModalAgregarPedidos: React.FC<ModalAgregarPedidosProps> = ({
           /* Formulario para archivo */
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-700 mb-4">Cargar Archivo de Pedidos</h3>
+            
+            {/* Información del timestamp de simulación */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <h4 className="text-md font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                🕐 Timestamp de Simulación Actual
+              </h4>
+              <p className="text-sm text-blue-700 mb-2">
+                <strong>Fecha y Hora:</strong> {timestampSimulacion || 'No disponible'}
+              </p>
+              <p className="text-xs text-blue-600">
+                Los pedidos del archivo se registrarán en el momento actual de la simulación. 
+                Asegúrate de que el archivo contenga la fecha y hora correctas para el registro.
+              </p>
+            </div>
             
             {/* Información del formato */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

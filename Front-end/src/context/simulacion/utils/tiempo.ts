@@ -144,12 +144,12 @@ export const calcularTimestampSimulacion = (
   // Formato LocalDateTime: YYYY-MM-DDTHH:mm:ss (sin zona horaria)
   const fechaSimulacionCompleta = `${fechaOriginal}T${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
   
-  console.log("📅 TIMESTAMP SIMULACIÓN:", {
-    fechaHoraSimulacionOriginal: fechaHoraSimulacion,
-    fechaExtraida: fechaOriginal,
-    horaSimulacion: horaSimulacion,
-    fechaFinal: fechaSimulacionCompleta
-  });
+  // console.log("📅 TIMESTAMP SIMULACIÓN:", {
+  //   fechaHoraSimulacionOriginal: fechaHoraSimulacion,
+  //   fechaExtraida: fechaOriginal,
+  //   horaSimulacion: horaSimulacion,
+  //   fechaFinal: fechaSimulacionCompleta
+  // });
   
   return fechaSimulacionCompleta;
 }; 
