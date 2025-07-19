@@ -20,6 +20,7 @@ public class Parametros {
     public static double fitnessGlobal = 0;
     public static DataLoader dataLoader;
     public static TipoDeSimulacion tipoDeSimulacion = TipoDeSimulacion.SEMANAL;
+    public static LocalDateTime fecha_inicio_simulacion;
 
     public static Parametros getInstance() {
         if (instance == null) {

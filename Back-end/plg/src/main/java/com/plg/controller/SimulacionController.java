@@ -119,6 +119,7 @@ public class SimulacionController {
                 return ResponseEntity.badRequest().body("Error: La fecha de inicio no puede ser nula");
             }
             LocalDateTime fechaDateTime = LocalDateTime.parse(fecha);
+            Parametros.fecha_inicio_simulacion = fechaDateTime;
             Simulacion.configurarSimulacionSemanal(fechaDateTime);
             simulacionIniciada = true; // Marcar que la simulación ha sido iniciada
             String mensaje = "Simulación iniciada correctamente con fecha: " + fecha;
