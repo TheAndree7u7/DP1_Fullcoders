@@ -69,6 +69,7 @@ export const ejecutarPollingPrimerPaquete = (
 
   return () => {
     console.log("🛑 POLLING: Limpiando interval de polling");
+    console.log("___________________________FIN DEL POLLING___________________________FIN");
     clearInterval(interval);
   };
 }; 

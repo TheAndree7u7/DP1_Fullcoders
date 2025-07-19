@@ -3,8 +3,7 @@ import { useSimulacion } from '../context/SimulacionContext';
 import type { Coordenada } from '../types';
 import almacenCentralIcon from '../assets/almacen_central.svg';
 import almacenIntermedioIcon from '../assets/almacen_intermedio.svg';
-import clienteIcon from '../assets/cliente.svg';
-
+import clienteIcon from '../assets/cliente.svg'; 
 import { CAMION_COLORS, ESTADO_COLORS } from '../config/colors';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { 
@@ -24,7 +23,6 @@ const esCoordenadaValida = (coord: Coordenada | undefined | null): coord is Coor
          !isNaN(coord.y);
 };
 import { formatearCapacidadGLP, formatearCombustible, calcularGLPEntregaPorCamion } from '../utils/validacionCamiones';
-import type { PedidoConAsignacion } from "./mapa/utils/pedidos";
 
 interface CamionVisual {
   id: string;
@@ -60,7 +58,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
     camiones, 
     rutasCamiones, 
     almacenes, 
-    pedidosNoAsignados,
     avanzarHora, 
     cargando, 
     bloqueos, 
@@ -75,9 +72,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
     fechaInicioSimulacion,
     diaSimulacion,
     tiempoRealSimulacion,
-    tiempoTranscurridoSimulado,
-    aplicarNuevaSolucionDespuesAveria,
-    setFechaInicioSimulacion
+    tiempoTranscurridoSimulado, 
   } = useSimulacion();
   // Estado para el tooltip (hover)
   const [tooltipCamion, setTooltipCamion] = useState<string | null>(null);
@@ -95,7 +90,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
   // DEBUG: Verificar que almacenes llega al componente
   // console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
 
-  const pedidosPendientes = getPedidosPendientes(rutasCamiones, camiones, pedidosNoAsignados);
+  const pedidosPendientes = getPedidosPendientes(rutasCamiones, camiones);
   //console.log('👥 MAPA: Pedidos pendientes (clientes):', pedidosPendientes);
   //console.log('🚚 MAPA: Estado de camiones:', camiones);
 
@@ -227,31 +222,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                 <span className="text-xs text-gray-700">Cliente</span>
               </div>
               
-              {/* Cliente No Asignado */}
-              <div className="flex items-center gap-1.5">
-                <img src={clienteIcon} alt="Cliente No Asignado" className="w-4 h-4" style={{ filter: 'grayscale(100%) brightness(0.7)' }} />
-                <span className="text-xs text-gray-700">Cliente N/A</span>
-              </div>
-              
-              {/* Estados de pedidos */}
-              <div className="pt-1 border-t border-gray-200">
-                <div className="text-xs font-medium text-gray-600 mb-1">Estados Pedidos:</div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
-                    <span className="text-xs text-gray-700">Pendiente</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-sm"></div>
-                    <span className="text-xs text-gray-700">En Tránsito</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-gray-500 rounded-sm"></div>
-                    <span className="text-xs text-gray-700">No Asignado</span>
-                  </div>
-                </div>
-              </div>
-              
               {/* Camión */}
               <div className="flex items-center gap-1.5">
                 <svg width="16" height="12" viewBox="0 0 16 12" className="border border-gray-300 rounded">
@@ -352,38 +322,9 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
             ))}
 
             {/* Clientes/Pedidos */}
-            {pedidosPendientes.map((pedido: PedidoConAsignacion) => {
+            {pedidosPendientes.map(pedido => {
               //console.log('👤 MAPA: Renderizando cliente:', pedido.codigo, 'en posición:', pedido.coordenada);
               const esResaltado = elementoResaltado?.tipo === 'pedido' && elementoResaltado?.id === pedido.codigo;
-              const estadoPedido = pedido.estadoPedido;
-              
-              // Colores según el estado del pedido
-              let colorTexto, colorVolumen, filtroIcono;
-              
-              switch (estadoPedido) {
-                case 'NO_ASIGNADO':
-                  colorTexto = '#6b7280'; // Gris
-                  colorVolumen = '#6b7280';
-                  filtroIcono = 'grayscale(100%) brightness(0.7)';
-                  break;
-                case 'EN_TRANSITO':
-                  colorTexto = '#16a34a'; // Verde
-                  colorVolumen = '#16a34a';
-                  filtroIcono = 'none';
-                  break;
-                case 'RETRASO':
-                  colorTexto = '#dc2626'; // Rojo
-                  colorVolumen = '#dc2626';
-                  filtroIcono = 'none';
-                  break;
-                case 'PENDIENTE':
-                default:
-                  colorTexto = '#dc2626'; // Rojo
-                  colorVolumen = '#dc2626';
-                  filtroIcono = 'none';
-                  break;
-              }
-              
               return (
                 <g key={pedido.codigo}>
                   {/* Círculo de resaltado para pedidos */}
@@ -400,7 +341,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                       opacity={0.8}
                     >
                       <animate
-                        key={`${pedido.codigo}-animate-r`}
                         attributeName="r"
                         values="20;30;20"
                         dur="2s"
@@ -409,7 +349,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                     </circle>
                   )}
                   
-                  {/* Icono del cliente con filtro según estado */}
                   <image
                     key={`${pedido.codigo}-icon`}
                     href={clienteIcon}
@@ -417,34 +356,27 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                     y={pedido.coordenada.y * CELL_SIZE - 15}
                     width={30}
                     height={30}
-                    style={{
-                      filter: filtroIcono
-                    }}
                   />
-                  
-                  {/* Etiqueta del código */}
                   <text
                     key={`${pedido.codigo}-label`}
                     x={pedido.coordenada.x * CELL_SIZE}
                     y={pedido.coordenada.y * CELL_SIZE + 25}
                     textAnchor="middle"
                     fontSize="10"
-                    fill={colorTexto}
+                    fill="#dc2626"
                     fontWeight="bold"
                     stroke="#fff"
                     strokeWidth="0.5"
                   >
                     {pedido.codigo}
                   </text>
-                  
-                  {/* Volumen GLP */}
                   <text
                     key={`${pedido.codigo}-volume`}
                     x={pedido.coordenada.x * CELL_SIZE}
                     y={pedido.coordenada.y * CELL_SIZE + 37}
                     textAnchor="middle"
                     fontSize="8"
-                    fill={colorVolumen}
+                    fill="#dc2626"
                     fontWeight="bold"
                     stroke="#fff"
                     strokeWidth="0.5"
@@ -474,14 +406,12 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                       opacity={0.8}
                     >
                       <animate
-                        key={`${almacen.id}-animate-r`}
                         attributeName="r"
                         values="25;35;25"
                         dur="2s"
                         repeatCount="indefinite"
                       />
                       <animate
-                        key={`${almacen.id}-animate-opacity`}
                         attributeName="opacity"
                         values="0.6;1;0.6"
                         dur="2s"
@@ -491,7 +421,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                   )}
                   
                   <image
-                    key={`${almacen.id}-icon`}
                     href={almacen.tipo === 'CENTRAL' ? almacenCentralIcon : almacenIntermedioIcon}
                     x={almacen.coordenada.x * CELL_SIZE - 20}
                     y={almacen.coordenada.y * CELL_SIZE - 20}
@@ -507,7 +436,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                     }}
                   />
                   <text
-                    key={`${almacen.id}-label`}
                     x={almacen.coordenada.x * CELL_SIZE}
                     y={almacen.coordenada.y * CELL_SIZE + 30}
                     textAnchor="middle"
@@ -608,7 +536,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                            style={{ transition: 'all 0.8s linear' }}
                          >
                            <animateTransform
-                             key={`${camion.id}-animate-transform`}
                              attributeName="transform"
                              type="rotate"
                              values="0 0 0;360 0 0"
@@ -616,7 +543,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                              repeatCount="indefinite"
                            />
                            <animate
-                             key={`${camion.id}-animate-opacity`}
                              attributeName="opacity"
                              values="0.7;1;0.7"
                              dur="1.5s"
@@ -770,7 +696,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                       rutasCamiones,
                       almacenes,
                       bloqueos
-                    }, setPollingActivo, aplicarNuevaSolucionDespuesAveria, setFechaInicioSimulacion)}
+                    }, setPollingActivo, aplicarNuevaSolucionDespuesAveria)}
                   >
                     {averiando === clickedCamion + '-1' ? 'Averiando...' : 'Avería tipo 1'}
                   </button>
@@ -789,7 +715,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                       rutasCamiones,
                       almacenes,
                       bloqueos
-                    }, setPollingActivo, aplicarNuevaSolucionDespuesAveria, setFechaInicioSimulacion)}
+                    }, setPollingActivo)}
                   >
                     {averiando === clickedCamion + '-2' ? 'Averiando...' : 'Avería tipo 2'}
                   </button>
@@ -807,8 +733,8 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                       camiones,
                       rutasCamiones,
                       almacenes,
-                      bloqueos
-                    }, setPollingActivo, aplicarNuevaSolucionDespuesAveria, setFechaInicioSimulacion)}
+                      bloqueos, 
+                    }, setPollingActivo)}
                   >
                     {averiando === clickedCamion + '-3' ? 'Averiando...' : 'Avería tipo 3'}
                   </button>

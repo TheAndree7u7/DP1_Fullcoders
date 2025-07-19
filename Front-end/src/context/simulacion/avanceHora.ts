@@ -30,7 +30,7 @@ export const avanzarHora = async (
   setNodosRestantesAntesDeActualizar: (nodos: number) => void,
   setEsperandoActualizacion: (esperando: boolean) => void,
   setSolicitudAnticipadaEnviada: (enviada: boolean) => void,
-  cargarSolucionAnticipada: () => Promise<void>,
+  cargarSolucionAnticipadaLocal: () => Promise<void>,
   aplicarSolucionPrecargada: (data: IndividuoConBloqueos) => Promise<void>,
   cargarDatosSimulacion: () => Promise<void>
 ): Promise<void> => {
@@ -43,7 +43,7 @@ export const avanzarHora = async (
   if (nodosRestantes === nodosTres4 && !solicitudAnticipadaEnviada) {
     console.log("📅 ANTICIPADA: Llegamos a 3/4 del ciclo (nodo", NODOS_PARA_ACTUALIZACION - nodosRestantes, "de", NODOS_PARA_ACTUALIZACION, ") - Solicitando próxima solución...");
     setSolicitudAnticipadaEnviada(true);
-    await cargarSolucionAnticipada();
+    await cargarSolucionAnticipadaLocal();
   }
 
   // Avanzar todos los camiones
@@ -52,6 +52,7 @@ export const avanzarHora = async (
   const quedan = nodosRestantesAntesDeActualizar - 1;
   setNodosRestantesAntesDeActualizar(quedan);
 
+  //! Aqui se actualiza al siguiente paquete
   if (quedan <= 0) {
     setEsperandoActualizacion(true);
     setCamiones(nuevosCamiones);
