@@ -3,6 +3,13 @@ import { X, Plus, Upload, Download, AlertCircle, CheckCircle, FileText } from 'l
 import { validarArchivoVentas } from './cargar_archivos/validadores';
 import { ejemplos, descargarEjemplo } from './cargar_archivos/ejemplos';
 import type { ValidacionArchivo, DatosVentas } from '../types';
+import { ArchivosApiService } from '../services/archivosApiService';
+import type { ArchivoPedidosRequest } from '../services/archivosApiService';
+import { getMejorIndividuo } from '../services/simulacionApiService';
+import { useSimulacion } from '../context/SimulacionContext';
+import { calcularTimestampSimulacion } from '../context/simulacion/utils/tiempo';
+import { toast } from 'react-toastify';
+import { Bounce } from 'react-toastify';
 
 // Constantes del mapa
 const MAP_WIDTH = 70;
@@ -27,6 +34,15 @@ const ModalAgregarPedidos: React.FC<ModalAgregarPedidosProps> = ({
   const [cargando, setCargando] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Obtener el contexto de simulación
+  const { 
+    fechaHoraSimulacion, 
+    horaSimulacion, 
+    aplicarNuevaSolucionDespuesAveria,
+    setPollingActivo,
+    setSimulacionActiva
+  } = useSimulacion();
 
   // Campos para pedido individual
   const [pedidoIndividual, setPedidoIndividual] = useState({
@@ -97,7 +113,91 @@ const ModalAgregarPedidos: React.FC<ModalAgregarPedidosProps> = ({
     }
   };
 
-  const handleAgregarPedidoIndividual = () => {
+  // Función para procesar pedidos y recalcular algoritmo
+  const handleProcesarPedidos = async (request: ArchivoPedidosRequest) => {
+    try {
+      console.log("📦 PROCESANDO PEDIDOS: Iniciando procesamiento de pedidos...");
+      
+      // 1. Detener polling y pausar simulación
+      console.log("🛑 DETENIENDO POLLING Y PAUSANDO SIMULACIÓN...");
+      if (setPollingActivo) {
+        setPollingActivo(false);
+      }
+      setSimulacionActiva(false);
+      
+      // 2. Procesar pedidos en el backend
+      console.log("📡 ENVIANDO PEDIDOS AL BACKEND...");
+      const response = await ArchivosApiService.procesarPedidosIndividuales(request);
+      console.log("✅ PEDIDOS PROCESADOS:", response);
+      
+      // 3. Calcular timestamp de simulación actual
+      const timestampSimulacion = calcularTimestampSimulacion(
+        fechaHoraSimulacion,
+        horaSimulacion
+      );
+      
+      console.log("📅 TIMESTAMP SIMULACIÓN:", timestampSimulacion);
+      
+      // 4. Recalcular algoritmo genético
+      console.log("🧬 RECALCULANDO ALGORITMO GENÉTICO...");
+      const nuevaSolucion = await getMejorIndividuo(timestampSimulacion || "");
+      
+      // 5. Aplicar nueva solución
+      if (aplicarNuevaSolucionDespuesAveria) {
+        console.log("🔄 APLICANDO NUEVA SOLUCIÓN...");
+        await aplicarNuevaSolucionDespuesAveria(nuevaSolucion);
+        console.log("✅ NUEVA SOLUCIÓN APLICADA");
+      }
+      
+      // 6. Reanudar simulación
+      console.log("▶️ REANUDANDO SIMULACIÓN...");
+      setSimulacionActiva(true);
+      
+      // 7. Mostrar mensaje de éxito
+      toast.success(`✅ Pedidos agregados exitosamente: ${response.mensaje} - Algoritmo recalculado`, {
+        position: "top-right",
+        autoClose: 6000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+      
+      console.log("✅ PROCESAMIENTO COMPLETADO:", {
+        pedidosAgregados: response.totalPedidosAgregados,
+        algoritmoRecalculado: true,
+        nuevaSolucionAplicada: !!aplicarNuevaSolucionDespuesAveria
+      });
+      
+    } catch (error) {
+      console.error("❌ ERROR PROCESANDO PEDIDOS:", error);
+      
+      // Reanudar simulación en caso de error
+      setSimulacionActiva(true);
+      if (setPollingActivo) {
+        setPollingActivo(true);
+      }
+      
+      toast.error(`❌ Error al procesar pedidos: ${error instanceof Error ? error.message : 'Error desconocido'}`, {
+        position: "top-right",
+        autoClose: 8000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+      
+      throw error;
+    }
+  };
+
+  const handleAgregarPedidoIndividual = async () => {
     // Validar campos
     if (!pedidoIndividual.nombreCliente.trim()) {
       alert('Por favor ingrese el nombre del cliente');
@@ -126,52 +226,72 @@ const ModalAgregarPedidos: React.FC<ModalAgregarPedidosProps> = ({
       return;
     }
 
-    // Formatear fecha y hora
-    const fechaHora = `${pedidoIndividual.dia.toString().padStart(2, '0')}d${pedidoIndividual.hora.toString().padStart(2, '0')}h${pedidoIndividual.minuto.toString().padStart(2, '0')}m`;
-    
-    // Generar código de cliente
-    const codigoCliente = `c-${Math.floor(Math.random() * 1000)}`;
+    setCargando(true);
 
-    const pedido: DatosVentas = {
-      fechaHora,
-      coordenadaX: pedidoIndividual.coordenadaX,
-      coordenadaY: pedidoIndividual.coordenadaY,
-      codigoCliente,
-      volumenGLP: pedidoIndividual.glp,
-      horasLimite: pedidoIndividual.horasLimite
-    };
+    try {
+      // Formatear fecha y hora
+      const fechaHora = `${pedidoIndividual.dia.toString().padStart(2, '0')}d${pedidoIndividual.hora.toString().padStart(2, '0')}h${pedidoIndividual.minuto.toString().padStart(2, '0')}m`;
+      
+      // Generar código de cliente
+      const codigoCliente = `c-${Math.floor(Math.random() * 1000)}`;
 
-    // Generar nombre del archivo usando año y mes del formulario
-    const nombreArchivo = `ventas${pedidoIndividual.año}${pedidoIndividual.mes.toString().padStart(2, '0')}.txt`;
-    
-    // Generar contenido del archivo (una sola línea)
-    const contenido = `${fechaHora}:${pedidoIndividual.coordenadaX},${pedidoIndividual.coordenadaY},${codigoCliente},${pedidoIndividual.glp}m3,${pedidoIndividual.horasLimite}h`;
+      const pedido: DatosVentas = {
+        fechaHora,
+        coordenadaX: pedidoIndividual.coordenadaX,
+        coordenadaY: pedidoIndividual.coordenadaY,
+        codigoCliente,
+        volumenGLP: pedidoIndividual.glp,
+        horasLimite: pedidoIndividual.horasLimite
+      };
 
-    // Crear el objeto con el mismo formato que los archivos
-    const archivoPedido = {
-      nombre: nombreArchivo,
-      contenido: contenido,
-      datos: [pedido]
-    };
+      // Generar nombre del archivo usando año y mes del formulario
+      const nombreArchivo = `ventas${pedidoIndividual.año}${pedidoIndividual.mes.toString().padStart(2, '0')}.txt`;
+      
+      // Generar contenido del archivo (una sola línea)
+      const contenido = `${fechaHora}:${pedidoIndividual.coordenadaX},${pedidoIndividual.coordenadaY},${codigoCliente},${pedidoIndividual.glp}m3,${pedidoIndividual.horasLimite}h`;
 
-    onAgregarPedido(archivoPedido);
-    
-    // Limpiar formulario
-    setPedidoIndividual({
-      año: new Date().getFullYear(),
-      mes: new Date().getMonth() + 1,
-      dia: new Date().getDate(),
-      hora: 0,
-      minuto: 0,
-      coordenadaX: 0,
-      coordenadaY: 0,
-      nombreCliente: '',
-      glp: 0,
-      horasLimite: 0
-    });
+      // Crear el objeto de solicitud
+      const request: ArchivoPedidosRequest = {
+        nombre: nombreArchivo,
+        contenido: contenido,
+        datos: [pedido]
+      };
+
+      // Procesar pedidos y recalcular algoritmo
+      await handleProcesarPedidos(request);
+      
+      // Llamar a la función original para mantener compatibilidad
+      onAgregarPedido({
+        nombre: nombreArchivo,
+        contenido: contenido,
+        datos: [pedido]
+      });
+      
+      // Limpiar formulario
+      setPedidoIndividual({
+        año: new Date().getFullYear(),
+        mes: new Date().getMonth() + 1,
+        dia: new Date().getDate(),
+        hora: 0,
+        minuto: 0,
+        coordenadaX: 0,
+        coordenadaY: 0,
+        nombreCliente: '',
+        glp: 0,
+        horasLimite: 0
+      });
+      
+      // Cerrar modal
+      onClose();
+      
+    } catch (error) {
+      console.error('Error al agregar pedido individual:', error);
+    } finally {
+      setCargando(false);
+    }
   };
 
-  const handleAgregarArchivo = () => {
+  const handleAgregarArchivo = async () => {
     if (!archivoSeleccionado || !validacion || !validacion.esValido) {
       alert('Por favor seleccione un archivo válido');
       return;
@@ -179,25 +299,41 @@ const ModalAgregarPedidos: React.FC<ModalAgregarPedidosProps> = ({
 
     setCargando(true);
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const contenido = e.target?.result as string;
-      const datos = validacion.datosParseados as DatosVentas[];
-      
-      // Generar nombre de archivo
-      const fecha = new Date();
-      const nombreArchivo = `ventas${fecha.getFullYear()}${(fecha.getMonth() + 1).toString().padStart(2, '0')}.txt`;
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const contenido = e.target?.result as string;
+        const datos = validacion.datosParseados as DatosVentas[];
+        
+        // Generar nombre de archivo
+        const fecha = new Date();
+        const nombreArchivo = `ventas${fecha.getFullYear()}${(fecha.getMonth() + 1).toString().padStart(2, '0')}.txt`;
 
-      onAgregarArchivo({
-        nombre: nombreArchivo,
-        contenido,
-        datos
-      });
+        // Crear el objeto de solicitud
+        const request: ArchivoPedidosRequest = {
+          nombre: nombreArchivo,
+          contenido: contenido,
+          datos: datos
+        };
 
+        // Procesar pedidos y recalcular algoritmo
+        await handleProcesarPedidos(request);
+        
+        // Llamar a la función original para mantener compatibilidad
+        onAgregarArchivo({
+          nombre: nombreArchivo,
+          contenido,
+          datos
+        });
+
+        setCargando(false);
+        onClose();
+      };
+      reader.readAsText(archivoSeleccionado);
+    } catch (error) {
+      console.error('Error al procesar archivo:', error);
       setCargando(false);
-      onClose();
-    };
-    reader.readAsText(archivoSeleccionado);
+    }
   };
 
   const descargarEjemploVentas = () => {
@@ -418,9 +554,14 @@ const ModalAgregarPedidos: React.FC<ModalAgregarPedidosProps> = ({
 
             <button
               onClick={handleAgregarPedidoIndividual}
-              className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+              disabled={cargando}
+              className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
+                cargando
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+              }`}
             >
-              Agregar Pedido
+              {cargando ? 'Procesando...' : 'Agregar Pedido'}
             </button>
           </div>
         ) : (
@@ -576,7 +717,7 @@ const ModalAgregarPedidos: React.FC<ModalAgregarPedidosProps> = ({
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              {cargando ? 'Cargando...' : 'Agregar Archivo'}
+              {cargando ? 'Procesando...' : 'Agregar Archivo'}
             </button>
           </div>
         )}
