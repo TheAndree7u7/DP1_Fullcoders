@@ -1,13 +1,14 @@
 package com.plg.entity;
 
-import lombok.Builder;
+import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Data
 @NoArgsConstructor
@@ -44,17 +45,14 @@ public class Nodo {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;                // Mismo objeto
+    public boolean equals(Object obj) {
+        Nodo nodo = (Nodo) obj;
+        return Objects.equals(coordenada, nodo.coordenada);
+    }
 
-        }
-        if (!(o instanceof Nodo)) {
-            return false;    // Tipo distinto
-
-        }
-        Nodo other = (Nodo) o;
-        return Objects.equals(coordenada, other.coordenada);
+    @Override
+    public int hashCode() {
+        return Objects.hash(coordenada);
     }
 
     // El siguiente método clone se puede sobreescribir en las subclases
