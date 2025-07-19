@@ -9,6 +9,10 @@ import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
 import com.plg.entity.EstadoCamion;
 import com.plg.entity.Pedido;
+import com.plg.repository.AveriaRepository;
+import com.plg.repository.CamionRepository;
+import com.plg.service.CamionService;
+import com.plg.service.AveriaService;
 
 /**
  * Maneja la actualización de estados de camiones en función de averías (TI1, TI2, TI3).
@@ -22,11 +26,10 @@ public class AveriasManager {
     public static void actualizarCamionesEnAveria(LocalDateTime fechaActual) {
         try {
             // Crear instancias de los repositorios y servicios necesarios
-            com.plg.repository.AveriaRepository averiaRepository = new com.plg.repository.AveriaRepository();
-            com.plg.repository.CamionRepository camionRepository = new com.plg.repository.CamionRepository();
-            com.plg.service.CamionService camionService = new com.plg.service.CamionService(camionRepository);
-            com.plg.service.AveriaService averiaService = new com.plg.service.AveriaService(averiaRepository,
-                    camionService);
+            AveriaRepository averiaRepository = new AveriaRepository();
+            CamionRepository camionRepository = new CamionRepository();
+            CamionService camionService = new CamionService(camionRepository);
+            AveriaService averiaService = new AveriaService(averiaRepository, camionService);
 
             // Obtener todas las averías activas
             List<Averia> averiasActivas = averiaService.listarActivas();
@@ -49,11 +52,11 @@ public class AveriasManager {
      * 2. Si la fechaHoraDisponible < fechaActual (ignorando segundos) → desactiva avería y pone camión DISPONIBLE.
      */
     private static void procesarAveriasNoRequierenTraslado(List<Averia> averiasActivas, LocalDateTime fechaActual,
-            com.plg.service.CamionService camionService) {
+            CamionService camionService) {
         for (Averia averia : averiasActivas) {
             if (averia.getTipoIncidente() != null && !averia.getTipoIncidente().isRequiereTraslado()) {
                 if (averia.getFechaHoraDisponible() != null
-                        && esFechaAnteriorSinSegundos(averia.getFechaHoraDisponible(), fechaActual)) {
+                        && esFechaAnteriorOIgualSinSegundos(averia.getFechaHoraDisponible(), fechaActual)) {
 
                     String codigoCamion = averia.getCamion().getCodigo();
                     // Desactivar avería
@@ -72,7 +75,7 @@ public class AveriasManager {
      * 3. Si fecha disponible <= fechaActual → desactiva avería y pone camión DISPONIBLE.
      */
     private static void procesarAveriasRequierenTraslado(List<Averia> averiasActivas, LocalDateTime fechaActual,
-            com.plg.service.CamionService camionService) {
+            CamionService camionService) {
         for (Averia averia : averiasActivas) {
             if (averia.getTipoIncidente() != null && averia.getTipoIncidente().isRequiereTraslado()) {
                 String codigoCamion = averia.getCamion().getCodigo();

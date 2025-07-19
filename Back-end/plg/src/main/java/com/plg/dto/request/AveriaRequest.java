@@ -6,6 +6,7 @@ import com.plg.entity.Averia;
 import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
 import com.plg.entity.TipoIncidente;
+import com.plg.utils.Parametros;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -60,8 +61,14 @@ public class AveriaRequest {
     //Contructor que pasa los campos 
     //Request to averia
     public Averia toAveria() {
+
+        // Buscamos el camión por su código
+        Camion camion = Parametros.dataLoader.camiones.stream()
+                .filter(c -> c.getCodigo().equals(codigoCamion))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Camión no encontrado: " + codigoCamion));
         return Averia.builder()
-                .camion(Camion.builder().codigo(codigoCamion).build())
+                .camion(camion)
                 .tipoIncidente(tipoIncidente)
                 .coordenada(coordenada)
                 .fechaHoraReporte(fechaHoraReporte)

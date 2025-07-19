@@ -43,7 +43,7 @@ public class DataLoader {
         try {
             initializePedidos();
             initializeMantenimientos();
-            initializeAverias();
+            //initializeAverias();
             initializeBloqueos();
         } catch (InvalidDataFormatException | IOException e) {
             // Manejo simple: imprimir el error, puedes personalizar según tus necesidades
@@ -64,22 +64,22 @@ public class DataLoader {
 
     public List<Camion> initializeCamiones() {
         CamionFactory.limpiarFactory(); 
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 4; i++) {
             Camion camion = CamionFactory.crearCamionesPorTipo(TipoCamion.TA, true, coordenadaCentral);
             this.camiones.add(camion);
         }
-        for (int i = 0; i < 4; i++) {
-            Camion camion = CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);
-            this.camiones.add(camion);
-        }
-        for (int i = 0; i < 4; i++) {
-            Camion camion = CamionFactory.crearCamionesPorTipo(TipoCamion.TC, true, coordenadaCentral);
-            this.camiones.add(camion);
-        }
-        for (int i = 0; i < 10; i++) {
-            Camion camion = CamionFactory.crearCamionesPorTipo(TipoCamion.TD, true, coordenadaCentral);
-            this.camiones.add(camion);
-        }
+        // for (int i = 0; i < 4; i++) {
+        //     Camion camion = CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);
+        //     this.camiones.add(camion);
+        // }
+        // for (int i = 0; i < 4; i++) {
+        //     Camion camion = CamionFactory.crearCamionesPorTipo(TipoCamion.TC, true, coordenadaCentral);
+        //     this.camiones.add(camion);
+        // }
+        // for (int i = 0; i < 10; i++) {
+        //     Camion camion = CamionFactory.crearCamionesPorTipo(TipoCamion.TD, true, coordenadaCentral);
+        //     this.camiones.add(camion);
+        // }
         return this.camiones;
     }
 

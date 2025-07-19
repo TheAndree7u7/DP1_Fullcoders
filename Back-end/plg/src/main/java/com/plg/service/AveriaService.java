@@ -107,10 +107,6 @@ public class AveriaService {
                 camionService.cambiarCoordenada(request.getCodigoCamion(), request.getCoordenada());
             }
 
-            //! Si el tipo de incidente NO es TI1, cambiar el estado de los pedidos asociados a REGISTRADO
-            if (!"TI1".equals(averia.getTipoIncidente().getCodigo())) {
-                actualizarPedidosACamionAveriado(request.getCodigoCamion());
-            }
             averia.setEstado(true); // Asegurarse de que la avería esté activa
             return averiaRepository.save(averia);
         } catch (NoSuchElementException e) {
@@ -149,38 +145,7 @@ public class AveriaService {
         return averiaRepository.findCodigosCamionesAveriados();
     }
 
-    /**
-     * Actualiza el estado de los pedidos asignados a un camión a REGISTRADO.
-     * Esto se utiliza cuando un camión sufre una avería TI1 y los pedidos
-     * quedan "sueltos".
-     *
-     * @param codigoCamion Código del camión averiado
-     */
-    private void actualizarPedidosACamionAveriado(String codigoCamion) {
-        try {
-            // Obtener el camión por su código
-            Camion camion = camionService.listar().stream()
-                    .filter(c -> c.getCodigo().equals(codigoCamion))
-                    .findFirst()
-                    .orElse(null);
 
-            if (camion != null && camion.getGen() != null && camion.getGen().getRutaFinal() != null) {
-                // Buscar todos los pedidos en la ruta del camión y cambiar su estado a REGISTRADO
-                for (Nodo nodo : camion.getGen().getRutaFinal()) {
-                    if (nodo.getTipoNodo() == TipoNodo.PEDIDO) {
-                        Pedido pedido = (Pedido) nodo;
-                        // Solo actualizar si el pedido no está ya entregado
-                        if (pedido.getEstado() != EstadoPedido.ENTREGADO) {
-                            pedido.setEstado(EstadoPedido.REGISTRADO);
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // En caso de error, registrar pero no fallar la creación de la avería
-            System.err.println("Error al actualizar pedidos del camión " + codigoCamion + ": " + e.getMessage());
-        }
-    }
 
     /**
      * Actualiza los estados de los camiones con averías según las fechas de

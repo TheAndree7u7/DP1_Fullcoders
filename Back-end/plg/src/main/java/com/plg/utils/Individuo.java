@@ -198,21 +198,18 @@ public class Individuo {
     private List<Camion> obtenerCamionesDisponibles() {
         List<Camion> camiones = Parametros.dataLoader.camiones;
 
+
         // FILTRAR CAMIONES EN MANTENIMIENTO - Ubicación más eficiente
         List<Camion> camionesDisponibles = camiones.stream()
-                .filter(camion -> camion.getEstado() != com.plg.entity.EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
+                .filter(camion -> camion.getEstado() == com.plg.entity.EstadoCamion.DISPONIBLE)
                 .collect(java.util.stream.Collectors.toList());
 
         // Verificar que tengamos camiones disponibles
         if (camionesDisponibles.isEmpty()) {
             LoggerUtil.logError("⚠️  ADVERTENCIA: No hay camiones disponibles (todos en mantenimiento)");
-            LoggerUtil.logWarning("Se usará la lista completa de camiones, incluyendo los que están en mantenimiento.");
-            camionesDisponibles = camiones;
-        } else {
-            LoggerUtil.log("🚛 Camiones disponibles para algoritmo: " + camionesDisponibles.size()
-                    + " de " + camiones.size() + " totales");
-        }
-
+            // Si no hay camiones disponibles, error y no se puede continuar
+            throw new RuntimeException("No hay camiones disponibles para asignación");
+        } 
         return camionesDisponibles;
     }
 
