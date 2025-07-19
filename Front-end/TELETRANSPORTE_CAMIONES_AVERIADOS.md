@@ -2,13 +2,13 @@
 
 ## Descripción
 
-Esta funcionalidad permite que los camiones averiados puedan "teletransportarse" a su nueva posición en el cromosoma recalculado después de una avería, manteniendo su estado de "Averiado" pero apareciendo en la nueva ubicación asignada por el algoritmo genético.
+Esta funcionalidad permite que los camiones averiados puedan "teletransportarse" a su nueva posición en el cromosoma recalculado después de una avería, manteniendo su estado de "Averiado" pero apareciendo en la nueva ubicación asignada por el algoritmo genético. **Excepción especial**: Los camiones averiados que se teletransporten al almacén central (0,0) desaparecen del mapa si no están en estado "DISPONIBLE".
 
 ## Problema Resuelto
 
 **Antes**: Cuando un camión tenía una avería y se recalculaba la ruta, el camión se quedaba en su posición anterior y no se actualizaba visualmente en el mapa ni en la tabla, aunque el backend había recalculado su nueva posición.
 
-**Ahora**: Los camiones averiados se teletransportan automáticamente a su nueva posición en el cromosoma recalculado, manteniendo su estado de "Averiado" pero apareciendo en la ubicación correcta.
+**Ahora**: Los camiones averiados se teletransportan automáticamente a su nueva posición en el cromosoma recalculado, manteniendo su estado de "Averiado" pero apareciendo en la ubicación correcta. **Excepción**: Si se teletransportan al almacén central y NO están "DISPONIBLE", desaparecen del mapa.
 
 ## Funcionamiento
 
@@ -36,6 +36,18 @@ if (anterior && anterior.estado === "Averiado") {
   // Si el camión estaba averiado, mantenerlo como averiado pero en nueva posición
   estadoFrontend = "Averiado";
   console.log(`🚛💥 ESTADO: Camión ${ruta.id} mantiene estado 'Averiado' en nueva posición ${ubicacion}`);
+}
+```
+
+### 4. Ocultación en Almacén Central
+```typescript
+// NUEVA LÓGICA: Ocultar camiones averiados en almacén central (excepto si están DISPONIBLE)
+const debeOcultarse = anterior && anterior.estado === "Averiado" && estaEnAlmacenCentral && camion?.estado !== 'DISPONIBLE';
+
+if (debeOcultarse) {
+  console.log(`🚛💥 OCULTAR: Camión ${ruta.id} averiado ocultado en almacén central (no disponible)`);
+  // Retornar null para que el camión no aparezca en el mapa
+  return null;
 }
 ```
 
@@ -74,6 +86,12 @@ if (anterior && anterior.estado === "Averiado") {
 - Varios camiones averiados se teletransportan simultáneamente
 - Cada uno mantiene su estado "Averiado" en su nueva posición
 
+### Escenario 4: Teletransporte al Almacén Central (Caso Especial)
+- Camión se avería en posición (7,4)
+- Algoritmo recalcula y asigna nueva posición (0,0) - almacén central
+- **Si NO está DISPONIBLE**: Camión desaparece del mapa
+- **Si está DISPONIBLE**: Camión aparece normalmente en (0,0)
+
 ## Logs de Debugging
 
 El sistema genera logs informativos para facilitar el debugging:
@@ -81,14 +99,17 @@ El sistema genera logs informativos para facilitar el debugging:
 ```
 🚛💥 TELETRANSPORTE: Camión CAM001 averiado teletransportado de (5,3) a (8,2)
 🚛💥 ESTADO: Camión CAM001 mantiene estado 'Averiado' en nueva posición (8,2)
+🚛💥 OCULTAR: Camión CAM002 averiado ocultado en almacén central (no disponible)
 ```
 
 ## Consideraciones Técnicas
 
 1. **Reinicio de Progreso**: El porcentaje de progreso se reinicia a 0 para camiones teletransportados
 2. **Consistencia de Estado**: Se mantiene el estado "Averiado" independientemente de la nueva posición
-3. **Compatibilidad**: La funcionalidad es compatible con todos los tipos de avería (1, 2, 3)
-4. **Rendimiento**: No afecta el rendimiento de la simulación
+3. **Ocultación Inteligente**: Los camiones averiados en almacén central desaparecen del mapa si no están "DISPONIBLE"
+4. **Compatibilidad**: La funcionalidad es compatible con todos los tipos de avería (1, 2, 3)
+5. **Rendimiento**: No afecta el rendimiento de la simulación
+6. **Filtrado de Nulos**: Se filtran los camiones nulos (ocultos) antes de actualizar el estado
 
 ## Pruebas Recomendadas
 
@@ -96,4 +117,7 @@ El sistema genera logs informativos para facilitar el debugging:
 2. **Múltiples Averías**: Probar con varios camiones averiados simultáneamente
 3. **Diferentes Tipos**: Probar con todos los tipos de avería (1, 2, 3)
 4. **Posiciones Extremas**: Probar con posiciones muy separadas en el mapa
-5. **Recuperación**: Verificar que el estado se mantiene correctamente hasta la recuperación 
+5. **Teletransporte al Almacén Central**: 
+   - Probar con camión averiado que se teletransporte a (0,0) y NO esté DISPONIBLE → debe desaparecer
+   - Probar con camión averiado que se teletransporte a (0,0) y SÍ esté DISPONIBLE → debe aparecer
+6. **Recuperación**: Verificar que el estado se mantiene correctamente hasta la recuperación 

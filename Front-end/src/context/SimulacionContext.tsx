@@ -463,6 +463,15 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
           estadoFrontend = mapearEstadoBackendAFrontend(camion?.estado);
         }
         
+        // NUEVA LÓGICA: Ocultar camiones averiados en almacén central (excepto si están DISPONIBLE)
+        const debeOcultarse = anterior && anterior.estado === "Averiado" && estaEnAlmacenCentral && camion?.estado !== 'DISPONIBLE';
+        
+        if (debeOcultarse) {
+          console.log(`🚛💥 OCULTAR: Camión ${ruta.id} averiado ocultado en almacén central (no disponible)`);
+          // Retornar null para que el camión no aparezca en el mapa
+          return null;
+        }
+        
         return {
           id: ruta.id,
           ubicacion,
@@ -479,7 +488,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
           tipo: camion?.tipo ?? '',
           velocidadPromedio: camion?.velocidadPromedio ?? 0,
         };
-      });
+      }).filter((camion): camion is CamionEstado => camion !== null); // Filtrar camiones nulos
 
       setCamiones(nuevosCamiones);
 
@@ -605,6 +614,15 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
           estadoFrontend = mapearEstadoBackendAFrontend(camion?.estado);
         }
         
+        // NUEVA LÓGICA: Ocultar camiones averiados en almacén central (excepto si están DISPONIBLE)
+        const debeOcultarse = anterior && anterior.estado === "Averiado" && estaEnAlmacenCentral && camion?.estado !== 'DISPONIBLE';
+        
+        if (debeOcultarse) {
+          console.log(`🚛💥 OCULTAR: Camión ${ruta.id} averiado ocultado en almacén central (no disponible)`);
+          // Retornar null para que el camión no aparezca en el mapa
+          return null;
+        }
+        
         return {
           id: ruta.id,
           ubicacion,
@@ -621,7 +639,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
           tipo: camion?.tipo ?? '',
           velocidadPromedio: camion?.velocidadPromedio ?? 0,
         };
-      });
+      }).filter((camion): camion is CamionEstado => camion !== null); // Filtrar camiones nulos
 
       setCamiones(nuevosCamiones);
 
