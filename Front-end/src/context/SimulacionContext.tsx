@@ -281,6 +281,15 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (!pollingActivo || !simulacionActiva) return;
 
+    // CRÍTICO: Verificar si ya tenemos datos cargados para evitar polling duplicado
+    if (camiones.length > 0 && rutasCamiones.length > 0) {
+      console.log("🛑 POLLING: Ya hay datos cargados, evitando polling duplicado");
+      setPollingActivo(false);
+      setCargando(false);
+      return;
+    }
+
+    console.log("🔄 POLLING: Iniciando polling para primer paquete...");
     const cleanup = ejecutarPollingPrimerPaquete(
       fechaInicioSimulacion,
       setPollingActivo,
@@ -294,7 +303,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     );
 
     return cleanup;
-  }, [pollingActivo, simulacionActiva, fechaInicioSimulacion]);
+  }, [pollingActivo, simulacionActiva, fechaInicioSimulacion, camiones.length, rutasCamiones.length]);
 
   // Monitoreo de cambios en datos de camiones para detectar inconsistencias
   useEffect(() => {

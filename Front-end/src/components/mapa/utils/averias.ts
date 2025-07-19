@@ -219,10 +219,17 @@ export const handleAveriar = async (
     setClickedCamion(null);
     console.log("🔚 PROCESO DE AVERÍA FINALIZADO");
     
-    // Pasar inmediatamente al siguiente paquete después de la avería
-    // Usar la fecha final del nuevo paquete generado después de la avería
- 
+    // CRÍTICO: Reanudar la simulación automáticamente después de aplicar la nueva solución
+    console.log("▶️ REANUDANDO: Simulación automáticamente después de avería...");
+    setSimulacionActiva(true);
     
+    // // Reactivar el polling para continuar con el siguiente paquete
+    // if (setPollingActivo) {
+    //   console.log("🔄 REACTIVANDO: Polling para continuar con siguiente paquete...");
+    //   setPollingActivo(true);
+    // }
+    
+    console.log("✅ REANUDACIÓN: Simulación y polling reactivados exitosamente");
   }
 };
 
