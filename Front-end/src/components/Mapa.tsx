@@ -72,7 +72,8 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
     fechaInicioSimulacion,
     diaSimulacion,
     tiempoRealSimulacion,
-    tiempoTranscurridoSimulado, 
+    tiempoTranscurridoSimulado,
+    aplicarNuevaSolucionDespuesAveria,
   } = useSimulacion();
   // Estado para el tooltip (hover)
   const [tooltipCamion, setTooltipCamion] = useState<string | null>(null);
@@ -715,7 +716,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                       rutasCamiones,
                       almacenes,
                       bloqueos
-                    }, setPollingActivo)}
+                    }, setPollingActivo, aplicarNuevaSolucionDespuesAveria)}
                   >
                     {averiando === clickedCamion + '-2' ? 'Averiando...' : 'Avería tipo 2'}
                   </button>
@@ -734,7 +735,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                       rutasCamiones,
                       almacenes,
                       bloqueos, 
-                    }, setPollingActivo)}
+                    }, setPollingActivo, aplicarNuevaSolucionDespuesAveria)}
                   >
                     {averiando === clickedCamion + '-3' ? 'Averiando...' : 'Avería tipo 3'}
                   </button>
