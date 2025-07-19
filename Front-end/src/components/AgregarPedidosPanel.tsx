@@ -65,9 +65,9 @@ const AgregarPedidosPanel: React.FC = () => {
   const [pedidoIndividual, setPedidoIndividual] = useState({
     coordenadaX: 0,
     coordenadaY: 0,
-    nombreCliente: '',
-    glp: 0,
-    horasLimite: 0
+    nombreCliente: 'Cliente Default',
+    glp: 1,
+    horasLimite: 6
   });
 
   const handleArchivoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -275,9 +275,9 @@ const AgregarPedidosPanel: React.FC = () => {
       setPedidoIndividual({
         coordenadaX: 0,
         coordenadaY: 0,
-        nombreCliente: '',
-        glp: 0,
-        horasLimite: 0
+        nombreCliente: 'Cliente Default',
+        glp: 1,
+        horasLimite: 6
       });
       
     } catch (error) {
@@ -338,6 +338,16 @@ const AgregarPedidosPanel: React.FC = () => {
       
       descargarEjemplo(ejemploConFormatoCorrecto);
     }
+  };
+
+  const limpiarFormulario = () => {
+    setPedidoIndividual({
+      coordenadaX: 0,
+      coordenadaY: 0,
+      nombreCliente: 'Cliente Default',
+      glp: 1,
+      horasLimite: 6
+    });
   };
 
   return (
@@ -458,17 +468,26 @@ const AgregarPedidosPanel: React.FC = () => {
               </div>
             </div>
 
-            <button
-              onClick={handleAgregarPedidoIndividual}
-              disabled={cargando}
-              className={`w-full py-2 px-3 rounded text-sm font-medium transition-colors ${
-                cargando
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-blue-500 text-white hover:bg-blue-600'
-              }`}
-            >
-              {cargando ? 'Procesando...' : 'Agregar Pedido'}
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={handleAgregarPedidoIndividual}
+                disabled={cargando}
+                className={`py-2 px-3 rounded text-sm font-medium transition-colors ${
+                  cargando
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                }`}
+              >
+                {cargando ? 'Procesando...' : 'Agregar Pedido'}
+              </button>
+              <button
+                onClick={limpiarFormulario}
+                type="button"
+                className="py-2 px-3 bg-gray-500 text-white rounded text-sm font-medium hover:bg-gray-600 transition-colors"
+              >
+                Limpiar
+              </button>
+            </div>
           </div>
         ) : (
           /* Formulario para archivo */
