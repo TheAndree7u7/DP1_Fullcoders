@@ -8,6 +8,7 @@ import java.util.Random;
 
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
+import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
 
@@ -85,7 +86,7 @@ public class Individuo {
      * Valida la asignación usando un Gen temporal y calcularFitness.
      */
     private void asignarPedidosACamiones(List<Camion> camionesDisponibles, List<Pedido> pedidosMezclados, List<Gen> cromosoma, LocalDateTime fechaActual) {
-        int maxPedidosPorCamion = 1;
+
         Random random = new Random();
         guardarEstadoActual();
         Collections.shuffle(camionesDisponibles);
@@ -96,28 +97,36 @@ public class Individuo {
             }
             int intentos = 0;
             boolean asignado = false;
+            Pedido pedidoAsignado = null;
             while (intentos < 10 && !asignado && !pedidosMezclados.isEmpty()) {
-                List<Pedido> seleccionados = new ArrayList<>();
                 List<Pedido> copiaPedidos = new ArrayList<>(pedidosMezclados);
                 Collections.shuffle(copiaPedidos, random);
                 for (Pedido pedido : copiaPedidos) {
                     if (pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado() > 0) {
-                        seleccionados.add(pedido);
-                        if (seleccionados.size() == maxPedidosPorCamion) break;
+                        pedidoAsignado = pedido;
+                        break;
                     }
                 }
-                if (seleccionados.isEmpty()) break;
+                if (pedidoAsignado == null) break;
+
+                // Validamos que la distancia del camión -> pedido -> almacén central sea menor 
+                // a distancia máxima permitida
+                int distanciaCamionPedido = Mapa.getInstance().aStar(camion, pedidoAsignado).size();
+                int distanciaPedidoAlmacenCentral = Mapa.getInstance().aStar(pedidoAsignado, Parametros.dataLoader.almacenes.get(0)).size();
+                int distanciaTotal = distanciaCamionPedido + distanciaPedidoAlmacenCentral;
+                if (distanciaTotal > camion.calcularDistanciaMaxima()) {
+                    // Si la distancia total es mayor a la máxima, no asignamos el pedido
+                    continue;
+                }
                 // Asignar pedidos al camión y simular entrega de GLP
-                double glpPorPedido = camion.getCapacidadActualGLP() / seleccionados.size();
-                for (Pedido pedido : seleccionados) {
-                    double pendiente = pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado();
-                    double entregar = Math.min(glpPorPedido, pendiente);
-                    pedido.setVolumenGLPEntregado(pedido.getVolumenGLPEntregado() + entregar);
-                    Gen gen = cromosoma.stream().filter(g -> g.getCamion().getCodigo().equals(camion.getCodigo())).findFirst().orElse(null);
-                    if (gen != null) {
-                        gen.getPedidos().add(pedido);
-                        gen.getNodos().add(pedido);
-                    }
+                double glpPorPedido = camion.getCapacidadActualGLP();
+                double pendiente = pedidoAsignado.getVolumenGLPAsignado() - pedidoAsignado.getVolumenGLPEntregado();
+                double entregar = Math.min(glpPorPedido, pendiente);
+                pedidoAsignado.setVolumenGLPEntregado(pedidoAsignado.getVolumenGLPEntregado() + entregar);
+                Gen gen = cromosoma.stream().filter(g -> g.getCamion().getCodigo().equals(camion.getCodigo())).findFirst().orElse(null);
+                if (gen != null) {
+                    gen.getPedidos().add(pedidoAsignado);
+                    gen.getNodos().add(pedidoAsignado);
                 }
                 pedidosMezclados.removeIf(p -> p.getVolumenGLPAsignado() - p.getVolumenGLPEntregado() == 0);
                 asignado = true;

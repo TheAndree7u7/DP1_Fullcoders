@@ -23,7 +23,6 @@ public class Almacen extends Nodo {
     private double capacidadMaximaGLP;
 
     // Combustible
-    private double capacidadCombustible;
     private double capacidadActualCombustible;
     private double capacidadMaximaCombustible;
 

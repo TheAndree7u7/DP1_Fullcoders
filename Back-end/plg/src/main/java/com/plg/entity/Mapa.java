@@ -11,6 +11,7 @@ import java.util.Set;
 
 import com.plg.utils.Gen;
 import com.plg.utils.Individuo;
+import com.plg.utils.Parametros;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -229,10 +230,20 @@ public class Mapa {
             System.err.println("⚠️ A*: Nodos de entrada inválidos");
             return Collections.emptyList();
         }
+        // PRUEBA DEPURACIÓN
+        // 41 - 47
+        Coordenada coordenada1 = new Coordenada(9,14);
+        Coordenada coordenada2 = new Coordenada(8,12);
+        System.out.println("🔄 HOLLAAAAA" + coordenada1 + " " + coordenada2);
 
-        Nodo inicio = getNodo(nodo1.getCoordenada());
-        Nodo destino = getNodo(nodo2.getCoordenada());
+        System.out.println("ALMACENES");
+        List<Almacen> almacenes = Parametros.dataLoader.almacenes;
+        for (Almacen almacen : almacenes) {
+            System.out.println("Almacen Nombre: " + almacen.getNombre() + " Almacen: " + almacen.getCoordenada() + " Capacidad GLP: " + almacen.getCapacidadActualGLP());
+        }
 
+        Nodo inicio = getNodo(coordenada1);
+        Nodo destino = getNodo(coordenada2);
         // Si origen y destino son el mismo, devolver ruta directa
         if (inicio.equals(destino)) {
             return Collections.singletonList(inicio);
@@ -241,34 +252,18 @@ public class Mapa {
         // Verificar si el destino está bloqueado y buscar el nodo libre más cercano
         Nodo destinoFinal = destino;
         if (destino.isBloqueado()) {
-            destinoFinal = encontrarNodoLibreMasCercano(destino);
-            if (destinoFinal == null) {
-                System.err.println("⚠️ A*: No se puede encontrar un nodo libre cerca del destino");
-                return Collections.singletonList(destino);
-            }
+            System.out.println("🔄 A*: El destino está bloqueado");
         }
 
         // Intentar A* sin pasar por nodos bloqueados
         List<Nodo> ruta = intentarAStar(inicio, destinoFinal);
-
-        // Si no se encuentra ruta, intentar con búsqueda de nodos intermedios
-        if (ruta.size() <= 1) {
-            System.out.println("🔄 A*: Intentando con nodos intermedios...");
-            ruta = buscarRutaConIntermedios(inicio, destinoFinal);
-        }
-
         return ruta;
     }
 
     private List<Nodo> intentarAStar(Nodo inicio, Nodo destino) {
         PriorityQueue<Nodo> openSet = new PriorityQueue<>((a, b) -> Double.compare(a.getFScore(), b.getFScore()));
         Map<Nodo, Nodo> cameFrom = new HashMap<>();
-        Set<Nodo> closedSet = new HashSet<>();
-
-        // Límites de seguridad mejorados
-        final int MAX_ITERATIONS = 15000; // Aumentado de 10000
-        final int MAX_NODES_IN_PATH = 1000; // Aumentado de 500
-        int iteraciones = 0;
+        Map<Nodo, Integer> cost_so_far = new HashMap<>();
 
         // Inicializar scores
         for (int i = 0; i < filas; i++) {
@@ -281,31 +276,20 @@ public class Mapa {
 
         inicio.setGScore(0);
         inicio.setFScore(calcularHeuristica(inicio, destino));
+        cost_so_far.put(inicio, 0);
         openSet.add(inicio);
 
-        while (!openSet.isEmpty() && iteraciones < MAX_ITERATIONS) {
-            iteraciones++;
-
+        while (!openSet.isEmpty()) {
+   
             Nodo nodoActual = openSet.poll();
-
-            if (closedSet.contains(nodoActual)) {
-                continue;
-            }
-            closedSet.add(nodoActual);
 
             if (nodoActual.equals(destino)) {
                 List<Nodo> ruta = reconstruirRuta(cameFrom, nodoActual);
-                if (ruta.size() > MAX_NODES_IN_PATH) {
-                    System.err.println("⚠️ A*: Ruta demasiado larga (" + ruta.size() + " nodos)");
-                    return Collections.singletonList(destino);
-                }
+
                 return ruta;
             }
 
             for (Nodo vecino : getAdj(nodoActual.getCoordenada())) {
-                if (closedSet.contains(vecino)) {
-                    continue;
-                }
 
                 // Permitir llegar a un nodo bloqueado solo si es el destino
                 if (vecino.isBloqueado() && !vecino.equals(destino)) {
@@ -313,114 +297,36 @@ public class Mapa {
                 }
 
                 double tentativeGScore = nodoActual.getGScore() + 1;
-
-                if (tentativeGScore < vecino.getGScore()) {
+                // Validamos que el vecino no esta en cost_so_far
+                boolean valido1 = cost_so_far.containsKey(vecino);
+                if (!valido1 || tentativeGScore < vecino.getGScore()) {
                     cameFrom.put(vecino, nodoActual);
                     vecino.setGScore(tentativeGScore);
                     vecino.setFScore(tentativeGScore + calcularHeuristica(vecino, destino));
-                    if (!openSet.contains(vecino)) {
-                        openSet.add(vecino);
-                    }
+                    openSet.add(vecino);
                 }
             }
         }
 
-        if (iteraciones >= MAX_ITERATIONS) {
-            System.err.println("⚠️ A*: Se alcanzó el límite de iteraciones (" + MAX_ITERATIONS + ")");
-        } else {
-            System.err.println(
-                    "⚠️ A*: No se encontró ruta entre " + inicio.getCoordenada() + " y " + destino.getCoordenada());
-        }
 
+        System.out.println(
+                "⚠️ A*: No se encontró ruta entre " + inicio.getCoordenada() + " y " + destino.getCoordenada());
+        // Imprimir el el cameFrom para depuración
+        System.out.println("CameFrom: " + cameFrom);
         return Collections.singletonList(destino);
-    }
-
-    private Nodo encontrarNodoLibreMasCercano(Nodo nodoBloqueado) {
-        int radio = 1;
-        int maxRadio = 5; // Buscar en un radio máximo de 5 nodos
-
-        while (radio <= maxRadio) {
-            for (int i = -radio; i <= radio; i++) {
-                for (int j = -radio; j <= radio; j++) {
-                    int nuevaFila = nodoBloqueado.getCoordenada().getFila() + i;
-                    int nuevaColumna = nodoBloqueado.getCoordenada().getColumna() + j;
-
-                    if (esCoordenadaValida(nuevaFila, nuevaColumna)) {
-                        Nodo candidato = getNodo(nuevaFila, nuevaColumna);
-                        if (!candidato.isBloqueado()) {
-                            return candidato;
-                        }
-                    }
-                }
-            }
-            radio++;
-        }
-        return null;
-    }
-
-    private boolean esCoordenadaValida(int fila, int columna) {
-        return fila >= 0 && fila < filas && columna >= 0 && columna < columnas;
-    }
-
-    private List<Nodo> buscarRutaConIntermedios(Nodo inicio, Nodo destino) {
-        // Buscar nodos intermedios que puedan servir como "puentes"
-        List<Nodo> nodosIntermedios = encontrarNodosIntermedios(inicio, destino);
-
-        for (Nodo intermedio : nodosIntermedios) {
-            List<Nodo> ruta1 = intentarAStar(inicio, intermedio);
-            List<Nodo> ruta2 = intentarAStar(intermedio, destino);
-
-            if (ruta1.size() > 1 && ruta2.size() > 1) {
-                // Combinar rutas
-                List<Nodo> rutaCompleta = new ArrayList<>(ruta1);
-                rutaCompleta.remove(rutaCompleta.size() - 1); // Evitar duplicar el intermedio
-                rutaCompleta.addAll(ruta2);
-                return rutaCompleta;
-            }
-        }
-
-        return Collections.singletonList(destino);
-    }
-
-    private List<Nodo> encontrarNodosIntermedios(Nodo inicio, Nodo destino) {
-        List<Nodo> intermedios = new ArrayList<>();
-        int distancia = (int) calcularHeuristica(inicio, destino);
-
-        // Buscar nodos libres en el camino aproximado
-        for (int i = 0; i < filas; i++) {
-            for (int j = 0; j < columnas; j++) {
-                Nodo candidato = getNodo(i, j);
-                if (!candidato.isBloqueado()) {
-                    double distInicio = calcularHeuristica(inicio, candidato);
-                    double distDestino = calcularHeuristica(candidato, destino);
-
-                    // Verificar si está en el camino aproximado
-                    if (Math.abs((distInicio + distDestino) - distancia) <= 5) {
-                        intermedios.add(candidato);
-                        if (intermedios.size() >= 10) { // Limitar a 10 candidatos
-                            break;
-                        }
-                    }
-                }
-            }
-            if (intermedios.size() >= 10) {
-                break;
-            }
-        }
-
-        // Ordenar por distancia total
-        intermedios.sort((a, b) -> {
-            double distA = calcularHeuristica(inicio, a) + calcularHeuristica(a, destino);
-            double distB = calcularHeuristica(inicio, b) + calcularHeuristica(b, destino);
-            return Double.compare(distA, distB);
-        });
-
-        return intermedios;
     }
 
     private List<Nodo> reconstruirRuta(Map<Nodo, Nodo> cameFrom, Nodo nodoActual) {
         List<Nodo> ruta = new ArrayList<>();
+           System.out.println("ALMACENES");
+        List<Almacen> almacenes = Parametros.dataLoader.almacenes;
+        for (Almacen almacen : almacenes) {
+            System.out.println("Almacen Nombre: " + almacen.getNombre() + " Almacen: " + almacen.getCoordenada() + " Capacidad GLP: " + almacen.getCapacidadActualGLP());
+        }
+
         while (nodoActual != null) {
+            // Imprimimos el nodo actual para depuración
+            System.out.println("Nodo:" + nodoActual);
             ruta.add(nodoActual);
             nodoActual = cameFrom.get(nodoActual);
         }

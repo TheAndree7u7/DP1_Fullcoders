@@ -45,7 +45,7 @@ public class Gen {
             if (nodo instanceof Almacen) {
                 Almacen almacen = (Almacen) nodo;
                 almacen.setCapacidadActualGLP(almacen.getCapacidadActualGLP() - camion.getCapacidadMaximaGLP());
-                almacen.setCapacidadCombustible(almacen.getCapacidadCombustible() - camion.getCombustibleMaximo());
+                almacen.setCapacidadActualCombustible(almacen.getCapacidadActualCombustible() - camion.getCombustibleMaximo());
             }
         }
     }
