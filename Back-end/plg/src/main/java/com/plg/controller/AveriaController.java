@@ -203,9 +203,10 @@ public class AveriaController {
             System.out.println("AVERIA CAMION");
             // Procesar la avería con estado completo
             Averia averia = averiaService.agregar(request.toAveriaRequest());
-            //Averia averia = new Averia();
+            // Averia averia = new Averia();
             // Cambiar el estado del camión
-            camionService.cambiarEstado(request.getCodigoCamion(), EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA);
+            // camionService.cambiarEstado(request.getCodigoCamion(),
+            // EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA);
 
             // Crear respuesta con información adicional
             return ResponseEntity.status(HttpStatus.CREATED).body(new AveriaConEstadoResponse(

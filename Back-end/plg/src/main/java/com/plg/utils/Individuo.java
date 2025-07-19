@@ -60,9 +60,11 @@ public class Individuo {
             gen.getNodos().add(almacenCentral);
         }
 
-        // Para camiones averiados generamos genes pero con un unico nodo que es el mismo camión
+        // Para camiones averiados generamos genes pero con un unico nodo que es el
+        // mismo camión
         for (Camion camion : Parametros.dataLoader.camiones) {
-            if (camion.getEstado() == EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA) {
+            if (camion.getEstado() == EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA
+                    || camion.getEstado() == EstadoCamion.INMOVILIZADO_POR_AVERIA) {
                 Gen gen = new Gen(camion, new ArrayList<>());
                 gen.getNodos().add(camion);
                 cromosoma.add(gen);
@@ -114,7 +116,7 @@ public class Individuo {
             double distanciaCamion = 0;
             // Validación si el camión tiene poco GLP disponible
             if (camion.getCapacidadActualGLP() < 5) {
-                
+
                 List<Almacen> almacenes = Parametros.dataLoader.almacenes;
                 Almacen almacenSecundario1 = almacenes.get(1);
                 Almacen almacenSecundario2 = almacenes.get(2);
@@ -207,7 +209,6 @@ public class Individuo {
     private List<Camion> obtenerCamionesDisponibles() {
         List<Camion> camiones = Parametros.dataLoader.camiones;
 
-
         // FILTRAR CAMIONES EN MANTENIMIENTO - Ubicación más eficiente
         List<Camion> camionesDisponibles = camiones.stream()
                 .filter(camion -> camion.getEstado() == EstadoCamion.DISPONIBLE)
@@ -218,7 +219,7 @@ public class Individuo {
             LoggerUtil.logError("⚠️  ADVERTENCIA: No hay camiones disponibles (todos en mantenimiento)");
             // Si no hay camiones disponibles, error y no se puede continuar
             throw new RuntimeException("No hay camiones disponibles para asignación");
-        } 
+        }
         return camionesDisponibles;
     }
 
