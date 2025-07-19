@@ -9,14 +9,37 @@ export const manejarCargaArchivo = async (
   onArchivosCargados: (estado: EstadoCargaArchivos) => void
 ): Promise<void> => {
   try {
+    console.log(`🔍 DEBUG: Procesando archivo ${archivo.name} de tipo ${tipo}`);
+    
+    // Primero, mostrar estado de carga
+    const estadoCargando = {
+      ...estadoCarga,
+      [tipo]: {
+        ...estadoCarga[tipo],
+        cargando: true,
+        cargado: false
+      }
+    };
+    onArchivosCargados(estadoCargando);
+    
     const contenido = await archivo.text();
+    
+    // Verificar si ya existe un archivo del mismo tipo
+    const archivoExistente = estadoCarga[tipo].archivo;
+    
+    if (archivoExistente) {
+      console.log(`📄 DEBUG: Reemplazando archivo existente: ${archivoExistente.nombre} con ${archivo.name}`);
+    }
+    
     const archivoCarga: ArchivoCarga = {
       nombre: archivo.name,
-      contenido,
+      contenido: contenido,
       tipo,
       fechaCreacion: new Date(),
       tamano: archivo.size
     };
+
+    console.log(`📄 DEBUG: Contenido del archivo (primeras 200 chars):`, contenido.substring(0, 200));
 
     let validacion;
     
@@ -32,23 +55,35 @@ export const manejarCargaArchivo = async (
       validacion = { esValido: false, errores: ['Tipo de archivo no soportado'], advertencias: [] };
     }
 
+    console.log(`✅ DEBUG: Resultado de validación para ${tipo}:`, {
+      esValido: validacion.esValido,
+      errores: validacion.errores,
+      advertencias: validacion.advertencias
+    });
+
     const nuevoEstado = {
       ...estadoCarga,
       [tipo]: {
         cargado: validacion.esValido,
+        cargando: false,
         archivo: validacion.esValido ? archivoCarga : undefined,
         errores: validacion.errores
       }
     };
 
+    console.log(`🔄 DEBUG: Estado anterior:`, estadoCarga);
+    console.log(`🔄 DEBUG: Nuevo estado:`, nuevoEstado);
+
     // Notificar al componente padre
     onArchivosCargados(nuevoEstado);
 
   } catch (error) {
+    console.error(`❌ DEBUG: Error procesando archivo ${archivo.name}:`, error);
     const nuevoEstado = {
       ...estadoCarga,
       [tipo]: {
         cargado: false,
+        cargando: false,
         errores: [`Error al leer el archivo: ${error}`]
       }
     };

@@ -22,9 +22,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties.Data;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/simulacion")
@@ -34,6 +42,12 @@ public class SimulacionController {
 
     // Variable de control para verificar si la simulación ha sido iniciada
     private static boolean simulacionIniciada = false;
+
+    // Variables para almacenar archivos cargados
+    private static String archivoVentas = null;
+    private static String archivoBloqueos = null;
+    private static String archivoCamiones = null;
+    private static String archivoMantenimiento = null;
 
     @GetMapping("/mejor")
     public IndividuoDto obtenerMejorIndividuoPorFecha(@RequestParam String fecha) {
@@ -134,5 +148,147 @@ public class SimulacionController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fatal inicializar");
         }
+    }
+
+    // ========== ENDPOINTS PARA CARGA DE ARCHIVOS ==========
+
+    @DeleteMapping("/limpiar-archivos")
+    public ResponseEntity<Map<String, Object>> limpiarArchivos() {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/limpiar-archivos");
+        try {
+            archivoVentas = null;
+            archivoBloqueos = null;
+            archivoCamiones = null;
+            archivoMantenimiento = null;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Archivos limpiados exitosamente");
+
+            System.out.println("✅ Archivos limpiados exitosamente");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Error al limpiar archivos: " + e.getMessage());
+
+            System.out.println("❌ Error al limpiar archivos: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @PostMapping(value = "/cargar-ventas", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, Object>> cargarArchivoVentas(@RequestParam("archivo") MultipartFile archivo) {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/cargar-ventas");
+        System.out.println("📁 Archivo recibido: " + archivo.getOriginalFilename());
+
+        try {
+            String contenido = new String(archivo.getBytes(), StandardCharsets.UTF_8);
+            archivoVentas = contenido;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Archivo de ventas cargado exitosamente");
+
+            System.out.println("✅ Archivo de ventas cargado exitosamente");
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Error al cargar archivo de ventas: " + e.getMessage());
+
+            System.out.println("❌ Error al cargar archivo de ventas: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @PostMapping(value = "/cargar-bloqueos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, Object>> cargarArchivoBloqueos(@RequestParam("archivo") MultipartFile archivo) {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/cargar-bloqueos");
+        System.out.println("📁 Archivo recibido: " + archivo.getOriginalFilename());
+
+        try {
+            String contenido = new String(archivo.getBytes(), StandardCharsets.UTF_8);
+            archivoBloqueos = contenido;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Archivo de bloqueos cargado exitosamente");
+
+            System.out.println("✅ Archivo de bloqueos cargado exitosamente");
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Error al cargar archivo de bloqueos: " + e.getMessage());
+
+            System.out.println("❌ Error al cargar archivo de bloqueos: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @PostMapping(value = "/cargar-camiones", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, Object>> cargarArchivoCamiones(@RequestParam("archivo") MultipartFile archivo) {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/cargar-camiones");
+        System.out.println("📁 Archivo recibido: " + archivo.getOriginalFilename());
+
+        try {
+            String contenido = new String(archivo.getBytes(), StandardCharsets.UTF_8);
+            archivoCamiones = contenido;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Archivo de camiones cargado exitosamente");
+
+            System.out.println("✅ Archivo de camiones cargado exitosamente");
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Error al cargar archivo de camiones: " + e.getMessage());
+
+            System.out.println("❌ Error al cargar archivo de camiones: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @PostMapping(value = "/cargar-mantenimiento", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, Object>> cargarArchivoMantenimiento(
+            @RequestParam("archivo") MultipartFile archivo) {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/cargar-mantenimiento");
+        System.out.println("📁 Archivo recibido: " + archivo.getOriginalFilename());
+
+        try {
+            String contenido = new String(archivo.getBytes(), StandardCharsets.UTF_8);
+            archivoMantenimiento = contenido;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Archivo de mantenimiento cargado exitosamente");
+
+            System.out.println("✅ Archivo de mantenimiento cargado exitosamente");
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Error al cargar archivo de mantenimiento: " + e.getMessage());
+
+            System.out.println("❌ Error al cargar archivo de mantenimiento: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @GetMapping("/estado-archivos")
+    public ResponseEntity<Map<String, Boolean>> obtenerEstadoArchivos() {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/estado-archivos");
+
+        Map<String, Boolean> estado = new HashMap<>();
+        estado.put("ventas", archivoVentas != null);
+        estado.put("bloqueos", archivoBloqueos != null);
+        estado.put("camiones", archivoCamiones != null);
+        estado.put("mantenimiento", archivoMantenimiento != null);
+
+        System.out.println("✅ Estado de archivos: " + estado);
+        return ResponseEntity.ok(estado);
     }
 }

@@ -56,14 +56,17 @@ const DragAndDropZone: React.FC<DragAndDropZoneProps> = ({
       noClasificados: []
     };
 
-    // Procesar archivos de forma asíncrona
+    console.log(`🔍 DEBUG: Procesando ${archivosArray.length} archivos`);
+
+    // Primero clasificar todos los archivos
     for (const file of archivosArray) {
       const tipo = clasificarArchivo(file.name);
       if (tipo) {
         archivosClasificados[tipo].push(file);
-        await onFileClassified(file, tipo);
+        console.log(`📁 DEBUG: Archivo ${file.name} clasificado como ${tipo}`);
       } else {
         archivosClasificados.noClasificados.push(file);
+        console.log(`❓ DEBUG: Archivo ${file.name} no clasificado`);
       }
     }
 
@@ -73,7 +76,27 @@ const DragAndDropZone: React.FC<DragAndDropZoneProps> = ({
       .map(tipo => `${tipo}: ${archivosClasificados[tipo].length} archivo(s)`)
       .join(', ');
 
-    console.log('Archivos clasificados:', resumen);
+    console.log('📊 DEBUG: Archivos clasificados:', resumen);
+    
+    // Procesar archivos clasificados de forma asíncrona
+    const promesas = [];
+    
+    for (const [tipo, archivos] of Object.entries(archivosClasificados)) {
+      if (tipo !== 'noClasificados' && archivos.length > 0) {
+        console.log(`🚀 DEBUG: Procesando ${archivos.length} archivos de tipo ${tipo}`);
+        // Solo procesar el último archivo de cada tipo (reemplazar el anterior)
+        const archivoAProcesar = archivos[archivos.length - 1];
+        console.log(`📤 DEBUG: Procesando archivo: ${archivoAProcesar.name} de tipo ${tipo}`);
+        promesas.push(onFileClassified(archivoAProcesar, tipo as 'ventas' | 'bloqueos' | 'camiones' | 'mantenimiento'));
+      }
+    }
+    
+    // Esperar a que se procesen todos los archivos
+    if (promesas.length > 0) {
+      console.log(`⏳ DEBUG: Esperando procesamiento de ${promesas.length} archivos...`);
+      await Promise.all(promesas);
+      console.log(`✅ DEBUG: Todos los archivos procesados`);
+    }
     
     // Llamar a la función callback con todos los archivos
     onFilesDrop(archivosArray);

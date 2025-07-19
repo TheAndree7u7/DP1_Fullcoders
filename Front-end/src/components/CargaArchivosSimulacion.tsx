@@ -6,7 +6,8 @@ import {
   descargarEjemplo, 
   manejarCargaArchivo, 
   puedenCargarseArchivos, 
-  formatearTamanoArchivo 
+  formatearTamanoArchivo,
+  descargarArchivoCargado
 } from './cargar_archivos';
 import { iniciarSimulacion, obtenerInfoSimulacion } from '../services/simulacionApiService';
 import DragAndDropZone from './DragAndDropZone';
@@ -29,10 +30,10 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
     iniciarPollingPrimerPaquete
   } = useSimulacion();
   const [estadoCarga, setEstadoCarga] = useState<EstadoCargaArchivos>({
-    ventas: { cargado: false, errores: [] },
-    bloqueos: { cargado: false, errores: [] },
-    camiones: { cargado: false, errores: [] },
-    mantenimiento: { cargado: false, errores: [] }
+    ventas: { cargado: false, cargando: false, errores: [] },
+    bloqueos: { cargado: false, cargando: false, errores: [] },
+    camiones: { cargado: false, cargando: false, errores: [] },
+    mantenimiento: { cargado: false, cargando: false, errores: [] }
   });
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [fechaSimulacion, setFechaSimulacion] = useState<string>(fechaInicioSimulacion || new Date().toISOString().substring(0, 10) + 'T00:00');
@@ -40,15 +41,7 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
   const [mensaje, setMensaje] = useState<string>('');
   const [tipoMensaje, setTipoMensaje] = useState<'success' | 'error' | 'info'>('info');
   const [isDragOver, setIsDragOver] = useState(false);
-  const [archivosClasificados, setArchivosClasificados] = useState<{
-    [key: string]: File[];
-  }>({
-    ventas: [],
-    bloqueos: [],
-    camiones: [],
-    mantenimiento: [],
-    noClasificados: []
-  });
+
 
   const fileInputVentasRef = useRef<HTMLInputElement>(null);
   const fileInputBloqueosRef = useRef<HTMLInputElement>(null);
@@ -77,11 +70,6 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
 
   // Función para manejar archivos clasificados por drag and drop
   const handleFileClassified = async (file: File, tipo: 'ventas' | 'bloqueos' | 'camiones' | 'mantenimiento') => {
-    setArchivosClasificados(prev => ({
-      ...prev,
-      [tipo]: [...prev[tipo], file]
-    }));
-    
     // Procesar el archivo inmediatamente
     await handleCargaArchivo(file, tipo);
   };
@@ -237,10 +225,10 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
         </div>
 
         {/* Zona de Drag and Drop */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
             <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm mr-2">🚀</span>
-            Carga Rápida - Arrastra y Suelta Múltiples Archivos
+            Carga Rápida - Arrastra y Suelta Archivos
           </h3>
           
           <DragAndDropZone
@@ -249,60 +237,63 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
             isDragOver={isDragOver}
             setIsDragOver={setIsDragOver}
           />
-          
-          {/* Resumen de archivos clasificados */}
-          {Object.values(archivosClasificados).some(archivos => archivos.length > 0) && (
-            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-blue-800 mb-2">Archivos Clasificados:</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                {Object.entries(archivosClasificados).map(([tipo, archivos]) => {
-                  if (archivos.length === 0) return null;
-                  return (
-                    <div key={tipo} className="bg-white rounded p-2">
-                      <span className="font-medium text-gray-700 capitalize">{tipo}:</span>
-                      <span className="text-gray-600 ml-1">{archivos.length}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Sección de Archivos de Ventas */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
             <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2">1</span>
             Archivo de Ventas/Pedidos
           </h3>
           
-          <div className="bg-gray-50 rounded-lg p-4 mb-4">
+          <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-medium text-gray-700">Estado:</span>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                estadoCarga.ventas.cargado 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
+                estadoCarga.ventas.cargando
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : estadoCarga.ventas.cargado 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
               }`}>
-                {estadoCarga.ventas.cargado ? 'Cargado' : 'Pendiente'}
+                {estadoCarga.ventas.cargando ? 'Cargando...' : estadoCarga.ventas.cargado ? 'Cargado' : 'Pendiente'}
               </span>
             </div>
             
-            {estadoCarga.ventas.archivo && (
+            {estadoCarga.ventas.cargando && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mb-3">
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-yellow-600 mr-2"></div>
+                  <p className="text-xs text-yellow-800">Procesando archivo...</p>
+                </div>
+              </div>
+            )}
+            
+            {estadoCarga.ventas.archivo && !estadoCarga.ventas.cargando && (
               <div className="bg-white rounded p-3 mb-3">
-                <p className="text-sm text-gray-600">
-                  <strong>Archivo:</strong> {estadoCarga.ventas.archivo.nombre}
-                </p>
-                <p className="text-sm text-gray-600">
-                  <strong>Tamaño:</strong> {formatearTamanoArchivo(estadoCarga.ventas.archivo.tamano)} KB
-                </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">
+                      <strong>Archivo:</strong> {estadoCarga.ventas.archivo.nombre}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Tamaño: {formatearTamanoArchivo(estadoCarga.ventas.archivo.tamano)} KB
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => descargarArchivoCargado(estadoCarga.ventas.archivo!)}
+                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
+                  >
+                    📥 Descargar
+                  </button>
+                </div>
               </div>
             )}
 
             {estadoCarga.ventas.errores.length > 0 && (
-              <div className="bg-red-50 border border-red-200 rounded p-3 mb-3">
-                <p className="text-sm font-medium text-red-800 mb-2">Errores encontrados:</p>
-                <ul className="text-sm text-red-700 space-y-1">
+              <div className="bg-red-50 border border-red-200 rounded p-2 mb-3">
+                <p className="text-xs font-medium text-red-800 mb-1">Errores:</p>
+                <ul className="text-xs text-red-700 space-y-1">
                   {estadoCarga.ventas.errores.map((error, index) => (
                     <li key={index}>• {error}</li>
                   ))}
@@ -310,19 +301,19 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
               </div>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 onClick={() => fileInputVentasRef.current?.click()}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors"
               >
-                Seleccionar Archivo
+                Seleccionar
               </button>
               
               <button
                 onClick={() => descargarEjemplo(ejemplos[0])}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors"
               >
-                Descargar Ejemplo
+                Ejemplo
               </button>
             </div>
 
@@ -342,39 +333,60 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
         </div>
 
         {/* Sección de Archivos de Bloqueos */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
             <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2">2</span>
             Archivo de Bloqueos
           </h3>
           
-          <div className="bg-gray-50 rounded-lg p-4 mb-4">
+          <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-medium text-gray-700">Estado:</span>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                estadoCarga.bloqueos.cargado 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
+                estadoCarga.bloqueos.cargando
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : estadoCarga.bloqueos.cargado 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
               }`}>
-                {estadoCarga.bloqueos.cargado ? 'Cargado' : 'Pendiente'}
+                {estadoCarga.bloqueos.cargando ? 'Cargando...' : estadoCarga.bloqueos.cargado ? 'Cargado' : 'Pendiente'}
               </span>
             </div>
             
-            {estadoCarga.bloqueos.archivo && (
+            {estadoCarga.bloqueos.cargando && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mb-3">
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-yellow-600 mr-2"></div>
+                  <p className="text-xs text-yellow-800">Procesando archivo...</p>
+                </div>
+              </div>
+            )}
+            
+            {estadoCarga.bloqueos.archivo && !estadoCarga.bloqueos.cargando && (
               <div className="bg-white rounded p-3 mb-3">
-                <p className="text-sm text-gray-600">
-                  <strong>Archivo:</strong> {estadoCarga.bloqueos.archivo.nombre}
-                </p>
-                <p className="text-sm text-gray-600">
-                  <strong>Tamaño:</strong> {formatearTamanoArchivo(estadoCarga.bloqueos.archivo.tamano)} KB
-                </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">
+                      <strong>Archivo:</strong> {estadoCarga.bloqueos.archivo.nombre}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Tamaño: {formatearTamanoArchivo(estadoCarga.bloqueos.archivo.tamano)} KB
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => descargarArchivoCargado(estadoCarga.bloqueos.archivo!)}
+                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
+                  >
+                    📥 Descargar
+                  </button>
+                </div>
               </div>
             )}
 
             {estadoCarga.bloqueos.errores.length > 0 && (
-              <div className="bg-red-50 border border-red-200 rounded p-3 mb-3">
-                <p className="text-sm font-medium text-red-800 mb-2">Errores encontrados:</p>
-                <ul className="text-sm text-red-700 space-y-1">
+              <div className="bg-red-50 border border-red-200 rounded p-2 mb-3">
+                <p className="text-xs font-medium text-red-800 mb-1">Errores:</p>
+                <ul className="text-xs text-red-700 space-y-1">
                   {estadoCarga.bloqueos.errores.map((error, index) => (
                     <li key={index}>• {error}</li>
                   ))}
@@ -382,19 +394,19 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
               </div>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 onClick={() => fileInputBloqueosRef.current?.click()}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors"
               >
-                Seleccionar Archivo
+                Seleccionar
               </button>
               
               <button
                 onClick={() => descargarEjemplo(ejemplos[1])}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors"
               >
-                Descargar Ejemplo
+                Ejemplo
               </button>
             </div>
 
@@ -414,39 +426,60 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
         </div>
 
         {/* Sección de Archivos de Camiones */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
             <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2">3</span>
             Archivo de Camiones
           </h3>
           
-          <div className="bg-gray-50 rounded-lg p-4 mb-4">
+          <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-medium text-gray-700">Estado:</span>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                estadoCarga.camiones.cargado 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
+                estadoCarga.camiones.cargando
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : estadoCarga.camiones.cargado 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
               }`}>
-                {estadoCarga.camiones.cargado ? 'Cargado' : 'Pendiente'}
+                {estadoCarga.camiones.cargando ? 'Cargando...' : estadoCarga.camiones.cargado ? 'Cargado' : 'Pendiente'}
               </span>
             </div>
             
-            {estadoCarga.camiones.archivo && (
+            {estadoCarga.camiones.cargando && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mb-3">
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-yellow-600 mr-2"></div>
+                  <p className="text-xs text-yellow-800">Procesando archivo...</p>
+                </div>
+              </div>
+            )}
+            
+            {estadoCarga.camiones.archivo && !estadoCarga.camiones.cargando && (
               <div className="bg-white rounded p-3 mb-3">
-                <p className="text-sm text-gray-600">
-                  <strong>Archivo:</strong> {estadoCarga.camiones.archivo.nombre}
-                </p>
-                <p className="text-sm text-gray-600">
-                  <strong>Tamaño:</strong> {formatearTamanoArchivo(estadoCarga.camiones.archivo.tamano)} KB
-                </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">
+                      <strong>Archivo:</strong> {estadoCarga.camiones.archivo.nombre}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Tamaño: {formatearTamanoArchivo(estadoCarga.camiones.archivo.tamano)} KB
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => descargarArchivoCargado(estadoCarga.camiones.archivo!)}
+                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
+                  >
+                    📥 Descargar
+                  </button>
+                </div>
               </div>
             )}
 
             {estadoCarga.camiones.errores.length > 0 && (
-              <div className="bg-red-50 border border-red-200 rounded p-3 mb-3">
-                <p className="text-sm font-medium text-red-800 mb-2">Errores encontrados:</p>
-                <ul className="text-sm text-red-700 space-y-1">
+              <div className="bg-red-50 border border-red-200 rounded p-2 mb-3">
+                <p className="text-xs font-medium text-red-800 mb-1">Errores:</p>
+                <ul className="text-xs text-red-700 space-y-1">
                   {estadoCarga.camiones.errores.map((error, index) => (
                     <li key={index}>• {error}</li>
                   ))}
@@ -454,19 +487,19 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
               </div>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 onClick={() => fileInputCamionesRef.current?.click()}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors"
               >
-                Seleccionar Archivo
+                Seleccionar
               </button>
               
               <button
                 onClick={() => descargarEjemplo(ejemplos[2])}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors"
               >
-                Descargar Ejemplo
+                Ejemplo
               </button>
             </div>
 
@@ -486,39 +519,60 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
         </div>
 
         {/* Sección de Archivos de Mantenimiento Preventivo */}
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
             <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2">4</span>
             Archivo de Mantenimiento Preventivo
           </h3>
           
-          <div className="bg-gray-50 rounded-lg p-4 mb-4">
+          <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-medium text-gray-700">Estado:</span>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                estadoCarga.mantenimiento.cargado 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
+                estadoCarga.mantenimiento.cargando
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : estadoCarga.mantenimiento.cargado 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
               }`}>
-                {estadoCarga.mantenimiento.cargado ? 'Cargado' : 'Pendiente'}
+                {estadoCarga.mantenimiento.cargando ? 'Cargando...' : estadoCarga.mantenimiento.cargado ? 'Cargado' : 'Pendiente'}
               </span>
             </div>
             
-            {estadoCarga.mantenimiento.archivo && (
+            {estadoCarga.mantenimiento.cargando && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mb-3">
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-yellow-600 mr-2"></div>
+                  <p className="text-xs text-yellow-800">Procesando archivo...</p>
+                </div>
+              </div>
+            )}
+            
+            {estadoCarga.mantenimiento.archivo && !estadoCarga.mantenimiento.cargando && (
               <div className="bg-white rounded p-3 mb-3">
-                <p className="text-sm text-gray-600">
-                  <strong>Archivo:</strong> {estadoCarga.mantenimiento.archivo.nombre}
-                </p>
-                <p className="text-sm text-gray-600">
-                  <strong>Tamaño:</strong> {formatearTamanoArchivo(estadoCarga.mantenimiento.archivo.tamano)} KB
-                </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">
+                      <strong>Archivo:</strong> {estadoCarga.mantenimiento.archivo.nombre}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Tamaño: {formatearTamanoArchivo(estadoCarga.mantenimiento.archivo.tamano)} KB
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => descargarArchivoCargado(estadoCarga.mantenimiento.archivo!)}
+                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
+                  >
+                    📥 Descargar
+                  </button>
+                </div>
               </div>
             )}
 
             {estadoCarga.mantenimiento.errores.length > 0 && (
-              <div className="bg-red-50 border border-red-200 rounded p-3 mb-3">
-                <p className="text-sm font-medium text-red-800 mb-2">Errores encontrados:</p>
-                <ul className="text-sm text-red-700 space-y-1">
+              <div className="bg-red-50 border border-red-200 rounded p-2 mb-3">
+                <p className="text-xs font-medium text-red-800 mb-1">Errores:</p>
+                <ul className="text-xs text-red-700 space-y-1">
                   {estadoCarga.mantenimiento.errores.map((error, index) => (
                     <li key={index}>• {error}</li>
                   ))}
@@ -526,19 +580,19 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
               </div>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 onClick={() => fileInputMantenimientoRef.current?.click()}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors"
               >
-                Seleccionar Archivo
+                Seleccionar
               </button>
               
               <button
                 onClick={() => descargarEjemplo(ejemplos[3])}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors"
               >
-                Descargar Ejemplo
+                Ejemplo
               </button>
             </div>
 
@@ -558,16 +612,16 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
         </div>
 
         {/* Información de Ejemplos */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <h4 className="text-sm font-semibold text-blue-800 mb-3">Información sobre los archivos:</h4>
-          <div className="space-y-3">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+          <h4 className="text-sm font-semibold text-blue-800 mb-2">Información sobre los archivos:</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {ejemplos.map((ejemplo, index) => (
-              <div key={index} className="bg-white rounded p-3">
-                <p className="text-sm font-medium text-gray-800 mb-1">
+              <div key={index} className="bg-white rounded p-2">
+                <p className="text-xs font-medium text-gray-800 mb-1">
                   {ejemplo.nombre}
                 </p>
-                <p className="text-sm text-gray-600 mb-2">{ejemplo.descripcion}</p>
-                <p className="text-xs text-gray-500 font-mono bg-gray-100 p-2 rounded">
+                <p className="text-xs text-gray-600 mb-1">{ejemplo.descripcion}</p>
+                <p className="text-xs text-gray-500 font-mono bg-gray-100 p-1 rounded">
                   {ejemplo.formato}
                 </p>
               </div>
