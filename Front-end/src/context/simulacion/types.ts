@@ -26,7 +26,7 @@ export interface CamionEstado {
   id: string;
   ubicacion: string; // "(x,y)"
   porcentaje: number;
-  estado: "En Camino" | "Entregado" | "Averiado" | "En Mantenimiento" | "Disponible";
+  estado: "En Camino" | "Entregado" | "Averiado" | "En Mantenimiento" | "Disponible" | "En Mantenimiento por Avería";
   capacidadActualGLP: number;
   capacidadMaximaGLP: number;
   combustibleActual: number;

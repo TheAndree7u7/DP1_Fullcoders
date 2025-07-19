@@ -12,6 +12,14 @@ import {
   getPedidosPendientes,
   handleAveriar 
 } from './mapa/utils';
+import type { Pedido } from '../types';
+
+// Definir el tipo localmente para evitar problemas de importación
+interface PedidoConAsignacion extends Pedido {
+  esNoAsignado: boolean;
+  estadoPedido: string; // 'NO_ASIGNADO', 'PENDIENTE', 'EN_TRANSITO', 'ENTREGADO', 'RETRASO'
+}
+
 // Función de validación de coordenadas definida localmente para evitar problemas de importación
 const esCoordenadaValida = (coord: Coordenada | undefined | null): coord is Coordenada => {
   return coord !== null && 
@@ -530,6 +538,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                 const estadoCamion = camiones.find(c => c.id === camion.id);
                 return estadoCamion?.estado !== 'Entregado' && 
                        estadoCamion?.estado !== 'Averiado' && 
+                       estadoCamion?.estado !== 'En Mantenimiento por Avería' && 
                        camion.ruta.length > 1;
               })
               .map((camion, index) => (
@@ -545,7 +554,11 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
 
             {/* Camiones */}
             {camionesVisuales
-              .filter(camion => camiones.find(c => c.id === camion.id)?.estado !== 'Entregado')
+              .filter(camion => {
+                const estadoCamion = camiones.find(c => c.id === camion.id);
+                return estadoCamion?.estado !== 'Entregado' && 
+                       estadoCamion?.estado !== 'En Mantenimiento por Avería';
+              })
               .map((camion, index) => {
                  const estadoCamion = camiones.find(c => c.id === camion.id);
                  const esAveriado = estadoCamion?.estado === 'Averiado';

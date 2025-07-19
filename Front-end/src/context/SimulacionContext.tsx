@@ -82,10 +82,12 @@ import { esValorValido } from "../utils/validacionCamiones";
  * @function mapearEstadoBackendAFrontend
  * @description Mapea los estados del backend a los estados del frontend
  */
-const mapearEstadoBackendAFrontend = (estadoBackend: string | undefined): "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "Entregado" => {
+const mapearEstadoBackendAFrontend = (estadoBackend: string | undefined): "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "Entregado" | "En Mantenimiento por Avería" => {
   if (estadoBackend === 'DISPONIBLE') {
     return 'Disponible';
-  } else if (estadoBackend === 'EN_MANTENIMIENTO_POR_AVERIA' || estadoBackend === 'INMOVILIZADO_POR_AVERIA') {
+  } else if (estadoBackend === 'EN_MANTENIMIENTO_POR_AVERIA') {
+    return 'En Mantenimiento por Avería'; // Los camiones en mantenimiento por avería no aparecen en el mapa
+  } else if (estadoBackend === 'INMOVILIZADO_POR_AVERIA') {
     return 'Averiado';
   } else if (estadoBackend === 'EN_MANTENIMIENTO' || estadoBackend === 'EN_MANTENIMIENTO_PREVENTIVO' || estadoBackend === 'EN_MANTENIMIENTO_CORRECTIVO') {
     return 'En Mantenimiento';
@@ -449,15 +451,17 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         const estaEnAlmacenCentral = ubicacion === '(0,0)' || ubicacion === '(0, 0)';
         
         // Mapear estados del backend al frontend
-        let estadoFrontend: "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "Entregado";
+        let estadoFrontend: "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "Entregado" | "En Mantenimiento por Avería";
         
         if (anterior && anterior.estado === "Averiado") {
           // Si el camión estaba averiado, mantenerlo como averiado pero en nueva posición
           estadoFrontend = "Averiado";
+          
+          estadoFrontend = mapearEstadoBackendAFrontend(camion?.estado);
           console.log(`🚛💥 ESTADO: Camión ${ruta.id} mantiene estado 'Averiado' en nueva posición ${ubicacion}`);
         } else if (estaEnAlmacenCentral) {
           // Si está en almacén central, mantener estado simple
-          estadoFrontend = camion?.estado === 'DISPONIBLE' ? 'Disponible' : 'En Camino';
+          estadoFrontend = mapearEstadoBackendAFrontend(camion?.estado);
         } else {
           // Si no está en almacén central, aplicar mapeo completo de estados
           estadoFrontend = mapearEstadoBackendAFrontend(camion?.estado);
@@ -591,7 +595,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         const estaEnAlmacenCentral = ubicacion === '(0,0)' || ubicacion === '(0, 0)';
         
         // Mapear estados del backend al frontend
-        let estadoFrontend: "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "Entregado";
+        let estadoFrontend: "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "Entregado" | "En Mantenimiento por Avería";
         
         if (anterior && anterior.estado === "Averiado") {
           // Si el camión estaba averiado, mantenerlo como averiado pero en nueva posición

@@ -11,6 +11,7 @@ export { calcularRotacion, esCoordenadaValida } from "./camiones";
 
 // Utilidades de pedidos
 export { getPedidosPendientes } from "./pedidos";
+export type { PedidoConAsignacion } from "./pedidos";
 
 // Utilidades de averías
 export { handleAveriar } from "./averias"; 
