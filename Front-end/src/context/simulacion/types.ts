@@ -8,14 +8,14 @@ import type { Pedido, Individuo, Almacen, Coordenada } from "../../types";
 /**
  * Constantes de configuración de la simulación
  */
-export const HORAS_POR_ACTUALIZACION = 1; // 1 horas = 60 minutos por intervalo
+export const HORAS_POR_ACTUALIZACION = 1.5; // 1.5 horas = 90 minutos por intervalo
 export const HORA_INICIAL = 0;
 export const HORA_PRIMERA_ACTUALIZACION = 0;
-export const NODOS_PARA_ACTUALIZACION = 50; // 50 nodos por intervalo de 60 minutos
+export const NODOS_PARA_ACTUALIZACION = 75; // 75 nodos por intervalo de 90 minutos
 export const INCREMENTO_PORCENTAJE = 1;
 
 // Calcular segundos por nodo de manera consistente
-// 30 minutos = 1800 segundos divididos en 25 nodos = 72 segundos por nodo
+// 90 minutos = 5400 segundos divididos en 75 nodos = 72 segundos por nodo
 export const SEGUNDOS_POR_NODO = (HORAS_POR_ACTUALIZACION * 60 * 60) / NODOS_PARA_ACTUALIZACION; // 72 segundos
 
 /**
