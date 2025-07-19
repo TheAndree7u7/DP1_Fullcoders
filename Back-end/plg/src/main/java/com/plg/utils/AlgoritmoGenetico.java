@@ -22,15 +22,13 @@ import lombok.NoArgsConstructor;
 public class AlgoritmoGenetico {
 
     private int poblacionTamano;
-    private int generaciones;
     private Mapa mapa;
     private Individuo mejorIndividuo;
     private final Random random = new Random();
 
     public AlgoritmoGenetico(Mapa mapa) {
         this.mapa = mapa;
-        generaciones = 10;
-        poblacionTamano = 100;
+        poblacionTamano = 1;
     }
 
     public void ejecutarAlgoritmo() {

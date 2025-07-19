@@ -121,7 +121,7 @@ public class Camion extends Nodo {
         capacidadActualGLP -= volumenGLP;
     }
 
-    public void actualizarEstado(Set<Pedido> pedidosPorAtender, Set<Pedido> pedidosPlanificados,
+    public void actualizarEstado(Set<Pedido> pedidosPlanificados,
             Set<Pedido> pedidosEntregados) {
         if (this.gen == null) {
             // Primera vez que se llama no existen pedidos por atender
@@ -131,26 +131,26 @@ public class Camion extends Nodo {
         int antiguo = gen.getPosNodo();
         if (this.getEstado() == EstadoCamion.DISPONIBLE) {
             // Si el camión está disponible, se mueve a la siguiente posición
-            cantNodos = (int) (Parametros.diferenciaTiempoMinRequest * velocidadPromedio / 60);
-        } else{
+            cantNodos = calcularCantidadDeNodos();
+        } else {
             AveriaRepository averiaRepo = new AveriaRepository();
             List<Averia> averias = averiaRepo.findByCamion(this);
-            // Si alguna de las averias 
+            // Si alguna de las averias
             // Comparamos si alguna de las averías tiene un tiempo igual a la fecha actual
             if (averias.stream().anyMatch(a -> a.getFechaHoraReporte().isEqual(Parametros.fecha_inicial))) {
                 // Entonces la avería surgio por primera vez
                 // Por tanto es necesario realizar el movimiento de los camiones
-                cantNodos = (int) (Parametros.diferenciaTiempoMinRequest * velocidadPromedio / 60);
+                cantNodos = calcularCantidadDeNodos();
             } else {
                 // El camion ya ha sido averiado con anterioridad
                 cantNodos = 0;
             }
-            
+
         }
         gen.setPosNodo(antiguo + cantNodos);
         int distanciaRecorrida = gen.getPosNodo() - antiguo;
         actualizarCombustible(distanciaRecorrida);
-           
+
         // En el tiempo transcurrido donde se puede encontrar el camión
         // Verificar que la ruta final no esté vacía
         if (gen.getRutaFinal().isEmpty()) {
@@ -176,37 +176,14 @@ public class Camion extends Nodo {
             Nodo nodo = gen.getRutaFinal().get(i);
             if (nodo.getTipoNodo() == TipoNodo.PEDIDO) {
                 Pedido pedido = (Pedido) nodo;
-                if (pedido.getEstado() == EstadoPedido.ENTREGADO) {
-                    continue;
-                }
-
-                // Verificar que el pedido pertenece a este camión
-                if (gen.getPedidos() == null || !gen.getPedidos().contains(pedido)) {
-                    continue; // Si el pedido no pertenece a este camión, no entregar
-                }
-
-                // Calcular la cantidad de GLP a entregar basada en la distribución proporcional
-                int cantidadPedidosAsignados = gen.getPedidos().size();
-                if (cantidadPedidosAsignados == 0) {
-                    continue; // No hay pedidos asignados, no debería pasar
-                }
-
-                double glpPorPedido = (double) this.capacidadMaximaGLP / cantidadPedidosAsignados;
-                double volumenRestante = pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado();
-                double volumenAEntregar = Math.min(glpPorPedido, volumenRestante);
-                volumenAEntregar = Math.min(volumenAEntregar, this.capacidadActualGLP);
-
-                if (volumenAEntregar > 0) {
-                    entregarVolumenGLP(volumenAEntregar);
-                    pedido.setVolumenGLPEntregado(pedido.getVolumenGLPEntregado() + volumenAEntregar);
-                }
-
-                // Si ya se entregó todo el GLP, marcar como entregado y actualizar sets
-                if (Math.abs(pedido.getVolumenGLPEntregado() - pedido.getVolumenGLPAsignado()) < 1e-6) {
-                    pedido.setEstado(EstadoPedido.ENTREGADO);
-                    pedidosEntregados.add(pedido);
-                    pedidosPorAtender.remove(nodo);
-                    pedidosPlanificados.remove(nodo);
+                entregarPedido(pedido, pedidosPlanificados, pedidosEntregados);
+            }else if(nodo instanceof Almacen && gen.getAlmacenesIntermedios().contains(nodo)) {
+                Almacen almacen = (Almacen) nodo;
+                almacen.recargarGlPCamion(this);
+            }else {
+                if (nodo instanceof Camion && gen.getCamionesAveriados().contains(nodo)) {
+                    Camion camionRecarga = (Camion) nodo;
+                    camionRecarga.recargarGlPSiAveriado(this);
                 }
             }
         }
@@ -219,7 +196,7 @@ public class Camion extends Nodo {
                 }
                 pedidosPlanificados.add((Pedido) nodo);
                 pedido.setEstado(EstadoPedido.PLANIFICADO);
-                pedidosPorAtender.remove(nodo);
+
             }
         }
 
@@ -244,6 +221,85 @@ public class Camion extends Nodo {
         // Calcular la distancia máxima que puede recorrer el camión
         calcularDistanciaMaxima();
     }
+
+    private void entregarPedido(Pedido pedido,
+            Set<Pedido> pedidosPlanificados, Set<Pedido> pedidosEntregados) {
+        if (pedido.getEstado() == EstadoPedido.ENTREGADO) {
+            // Si el pedido ya está entregado, no hacer nada
+            return;
+        }
+
+        // Verificar que el pedido pertenece a este camión
+        if (gen.getPedidos() == null || !gen.getPedidos().contains(pedido)) {
+            return; // Si el pedido no pertenece a este camión, no entregar
+        }
+
+        // Calcular la cantidad de GLP a entregar basada en la distribución proporcional
+        int cantidadPedidosAsignados = gen.getPedidos().size();
+        if (cantidadPedidosAsignados == 0) {
+            return; // No hay pedidos asignados, no debería pasar
+        }
+
+        double glpPorPedido = (double) this.capacidadMaximaGLP / cantidadPedidosAsignados;
+        double volumenRestante = pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado();
+        double volumenAEntregar = Math.min(glpPorPedido, volumenRestante);
+        volumenAEntregar = Math.min(volumenAEntregar, this.capacidadActualGLP);
+
+        if (volumenAEntregar > 0) {
+            entregarVolumenGLP(volumenAEntregar);
+            pedido.setVolumenGLPEntregado(pedido.getVolumenGLPEntregado() + volumenAEntregar);
+        }
+
+        // Si ya se entregó todo el GLP, marcar como entregado y actualizar sets
+        if (Math.abs(pedido.getVolumenGLPEntregado() - pedido.getVolumenGLPAsignado()) < 0.001) {
+            pedido.setEstado(EstadoPedido.ENTREGADO);
+            pedidosEntregados.add(pedido);
+            pedidosPlanificados.remove(pedido);
+        }
+    }
+
+    private int calcularCantidadDeNodos() {
+        // Tomamos en cuenta lo siguiente para calcular la cantidad de nodos:
+        // Si un nodo esta sobre un pedido equivale a 12 nodos
+        // Si un nodo esta sobre un camionAveriado equivale a 12 nodos
+        // Para todo lo demás equivale a 1 nodo
+        // Importante verificar siempre que el pedido o camión averiado le pertenezca
+
+        // Calculo simple si no se aplica eso
+        int cantNodos = (int) (Parametros.diferenciaTiempoMinRequest * velocidadPromedio / 60);
+        int sizeRuta = gen.getRutaFinal().size();
+        int suma = 0;
+        int pos_final = 0;
+        for (int i = 0; i < sizeRuta; i++) {
+            Nodo nodo = gen.getRutaFinal().get(i);
+            if (nodo instanceof Pedido && gen.getPedidos().contains(nodo)) {
+                suma += 12; // Pedido
+            } else if (nodo instanceof Camion && gen.getCamionesAveriados().contains(nodo)) {
+                suma += 12; // Camión averiado
+            } else {
+                suma += 1; // Otros nodos
+            }
+            if (suma > cantNodos) {
+                pos_final = i;
+                break;
+            }
+        }
+
+        return pos_final;
+    }
+
+    public boolean recargarGlPSiAveriado(Camion camion) {
+        double glpRequerido = camion.getCapacidadMaximaGLP() - camion.getCapacidadActualGLP();
+        double glpDisponible = this.getCapacidadActualGLP();
+        if (glpDisponible <= 0) {
+            return false; // No hay GLP para recargar o el camión ya está lleno
+        }
+        double glpRecargar = Math.min(glpRequerido, glpDisponible);
+        camion.setCapacidadActualGLP(camion.getCapacidadActualGLP() + glpRecargar);
+        this.setCapacidadActualGLP(this.getCapacidadActualGLP() - glpRecargar);
+        return true;
+    }
+
 
     @JsonIgnore
     public Camion getClone() {

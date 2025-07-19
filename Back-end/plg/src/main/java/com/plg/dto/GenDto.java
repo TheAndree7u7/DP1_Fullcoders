@@ -20,7 +20,7 @@ public class GenDto {
     public GenDto(Gen gen) {
         this.camion = new CamionDto(gen.getCamion());
         this.nodos = new ArrayList<>();
-        for (Nodo nodo : gen.getRutaFinal()) {
+        for (Nodo nodo : gen.construirRutaFinalApi()) {
             this.nodos.add(new NodoDto(nodo));
         }
         // EL destino siempre el último nodo de la ruta
