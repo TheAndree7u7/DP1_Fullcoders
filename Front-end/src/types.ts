@@ -44,7 +44,7 @@ export enum EstadoCamion {
 export enum EstadoPedido {
   REGISTRADO = 'REGISTRADO',
   ENTREGADO = 'ENTREGADO',
-  PLANIFICADO = 'PLANIFICADO'
+  PLANIFICADO = 'PLANIFICADO', 
 }
 
 // Estados adicionales para compatibilidad con el frontend
