@@ -297,6 +297,10 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                     <div className="w-2 h-2 bg-gray-800 rounded-sm"></div>
                     <span className="text-xs text-gray-700">Mant.</span>
                   </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-orange-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">Mant. Avería</span>
+                  </div>
                 </div>
               </div>
             </div>

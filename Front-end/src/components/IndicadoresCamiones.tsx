@@ -1,6 +1,6 @@
 // components/IndicadoresCamiones.tsx
 import { useSimulacion } from '../context/SimulacionContext';
-import { CircleDashed, Fuel, Wrench, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { CircleDashed, Fuel, Wrench, CheckCircle2, AlertTriangle, Settings } from 'lucide-react';
 
 /**
  * Componente que muestra indicadores resumen de los camiones
@@ -15,6 +15,7 @@ const IndicadoresCamiones: React.FC = () => {
     'En Camino': 0,
     Averiado: 0,
     'En Mantenimiento': 0,
+    'En Mantenimiento por Avería': 0,
     Disponible: 0,
   };
 
@@ -26,7 +27,7 @@ const IndicadoresCamiones: React.FC = () => {
   });
 
   return (
-    <div className="grid grid-cols-5 gap-1 mb-1">
+    <div className="grid grid-cols-6 gap-1 mb-1">
       {/* Camiones Disponibles */}
       <div className="flex flex-col items-center justify-center bg-blue-50 rounded p-1 text-center">
         <div className="bg-blue-100 p-1 rounded">
@@ -52,6 +53,15 @@ const IndicadoresCamiones: React.FC = () => {
         </div>
         <div className="text-[10px] font-medium">Mantenim.</div>
         <div className="text-sm font-bold">{contadorEstados['En Mantenimiento']}</div>
+      </div>
+      
+      {/* Camiones En Mantenimiento por Avería */}
+      <div className="flex flex-col items-center justify-center bg-orange-50 rounded p-1 text-center">
+        <div className="bg-orange-100 p-1 rounded">
+          <Settings size={14} className="text-orange-600" />
+        </div>
+        <div className="text-[10px] font-medium">Mant. Avería</div>
+        <div className="text-sm font-bold">{contadorEstados['En Mantenimiento por Avería']}</div>
       </div>
       
       {/* Camiones Averiados */}
