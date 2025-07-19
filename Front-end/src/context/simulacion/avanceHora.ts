@@ -37,7 +37,7 @@ export const avanzarHora = async (
   if (esperandoActualizacion || !simulacionActiva) return;
 
   // Verificar si necesitamos solicitar anticipadamente la próxima solución
-  const nodosTres4 = Math.floor(NODOS_PARA_ACTUALIZACION * 0.25);
+  const nodosTres4 = Math.floor(NODOS_PARA_ACTUALIZACION * 0.1);
   const nodosRestantes = nodosRestantesAntesDeActualizar - 1;
 
   if (nodosRestantes === nodosTres4 && !solicitudAnticipadaEnviada) {

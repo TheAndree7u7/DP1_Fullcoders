@@ -1,9 +1,11 @@
 package com.plg.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.plg.repository.AveriaRepository;
 import com.plg.utils.Gen;
 import com.plg.utils.Parametros;
 
@@ -24,23 +26,23 @@ public class Camion extends Nodo {
     private TipoCamion tipo; // TA, TB, TC, TD
 
     // GLP
-    private double capacidadMaximaGLP;              // Capacidad en m3 de GLP
-    private double capacidadActualGLP;    // Capacidad disponible actual (m3)
+    private double capacidadMaximaGLP; // Capacidad en m3 de GLP
+    private double capacidadActualGLP; // Capacidad disponible actual (m3)
 
-    private double tara;                   // Peso del camión vacío en toneladas
-    private double pesoCarga;              // Peso actual de la carga en toneladas
-    private double pesoCombinado;          // Peso total (tara + carga)
+    private double tara; // Peso del camión vacío en toneladas
+    private double pesoCarga; // Peso actual de la carga en toneladas
+    private double pesoCombinado; // Peso total (tara + carga)
 
     private EstadoCamion estado;
 
     // Combustible
-    private double combustibleMaximo;   // Capacidad del tanque en galones
-    private double combustibleActual;        // Combustible actual en galones
+    private double combustibleMaximo; // Capacidad del tanque en galones
+    private double combustibleActual; // Combustible actual en galones
     private double velocidadPromedio; // Velocidad promedio en km/h
 
     // Comsumo de combustible
     private double distanciaMaxima;
-    
+
     // Tiempo de parada para despacho (en minutos)
     @lombok.Builder.Default
     private int tiempoParadaRestante = 0;
@@ -59,11 +61,11 @@ public class Camion extends Nodo {
     public String toString() {
         return String.format(
                 "Camión %s [%s]%n"
-                + "  - Coordenada:    %s%n"
-                + "  - GLP (m3):       %.2f / %.2f%n"
-                + "  - Carga (t):      %.2f (tara) + %.2f (carga)%n"
-                + "  - Combustible:    %.2f / %.2f galones%n"
-                + "  - Distancia máx.: %.2f km%n",
+                        + "  - Coordenada:    %s%n"
+                        + "  - GLP (m3):       %.2f / %.2f%n"
+                        + "  - Carga (t):      %.2f (tara) + %.2f (carga)%n"
+                        + "  - Combustible:    %.2f / %.2f galones%n"
+                        + "  - Distancia máx.: %.2f km%n",
                 codigo,
                 tipo,
                 getCoordenada() != null ? getCoordenada() : "N/A",
@@ -73,37 +75,37 @@ public class Camion extends Nodo {
                 pesoCarga,
                 combustibleActual,
                 combustibleMaximo,
-                distanciaMaxima
-        );
+                distanciaMaxima);
     }
 
     public double calcularDistanciaMaxima() {
         // Prevenir división por cero y valores negativos
         double pesoTotal = tara + pesoCarga;
-        
+
         // Validaciones de seguridad
         if (combustibleActual <= 0) {
             this.distanciaMaxima = 0.0;
             return this.distanciaMaxima;
         }
-        
+
         if (pesoTotal <= 0) {
-            System.err.println("⚠️ ADVERTENCIA: Peso total del camión " + codigo + " es <= 0. Tara: " + tara + ", Carga: " + pesoCarga);
+            System.err.println("⚠️ ADVERTENCIA: Peso total del camión " + codigo + " es <= 0. Tara: " + tara
+                    + ", Carga: " + pesoCarga);
             this.distanciaMaxima = 50.0; // Valor mínimo de seguridad
             return this.distanciaMaxima;
         }
-        
+
         // Fórmula corregida para distancia máxima (rendimiento mejorado)
         // Rendimiento base: 15 km/galón, ajustado por peso
         double rendimientoBase = 15.0; // km por galón
         double factorPeso = Math.max(0.3, 10.0 / pesoTotal); // Factor que reduce el rendimiento con más peso
         double rendimientoReal = rendimientoBase * factorPeso;
-        
+
         this.distanciaMaxima = combustibleActual * rendimientoReal;
-        
+
         // Asegurar un mínimo razonable
         this.distanciaMaxima = Math.max(this.distanciaMaxima, 10.0);
-        
+
         return this.distanciaMaxima;
     }
 
@@ -114,7 +116,7 @@ public class Camion extends Nodo {
     }
 
     public void entregarVolumenGLP(double volumenGLP) {
-        // double pesoGLPPedido = volumenGLP * 0.5;  
+        // double pesoGLPPedido = volumenGLP * 0.5;
         // pesoCarga -= pesoGLPPedido;
         capacidadActualGLP -= volumenGLP;
     }
@@ -125,26 +127,39 @@ public class Camion extends Nodo {
             // Primera vez que se llama no existen pedidos por atender
             return;
         }
-
-        // El tiempo de parada está representado en la rutaFinal como nodos duplicados
-        // No necesitamos lógica adicional aquí
-
-        // Actualizar el nodo en el que se encuentra el camión
-        int cantNodos = (int) (Parametros.diferenciaTiempoMinRequest * velocidadPromedio / 60);
+        int cantNodos = 0;
         int antiguo = gen.getPosNodo();
+        if (this.getEstado() == EstadoCamion.DISPONIBLE) {
+            // Si el camión está disponible, se mueve a la siguiente posición
+            cantNodos = (int) (Parametros.diferenciaTiempoMinRequest * velocidadPromedio / 60);
+        } else{
+            AveriaRepository averiaRepo = new AveriaRepository();
+            List<Averia> averias = averiaRepo.findByCamion(this);
+            // Si alguna de las averias 
+            // Comparamos si alguna de las averías tiene un tiempo igual a la fecha actual
+            if (averias.stream().anyMatch(a -> a.getFechaHoraReporte().isEqual(Parametros.fecha_inicial))) {
+                // Entonces la avería surgio por primera vez
+                // Por tanto es necesario realizar el movimiento de los camiones
+                cantNodos = (int) (Parametros.diferenciaTiempoMinRequest * velocidadPromedio / 60);
+            } else {
+                // El camion ya ha sido averiado con anterioridad
+                cantNodos = 0;
+            }
+            
+        }
         gen.setPosNodo(antiguo + cantNodos);
         int distanciaRecorrida = gen.getPosNodo() - antiguo;
         actualizarCombustible(distanciaRecorrida);
-
+           
         // En el tiempo transcurrido donde se puede encontrar el camión
         // Verificar que la ruta final no esté vacía
         if (gen.getRutaFinal().isEmpty()) {
             System.out.println("⚠️ ADVERTENCIA: Camión " + codigo + " tiene ruta final vacía");
             return;
         }
-        
+
         int intermedio = Math.min(gen.getPosNodo(), gen.getRutaFinal().size() - 1);
-        
+
         // Asegurar que el índice sea válido
         if (intermedio < 0) {
             intermedio = 0;
@@ -164,28 +179,28 @@ public class Camion extends Nodo {
                 if (pedido.getEstado() == EstadoPedido.ENTREGADO) {
                     continue;
                 }
-                
+
                 // Verificar que el pedido pertenece a este camión
                 if (gen.getPedidos() == null || !gen.getPedidos().contains(pedido)) {
                     continue; // Si el pedido no pertenece a este camión, no entregar
                 }
-                
+
                 // Calcular la cantidad de GLP a entregar basada en la distribución proporcional
                 int cantidadPedidosAsignados = gen.getPedidos().size();
                 if (cantidadPedidosAsignados == 0) {
                     continue; // No hay pedidos asignados, no debería pasar
                 }
-                
+
                 double glpPorPedido = (double) this.capacidadMaximaGLP / cantidadPedidosAsignados;
                 double volumenRestante = pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado();
                 double volumenAEntregar = Math.min(glpPorPedido, volumenRestante);
                 volumenAEntregar = Math.min(volumenAEntregar, this.capacidadActualGLP);
-                
+
                 if (volumenAEntregar > 0) {
                     entregarVolumenGLP(volumenAEntregar);
                     pedido.setVolumenGLPEntregado(pedido.getVolumenGLPEntregado() + volumenAEntregar);
                 }
-                
+
                 // Si ya se entregó todo el GLP, marcar como entregado y actualizar sets
                 if (Math.abs(pedido.getVolumenGLPEntregado() - pedido.getVolumenGLPAsignado()) < 1e-6) {
                     pedido.setEstado(EstadoPedido.ENTREGADO);
@@ -210,8 +225,8 @@ public class Camion extends Nodo {
 
         // Si ya regresé al almacén central, actualizo el combustible del camión
         // y la carga de GLP
-        if (intermedio >= 0 && intermedio < gen.getRutaFinal().size() && 
-            gen.getRutaFinal().get(intermedio).getTipoNodo() == TipoNodo.ALMACEN) {
+        if (intermedio >= 0 && intermedio < gen.getRutaFinal().size() &&
+                gen.getRutaFinal().get(intermedio).getTipoNodo() == TipoNodo.ALMACEN) {
             Almacen almacen = (Almacen) gen.getRutaFinal().get(intermedio);
             if (almacen.getTipo() == TipoAlmacen.CENTRAL) {
                 this.combustibleActual = this.combustibleMaximo;
@@ -219,9 +234,11 @@ public class Camion extends Nodo {
             }
         }
 
-        // Quitamos todos los pedidos entregados del mapa y reemplazamos por un nodo normal
+        // Quitamos todos los pedidos entregados del mapa y reemplazamos por un nodo
+        // normal
         for (Pedido pedido : pedidosEntregados) {
-            Mapa.getInstance().setNodo(pedido.getCoordenada(), new Nodo(pedido.getCoordenada(), false, 0, 0, TipoNodo.NORMAL));
+            Mapa.getInstance().setNodo(pedido.getCoordenada(),
+                    new Nodo(pedido.getCoordenada(), false, 0, 0, TipoNodo.NORMAL));
         }
 
         // Calcular la distancia máxima que puede recorrer el camión
