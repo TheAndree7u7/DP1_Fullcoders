@@ -200,7 +200,7 @@ public class AveriaController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("El estado de la simulación es obligatorio");
             }
-
+            System.out.println("AVERIA CAMION");
             // Procesar la avería con estado completo
             Averia averia = averiaService.agregar(request.toAveriaRequest());
             //Averia averia = new Averia();

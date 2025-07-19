@@ -12,7 +12,7 @@ import com.plg.entity.Camion;
 import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
-
+import com.plg.entity.EstadoCamion;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -58,6 +58,15 @@ public class Individuo {
 
         for (Gen gen : cromosoma) {
             gen.getNodos().add(almacenCentral);
+        }
+
+        // Para camiones averiados generamos genes pero con un unico nodo que es el mismo camión
+        for (Camion camion : Parametros.dataLoader.camiones) {
+            if (camion.getEstado() == EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA) {
+                Gen gen = new Gen(camion, new ArrayList<>());
+                gen.getNodos().add(camion);
+                cromosoma.add(gen);
+            }
         }
     }
 
@@ -201,7 +210,7 @@ public class Individuo {
 
         // FILTRAR CAMIONES EN MANTENIMIENTO - Ubicación más eficiente
         List<Camion> camionesDisponibles = camiones.stream()
-                .filter(camion -> camion.getEstado() == com.plg.entity.EstadoCamion.DISPONIBLE)
+                .filter(camion -> camion.getEstado() == EstadoCamion.DISPONIBLE)
                 .collect(java.util.stream.Collectors.toList());
 
         // Verificar que tengamos camiones disponibles

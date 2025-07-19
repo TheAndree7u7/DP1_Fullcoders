@@ -3,7 +3,7 @@ package com.plg.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.plg.utils.Parametros;
+
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
 import com.plg.utils.Gen;
@@ -23,11 +23,8 @@ public class GenDto {
         for (Nodo nodo : gen.getRutaFinal()) {
             this.nodos.add(new NodoDto(nodo));
         }
-        if(gen.getPedidos().isEmpty()) {
-            this.destino = new CoordenadaDto(Parametros.dataLoader.almacenes.get(0).getCoordenada());
-        }else{
-            this.destino = new CoordenadaDto(gen.getPedidos().getLast().getCoordenada());
-        }
+        // EL destino siempre el último nodo de la ruta
+        this.destino = new CoordenadaDto(gen.getRutaFinal().getLast().getCoordenada());
         this.pedidos = new ArrayList<>();
         for (Pedido pedido : gen.getPedidos()) {
             this.pedidos.add(new PedidoDto(pedido));
