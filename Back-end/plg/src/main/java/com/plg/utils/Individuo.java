@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.time.temporal.ChronoUnit;
 
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
@@ -46,18 +47,29 @@ public class Individuo {
             cromosoma.add(new Gen(camion, new ArrayList<>()));
         }
         Almacen almacenCentral = almacenes.get(0);
-        List<Pedido> pedidosMezclados = new ArrayList<>();
-        pedidosMezclados.addAll(pedidos);
-        Collections.shuffle(pedidosMezclados);
 
         LocalDateTime fechaActual = Parametros.fecha_inicial;
 
-        asignarPedidosACamiones(camionesDisponibles, pedidosMezclados, cromosoma, fechaActual);
+        List<Pedido> pedidosOrdenados = new ArrayList<>(pedidos);
+
+        ordenarPedidosPorFechaVencimiento(pedidosOrdenados, fechaActual);
+        asignarPedidosACamiones(camionesDisponibles, pedidosOrdenados, cromosoma, fechaActual);
         asignarAlmacenesIntermediosEntrePedidos();
 
         for (Gen gen : cromosoma) {
             gen.getNodos().add(almacenCentral);
         }
+    }
+
+    private void ordenarPedidosPorFechaVencimiento(List<Pedido> pedidosOrdenados, LocalDateTime fechaActual) {
+        // Los que tienen menor valor de : pedido.getFechaLimite() - fechaActual
+        // deben ir primero
+        pedidosOrdenados.sort((p1, p2) -> {
+            long diff1 = p1.getFechaLimite().until(fechaActual, ChronoUnit.MINUTES);
+            long diff2 = p2.getFechaLimite().until(fechaActual, ChronoUnit.MINUTES);
+            return Long.compare(diff1, diff2);
+        });
+
     }
 
     private void asignarAlmacenesIntermediosEntrePedidos() {
@@ -84,16 +96,16 @@ public class Individuo {
      * Asigna pedidos a camiones según la lógica definida.
      * Valida la asignación usando un Gen temporal y calcularFitness.
      */
-    private void asignarPedidosACamiones(List<Camion> camionesDisponibles, List<Pedido> pedidosMezclados,
+    private void asignarPedidosACamiones(List<Camion> camionesDisponibles, List<Pedido> pedidosOrdenados,
             List<Gen> cromosoma, LocalDateTime fechaActual) {
-        int maxPedidosPorCamion = 5;
-        Random random = new Random();
+        int maxPedidosPorCamion = 2;
         guardarEstadoActual();
         Collections.shuffle(camionesDisponibles);
         for (Camion camion : camionesDisponibles) {
             double distanciaCamion = 0;
             // Validación si el camión tiene poco GLP disponible
-            if (camion.getCapacidadActualGLP() <= 5) {
+            if (camion.getCapacidadActualGLP() < 5) {
+                
                 List<Almacen> almacenes = Parametros.dataLoader.almacenes;
                 Almacen almacenSecundario1 = almacenes.get(1);
                 Almacen almacenSecundario2 = almacenes.get(2);
@@ -115,67 +127,66 @@ public class Individuo {
                 // Verificar si el camión puede realizar el recorrido
                 if (distanciaTotal > camion.calcularDistanciaMaxima()) {
                     continue; // No asignar pedidos si no puede llegar y regresar
-                }else{
+                } else {
                     distanciaCamion = distanciaTotal;
-                }
-            }
-
-            int intentos = 0;
-            boolean asignado = false;
-            while (intentos < 10 && !asignado && !pedidosMezclados.isEmpty()) {
-                List<Pedido> seleccionados = new ArrayList<>();
-                List<Pedido> copiaPedidos = new ArrayList<>(pedidosMezclados);
-                Collections.shuffle(copiaPedidos, random);
-                for (Pedido pedido : copiaPedidos) {
-                    if (pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado() > 0) {
-                        seleccionados.add(pedido);
-                        if (seleccionados.size() == maxPedidosPorCamion)
-                            break;
-                    }
-                }
-                if (seleccionados.isEmpty())
-                    break;
-                // Asignar pedidos al camión y simular entrega de GLP
-                // Ordenamos pedidos seleccionados por distancia al camión
-                seleccionados.sort((p1, p2) -> {
-                    double distanciaP1 = Mapa.calcularDistancia(camion.getCoordenada(), p1.getCoordenada());
-                    double distanciaP2 = Mapa.calcularDistancia(camion.getCoordenada(), p2.getCoordenada());
-                    return Double.compare(distanciaP1, distanciaP2);
-                });
-
-                // Verificamos si el camion tiene suficiente combustible para llegar a todos los
-                // pedidos y volver al almacen central
-                double distanciaTotal = 0;
-                for (Pedido pedido : seleccionados) {
-                    distanciaTotal += Mapa.calcularDistancia(camion.getCoordenada(), pedido.getCoordenada());
-                }
-                Almacen almacenCentral = Parametros.dataLoader.almacenes.get(0);
-                distanciaTotal += Mapa.calcularDistancia(almacenCentral.getCoordenada(), camion.getCoordenada());
-
-                distanciaCamion += distanciaTotal;
-                if (distanciaCamion > camion.calcularDistanciaMaxima()) {
-                    intentos++;
-                    continue; // No asignar si el camión no puede cubrir la distancia total
-                }
-
-                double glpPorPedido = camion.getCapacidadActualGLP() / seleccionados.size();
-                for (Pedido pedido : seleccionados) {
-                    double pendiente = pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado();
-                    double entregar = Math.min(glpPorPedido, pendiente);
-                    pedido.setVolumenGLPEntregado(pedido.getVolumenGLPEntregado() + entregar);
-                    Gen gen = cromosoma.stream().filter(g -> g.getCamion().getCodigo().equals(camion.getCodigo()))
-                            .findFirst().orElse(null);
+                    // Lo agregamos a los nodos del gen
+                    Gen gen = cromosoma.stream()
+                            .filter(g -> g.getCamion().getCodigo().equals(camion.getCodigo())).findFirst().orElse(null);
                     if (gen != null) {
-                        gen.getPedidos().add(pedido);
-                        gen.getNodos().add(pedido);
+                        gen.getNodos().add(almacenCercano);
                     }
                 }
-                pedidosMezclados.removeIf(p -> p.getVolumenGLPAsignado() - p.getVolumenGLPEntregado() == 0);
-                asignado = true;
-                intentos++;
             }
+
+            List<Pedido> seleccionados = new ArrayList<>();
+            for (Pedido pedido : pedidosOrdenados) {
+                if (pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado() > 0) {
+                    seleccionados.add(pedido);
+                    if (seleccionados.size() == maxPedidosPorCamion)
+                        break;
+                }
+            }
+            if (seleccionados.isEmpty())
+                break;
+            // Asignar pedidos al camión y simular entrega de GLP
+            // Ordenamos pedidos seleccionados por distancia al camión
+            seleccionados.sort((p1, p2) -> {
+                double distanciaP1 = Mapa.calcularDistancia(camion.getCoordenada(), p1.getCoordenada());
+                double distanciaP2 = Mapa.calcularDistancia(camion.getCoordenada(), p2.getCoordenada());
+                return Double.compare(distanciaP1, distanciaP2);
+            });
+
+            // Verificamos si el camion tiene suficiente combustible para llegar a todos los
+            // pedidos y volver al almacen central
+            double distanciaTotal = 0;
+            for (Pedido pedido : seleccionados) {
+                distanciaTotal += Mapa.calcularDistancia(camion.getCoordenada(), pedido.getCoordenada());
+            }
+            Almacen almacenCentral = Parametros.dataLoader.almacenes.get(0);
+            distanciaTotal += Mapa.calcularDistancia(almacenCentral.getCoordenada(), camion.getCoordenada());
+
+            distanciaCamion += distanciaTotal;
+            if (distanciaCamion > camion.calcularDistanciaMaxima()) {
+                continue; // No asignar si el camión no puede cubrir la distancia total
+            }
+
+            double glpPorPedido = camion.getCapacidadActualGLP() / seleccionados.size();
+            for (Pedido pedido : seleccionados) {
+                double pendiente = pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado();
+                double entregar = Math.min(glpPorPedido, pendiente);
+                pedido.setVolumenGLPEntregado(pedido.getVolumenGLPEntregado() + entregar);
+                Gen gen = cromosoma.stream().filter(g -> g.getCamion().getCodigo().equals(camion.getCodigo()))
+                        .findFirst().orElse(null);
+                if (gen != null) {
+                    gen.getPedidos().add(pedido);
+                    gen.getNodos().add(pedido);
+                }
+            }
+            pedidosOrdenados.removeIf(p -> p.getVolumenGLPAsignado() - p.getVolumenGLPEntregado() == 0);
         }
+
         restaurarEstadoActual();
+
     }
 
     /**
