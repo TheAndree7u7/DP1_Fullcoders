@@ -8,6 +8,7 @@ import com.plg.utils.Simulacion;
 
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
+import com.plg.entity.EstadoCamion;
 import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
@@ -158,12 +159,25 @@ public class Gen {
         List <Nodo> rutaApi = new ArrayList<>();
         for (Nodo nodo : rutaFinal) {
             if (nodo instanceof Pedido && this.getPedidos().contains(nodo)) {
-                // Agregamos 12 veces el mismo
-                for (int j = 0; j < 12; j++) {
+                Pedido pedido = (Pedido) nodo;
+                if(pedido.getEstado() == EstadoPedido.ENTREGADO) {
+                    // Si el pedido ya ha sido entregado, lo agregamos una sola vez
                     rutaApi.add(nodo);
+                } else {
+                    // Agregamos 12 veces el pedido si no ha sido entregado
+                    for (int j = 0; j < 12; j++) {
+                        rutaApi.add(nodo);
+                    }
                 }
             } else if (nodo instanceof Camion && this.getCamionesAveriados().contains(nodo)) {
-                for (int j = 0; j < 12; j++) {
+                Camion camion = (Camion) nodo;
+                if (camion.getEstado() == EstadoCamion.INMOVILIZADO_POR_AVERIA) {
+                    // Si el camión está averiado, lo agregamos 12 veces
+                    for (int j = 0; j < 12; j++) {
+                        rutaApi.add(nodo);
+                    }
+                } else {
+                    // Si no está averiado, lo agregamos una sola vez
                     rutaApi.add(nodo);
                 }
             } else {

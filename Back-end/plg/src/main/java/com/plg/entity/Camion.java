@@ -169,9 +169,13 @@ public class Camion extends Nodo {
         if (intermedio < gen.getRutaFinal().size()) {
             Coordenada nuevaCoordenada = gen.getRutaFinal().get(intermedio).getCoordenada();
             setCoordenada(nuevaCoordenada);
+            // Imprimimos la coordenada para realizar debug
+            System.out.println("Camión " + codigo + " se mueve a la coordenada: " + nuevaCoordenada);
+            // Actualizamos el estado del camión en el mapa
+
         }
 
-        // Actualizamos el estado de los pedidos
+        // Recorremos la ruta 
         for (int i = 0; i <= intermedio; i++) {
             Nodo nodo = gen.getRutaFinal().get(i);
             if (nodo.getTipoNodo() == TipoNodo.PEDIDO) {
@@ -259,27 +263,27 @@ public class Camion extends Nodo {
     }
 
     private int calcularCantidadDeNodos() {
-        // Tomamos en cuenta lo siguiente para calcular la cantidad de nodos:
-        // Si un nodo esta sobre un pedido equivale a 12 nodos
-        // Si un nodo esta sobre un camionAveriado equivale a 12 nodos
-        // Para todo lo demás equivale a 1 nodo
-        // Importante verificar siempre que el pedido o camión averiado le pertenezca
-
-        // Calculo simple si no se aplica eso
+ 
         int cantNodos = (int) (Parametros.diferenciaTiempoMinRequest * velocidadPromedio / 60);
         int sizeRuta = gen.getRutaFinal().size();
         int suma = 0;
         int pos_final = 0;
-        for (int i = 0; i < sizeRuta; i++) {
+        int maxNodos = Math.min(cantNodos, sizeRuta);
+        for (int i = 0; i < maxNodos; i++) {
             Nodo nodo = gen.getRutaFinal().get(i);
             if (nodo instanceof Pedido && gen.getPedidos().contains(nodo)) {
-                suma += 12; // Pedido
+                Pedido pedido = (Pedido) nodo;
+                if(pedido.getEstado() == EstadoPedido.ENTREGADO) {
+                    suma += 1; // Pedido ya entregado
+                }else{
+                    suma += 12; // Pedido
+                }
             } else if (nodo instanceof Camion && gen.getCamionesAveriados().contains(nodo)) {
                 suma += 12; // Camión averiado
             } else {
                 suma += 1; // Otros nodos
             }
-            if (suma > cantNodos) {
+            if (suma >= maxNodos) {
                 pos_final = i;
                 break;
             }
