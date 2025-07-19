@@ -62,6 +62,7 @@ public class Simulacion {
 
     public static List<Pedido> actualizarPedidosEnRango() {
         // 1. Obtenemos todos los pedidos del fechaActual < x < fechaActual + intervaloTiempo
+        //Aca no toma en cuenta lso pediso que tienen fecha de registro menor a la fecha actual 
         LocalDateTime fechaLimite = Parametros.fecha_inicial.plusMinutes(Parametros.intervaloTiempo);
         List<Pedido> pedidosEnRango = Parametros.dataLoader.pedidos.stream()
                 .filter(pedido -> pedido.getFechaRegistro().isAfter(Parametros.fecha_inicial)
