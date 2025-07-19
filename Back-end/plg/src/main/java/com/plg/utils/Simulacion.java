@@ -112,7 +112,7 @@ public class Simulacion {
             for (Almacen almacen : almacenes) {
                 if (almacen.getTipo() == TipoAlmacen.SECUNDARIO) {
                     almacen.setCapacidadActualGLP(almacen.getCapacidadMaximaGLP());
-                    almacen.setCapacidadCombustible(almacen.getCapacidadMaximaCombustible());
+                    almacen.setCapacidadActualCombustible(almacen.getCapacidadMaximaCombustible());
                 }
             }
         }

@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.springframework.stereotype.Repository;
 
-import com.plg.config.DataLoader;
 import com.plg.utils.Parametros;
 import com.plg.dto.CamionDto;
 import com.plg.entity.Camion;
@@ -15,13 +14,13 @@ import com.plg.entity.Camion;
  */
 @Repository
 public class CamionRepository {
-    DataLoader dataLoader = new DataLoader();
+  
 
     /**
      * Obtiene la lista completa de camiones.
      */
     public List<Camion> findAll() {
-        return dataLoader.camiones;
+        return Parametros.dataLoader.camiones;
     }
 
     /**
