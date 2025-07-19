@@ -19,6 +19,8 @@ El formulario incluye los siguientes campos:
 - **Volumen GLP**: Cantidad de GLP a entregar (en m³)
 - **Horas Límite**: Tiempo límite para la entrega (en horas)
 
+**Nota**: Los pedidos individuales se procesan como archivos con una sola línea, generando automáticamente el nombre del archivo basado en el año y mes ingresados.
+
 ### Archivo de Pedidos
 
 - **Validación**: El archivo se valida automáticamente usando el validador existente
@@ -55,6 +57,32 @@ Donde:
 - `VOLUMENm3`: Volumen de GLP (ej: 3m3)
 - `HORASh`: Horas límite (ej: 4h)
 
+## Formato JSON de Salida
+
+Tanto para pedidos individuales como para archivos, el sistema genera un objeto JSON con la siguiente estructura:
+
+```json
+{
+  "nombre": "ventas202507.txt",
+  "contenido": "01d00h24m:16,13,c-198,3m3,4h",
+  "datos": [
+    {
+      "fechaHora": "01d00h24m",
+      "coordenadaX": 16,
+      "coordenadaY": 13,
+      "codigoCliente": "c-198",
+      "volumenGLP": 3,
+      "horasLimite": 4
+    }
+  ]
+}
+```
+
+### Componentes del JSON:
+- **`nombre`**: Nombre del archivo generado (formato: `ventasYYYYMM.txt`)
+- **`contenido`**: Contenido del archivo en formato texto
+- **`datos`**: Array de objetos `DatosVentas` parseados
+
 ### Ejemplo de archivo válido:
 
 ```
@@ -88,6 +116,11 @@ Donde:
 3. Selecciona el modo deseado:
    - **Pedido Individual**: Completa el formulario y haz clic en "Agregar Pedido"
    - **Archivo de Pedidos**: Descarga el ejemplo, completa tu archivo y súbelo
+
+### Generación del Nombre del Archivo
+
+- **Para pedidos individuales**: El nombre se genera automáticamente usando el año y mes ingresados en el formulario
+- **Para archivos**: El nombre debe seguir el formato `ventasYYYYMM.txt` y se valida antes de procesar
 
 ## Archivos Modificados
 

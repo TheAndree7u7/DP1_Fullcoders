@@ -11,7 +11,7 @@ const MAP_HEIGHT = 50;
 interface ModalAgregarPedidosProps {
   isOpen: boolean;
   onClose: () => void;
-  onAgregarPedido: (pedido: DatosVentas) => void;
+  onAgregarPedido: (archivo: { nombre: string; contenido: string; datos: DatosVentas[] }) => void;
   onAgregarArchivo: (archivo: { nombre: string; contenido: string; datos: DatosVentas[] }) => void;
 }
 
@@ -141,7 +141,20 @@ const ModalAgregarPedidos: React.FC<ModalAgregarPedidosProps> = ({
       horasLimite: pedidoIndividual.horasLimite
     };
 
-    onAgregarPedido(pedido);
+    // Generar nombre del archivo usando año y mes del formulario
+    const nombreArchivo = `ventas${pedidoIndividual.año}${pedidoIndividual.mes.toString().padStart(2, '0')}.txt`;
+    
+    // Generar contenido del archivo (una sola línea)
+    const contenido = `${fechaHora}:${pedidoIndividual.coordenadaX},${pedidoIndividual.coordenadaY},${codigoCliente},${pedidoIndividual.glp}m3,${pedidoIndividual.horasLimite}h`;
+
+    // Crear el objeto con el mismo formato que los archivos
+    const archivoPedido = {
+      nombre: nombreArchivo,
+      contenido: contenido,
+      datos: [pedido]
+    };
+
+    onAgregarPedido(archivoPedido);
     
     // Limpiar formulario
     setPedidoIndividual({

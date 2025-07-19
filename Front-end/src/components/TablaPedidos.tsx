@@ -259,9 +259,9 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
    }, [todosPedidos]);
 
    // Funciones para manejar pedidos
-   const handleAgregarPedido = (pedido: DatosVentas) => {
+   const handleAgregarPedido = (archivo: { nombre: string; contenido: string; datos: DatosVentas[] }) => {
      // Aquí se puede implementar la lógica para agregar el pedido
-     console.log('Agregando pedido individual:', pedido);
+     console.log('Agregando pedido individual:', archivo);
      // Por ahora solo cerramos el modal
      setModalAbierto(false);
    };
