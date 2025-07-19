@@ -100,10 +100,10 @@ public class Individuo {
         // Creamos una lista con los camiones averiados para ir quitando 
         // conforme los camiones disponibles les vayan
         // quitando glp
-        List<Camion> camionesAveriados = Parametros.dataLoader.camiones.stream()
+        List<Camion> cp1 = Parametros.dataLoader.camiones.stream()
                 .filter(c -> c.getEstado() == EstadoCamion.INMOVILIZADO_POR_AVERIA)
                 .toList();
-        
+        List<Camion> camionesAveriados = new ArrayList<>(cp1);
         List<Almacen> almacenesDisponibles = new ArrayList<>(Parametros.dataLoader.almacenes);
         Collections.shuffle(camionesDisponibles);
         for (Camion camion : camionesDisponibles) {
