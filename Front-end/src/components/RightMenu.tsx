@@ -1,11 +1,12 @@
 import React from 'react';
-import { ChevronRight, Search, ChevronUp, ChevronDown, ChevronsUpDown, Building2 } from 'lucide-react';
+import { ChevronRight, Search, ChevronUp, ChevronDown, ChevronsUpDown, Building2, Plus } from 'lucide-react';
 import { useSimulacion, type CamionEstado } from '../context/SimulacionContext';
 import MetricasRendimiento from './MetricasRendimiento';
 import CardsCamiones from './CardCamion';
 import IndicadoresCamiones from './IndicadoresCamiones';
 import BloqueosTable from './BloqueosTable';
 import TablaPedidos from './TablaPedidos';
+import AgregarPedidosPanel from './AgregarPedidosPanel';
 import { formatearCapacidadGLP, formatearCombustible, obtenerClaseColorValor, esValorValido } from '../utils/validacionCamiones';
 
 // Tabla simple de datos de camiones usando el contexto
@@ -535,7 +536,7 @@ interface RightMenuProps {
 }
 
 const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded, onElementoSeleccionado }) => {
-  const [panel, setPanel] = React.useState<'camiones' | 'bloqueos' | 'metricas' | 'estadoCamiones' | 'pedidos' | 'almacenes'>('camiones');
+  const [panel, setPanel] = React.useState<'camiones' | 'bloqueos' | 'metricas' | 'estadoCamiones' | 'pedidos' | 'almacenes' | 'agregarPedidos'>('camiones');
   if (!expanded) return null;
 
   return (
@@ -586,6 +587,13 @@ const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded, onElemento
         >
           Almacenes
         </button>
+        <button
+          className={`px-3 py-1 rounded font-semibold transition ${panel === 'agregarPedidos' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800 hover:bg-blue-100'}`}
+          onClick={() => setPanel('agregarPedidos')}
+        >
+          <Plus className="w-4 h-4 inline mr-1" />
+          Agregar Pedidos
+        </button>
       </div>
 
       <div className="flex flex-col flex-1 min-h-0">
@@ -617,6 +625,9 @@ const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded, onElemento
         )}
         {panel === 'almacenes' && (
           <TablaAlmacenes onElementoSeleccionado={onElementoSeleccionado} />
+        )}
+        {panel === 'agregarPedidos' && (
+          <AgregarPedidosPanel />
         )}
       </div>
     </div>

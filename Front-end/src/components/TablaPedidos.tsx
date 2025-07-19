@@ -1,9 +1,8 @@
 // components/TablaPedidos.tsx
 import React, { useState } from "react";
 import { useSimulacion } from "../context/SimulacionContext";
-import { Package, MapPin, Truck, Search, ChevronUp, ChevronDown, ChevronsUpDown, Calendar, Plus } from "lucide-react";
-import type { Pedido, DatosVentas } from "../types";
-import ModalAgregarPedidos from "./ModalAgregarPedidos";
+import { Package, MapPin, Truck, Search, ChevronUp, ChevronDown, ChevronsUpDown, Calendar } from "lucide-react";
+import type { Pedido } from "../types";
 
 // Función para obtener el color según el estado del pedido
 const getColorByEstado = (estado: string) => {
@@ -72,7 +71,6 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
   const [busqueda, setBusqueda] = useState<string>('');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [modalAbierto, setModalAbierto] = useState(false);
 
   // Extraer y agrupar pedidos por código para evitar duplicados
   const todosPedidos = React.useMemo(() => {
@@ -258,35 +256,13 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
      return Array.from(estados);
    }, [todosPedidos]);
 
-   // Funciones para manejar pedidos
-   const handleAgregarPedido = (archivo: { nombre: string; contenido: string; datos: DatosVentas[] }) => {
-     // Aquí se puede implementar la lógica para agregar el pedido
-     console.log('Agregando pedido individual:', archivo);
-     // Por ahora solo cerramos el modal
-     setModalAbierto(false);
-   };
 
-   const handleAgregarArchivo = (archivo: { nombre: string; contenido: string; datos: DatosVentas[] }) => {
-     // Aquí se puede implementar la lógica para agregar el archivo
-     console.log('Agregando archivo de pedidos:', archivo);
-     // Por ahora solo cerramos el modal
-     setModalAbierto(false);
-   };
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <div className="text-lg font-bold text-black mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Package className="w-5 h-5" />
-          Lista de Pedidos
-        </div>
-        <button
-          onClick={() => setModalAbierto(true)}
-          className="flex items-center gap-2 px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
-        >
-          <Plus className="w-4 h-4" />
-          Agregar Pedidos
-        </button>
+      <div className="text-lg font-bold text-black mb-3 flex items-center gap-2">
+        <Package className="w-5 h-5" />
+        Lista de Pedidos
       </div>
 
              {/* Filtros */}
@@ -496,13 +472,6 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
         </div>
       </div>
 
-      {/* Modal para agregar pedidos */}
-      <ModalAgregarPedidos
-        isOpen={modalAbierto}
-        onClose={() => setModalAbierto(false)}
-        onAgregarPedido={handleAgregarPedido}
-        onAgregarArchivo={handleAgregarArchivo}
-      />
     </div>
   );
 };
