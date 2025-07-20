@@ -6,7 +6,6 @@ import gasolinaIcon from '../assets/gasolinaIcon.svg';
 const MetricasRendimiento: React.FC = () => {
   const { camiones } = useSimulacion();
   const porcentajePromedio = (camiones.reduce((acc, c) => acc + c.porcentaje, 0) / camiones.length).toFixed(0);
-  const entregados = camiones.filter(c => c.estado === 'Entregado').length * 40;
   const capacidadTotalGLP = camiones.reduce((acc, c) => acc + c.capacidadActualGLP, 0).toFixed(1);
 
   return (
@@ -19,8 +18,8 @@ const MetricasRendimiento: React.FC = () => {
 
       <div className="flex flex-col items-center">
         <img src={gasolinaIcon} alt="Gasolina icon" className="w-[42px] h-[46px]" />
-        {entregados} m³
-        <span className="text-sm text-center">Galones entregados</span>
+        {camiones.length * 40} m³
+        <span className="text-sm text-center">Capacidad total</span>
       </div>
 
       <div className="flex flex-col items-center">

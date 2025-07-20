@@ -131,8 +131,7 @@ const CardsCamiones: React.FC = () => {
                 <span className="font-medium ml-2">{camion.id}</span>
                 <span 
                   className={`ml-auto text-xs font-medium px-2 py-0.5 rounded-full 
-                    ${camion.estado === 'Entregado' ? 'bg-green-100 text-green-800' : 
-                      camion.estado === 'Averiado' ? 'bg-red-100 text-red-800' : 
+                    ${camion.estado === 'Averiado' ? 'bg-red-100 text-red-800' : 
                       camion.estado === 'Disponible' ? 'bg-blue-100 text-blue-800' : 
                       camion.estado === 'En Mantenimiento' ? 'bg-yellow-100 text-yellow-800' : 
                       camion.estado === 'En Mantenimiento Preventivo' ? 'bg-amber-100 text-amber-800' : 

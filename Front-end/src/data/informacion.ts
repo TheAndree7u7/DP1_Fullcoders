@@ -32,95 +32,95 @@ export const estadosPorInstante = [
   {
     timestamp: 1,
     camiones: [
-      { id: 'TA01', ubicacion: '(1,1)', porcentaje: 0, estado: 'En Camino' },
-      { id: 'TA02', ubicacion: '(5,5)', porcentaje: 0, estado: 'En Camino' },
-      { id: 'TA03', ubicacion: '(10,10)', porcentaje: 0, estado: 'En Camino' },
-      { id: 'TA04', ubicacion: '(20,20)', porcentaje: 0, estado: 'En Camino' },
+      { id: 'TA01', ubicacion: '(1,1)', porcentaje: 0, estado: 'Disponible' },
+      { id: 'TA02', ubicacion: '(5,5)', porcentaje: 0, estado: 'Disponible' },
+      { id: 'TA03', ubicacion: '(10,10)', porcentaje: 0, estado: 'Disponible' },
+      { id: 'TA04', ubicacion: '(20,20)', porcentaje: 0, estado: 'Disponible' },
     ],
   },
   // Hora 2
   {
     timestamp: 2,
     camiones: [
-      { id: 'TA01', ubicacion: '(1,2)', porcentaje: 25, estado: 'En Camino' },
-      { id: 'TA02', ubicacion: '(6,5)', porcentaje: 16, estado: 'En Camino' },
-      { id: 'TA03', ubicacion: '(10,9)', porcentaje: 16, estado: 'En Camino' },
-      { id: 'TA04', ubicacion: '(20,21)', porcentaje: 9, estado: 'En Camino' },
+      { id: 'TA01', ubicacion: '(1,2)', porcentaje: 25, estado: 'Disponible' },
+      { id: 'TA02', ubicacion: '(6,5)', porcentaje: 16, estado: 'Disponible' },
+      { id: 'TA03', ubicacion: '(10,9)', porcentaje: 16, estado: 'Disponible' },
+      { id: 'TA04', ubicacion: '(20,21)', porcentaje: 9, estado: 'Disponible' },
     ],
   },
   // Hora 3
   {
     timestamp: 3,
     camiones: [
-      { id: 'TA01', ubicacion: '(1,3)', porcentaje: 50, estado: 'En Camino' },
-      { id: 'TA02', ubicacion: '(7,5)', porcentaje: 33, estado: 'En Camino' },
-      { id: 'TA03', ubicacion: '(10,8)', porcentaje: 33, estado: 'En Camino' },
-      { id: 'TA04', ubicacion: '(20,22)', porcentaje: 18, estado: 'En Camino' },
+      { id: 'TA01', ubicacion: '(1,3)', porcentaje: 50, estado: 'Disponible' },
+      { id: 'TA02', ubicacion: '(7,5)', porcentaje: 33, estado: 'Disponible' },
+      { id: 'TA03', ubicacion: '(10,8)', porcentaje: 33, estado: 'Disponible' },
+      { id: 'TA04', ubicacion: '(20,22)', porcentaje: 18, estado: 'Disponible' },
     ],
   },
   // Hora 4
   {
     timestamp: 4,
     camiones: [
-      { id: 'TA01', ubicacion: '(1,4)', porcentaje: 75, estado: 'En Camino' },
-      { id: 'TA02', ubicacion: '(8,5)', porcentaje: 50, estado: 'En Camino' },
-      { id: 'TA03', ubicacion: '(10,7)', porcentaje: 50, estado: 'En Camino' },
-      { id: 'TA04', ubicacion: '(20,23)', porcentaje: 27, estado: 'En Camino' },
+      { id: 'TA01', ubicacion: '(1,4)', porcentaje: 75, estado: 'Disponible' },
+      { id: 'TA02', ubicacion: '(8,5)', porcentaje: 50, estado: 'Disponible' },
+      { id: 'TA03', ubicacion: '(10,7)', porcentaje: 50, estado: 'Disponible' },
+      { id: 'TA04', ubicacion: '(20,23)', porcentaje: 27, estado: 'Disponible' },
     ],
   },
   // Hora 5
   {
     timestamp: 5,
     camiones: [
-      { id: 'TA01', ubicacion: '(1,5)', porcentaje: 100, estado: 'Entregado' },
-      { id: 'TA02', ubicacion: '(9,5)', porcentaje: 66, estado: 'En Camino' },
-      { id: 'TA03', ubicacion: '(10,6)', porcentaje: 66, estado: 'En Camino' },
-      { id: 'TA04', ubicacion: '(20,24)', porcentaje: 36, estado: 'En Camino' },
+      { id: 'TA01', ubicacion: '(1,5)', porcentaje: 100, estado: 'Disponible' },
+      { id: 'TA02', ubicacion: '(9,5)', porcentaje: 66, estado: 'Disponible' },
+      { id: 'TA03', ubicacion: '(10,6)', porcentaje: 66, estado: 'Disponible' },
+      { id: 'TA04', ubicacion: '(20,24)', porcentaje: 36, estado: 'Disponible' },
     ],
   },
   // Hora 6
   {
     timestamp: 6,
     camiones: [
-      { id: 'TA02', ubicacion: '(10,5)', porcentaje: 83, estado: 'En Camino' },
-      { id: 'TA03', ubicacion: '(10,5)', porcentaje: 83, estado: 'En Camino' },
-      { id: 'TA04', ubicacion: '(20,25)', porcentaje: 45, estado: 'En Camino' },
+      { id: 'TA02', ubicacion: '(10,5)', porcentaje: 83, estado: 'Disponible' },
+      { id: 'TA03', ubicacion: '(10,5)', porcentaje: 83, estado: 'Disponible' },
+      { id: 'TA04', ubicacion: '(20,25)', porcentaje: 45, estado: 'Disponible' },
     ],
   },
   // Hora 7
   {
     timestamp: 7,
     camiones: [
-      { id: 'TA03', ubicacion: '(10,4)', porcentaje: 100, estado: 'Entregado' },
-      { id: 'TA04', ubicacion: '(20,26)', porcentaje: 54, estado: 'En Camino' },
+      { id: 'TA03', ubicacion: '(10,4)', porcentaje: 100, estado: 'Disponible' },
+      { id: 'TA04', ubicacion: '(20,26)', porcentaje: 54, estado: 'Disponible' },
     ],
   },
   // Hora 8
   {
     timestamp: 8,
     camiones: [
-      { id: 'TA04', ubicacion: '(20,27)', porcentaje: 63, estado: 'En Camino' },
+      { id: 'TA04', ubicacion: '(20,27)', porcentaje: 63, estado: 'Disponible' },
     ],
   },
   // Hora 9
   {
     timestamp: 9,
     camiones: [
-      { id: 'TA04', ubicacion: '(20,28)', porcentaje: 72, estado: 'En Camino' },
+      { id: 'TA04', ubicacion: '(20,28)', porcentaje: 72, estado: 'Disponible' },
     ],
   },
   // Hora 10
   {
     timestamp: 10,
     camiones: [
-      { id: 'TA04', ubicacion: '(20,29)', porcentaje: 81, estado: 'En Camino' },
+      { id: 'TA04', ubicacion: '(20,29)', porcentaje: 81, estado: 'Disponible' },
     ],
   },
   // Hora 11
   {
     timestamp: 11,
     camiones: [
-      { id: 'TA04', ubicacion: '(20,30)', porcentaje: 100, estado: 'Entregado' },
+      { id: 'TA04', ubicacion: '(20,30)', porcentaje: 100, estado: 'Disponible' },
     ],
   },
 ];

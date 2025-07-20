@@ -33,17 +33,17 @@ export const avanzarCamion = (
   const siguientePaso = camion.porcentaje + INCREMENTO_PORCENTAJE;
   const rutaLength = ruta.ruta.length;
 
-  // Si llegó al final de la ruta
+  // Mover el camión a la nueva posición
+  const nuevaUbicacion = ruta.ruta[siguientePaso];
+  
+  // Si llegó al final de la ruta, mantener en la posición final
   if (siguientePaso >= rutaLength) {
     return {
       ...camion,
-      estado: "Entregado" as const,
       porcentaje: rutaLength - 1,
+      ubicacion: nuevaUbicacion,
     };
   }
-
-  // Mover el camión a la nueva posición
-  const nuevaUbicacion = ruta.ruta[siguientePaso];
   
   // Verificar si el camión realmente se movió a una nueva ubicación
   const ubicacionActual = camion.ubicacion;

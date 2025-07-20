@@ -60,10 +60,7 @@ export const getPedidosPendientes = (
     // Obtener la posición actual del camión en la ruta
     const posicionActual = camionActual.porcentaje;
     
-    // Si el camión está entregado, no mostrar ningún pedido de esta ruta
-    if (camionActual.estado === 'Entregado') {
-      return;
-    }
+
 
     // Para cada pedido de esta ruta, verificar si ya fue visitado
     ruta.pedidos.forEach((pedido: Pedido) => {
@@ -85,7 +82,7 @@ export const getPedidosPendientes = (
 
       // Determinar el estado del pedido basado en la posición del camión
       let estadoPedido = 'PENDIENTE';
-      if (camionActual.estado === 'En Camino' || camionActual.estado === 'Disponible') {
+      if (camionActual.estado === 'Disponible') {
         estadoPedido = 'EN_TRANSITO';
       } else if (camionActual.estado === 'Averiado') {
         estadoPedido = 'RETRASO';
