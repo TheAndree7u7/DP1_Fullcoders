@@ -100,6 +100,46 @@ const mapearEstadoBackendAFrontend = (estadoBackend: string | undefined): "Dispo
   }
 };
 
+/**
+ * @function determinarUbicacionCamion
+ * @description Determina la ubicación de un camión basándose en su estado anterior y ruta actual
+ */
+const determinarUbicacionCamion = (
+  ruta: RutaCamion, 
+  anterior: CamionEstado | undefined, 
+  esAveriado: boolean
+): string => {
+  let ubicacion: string;
+  
+  if (esAveriado) {
+    // Si el camión estaba averiado, usar la primera posición de la nueva ruta
+    ubicacion = ruta.ruta[0];
+    console.log(`🚛💥 TELETRANSPORTE: Camión ${ruta.id} averiado teletransportado a ${ubicacion}`);
+  } else {
+    // Para camiones no averiados, usar lógica mejorada
+    if (anterior?.ubicacion) {
+      ubicacion = anterior.ubicacion;
+      console.log(`🔍 DEBUG: Camión ${ruta.id} - Manteniendo ubicación anterior: "${ubicacion}"`);
+    } else if (ruta.ruta && ruta.ruta.length > 0) {
+      ubicacion = ruta.ruta[0];
+      console.log(`🔍 DEBUG: Camión ${ruta.id} - Usando primera posición de ruta: "${ubicacion}"`);
+    } else {
+      ubicacion = '(8,12)';
+      console.log(`🔍 DEBUG: Camión ${ruta.id} - Sin ruta, usando almacén central: "${ubicacion}"`);
+    }
+  }
+  
+  // Validar que la ubicación no sea undefined o null
+  if (!ubicacion || ubicacion === 'undefined' || ubicacion === 'null') {
+    console.error(`❌ ERROR: Camión ${ruta.id} tiene ubicación inválida después del procesamiento: "${ubicacion}"`);
+    ubicacion = '(8,12)'; // Fallback al almacén central
+  }
+  
+  return ubicacion;
+};
+
+
+
 // ============================
 // CREACIÓN DEL CONTEXTO
 // ============================
@@ -430,20 +470,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         const camion = gen?.camion;
         const anterior = camiones.find(c => c.id === ruta.id);
         
-        // NUEVA LÓGICA: Teletransporte para camiones averiados
-        let ubicacion: string;
-        let porcentaje: number;
-        
-        if (anterior && anterior.estado === "Averiado") {
-          // Si el camión estaba averiado, teletransportarlo a su nueva posición en el cromosoma
-          ubicacion = ruta.ruta[0]; // Primera posición de la nueva ruta
-          porcentaje = 0; // Reiniciar progreso
-          console.log(`🚛💥 TELETRANSPORTE: Camión ${ruta.id} averiado teletransportado de ${anterior.ubicacion} a ${ubicacion}`);
-        } else {
-          // Para camiones no averiados, mantener lógica anterior
-          ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
-          porcentaje = 0;
-        }
+        // Usar función auxiliar para determinar ubicación
+        const esAveriado = !!(anterior && anterior.estado === "Averiado");
+        const ubicacion = determinarUbicacionCamion(ruta, anterior, esAveriado);
+        const porcentaje = 0;
         
         // Determinar el estado del camión basándose en la ruta y el estado del backend
         let estadoFrontend: "Disponible" | "Averiado" | "En Mantenimiento" | "En Mantenimiento Preventivo" | "En Mantenimiento por Avería" | "En Ruta";
@@ -574,20 +604,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         const camion = gen?.camion;
         const anterior = camiones.find(c => c.id === ruta.id);
         
-        // NUEVA LÓGICA: Teletransporte para camiones averiados
-        let ubicacion: string;
-        let porcentaje: number;
-        
-        if (anterior && anterior.estado === "Averiado") {
-          // Si el camión estaba averiado, teletransportarlo a su nueva posición en el cromosoma
-          ubicacion = ruta.ruta[0]; // Primera posición de la nueva ruta
-          porcentaje = 0; // Reiniciar progreso
-          console.log(`🚛💥 TELETRANSPORTE: Camión ${ruta.id} averiado teletransportado de ${anterior.ubicacion} a ${ubicacion}`);
-        } else {
-          // Para camiones no averiados, mantener lógica anterior
-          ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
-          porcentaje = 0;
-        }
+        // Usar función auxiliar para determinar ubicación
+        const esAveriado = !!(anterior && anterior.estado === "Averiado");
+        const ubicacion = determinarUbicacionCamion(ruta, anterior, esAveriado);
+        const porcentaje = 0;
         
         // Determinar el estado del camión basándose en la ruta y el estado del backend
         let estadoFrontend: "Disponible" | "Averiado" | "En Mantenimiento" | "En Mantenimiento Preventivo" | "En Mantenimiento por Avería" | "En Ruta";

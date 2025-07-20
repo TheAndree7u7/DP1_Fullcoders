@@ -71,12 +71,26 @@ export const cargarDatos = async (
     }
 
     // Procesar rutas de camiones
-    const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => ({
-      id: gen.camion.codigo,
-      ruta: gen.nodos.map((n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`),
-      puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
-      pedidos: gen.pedidos,
-    }));
+    console.log("🔍 DEBUG: Procesando rutas de camiones desde backend...");
+    console.log("🔍 DEBUG: Cromosoma recibido:", data.cromosoma.length, "genes");
+    
+    const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => {
+      const ruta = {
+        id: gen.camion.codigo,
+        ruta: gen.nodos.map((n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`),
+        puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
+        pedidos: gen.pedidos,
+      };
+      
+      console.log(`🔍 DEBUG: Ruta procesada para camión ${ruta.id}:`, {
+        nodos: ruta.ruta.length,
+        ruta: ruta.ruta,
+        puntoDestino: ruta.puntoDestino,
+        pedidos: ruta.pedidos.length
+      });
+      
+      return ruta;
+    });
 
     // Log para verificar los pedidos que llegan del backend
     // console.log("🔍 Verificando pedidos en las rutas:");
@@ -148,7 +162,32 @@ export const cargarDatos = async (
         }
         
         // Determinar la ubicación del camión basándose en su ruta
-        const ubicacion = ruta.ruta && ruta.ruta.length > 0 ? ruta.ruta[0] : '(0,0)';
+        // Si no hay ruta, usar la coordenada del almacén central (8,12) según el backend
+        let ubicacion: string;
+        
+        if (ruta.ruta && ruta.ruta.length > 0) {
+          // Si tiene ruta, usar la primera posición
+          ubicacion = ruta.ruta[0];
+        } else {
+          // Si no hay ruta, usar la coordenada del almacén central (8,12) según el backend
+          ubicacion = '(8,12)';
+        }
+        
+        // Debug: Log para ver qué ubicación se está asignando
+        console.log(`🔍 DEBUG: Camión ${ruta.id} - Ruta: ${ruta.ruta?.length || 0} nodos, Ubicación asignada: "${ubicacion}"`);
+        
+        // Si el camión ya consumió todos sus nodos (porcentaje >= longitud de ruta), 
+        // debe permanecer en su última posición hasta el siguiente paquete
+        if (ruta.ruta && ruta.ruta.length > 0) {
+          const ultimaPosicion = ruta.ruta[ruta.ruta.length - 1];
+          console.log(`🔍 DEBUG: Camión ${ruta.id} - Última posición de ruta: "${ultimaPosicion}"`);
+        }
+        
+        // Verificar que la ubicación no sea undefined o null
+        if (!ubicacion || ubicacion === 'undefined' || ubicacion === 'null') {
+          console.error(`❌ ERROR: Camión ${ruta.id} tiene ubicación inválida: "${ubicacion}"`);
+          ubicacion = '(8,12)'; // Fallback al almacén central
+        }
         
         // Determinar el estado del camión basándose en la ruta y el estado del backend
         const estadoBase = mapearEstadoBackendAFrontend(camion?.estado);
@@ -191,7 +230,7 @@ export const cargarDatos = async (
         // Retornar un camión por defecto para evitar errores de renderizado
         return {
           id: ruta.id || `error-${index}`,
-          ubicacion: '(0,0)',
+          ubicacion: '(8,12)',
           porcentaje: 0,
           estado: 'Averiado' as const,
           capacidadActualGLP: 0,

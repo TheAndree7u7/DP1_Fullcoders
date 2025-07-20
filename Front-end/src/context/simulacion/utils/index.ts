@@ -26,4 +26,11 @@ export {
   generarResumenEstado,
   convertirEstadoParaBackend,
   type EstadoSimulacionCompleto 
-} from './estado'; 
+} from './estado';
+
+// Exportar utilidades de ubicación de camiones
+export { 
+  determinarUbicacionCamion,
+  determinarUbicacionFinalCamion,
+  camionConsumioTodosLosNodos
+} from './ubicacionCamion'; 

@@ -235,7 +235,9 @@ const DatosCamionesTable: React.FC<DatosCamionesTableProps> = ({ onElementoSelec
                       <td className={`px-4 py-2 font-bold ${obtenerClaseColorValor(camion.combustibleActual)}`}>
                         {formatearCombustible(camion.combustibleActual, camion.combustibleMaximo)}
                       </td>
-                      <td className="px-4 py-2 text-gray-600">{camion.ubicacion && camion.ubicacion !== 'N/A' ? camion.ubicacion : 'N/A'}</td>
+                      <td className="px-4 py-2 text-gray-600">
+                        {camion.ubicacion || 'N/A'}
+                      </td>
                       <td className={
                         `px-4 py-2 font-semibold ` +
                         (camion.estado === 'Averiado' ? 'text-red-600' :
