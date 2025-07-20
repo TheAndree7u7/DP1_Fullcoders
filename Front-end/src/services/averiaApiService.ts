@@ -147,7 +147,7 @@ export async function averiarCamionConEstado(
         capacidadGLP: `${camion.capacidadActualGLP}/${camion.capacidadMaximaGLP}`,
         combustible: `${camion.combustibleActual}/${camion.combustibleMaximo}`,
         tipo: camion.tipo,
-        velocidad: camion.velocidadPromedio
+        // velocidad: camion.velocidadPromedio
       });
     });
   }
