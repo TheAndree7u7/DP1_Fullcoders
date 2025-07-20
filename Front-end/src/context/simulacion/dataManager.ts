@@ -174,13 +174,13 @@ export const cargarDatos = async (
         }
         
         // Debug: Log para ver qué ubicación se está asignando
-        console.log(`🔍 DEBUG: Camión ${ruta.id} - Ruta: ${ruta.ruta?.length || 0} nodos, Ubicación asignada: "${ubicacion}"`);
+        // console.log(`🔍 DEBUG: Camión ${ruta.id} - Ruta: ${ruta.ruta?.length || 0} nodos, Ubicación asignada: "${ubicacion}"`);
         
         // Si el camión ya consumió todos sus nodos (porcentaje >= longitud de ruta), 
         // debe permanecer en su última posición hasta el siguiente paquete
         if (ruta.ruta && ruta.ruta.length > 0) {
-          const ultimaPosicion = ruta.ruta[ruta.ruta.length - 1];
-          console.log(`🔍 DEBUG: Camión ${ruta.id} - Última posición de ruta: "${ultimaPosicion}"`);
+          // const ultimaPosicion = ruta.ruta[ruta.ruta.length - 1];
+          // console.log(`🔍 DEBUG: Camión ${ruta.id} - Última posición de ruta: "${ultimaPosicion}"`);
         }
         
         // Verificar que la ubicación no sea undefined o null
@@ -196,7 +196,7 @@ export const cargarDatos = async (
         let estadoFrontend = estadoBase;
         if (estadoBase === 'Disponible' && ruta.ruta.length > 1) {
           estadoFrontend = 'En Ruta';
-          console.log(`🚛🛣️ ESTADO: Camión ${ruta.id} marcado como 'En Ruta' (${ruta.ruta.length} nodos) en ubicación ${ubicacion}`);
+          // console.log(`🚛🛣️ ESTADO: Camión ${ruta.id} marcado como 'En Ruta' (${ruta.ruta.length} nodos) en ubicación ${ubicacion}`);
         }
         
         const camionEstado: CamionEstado = {

@@ -119,13 +119,13 @@ const determinarUbicacionCamion = (
     // Para camiones no averiados, usar lógica mejorada
     if (anterior?.ubicacion) {
       ubicacion = anterior.ubicacion;
-      console.log(`🔍 DEBUG: Camión ${ruta.id} - Manteniendo ubicación anterior: "${ubicacion}"`);
+      // console.log(`🔍 DEBUG: Camión ${ruta.id} - Manteniendo ubicación anterior: "${ubicacion}"`);
     } else if (ruta.ruta && ruta.ruta.length > 0) {
       ubicacion = ruta.ruta[0];
-      console.log(`🔍 DEBUG: Camión ${ruta.id} - Usando primera posición de ruta: "${ubicacion}"`);
+      // console.log(`🔍 DEBUG: Camión ${ruta.id} - Usando primera posición de ruta: "${ubicacion}"`);
     } else {
       ubicacion = '(8,12)';
-      console.log(`🔍 DEBUG: Camión ${ruta.id} - Sin ruta, usando almacén central: "${ubicacion}"`);
+      // console.log(`🔍 DEBUG: Camión ${ruta.id} - Sin ruta, usando almacén central: "${ubicacion}"`);
     }
   }
   
@@ -489,7 +489,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
           // Si el estado base es "Disponible" pero tiene más de un nodo en la ruta, marcarlo como "En Ruta"
           if (estadoBase === 'Disponible' && ruta.ruta.length > 1) {
             estadoFrontend = 'En Ruta';
-            console.log(`🚛🛣️ ESTADO: Camión ${ruta.id} marcado como 'En Ruta' (${ruta.ruta.length} nodos)`);
+            // console.log(`🚛🛣️ ESTADO: Camión ${ruta.id} marcado como 'En Ruta' (${ruta.ruta.length} nodos)`);
           } else {
             estadoFrontend = estadoBase;
           }
@@ -623,7 +623,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
           // Si el estado base es "Disponible" pero tiene más de un nodo en la ruta, marcarlo como "En Ruta"
           if (estadoBase === 'Disponible' && ruta.ruta.length > 1) {
             estadoFrontend = 'En Ruta';
-            console.log(`🚛🛣️ ESTADO: Camión ${ruta.id} marcado como 'En Ruta' (${ruta.ruta.length} nodos)`);
+            // console.log(`🚛🛣️ ESTADO: Camión ${ruta.id} marcado como 'En Ruta' (${ruta.ruta.length} nodos)`);
           } else {
             estadoFrontend = estadoBase;
           }

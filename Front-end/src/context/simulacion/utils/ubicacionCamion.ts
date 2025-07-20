@@ -18,19 +18,19 @@ export const determinarUbicacionCamion = (
 ): string => {
   // Si ya tiene ubicación anterior, mantenerla (esto evita teletransporte)
   if (anterior?.ubicacion) {
-    console.log(`🔍 DEBUG: Camión ${ruta.id} - Manteniendo ubicación anterior: "${anterior.ubicacion}"`);
+    // console.log(`🔍 DEBUG: Camión ${ruta.id} - Manteniendo ubicación anterior: "${anterior.ubicacion}"`);
     return anterior.ubicacion;
   }
   
   // Si tiene ruta con nodos, usar la primera posición
   if (ruta.ruta && ruta.ruta.length > 0) {
     const ubicacion = ruta.ruta[0];
-    console.log(`🔍 DEBUG: Camión ${ruta.id} - Usando primera posición de ruta: "${ubicacion}"`);
+    // console.log(`🔍 DEBUG: Camión ${ruta.id} - Usando primera posición de ruta: "${ubicacion}"`);
     return ubicacion;
   }
   
   // Si no tiene ruta, usar la coordenada del almacén central
-  console.log(`🔍 DEBUG: Camión ${ruta.id} - Sin ruta, usando almacén central: "(8,12)"`);
+  // console.log(`🔍 DEBUG: Camión ${ruta.id} - Sin ruta, usando almacén central: "(8,12)"`);
   return '(8,12)';
 };
 
@@ -43,12 +43,12 @@ export const determinarUbicacionCamion = (
 export const determinarUbicacionFinalCamion = (ruta: RutaCamion): string => {
   if (ruta.ruta && ruta.ruta.length > 0) {
     const ultimaPosicion = ruta.ruta[ruta.ruta.length - 1];
-    console.log(`🔍 DEBUG: Camión ${ruta.id} - Ubicación final: "${ultimaPosicion}"`);
+    // console.log(`🔍 DEBUG: Camión ${ruta.id} - Ubicación final: "${ultimaPosicion}"`);
     return ultimaPosicion;
   }
   
   // Si no tiene ruta, usar la coordenada del almacén central
-  console.log(`🔍 DEBUG: Camión ${ruta.id} - Sin ruta, ubicación final en almacén central: "(8,12)"`);
+  // console.log(`🔍 DEBUG: Camión ${ruta.id} - Sin ruta, ubicación final en almacén central: "(8,12)"`);
   return '(8,12)';
 };
 
@@ -71,7 +71,7 @@ export const camionConsumioTodosLosNodos = (
   const consumioTodos = camion.porcentaje >= ruta.ruta.length - 1;
   
   if (consumioTodos) {
-    console.log(`🔍 DEBUG: Camión ${camion.id} - Ya consumió todos los nodos (${camion.porcentaje}/${ruta.ruta.length - 1})`);
+    // console.log(`🔍 DEBUG: Camión ${camion.id} - Ya consumió todos los nodos (${camion.porcentaje}/${ruta.ruta.length - 1})`);
   }
   
   return consumioTodos;
