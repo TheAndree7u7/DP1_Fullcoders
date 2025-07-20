@@ -15,6 +15,7 @@ const IndicadoresCamiones: React.FC = () => {
     'En Camino': 0,
     Averiado: 0,
     'En Mantenimiento': 0,
+    'En Mantenimiento Preventivo': 0,
     'En Mantenimiento por Avería': 0,
     Disponible: 0,
   };
@@ -27,7 +28,7 @@ const IndicadoresCamiones: React.FC = () => {
   });
 
   return (
-    <div className="grid grid-cols-6 gap-1 mb-1">
+    <div className="grid grid-cols-7 gap-1 mb-1">
       {/* Camiones Disponibles */}
       <div className="flex flex-col items-center justify-center bg-blue-50 rounded p-1 text-center">
         <div className="bg-blue-100 p-1 rounded">
@@ -53,6 +54,15 @@ const IndicadoresCamiones: React.FC = () => {
         </div>
         <div className="text-[10px] font-medium">Mantenim.</div>
         <div className="text-sm font-bold">{contadorEstados['En Mantenimiento']}</div>
+      </div>
+      
+      {/* Camiones En Mantenimiento Preventivo */}
+      <div className="flex flex-col items-center justify-center bg-amber-50 rounded p-1 text-center">
+        <div className="bg-amber-100 p-1 rounded">
+          <Wrench size={14} className="text-amber-600" />
+        </div>
+        <div className="text-[10px] font-medium">Mant. Prev.</div>
+        <div className="text-sm font-bold">{contadorEstados['En Mantenimiento Preventivo']}</div>
       </div>
       
       {/* Camiones En Mantenimiento por Avería */}

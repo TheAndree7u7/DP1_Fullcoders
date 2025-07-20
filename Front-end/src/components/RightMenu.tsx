@@ -243,6 +243,7 @@ function DatosCamionesTable({ onElementoSeleccionado }: { onElementoSeleccionado
                         `px-4 py-2 font-semibold ` +
                         (camion.estado === 'Averiado' ? 'text-red-600' :
                         camion.estado === 'En Mantenimiento' ? 'text-yellow-600' :
+                        camion.estado === 'En Mantenimiento Preventivo' ? 'text-amber-600' :
                         camion.estado === 'En Mantenimiento por Avería' ? 'text-orange-600' :
                         camion.estado === 'Entregado' ? 'text-emerald-600' :
                         camion.estado === 'Disponible' ? 'text-blue-600' :

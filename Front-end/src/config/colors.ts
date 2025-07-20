@@ -45,6 +45,7 @@ export const CAMION_COLORS = [
 export const ESTADO_COLORS = {
   AVERIADO: '#dc2626',                    // Rojo para averías
   MANTENIMIENTO: '#000000',               // Negro para mantenimiento
+  MANTENIMIENTO_PREVENTIVO: '#f59e0b',    // Ámbar para mantenimiento preventivo
   MANTENIMIENTO_POR_AVERIA: '#ea580c',    // Naranja para mantenimiento por avería
   DEFAULT: '#3b82f6'                      // Azul por defecto
 } as const;
@@ -61,6 +62,8 @@ export const getCamionColorByState = (estado: string, index: number): string => 
       return ESTADO_COLORS.AVERIADO;
     case 'En Mantenimiento':
       return ESTADO_COLORS.MANTENIMIENTO;
+    case 'En Mantenimiento Preventivo':
+      return ESTADO_COLORS.MANTENIMIENTO_PREVENTIVO;
     case 'En Mantenimiento por Avería':
       return ESTADO_COLORS.MANTENIMIENTO_POR_AVERIA;
     default:

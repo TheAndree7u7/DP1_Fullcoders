@@ -135,6 +135,7 @@ const CardsCamiones: React.FC = () => {
                       camion.estado === 'Averiado' ? 'bg-red-100 text-red-800' : 
                       camion.estado === 'Disponible' ? 'bg-blue-100 text-blue-800' : 
                       camion.estado === 'En Mantenimiento' ? 'bg-yellow-100 text-yellow-800' : 
+                      camion.estado === 'En Mantenimiento Preventivo' ? 'bg-amber-100 text-amber-800' : 
                       camion.estado === 'En Mantenimiento por Avería' ? 'bg-orange-100 text-orange-800' : 
                       'bg-blue-100 text-blue-800'}`}
                 >

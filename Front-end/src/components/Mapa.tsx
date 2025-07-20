@@ -567,10 +567,14 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                  const estadoCamion = camiones.find(c => c.id === camion.id);
                  const esAveriado = estadoCamion?.estado === 'Averiado';
                  const esEnMantenimiento = estadoCamion?.estado === 'En Mantenimiento';
+                 const esEnMantenimientoPreventivo = estadoCamion?.estado === 'En Mantenimiento Preventivo';
                  const esResaltado = elementoResaltado?.tipo === 'camion' && elementoResaltado?.id === camion.id;
                  const { posicion, rotacion, color } = camion;
-                 // Rojo para averiados, negro para mantenimiento, color original para otros estados
-                 const colorFinal = esAveriado ? ESTADO_COLORS.AVERIADO : esEnMantenimiento ? ESTADO_COLORS.MANTENIMIENTO : color;
+                 // Rojo para averiados, negro para mantenimiento, ámbar para mantenimiento preventivo, color original para otros estados
+                 const colorFinal = esAveriado ? ESTADO_COLORS.AVERIADO : 
+                                   esEnMantenimiento ? ESTADO_COLORS.MANTENIMIENTO : 
+                                   esEnMantenimientoPreventivo ? ESTADO_COLORS.MANTENIMIENTO_PREVENTIVO : 
+                                   color;
                  const cx = posicion.x * CELL_SIZE;
                  const cy = posicion.y * CELL_SIZE;
                  return (

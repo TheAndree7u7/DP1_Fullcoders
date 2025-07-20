@@ -82,14 +82,16 @@ import { esValorValido } from "../utils/validacionCamiones";
  * @function mapearEstadoBackendAFrontend
  * @description Mapea los estados del backend a los estados del frontend
  */
-const mapearEstadoBackendAFrontend = (estadoBackend: string | undefined): "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "Entregado" | "En Mantenimiento por Avería" => {
+const mapearEstadoBackendAFrontend = (estadoBackend: string | undefined): "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "En Mantenimiento Preventivo" | "En Mantenimiento por Avería" | "Entregado" => {
   if (estadoBackend === 'DISPONIBLE') {
     return 'Disponible';
   } else if (estadoBackend === 'EN_MANTENIMIENTO_POR_AVERIA') {
-    return 'En Mantenimiento por Avería'; // Los camiones en mantenimiento por avería no aparecen en el mapa
+    return 'En Mantenimiento por Avería';
+  } else if (estadoBackend === 'EN_MANTENIMIENTO_PREVENTIVO') {
+    return 'En Mantenimiento Preventivo';
   } else if (estadoBackend === 'INMOVILIZADO_POR_AVERIA') {
     return 'Averiado';
-  } else if (estadoBackend === 'EN_MANTENIMIENTO' || estadoBackend === 'EN_MANTENIMIENTO_PREVENTIVO' || estadoBackend === 'EN_MANTENIMIENTO_CORRECTIVO') {
+  } else if (estadoBackend === 'EN_MANTENIMIENTO' || estadoBackend === 'EN_MANTENIMIENTO_CORRECTIVO') {
     return 'En Mantenimiento';
   } else {
     return 'En Camino';
