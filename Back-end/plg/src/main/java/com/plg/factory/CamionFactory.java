@@ -10,6 +10,7 @@ import com.plg.entity.Coordenada;
 import com.plg.entity.EstadoCamion;
 import com.plg.entity.TipoCamion;
 import com.plg.entity.TipoNodo;
+import com.plg.utils.Parametros;
 
 /**
  * Patrón fábrica para crear camiones operativos y averiados.
@@ -65,7 +66,7 @@ public class CamionFactory {
                 .pesoCombinado(tara + pesoCarga)
                 .combustibleActual(combustibleInicial)
                 .combustibleMaximo(25)
-                .velocidadPromedio(50.0)
+                .velocidadPromedio(Parametros.velocidadCamion)
                 .estado(EstadoCamion.DISPONIBLE)
                 .coordenada(coordenada)
                 .bloqueado(false)
@@ -102,7 +103,7 @@ public class CamionFactory {
                 .pesoCarga(pesoCarga)
                 .pesoCombinado(tara + pesoCarga)
                 .combustibleActual(0)
-                .velocidadPromedio(50.0)
+                .velocidadPromedio(Parametros.velocidadCamion)
                 .estado(EstadoCamion.INMOVILIZADO_POR_AVERIA)
                 .coordenada(coordenada)
                 .bloqueado(false)

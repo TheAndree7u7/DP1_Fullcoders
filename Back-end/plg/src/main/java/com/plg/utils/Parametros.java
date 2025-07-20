@@ -22,8 +22,10 @@ public class Parametros {
     public static TipoDeSimulacion tipoDeSimulacion = TipoDeSimulacion.SEMANAL;
     public static LocalDateTime fecha_inicio_simulacion;
 
-    public static int cantNodosEnPedidos =  6; // Cantidad de nodos generados extra por un pedido
+    public static int cantNodosEnPedidos =  3; // Cantidad de nodos generados extra por un pedido
     public static double diferenciaParaPedidoEntregado = 0.5; // Diferencia para considerar un pedido como entregado
+
+    public static double velocidadCamion = 70.0; // Velocidad promedio de los camiones en km/h
 
     public static Parametros getInstance() {
         if (instance == null) {

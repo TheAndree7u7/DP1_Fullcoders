@@ -11,12 +11,12 @@ import type { Pedido, Individuo, Almacen, Coordenada } from "../../types";
 export const HORAS_POR_ACTUALIZACION = 1; // 1 hora = 60 minutos por intervalo
 export const HORA_INICIAL = 0;
 export const HORA_PRIMERA_ACTUALIZACION = 0;
-export const NODOS_PARA_ACTUALIZACION = 50; // 50 nodos por intervalo de 60 minutos
+export const NODOS_PARA_ACTUALIZACION = 70; // 70 nodos por intervalo de 60 minutos
 export const INCREMENTO_PORCENTAJE = 1;
 
 // Calcular segundos por nodo de manera consistente
-// 60 minutos = 3600 segundos divididos en 50 nodos = 72 segundos por nodo
-export const SEGUNDOS_POR_NODO = (HORAS_POR_ACTUALIZACION * 60 * 60) / NODOS_PARA_ACTUALIZACION; // 72 segundos
+// 60 minutos = 3600 segundos divididos en 70 nodos = 51.43 segundos por nodo
+export const SEGUNDOS_POR_NODO = (HORAS_POR_ACTUALIZACION * 60 * 60) / NODOS_PARA_ACTUALIZACION; // 51.43 segundos
 
 /**
  * @interface CamionEstado
