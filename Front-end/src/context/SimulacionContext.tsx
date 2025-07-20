@@ -143,6 +143,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     useState<boolean>(false);
   const [proximaSolucionCargada, setProximaSolucionCargada] =
     useState<IndividuoConBloqueos | null>(null);
+  const [primerPaqueteCargado, setPrimerPaqueteCargado] = useState<boolean>(false);
   
   // Estados de fechas y tiempo
   const [fechaHoraSimulacion, setFechaHoraSimulacion] = useState<string | null>(null);
@@ -301,15 +302,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Polling automático para obtener el primer paquete después de iniciar la simulación
   useEffect(() => {
-    if (!pollingActivo || !simulacionActiva) return;
-
-    // CRÍTICO: Verificar si ya tenemos datos cargados para evitar polling duplicado
-    if (camiones.length > 0 && rutasCamiones.length > 0) {
-      console.log("🛑 POLLING: Ya hay datos cargados, evitando polling duplicado");
-      setPollingActivo(false);
-      setCargando(false);
-      return;
-    }
+    if (!pollingActivo || !simulacionActiva || primerPaqueteCargado) return;
 
     console.log("🔄 POLLING: Iniciando polling para primer paquete...");
     const cleanup = ejecutarPollingPrimerPaquete(
@@ -320,12 +313,13 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         await aplicarSolucionPrecargada(data);
         setHoraActual(HORA_PRIMERA_ACTUALIZACION);
         setCargando(false);
+        setPrimerPaqueteCargado(true); // Marcar como cargado para evitar polling duplicado
         console.log("🎉 POLLING: Primer paquete aplicado exitosamente al mapa desde la hora", HORA_PRIMERA_ACTUALIZACION);
       }
     );
 
     return cleanup;
-  }, [pollingActivo, simulacionActiva, fechaInicioSimulacion, camiones.length, rutasCamiones.length]);
+  }, [pollingActivo, simulacionActiva, fechaInicioSimulacion, primerPaqueteCargado]);
 
   // Monitoreo de cambios en datos de camiones para detectar inconsistencias
   useEffect(() => {
@@ -902,6 +896,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         setSimulacionActiva,
         setPollingActivo,
         setCargando,
+        setPrimerPaqueteCargado,
         fechaInicioSimulacion
       );
 
@@ -947,6 +942,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         setSimulacionActiva,
         setPollingActivo,
         setCargando,
+        setPrimerPaqueteCargado,
         fechaInicioSimulacion
       );
 
@@ -985,6 +981,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setSimulacionActiva,
       setPollingActivo,
       setCargando,
+      setPrimerPaqueteCargado,
       fechaInicioSimulacion
     );
   };
@@ -1016,7 +1013,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setPaqueteActualConsumido,
       setSimulacionActiva,
       setPollingActivo,
-      setCargando
+      setCargando,
+      setPrimerPaqueteCargado
     );
   };
 

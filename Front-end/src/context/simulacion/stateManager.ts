@@ -42,6 +42,7 @@ export const limpiarEstadoParaNuevaSimulacion = (
   setSimulacionActiva: (activa: boolean) => void,
   setPollingActivo: (activo: boolean) => void,
   setCargando: (cargando: boolean) => void,
+  setPrimerPaqueteCargado: (cargado: boolean) => void,
   fechaInicioSimulacion: string | null
 ): void => {
   console.log("🧹 LIMPIEZA: Limpiando estado para nueva simulación...");
@@ -73,8 +74,9 @@ export const limpiarEstadoParaNuevaSimulacion = (
   setTiempoRealSimulacion("00:00:00");
   setSimulacionActiva(true);
 
-  // Detener cualquier polling anterior
+  // Detener cualquier polling anterior y resetear bandera de primer paquete
   setPollingActivo(false);
+  setPrimerPaqueteCargado(false);
 
   console.log("✅ LIMPIEZA: Estado limpio, manteniendo fecha de inicio de simulación semanal:", fechaInicioSimulacion);
 
@@ -113,7 +115,8 @@ export const limpiarSimulacionCompleta = (
   setPaqueteActualConsumido: (paquete: number) => void,
   setSimulacionActiva: (activa: boolean) => void,
   setPollingActivo: (activo: boolean) => void,
-  setCargando: (cargando: boolean) => void
+  setCargando: (cargando: boolean) => void,
+  setPrimerPaqueteCargado: (cargado: boolean) => void
 ): void => {
   console.log("🧹 LIMPIEZA COMPLETA: Limpiando toda la simulación incluyendo fecha de inicio...");
 
@@ -139,10 +142,11 @@ export const limpiarSimulacionCompleta = (
   setProximaSolucionCargada(null);
   setPaqueteActualConsumido(0);
 
-  // Detener simulación
+  // Detener simulación y resetear bandera de primer paquete
   setSimulacionActiva(false);
   setPollingActivo(false);
   setCargando(false);
+  setPrimerPaqueteCargado(false);
 
   console.log("✅ LIMPIEZA COMPLETA: Simulación completamente limpiada, lista para nueva simulación semanal");
 }; 
