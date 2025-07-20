@@ -95,17 +95,7 @@ public class Camion extends Nodo {
             return this.distanciaMaxima;
         }
 
-        // Fórmula corregida para distancia máxima (rendimiento mejorado)
-        // Rendimiento base: 15 km/galón, ajustado por peso
-        double rendimientoBase = 15.0; // km por galón
-        double factorPeso = Math.max(0.3, 10.0 / pesoTotal); // Factor que reduce el rendimiento con más peso
-        double rendimientoReal = rendimientoBase * factorPeso;
-
-        this.distanciaMaxima = combustibleActual * rendimientoReal;
-
-        // Asegurar un mínimo razonable
-        this.distanciaMaxima = Math.max(this.distanciaMaxima, 10.0);
-
+        this.distanciaMaxima = (combustibleActual * 250) / (tara + pesoCarga);
         return this.distanciaMaxima;
     }
 
@@ -138,8 +128,7 @@ public class Camion extends Nodo {
             // Si alguna de las averias
             // Comparamos si alguna de las averías tiene un tiempo igual a la fecha actual
             if (averias.stream().anyMatch(a -> a.getFechaHoraReporte().isEqual(Parametros.fecha_inicial))) {
-                // Entonces la avería surgio por primera vez
-                // Por tanto es necesario realizar el movimiento de los camiones
+
                 cantNodos = calcularCantidadDeNodos();
             } else {
                 // El camion ya ha sido averiado con anterioridad
@@ -201,8 +190,6 @@ public class Camion extends Nodo {
             }
         }
 
-        // Si ya regresé al almacén central, actualizo el combustible del camión
-        // y la carga de GLP
         if (intermedio >= 0 && intermedio < gen.getRutaFinal().size() &&
                 gen.getRutaFinal().get(intermedio).getTipoNodo() == TipoNodo.ALMACEN) {
             Almacen almacen = (Almacen) gen.getRutaFinal().get(intermedio);
@@ -218,8 +205,6 @@ public class Camion extends Nodo {
             Mapa.getInstance().setNodo(pedido.getCoordenada(),
                     new Nodo(pedido.getCoordenada(), false, 0, 0, TipoNodo.NORMAL));
         }
-
-        // Calcular la distancia máxima que puede recorrer el camión
         calcularDistanciaMaxima();
     }
 
@@ -252,7 +237,7 @@ public class Camion extends Nodo {
         }
 
         // Si ya se entregó todo el GLP, marcar como entregado y actualizar sets
-        if (Math.abs(pedido.getVolumenGLPEntregado() - pedido.getVolumenGLPAsignado()) < 0.001) {
+        if (Math.abs(pedido.getVolumenGLPEntregado() - pedido.getVolumenGLPAsignado()) < Parametros.diferenciaParaPedidoEntregado) {
             pedido.setEstado(EstadoPedido.ENTREGADO);
             pedidosEntregados.add(pedido);
             pedidosPlanificados.remove(pedido);
@@ -273,10 +258,10 @@ public class Camion extends Nodo {
                 if(pedido.getEstado() == EstadoPedido.ENTREGADO) {
                     suma += 1; // Pedido ya entregado
                 }else{
-                    suma += 12; // Pedido
+                    suma += Parametros.cantNodosEnPedidos; // Pedido
                 }
             } else if (nodo instanceof Camion && gen.getCamionesAveriados().contains(nodo)) {
-                suma += 12; // Camión averiado
+                suma += Parametros.cantNodosEnPedidos; // Camión averiado
             } else {
                 suma += 1; // Otros nodos
             }

@@ -73,13 +73,6 @@ public class Gen {
         for (int i = 0; i < nodos.size(); i++) {
             Nodo destino = nodos.get(i);
             List<Nodo> rutaAstar = Mapa.getInstance().aStar(posicionActual, destino);
-            // double distanciaCalculada = rutaAstar.size();
-            // double distanciaMaxima = camion.calcularDistanciaMaxima();
-            // if (distanciaMaxima < distanciaCalculada) {
-            //     fitness = Double.POSITIVE_INFINITY;
-            //     this.descripcion = descripcionDistanciaLejana(distanciaMaxima, distanciaCalculada, posicionActual, destino);
-            //     break;
-            // }
             if (destino instanceof Pedido) {
                 ResultadoEntrega resultado = procesarEntregaPedido((Pedido) destino, rutaAstar, fechaLlegada, fitness, posicionActual, i);
                 fitness = resultado.fitness;
@@ -114,7 +107,7 @@ public class Gen {
         double glpPorPedido = camion.getCapacidadActualGLP() / cantidadPedidosAsignados;
         double volumenPendiente = pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado();
         double volumenAEntregar = Math.min(glpPorPedido, volumenPendiente);
-        boolean entregadoCompleto = (pedido.getVolumenGLPEntregado() + volumenAEntregar) >= pedido.getVolumenGLPAsignado();
+        boolean entregadoCompleto = (pedido.getVolumenGLPEntregado() + volumenAEntregar) >= pedido.getVolumenGLPAsignado() - Parametros.diferenciaParaPedidoEntregado;
         if (dentroDeLimite) {
             fitness += rutaAstar.size();
             camion.actualizarCombustible(rutaAstar.size());
@@ -165,7 +158,7 @@ public class Gen {
                     rutaApi.add(nodo);
                 } else {
                     // Agregamos 12 veces el pedido si no ha sido entregado
-                    for (int j = 0; j < 12; j++) {
+                    for (int j = 0; j < Parametros.cantNodosEnPedidos; j++) {
                         rutaApi.add(nodo);
                     }
                 }
@@ -173,7 +166,7 @@ public class Gen {
                 Camion camion = (Camion) nodo;
                 if (camion.getEstado() == EstadoCamion.INMOVILIZADO_POR_AVERIA) {
                     // Si el camión está averiado, lo agregamos 12 veces
-                    for (int j = 0; j < 12; j++) {
+                    for (int j = 0; j < Parametros.cantNodosEnPedidos; j++) {
                         rutaApi.add(nodo);
                     }
                 } else {
