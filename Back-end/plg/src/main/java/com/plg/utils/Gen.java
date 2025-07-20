@@ -8,6 +8,7 @@ import com.plg.utils.Simulacion;
 
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
+import com.plg.entity.Coordenada;
 import com.plg.entity.EstadoCamion;
 import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
@@ -157,7 +158,6 @@ public class Gen {
                     // Si el pedido ya ha sido entregado, lo agregamos una sola vez
                     rutaApi.add(nodo);
                 } else {
-                    // Agregamos 12 veces el pedido si no ha sido entregado
                     for (int j = 0; j < Parametros.cantNodosEnPedidos; j++) {
                         rutaApi.add(nodo);
                     }
@@ -165,7 +165,6 @@ public class Gen {
             } else if (nodo instanceof Camion && this.getCamionesAveriados().contains(nodo)) {
                 Camion camion = (Camion) nodo;
                 if (camion.getEstado() == EstadoCamion.INMOVILIZADO_POR_AVERIA) {
-                    // Si el camión está averiado, lo agregamos 12 veces
                     for (int j = 0; j < Parametros.cantNodosEnPedidos; j++) {
                         rutaApi.add(nodo);
                     }
@@ -176,6 +175,16 @@ public class Gen {
             } else {
                 // Si es un nodo normal, lo agregamos una sola vez
                 rutaApi.add(nodo);
+            }
+        }
+        // Si vemos que la ruta es menor a Parametros.velocidadCamion
+        // completamos con nodos copia
+        // ultimo nodo
+        Coordenada ultimaCoordenada = rutaApi.get(rutaApi.size() - 1).getCoordenada();
+        if (rutaApi.size() < Parametros.velocidadCamion) {
+            int nodosFaltantes = (int) Parametros.velocidadCamion - rutaApi.size();
+            for (int i = 0; i < nodosFaltantes; i++) {
+                rutaApi.add(new Nodo(ultimaCoordenada));
             }
         }
         return rutaApi;

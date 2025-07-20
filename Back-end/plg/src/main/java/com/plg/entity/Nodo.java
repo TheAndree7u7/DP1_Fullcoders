@@ -30,6 +30,10 @@ public class Nodo {
         this.fScore = fScore;
     }
 
+    public Nodo(Coordenada coordenada) {
+        this.coordenada = coordenada;
+    }
+
     @Override
     public String toString() {
         return String.format(
