@@ -104,6 +104,11 @@ public class Almacen extends Nodo {
         return true;
     }
 
+    public boolean recargarCombustible(Camion camion){
+        // Todos los almacenes tiene combustible infinito
+        camion.setCombustibleActual(camion.getCombustibleMaximo());
+        return true;
+    }
 
     @Override
     public String toString() {
