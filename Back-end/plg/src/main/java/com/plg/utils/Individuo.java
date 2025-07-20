@@ -12,6 +12,7 @@ import com.plg.entity.Camion;
 import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
+import com.plg.entity.TipoAlmacen;
 import com.plg.entity.TipoCamion;
 import com.plg.entity.EstadoCamion;
 import lombok.AllArgsConstructor;
@@ -107,7 +108,7 @@ public class Individuo {
         for (Camion camion : camionesDisponibles) {
             double distanciaCamion = 0;
             // Validación si el camión tiene poco GLP disponible
-            if (camion.getCapacidadActualGLP() < 5) {
+            if (camion.getCapacidadActualGLP() < 3) {
                 // Priorizamos los camiones averiados
                 double distanciaTotal = planificarCamionesAveriados(camionesAveriados, camion);
                 if (distanciaTotal < 0) {
@@ -153,6 +154,8 @@ public class Individuo {
             }
             pedidosOrdenados.removeIf(p -> Math.abs(p.getVolumenGLPAsignado() - p.getVolumenGLPEntregado()) < Parametros.diferenciaParaPedidoEntregado);
         }
+        // 
+        
         restaurarEstadoActual();
 
     }
@@ -197,42 +200,24 @@ public class Individuo {
     }
 
     public double planificarAlmacenSecundarioCercano(List<Almacen> almacenes, Camion camion) {
-        // Puede que algunos de los almacenes ya no exista
-        // !Si el camion esta en el almacen central, no se puede planificar
-        // Almacen almacenCentral = almacenes.get(0);
-        // double distanciaAlCentral = Mapa.calcularDistancia(camion.getCoordenada(),
-        // almacenCentral.getCoordenada());
 
-        // // Si el camión está relativamente cerca del central, priorizar ir al central
-        // double umbralDistancia = 10.0; // Ajusta este valor según tus necesidades
-        // if (distanciaAlCentral <= umbralDistancia &&
-        // almacenCentral.getCapacidadActualGLP() > 0) {
-        // // Ir directamente al almacén central
-        // Gen gen = cromosoma.stream()
-        // .filter(g ->
-        // g.getCamion().getCodigo().equals(camion.getCodigo())).findFirst().orElse(null);
-        // if (gen != null) {
-        // gen.getNodos().add(almacenCentral);
-        // gen.getAlmacenesIntermedios().add(almacenCentral);
-        // }
-        // almacenCentral.recargarGlPCamion(camion);
-        // return distanciaAlCentral;
-        // }
-        // !Si el camion esta en el almacen central, no se puede planificar
         Almacen almacenCercano = null;
 
         if (almacenes.size() == 3) {
-            almacenCercano = Mapa.calcularDistancia(camion.getCoordenada(),
-                    almacenes.get(1).getCoordenada()) < Mapa.calcularDistancia(camion.getCoordenada(),
-                            almacenes.get(2).getCoordenada())
-                                    ? almacenes.get(1)
-                                    : almacenes.get(2);
+            // Calculamos el menor entre los tres almacenes: 
+            double distancia1 = Mapa.calcularDistancia(camion.getCoordenada(), almacenes.get(0).getCoordenada());
+            double distancia2 = Mapa.calcularDistancia(camion.getCoordenada(), almacenes.get(1).getCoordenada());
+            double distancia3 = Mapa.calcularDistancia(camion.getCoordenada(), almacenes.get(2).getCoordenada());
+            almacenCercano = distancia1 < distancia2 ? (distancia1 < distancia3 ? almacenes.get(0) : almacenes.get(2))
+                    : (distancia2 < distancia3 ? almacenes.get(1) : almacenes.get(2));
         } else if (almacenes.size() == 2) {
-            // Si hay dos almacenes, planificamos al más cercano
-            almacenCercano = almacenes.get(1);
+            // Calculamos el menor entre los dos almacenes: 
+            double distancia1 = Mapa.calcularDistancia(camion.getCoordenada(), almacenes.get(0).getCoordenada());
+            double distancia2 = Mapa.calcularDistancia(camion.getCoordenada(), almacenes.get(1).getCoordenada());
+            almacenCercano = distancia1 < distancia2 ? almacenes.get(0) : almacenes.get(1);
         } else {
-            // Si solo hay un almacén, no podemos planificar
-            return -1;
+            // Solo hay un almacén, lo asignamos directamente
+            almacenCercano = almacenes.get(0);
         }
         // Calcular distancia total: hasta el almacén cercano y regreso al central
         double distanciaAlmacenCercano = Mapa.calcularDistancia(camion.getCoordenada(),
@@ -254,6 +239,7 @@ public class Individuo {
             }
         }
         almacenCercano.recargarGlPCamion(camion);
+        almacenCercano.recargarCombustible(camion);
         if (almacenCercano.getCapacidadActualGLP() <= 0) {
             almacenes.remove(almacenCercano);
         }
