@@ -75,6 +75,7 @@ public class SimulacionController {
             System.out.println("⚠️ Advertencia: La simulación no ha sido iniciada. Iniciando simulación...");
             Simulacion.configurarSimulacionSemanal(fechaDateTime);
             simulacionIniciada = true; // Marcar que la simulación ha sido iniciada
+            Parametros.fecha_inicio_simulacion = fechaDateTime;
         } else {
             System.out.println("✅ Continuando con la fecha: " + fechaDateTime);
         }
