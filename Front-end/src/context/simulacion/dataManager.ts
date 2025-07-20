@@ -14,9 +14,11 @@ import type { Almacen, Pedido } from "../../types";
 import type { Gen, Nodo } from "../../types";
 
 // Función de mapeo de estados (duplicada aquí para evitar dependencias circulares)
-const mapearEstadoBackendAFrontend = (estadoBackend: string | undefined): "Disponible" | "Averiado" | "En Mantenimiento" | "En Mantenimiento Preventivo" | "En Mantenimiento por Avería" => {
+const mapearEstadoBackendAFrontend = (estadoBackend: string | undefined): "Disponible" | "Averiado" | "En Mantenimiento" | "En Mantenimiento Preventivo" | "En Mantenimiento por Avería" | "En Ruta" => {
   if (estadoBackend === 'DISPONIBLE') {
     return 'Disponible';
+  } else if (estadoBackend === 'EN_RUTA') {
+    return 'En Ruta';
   } else if (estadoBackend === 'EN_MANTENIMIENTO_POR_AVERIA') {
     return 'En Mantenimiento por Avería';
   } else if (estadoBackend === 'EN_MANTENIMIENTO_PREVENTIVO') {
@@ -145,11 +147,18 @@ export const cargarDatos = async (
           console.error(`❌ ERROR: Ruta ${ruta.id} está vacía:`, ruta);
         }
         
-        // Verificar si el camión está en el almacén central (posición 0,0)
-        const ubicacion = ruta.ruta[0] || '(0,0)';
+        // Determinar la ubicación del camión basándose en su ruta
+        const ubicacion = ruta.ruta && ruta.ruta.length > 0 ? ruta.ruta[0] : '(0,0)';
         
-        // Mapear estados del backend al frontend
-        const estadoFrontend = mapearEstadoBackendAFrontend(camion?.estado);
+        // Determinar el estado del camión basándose en la ruta y el estado del backend
+        const estadoBase = mapearEstadoBackendAFrontend(camion?.estado);
+        
+        // Si el estado base es "Disponible" pero tiene más de un nodo en la ruta, marcarlo como "En Ruta"
+        let estadoFrontend = estadoBase;
+        if (estadoBase === 'Disponible' && ruta.ruta.length > 1) {
+          estadoFrontend = 'En Ruta';
+          console.log(`🚛🛣️ ESTADO: Camión ${ruta.id} marcado como 'En Ruta' (${ruta.ruta.length} nodos) en ubicación ${ubicacion}`);
+        }
         
         const camionEstado: CamionEstado = {
           id: ruta.id,
