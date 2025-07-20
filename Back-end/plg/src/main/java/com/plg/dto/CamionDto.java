@@ -22,6 +22,8 @@ public class CamionDto {
         // Combustible
     private double combustibleMaximo;   // Capacidad del tanque en galones
     private double combustibleActual;        // Combustible actual en galones
+
+        
     private double velocidadPromedio; // Velocidad promedio en km/h
 
     // Consumo de combustible

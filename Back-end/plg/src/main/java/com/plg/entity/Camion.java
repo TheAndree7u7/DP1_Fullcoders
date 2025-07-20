@@ -166,6 +166,7 @@ public class Camion extends Nodo {
             }else if(nodo instanceof Almacen && gen.getAlmacenesIntermedios().contains(nodo)) {
                 Almacen almacen = (Almacen) nodo;
                 almacen.recargarGlPCamion(this);
+                almacen.recargarCombustible(this);
             }else {
                 if (nodo instanceof Camion && gen.getCamionesAveriados().contains(nodo)) {
                     Camion camionRecarga = (Camion) nodo;

@@ -108,7 +108,7 @@ public class Individuo {
         for (Camion camion : camionesDisponibles) {
             double distanciaCamion = 0;
             // Validación si el camión tiene poco GLP disponible
-            if (camion.getCapacidadActualGLP() < 3) {
+            if (camion.getCapacidadActualGLP() < 4) {
                 // Priorizamos los camiones averiados
                 double distanciaTotal = planificarCamionesAveriados(camionesAveriados, camion);
                 if (distanciaTotal < 0) {
@@ -135,11 +135,12 @@ public class Individuo {
             if (seleccionados.isEmpty())
                 break;
 
-            distanciaCamion += calculoDistanciaTotalRecorrido(camion, seleccionados);
+            distanciaCamion += calculoDistanciaTotalRecorridoPedidos(camion, seleccionados);
             if (distanciaCamion > camion.calcularDistanciaMaxima()) {
                 continue; // No asignar si el camión no puede cubrir la distancia total
             }
-
+            // Evaluamos si del pedido más lejano/ el último de seleccionados pues esta ordenado
+            // se puede llegar a algún almacén 
             double glpPorPedido = camion.getCapacidadActualGLP() / seleccionados.size();
             for (Pedido pedido : seleccionados) {
                 double pendiente = pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado();
@@ -152,6 +153,8 @@ public class Individuo {
                     gen.getNodos().add(pedido);
                 }
             }
+            
+
             pedidosOrdenados.removeIf(p -> Math.abs(p.getVolumenGLPAsignado() - p.getVolumenGLPEntregado()) < Parametros.diferenciaParaPedidoEntregado);
         }
         // 
@@ -192,8 +195,7 @@ public class Individuo {
         }
         camionAveriado.recargarGlPSiAveriado(camion);
         if (camionAveriado.getCapacidadActualGLP() <= 0) {
-            // Si el camión averiado no tiene GLP, lo removemos de la lista de camiones
-            // averiados
+   
             camionesAveriados.remove(camionAveriado);
         }
         return distanciaTotal; // Retorna la distancia total del recorrido
@@ -227,7 +229,7 @@ public class Individuo {
         double distanciaTotal = distanciaAlmacenCercano + distanciaRegreso;
         // Verificar si el camión puede realizar el recorrido
         boolean valido2 = almacenCercano.getCapacidadActualGLP() > 0;
-        // Ahora debemos validar que dicho almacen tenga GLP suficiente
+       
         if (distanciaTotal > camion.calcularDistanciaMaxima() || !valido2) {
             return -1;
         } else {
@@ -259,7 +261,7 @@ public class Individuo {
         return seleccionados;
     }
 
-    private double calculoDistanciaTotalRecorrido(Camion camion, List<Pedido> seleccionados) {
+    private double calculoDistanciaTotalRecorridoPedidos(Camion camion, List<Pedido> seleccionados) {
         seleccionados.sort((p1, p2) -> {
             double distanciaP1 = Mapa.calcularDistancia(camion.getCoordenada(), p1.getCoordenada());
             double distanciaP2 = Mapa.calcularDistancia(camion.getCoordenada(), p2.getCoordenada());
@@ -267,13 +269,11 @@ public class Individuo {
         });
 
         // Verificamos si el camion tiene suficiente combustible para llegar a todos los
-        // pedidos y volver al almacen central
+        // pedidos
         double distanciaTotal = 0;
         for (Pedido pedido : seleccionados) {
             distanciaTotal += Mapa.calcularDistancia(camion.getCoordenada(), pedido.getCoordenada());
         }
-        Almacen almacenCentral = Parametros.dataLoader.almacenes.get(0);
-        distanciaTotal += Mapa.calcularDistancia(almacenCentral.getCoordenada(), camion.getCoordenada());
         return distanciaTotal;
     }
 
