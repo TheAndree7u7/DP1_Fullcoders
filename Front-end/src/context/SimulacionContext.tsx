@@ -447,7 +447,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         const estaEnAlmacenCentral = ubicacion === '(0,0)' || ubicacion === '(0, 0)';
         
         // Mapear estados del backend al frontend
-        let estadoFrontend: "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "Entregado" | "En Mantenimiento por Avería";
+        let estadoFrontend: "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "En Mantenimiento Preventivo" | "Entregado" | "En Mantenimiento por Avería";
         
         if (anterior && anterior.estado === "Averiado") {
           // Si el camión estaba averiado, mantenerlo como averiado pero en nueva posición
@@ -591,7 +591,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         const estaEnAlmacenCentral = ubicacion === '(0,0)' || ubicacion === '(0, 0)';
         
         // Mapear estados del backend al frontend
-        let estadoFrontend: "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "Entregado" | "En Mantenimiento por Avería";
+        let estadoFrontend: "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "En Mantenimiento Preventivo" | "Entregado" | "En Mantenimiento por Avería";
         
         if (anterior && anterior.estado === "Averiado") {
           // Si el camión estaba averiado, mantenerlo como averiado pero en nueva posición
