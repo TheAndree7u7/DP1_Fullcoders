@@ -79,15 +79,17 @@ export const capturarEstadoCompleto = (estadoActual: {
  * @returns {string} Resumen legible del estado
  */
 export const generarResumenEstado = (estado: EstadoSimulacionCompleto): string => {
-  const camionesEnCamino = estado.camiones.filter(c => c.estado === "En Camino").length;
+  const camionesDisponibles = estado.camiones.filter(c => c.estado === "Disponible").length;
   const camionesAveriados = estado.camiones.filter(c => c.estado === "Averiado").length;
-  const camionesEntregados = estado.camiones.filter(c => c.estado === "Entregado").length;
+  const camionesEnMantenimiento = estado.camiones.filter(c => c.estado === "En Mantenimiento").length;
+  const camionesEnMantenimientoPreventivo = estado.camiones.filter(c => c.estado === "En Mantenimiento Preventivo").length;
+  const camionesEnMantenimientoPorAveria = estado.camiones.filter(c => c.estado === "En Mantenimiento por Avería").length;
   
   const totalPedidos = estado.rutasCamiones.reduce((total, ruta) => total + ruta.pedidos.length, 0);
   
   return `Estado al ${estado.timestamp}:
   🕐 Hora actual: ${estado.horaActual} | Hora simulación: ${estado.horaSimulacion}
-  🚛 Camiones: ${estado.camiones.length} total (${camionesEnCamino} en camino, ${camionesAveriados} averiados, ${camionesEntregados} entregados)
+  🚛 Camiones: ${estado.camiones.length} total (${camionesDisponibles} disponibles, ${camionesAveriados} averiados, ${camionesEnMantenimiento} en mantenimiento, ${camionesEnMantenimientoPreventivo} en mantenimiento preventivo, ${camionesEnMantenimientoPorAveria} en mantenimiento por avería)
   📦 Pedidos: ${totalPedidos} total
   🏪 Almacenes: ${estado.almacenes.length}
   🚧 Bloqueos: ${estado.bloqueos.length}`;

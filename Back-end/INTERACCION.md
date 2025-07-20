@@ -128,15 +128,32 @@ Este documento detalla la interacción entre el frontend (React/TypeScript) y el
 
      const siguientePaso = camion.porcentaje + INCREMENTO_PORCENTAJE;
      const rutaLength = ruta.ruta.length;
+     const nuevaUbicacion = ruta.ruta[siguientePaso];
 
      if (siguientePaso >= rutaLength) {
-       return { ...camion, estado: 'Entregado', porcentaje: rutaLength - 1 };
+       // Verificar si realmente está entregado (todos los pedidos + en almacén central + GLP vacío)
+       const todosLosPedidosEntregados = ruta.pedidos.every(pedido => {
+         const indicePedidoEnRuta = ruta.ruta.findIndex(nodo => 
+           parseCoord(nodo).x === pedido.coordenada.x && 
+           parseCoord(nodo).y === pedido.coordenada.y
+         );
+         return indicePedidoEnRuta <= siguientePaso;
+       });
+       
+       const estaEnAlmacenCentral = nuevaUbicacion === '(0,0)' || nuevaUbicacion === '(0, 0)';
+       const glpVacio = camion.capacidadActualGLP <= 0.1;
+       
+       if (todosLosPedidosEntregados && estaEnAlmacenCentral && glpVacio) {
+         return { ...camion, estado: 'Entregado', porcentaje: rutaLength - 1 };
+       } else {
+         return { ...camion, estado: 'En Camino', porcentaje: rutaLength - 1, ubicacion: nuevaUbicacion };
+       }
      }
 
      return {
        ...camion,
        porcentaje: siguientePaso,
-       ubicacion: ruta.ruta[siguientePaso],
+       ubicacion: nuevaUbicacion,
      };
    });
    ```

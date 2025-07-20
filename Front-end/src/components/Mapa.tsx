@@ -540,8 +540,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
             {camionesVisuales
               .filter(camion => {
                 const estadoCamion = camiones.find(c => c.id === camion.id);
-                return estadoCamion?.estado !== 'Entregado' && 
-                       estadoCamion?.estado !== 'Averiado' && 
+                return estadoCamion?.estado !== 'Averiado' && 
                        estadoCamion?.estado !== 'En Mantenimiento por Avería' && 
                        camion.ruta.length > 1;
               })
@@ -560,8 +559,8 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
             {camionesVisuales
               .filter(camion => {
                 const estadoCamion = camiones.find(c => c.id === camion.id);
-                return estadoCamion?.estado !== 'Entregado' && 
-                       estadoCamion?.estado !== 'En Mantenimiento por Avería';
+                // Solo ocultar camiones en mantenimiento por avería, mostrar todos los demás
+                return estadoCamion?.estado !== 'En Mantenimiento por Avería';
               })
               .map((camion, index) => {
                  const estadoCamion = camiones.find(c => c.id === camion.id);
@@ -666,6 +665,8 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                            💥
                          </text>
                        )}
+                       
+
                      </g>
                    </g>
                  );

@@ -242,7 +242,7 @@ const DatosCamionesTable: React.FC<DatosCamionesTableProps> = ({ onElementoSelec
                         camion.estado === 'En Mantenimiento' ? 'text-yellow-600' :
                         camion.estado === 'En Mantenimiento Preventivo' ? 'text-amber-600' :
                         camion.estado === 'En Mantenimiento por Avería' ? 'text-orange-600' :
-                        camion.estado === 'Entregado' ? 'text-emerald-600' :
+
                         camion.estado === 'Disponible' ? 'text-blue-600' :
                         'text-gray-700')
                       }>

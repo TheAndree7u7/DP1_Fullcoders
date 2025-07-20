@@ -14,7 +14,7 @@ import type { Almacen, Pedido } from "../../types";
 import type { Gen, Nodo } from "../../types";
 
 // Función de mapeo de estados (duplicada aquí para evitar dependencias circulares)
-const mapearEstadoBackendAFrontend = (estadoBackend: string | undefined): "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "En Mantenimiento Preventivo" | "En Mantenimiento por Avería" | "Entregado" => {
+const mapearEstadoBackendAFrontend = (estadoBackend: string | undefined): "Disponible" | "Averiado" | "En Mantenimiento" | "En Mantenimiento Preventivo" | "En Mantenimiento por Avería" => {
   if (estadoBackend === 'DISPONIBLE') {
     return 'Disponible';
   } else if (estadoBackend === 'EN_MANTENIMIENTO_POR_AVERIA') {
@@ -26,7 +26,7 @@ const mapearEstadoBackendAFrontend = (estadoBackend: string | undefined): "En Ca
   } else if (estadoBackend === 'EN_MANTENIMIENTO' || estadoBackend === 'EN_MANTENIMIENTO_CORRECTIVO') {
     return 'En Mantenimiento';
   } else {
-    return 'En Camino';
+    return 'Disponible'; // Estado por defecto
   }
 };
 
@@ -147,18 +147,9 @@ export const cargarDatos = async (
         
         // Verificar si el camión está en el almacén central (posición 0,0)
         const ubicacion = ruta.ruta[0] || '(0,0)';
-        const estaEnAlmacenCentral = ubicacion === '(0,0)' || ubicacion === '(0, 0)';
         
-        // Mapear estados del backend al frontend solo si no está en almacén central
-        let estadoFrontend: "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "En Mantenimiento Preventivo" | "En Mantenimiento por Avería" | "Entregado";
-        
-        if (estaEnAlmacenCentral) {
-          // Si está en almacén central, mantener estado simple
-          estadoFrontend = camion?.estado === 'DISPONIBLE' ? 'Disponible' : 'En Camino';
-        } else {
-          // Si no está en almacén central, aplicar mapeo completo de estados
-          estadoFrontend = mapearEstadoBackendAFrontend(camion?.estado);
-        }
+        // Mapear estados del backend al frontend
+        const estadoFrontend = mapearEstadoBackendAFrontend(camion?.estado);
         
         const camionEstado: CamionEstado = {
           id: ruta.id,
