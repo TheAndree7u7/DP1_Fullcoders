@@ -149,10 +149,6 @@ public class Camion extends Nodo {
 
         int intermedio = Math.min(gen.getPosNodo(), gen.getRutaFinal().size() - 1);
 
-        // Asegurar que el índice sea válido
-        if (intermedio < 0) {
-            intermedio = 0;
-        }
 
         // Actualiza la posición del camión en el mapa solo si está disponible
         if (intermedio < gen.getRutaFinal().size()) {
@@ -161,7 +157,7 @@ public class Camion extends Nodo {
     
         }
 
-        // Recorremos la ruta 
+        // RECORRER RUTA HASTA PUNTO INTERMEDIO
         for (int i = 0; i <= intermedio; i++) {
             Nodo nodo = gen.getRutaFinal().get(i);
             if (nodo.getTipoNodo() == TipoNodo.PEDIDO) {
@@ -177,28 +173,20 @@ public class Camion extends Nodo {
                 }
             }
         }
+
+        // RECORRER RUTA DESDE PUNTO INTERMEDIO HASTA FINAL
         for (int i = intermedio + 1; i < gen.getRutaFinal().size(); i++) {
             Nodo nodo = gen.getRutaFinal().get(i);
-            if (nodo.getTipoNodo() == TipoNodo.PEDIDO) {
+            if (nodo.getTipoNodo() == TipoNodo.PEDIDO && gen.getPedidos().contains(nodo)) {
                 Pedido pedido = (Pedido) nodo;
                 if (pedido.getEstado() == EstadoPedido.ENTREGADO) {
                     continue;
                 }
-                pedidosPlanificados.add((Pedido) nodo);
+                pedidosPlanificados.add(pedido);
                 pedido.setEstado(EstadoPedido.PLANIFICADO);
 
             }
         }
-
-        if (intermedio >= 0 && intermedio < gen.getRutaFinal().size() &&
-                gen.getRutaFinal().get(intermedio).getTipoNodo() == TipoNodo.ALMACEN) {
-            Almacen almacen = (Almacen) gen.getRutaFinal().get(intermedio);
-            if (almacen.getTipo() == TipoAlmacen.CENTRAL) {
-                this.combustibleActual = this.combustibleMaximo;
-                this.capacidadActualGLP = this.capacidadMaximaGLP;
-            }
-        }
-
         // Quitamos todos los pedidos entregados del mapa y reemplazamos por un nodo
         // normal
         for (Pedido pedido : pedidosEntregados) {
@@ -247,31 +235,15 @@ public class Camion extends Nodo {
     private int calcularCantidadDeNodos() {
  
         int cantNodos = (int) (Parametros.diferenciaTiempoMinRequest * velocidadPromedio / 60);
-        int sizeRuta = gen.getRutaFinal().size();
-        int suma = 0;
-        int pos_final = 0;
-        int maxNodos = Math.min(cantNodos, sizeRuta);
-        for (int i = 0; i < maxNodos; i++) {
-            Nodo nodo = gen.getRutaFinal().get(i);
-            if (nodo instanceof Pedido && gen.getPedidos().contains(nodo)) {
-                Pedido pedido = (Pedido) nodo;
-                if(pedido.getEstado() == EstadoPedido.ENTREGADO) {
-                    suma += 1; // Pedido ya entregado
-                }else{
-                    suma += Parametros.cantNodosEnPedidos; // Pedido
-                }
-            } else if (nodo instanceof Camion && gen.getCamionesAveriados().contains(nodo)) {
-                suma += Parametros.cantNodosEnPedidos; // Camión averiado
-            } else {
-                suma += 1; // Otros nodos
-            }
-            if (suma >= maxNodos) {
-                pos_final = i;
+        List<Nodo> rutaApi = gen.construirRutaFinalApi();
+        Nodo nodo_final = rutaApi.get(cantNodos-1);
+        for(int i = 0; i < gen.getRutaFinal().size(); i++) {
+            if (gen.getRutaFinal().get(i).equals(nodo_final)) {
+                cantNodos = i;
                 break;
             }
         }
-
-        return pos_final;
+        return cantNodos;
     }
 
     public boolean recargarGlPSiAveriado(Camion camion) {
