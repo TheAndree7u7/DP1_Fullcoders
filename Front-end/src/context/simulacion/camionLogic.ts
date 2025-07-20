@@ -30,8 +30,18 @@ export const avanzarCamion = (
     return camion;
   }
 
-  const siguientePaso = camion.porcentaje + INCREMENTO_PORCENTAJE;
   const rutaLength = ruta.ruta.length;
+  
+  // Si el camión tiene solo un nodo, debe consumir ese nodo hasta el final
+  if (rutaLength === 1) {
+    return {
+      ...camion,
+      porcentaje: 1, // Consumir completamente el único nodo
+      ubicacion: ruta.ruta[0], // Mantener en la única posición
+    };
+  }
+
+  const siguientePaso = camion.porcentaje + INCREMENTO_PORCENTAJE;
 
   // Mover el camión a la nueva posición
   const nuevaUbicacion = ruta.ruta[siguientePaso];

@@ -559,8 +559,17 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
             {camionesVisuales
               .filter(camion => {
                 const estadoCamion = camiones.find(c => c.id === camion.id);
-                // Solo ocultar camiones en mantenimiento por avería, mostrar todos los demás
-                return estadoCamion?.estado !== 'En Mantenimiento por Avería';
+                // Ocultar camiones en mantenimiento por avería
+                if (estadoCamion?.estado === 'En Mantenimiento por Avería') {
+                  return false;
+                }
+                
+                // Ocultar camiones que están en el almacén central (12,8) y tienen estado "Disponible"
+                if (estadoCamion?.estado === 'Disponible' && camion.posicion.x === 12 && camion.posicion.y === 8) {
+                  return false;
+                }
+                
+                return true;
               })
               .map((camion, index) => {
                  const estadoCamion = camiones.find(c => c.id === camion.id);
