@@ -540,7 +540,7 @@ const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded, onElemento
   if (!expanded) return null;
 
   return (
-    <div className="transition-all duration-300 bg-white rounded-xl p-4 shadow-md h-full flex flex-col w-120 min-w-120 max-w-120">
+    <div className="transition-all duration-300 bg-white rounded-xl p-4 shadow-md h-full flex flex-col w-full min-w-80 max-w-full">
       <button
         onClick={() => setExpanded(false)}
         className="self-end mb-2"
