@@ -153,9 +153,8 @@ public class Individuo {
                     gen.getNodos().add(pedido);
                 }
             }
-            pedidosOrdenados.removeIf(p -> Math.abs(p.getVolumenGLPAsignado() - p.getVolumenGLPEntregado()) < 0.001);
+            pedidosOrdenados.removeIf(p -> Math.abs(p.getVolumenGLPAsignado() - p.getVolumenGLPEntregado()) < Parametros.diferenciaParaPedidoEntregado);
         }
-
         restaurarEstadoActual();
 
     }
