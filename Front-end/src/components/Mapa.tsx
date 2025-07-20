@@ -720,7 +720,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                   Peso combinado: {camion.pesoCombinado.toFixed(2)}<br />
                   Tara: {camion.tara}<br />
                   Tipo: {camion.tipo}<br />
-                  Velocidad: {camion.velocidadPromedio} km/h<br />
+                  {/* Velocidad: {camion.velocidadPromedio} km/h<br /> */}
                   Ubicación: {camion.ubicacion}<br />
                   Progreso: {camion.porcentaje}
                 </div>
@@ -766,7 +766,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                   Peso combinado: {camion.pesoCombinado.toFixed(2)}<br />
                   Tara: {camion.tara}<br />
                   Tipo: {camion.tipo}<br />
-                  Velocidad: {camion.velocidadPromedio} km/h<br />
+                  {/* Velocidad: {camion.velocidadPromedio} km/h<br /> */}
                   Ubicación: {camion.ubicacion}<br />
                   Progreso: {camion.porcentaje}
                 </div>
