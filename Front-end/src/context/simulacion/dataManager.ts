@@ -189,7 +189,8 @@ export const cargarDatos = async (
           ubicacion = '(8,12)'; // Fallback al almacén central
         }
         
-        // Determinar el estado del camión basándose en la ruta y el estado del backend
+        // 🔧 CORREGIDO: Respetar el estado real del backend en lugar de forzar el estado anterior
+        // Obtener el estado base del backend
         const estadoBase = mapearEstadoBackendAFrontend(camion?.estado);
         
         // Si el estado base es "Disponible" pero tiene más de un nodo en la ruta, marcarlo como "En Ruta"
@@ -198,6 +199,9 @@ export const cargarDatos = async (
           estadoFrontend = 'En Ruta';
           // console.log(`🚛🛣️ ESTADO: Camión ${ruta.id} marcado como 'En Ruta' (${ruta.ruta.length} nodos) en ubicación ${ubicacion}`);
         }
+        
+        // Log para verificar el estado del backend vs frontend
+        console.log(`🔍 ESTADO: Camión ${ruta.id} - Backend: ${camion?.estado} -> Frontend: ${estadoFrontend} en ubicación ${ubicacion}`);
         
         const camionEstado: CamionEstado = {
           id: ruta.id,
