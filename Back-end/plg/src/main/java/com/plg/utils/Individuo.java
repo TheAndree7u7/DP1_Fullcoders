@@ -61,11 +61,13 @@ public class Individuo {
             gen.getNodos().add(almacenCentral);
         }
 
-        // Para camiones averiados generamos genes pero con un unico nodo que es el
+        // Para camiones averiados y en mantenimiento preventivo generamos genes pero
+        // con un unico nodo que es el
         // mismo camión
         for (Camion camion : Parametros.dataLoader.camiones) {
             if (camion.getEstado() == EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA
-                    || camion.getEstado() == EstadoCamion.INMOVILIZADO_POR_AVERIA) {
+                    || camion.getEstado() == EstadoCamion.INMOVILIZADO_POR_AVERIA
+                    || camion.getEstado() == EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO) {
                 Gen gen = new Gen(camion, new ArrayList<>());
                 gen.getNodos().add(camion);
                 cromosoma.add(gen);
@@ -84,8 +86,6 @@ public class Individuo {
 
     }
 
-
-
     /**
      * Asigna pedidos a camiones según la lógica definida.
      * Valida la asignación usando un Gen temporal y calcularFitness.
@@ -93,11 +93,9 @@ public class Individuo {
     private void asignarPedidosACamiones(List<Camion> camionesDisponibles, List<Pedido> pedidosOrdenados,
             List<Gen> cromosoma, LocalDateTime fechaActual) {
 
-        
-
         int maxPedidosPorCamion = 2;
         guardarEstadoActual();
-        // Creamos una lista con los camiones averiados para ir quitando 
+        // Creamos una lista con los camiones averiados para ir quitando
         // conforme los camiones disponibles les vayan
         // quitando glp
         List<Camion> cp1 = Parametros.dataLoader.camiones.stream()
@@ -118,7 +116,7 @@ public class Individuo {
                         // Si no puede ir al almacén secundario, no asignamos pedidos a este camión
                         continue;
                     }
-                } 
+                }
                 distanciaCamion += distanciaTotal;
             }
             if (camion.getTipo() == TipoCamion.TD) {
@@ -158,6 +156,7 @@ public class Individuo {
         restaurarEstadoActual();
 
     }
+
     public double planificarCamionesAveriados(List<Camion> camionesAveriados, Camion camion) {
         // Planifica el traslado a un almacén secundario cercano
         if (camionesAveriados.isEmpty()) {
@@ -174,7 +173,6 @@ public class Individuo {
                 Parametros.dataLoader.almacenes.get(0).getCoordenada());
         double distanciaTotal = distanciaCamionAveriado + distanciaRegreso;
 
-
         // Verificar si el camión puede realizar el recorrido
         boolean valido2 = camionAveriado.getCapacidadActualGLP() > 0;
         // Ahora debemos validar que dicho almacen tenga GLP suficiente
@@ -190,26 +188,49 @@ public class Individuo {
             }
         }
         camionAveriado.recargarGlPSiAveriado(camion);
-        if(camionAveriado.getCapacidadActualGLP() <= 0) {
-            // Si el camión averiado no tiene GLP, lo removemos de la lista de camiones averiados
+        if (camionAveriado.getCapacidadActualGLP() <= 0) {
+            // Si el camión averiado no tiene GLP, lo removemos de la lista de camiones
+            // averiados
             camionesAveriados.remove(camionAveriado);
         }
         return distanciaTotal; // Retorna la distancia total del recorrido
     }
 
     public double planificarAlmacenSecundarioCercano(List<Almacen> almacenes, Camion camion) {
-        //  Puede que algunos de los almacenes ya no exista
+        // Puede que algunos de los almacenes ya no exista
+        // !Si el camion esta en el almacen central, no se puede planificar
+        // Almacen almacenCentral = almacenes.get(0);
+        // double distanciaAlCentral = Mapa.calcularDistancia(camion.getCoordenada(),
+        // almacenCentral.getCoordenada());
+
+        // // Si el camión está relativamente cerca del central, priorizar ir al central
+        // double umbralDistancia = 10.0; // Ajusta este valor según tus necesidades
+        // if (distanciaAlCentral <= umbralDistancia &&
+        // almacenCentral.getCapacidadActualGLP() > 0) {
+        // // Ir directamente al almacén central
+        // Gen gen = cromosoma.stream()
+        // .filter(g ->
+        // g.getCamion().getCodigo().equals(camion.getCodigo())).findFirst().orElse(null);
+        // if (gen != null) {
+        // gen.getNodos().add(almacenCentral);
+        // gen.getAlmacenesIntermedios().add(almacenCentral);
+        // }
+        // almacenCentral.recargarGlPCamion(camion);
+        // return distanciaAlCentral;
+        // }
+        // !Si el camion esta en el almacen central, no se puede planificar
         Almacen almacenCercano = null;
+
         if (almacenes.size() == 3) {
             almacenCercano = Mapa.calcularDistancia(camion.getCoordenada(),
                     almacenes.get(1).getCoordenada()) < Mapa.calcularDistancia(camion.getCoordenada(),
                             almacenes.get(2).getCoordenada())
                                     ? almacenes.get(1)
                                     : almacenes.get(2);
-        }else if (almacenes.size() == 2){
+        } else if (almacenes.size() == 2) {
             // Si hay dos almacenes, planificamos al más cercano
             almacenCercano = almacenes.get(1);
-        }else {
+        } else {
             // Si solo hay un almacén, no podemos planificar
             return -1;
         }

@@ -13,6 +13,23 @@ import type {
 import type { Almacen, Pedido } from "../../types";
 import type { Gen, Nodo } from "../../types";
 
+// Función de mapeo de estados (duplicada aquí para evitar dependencias circulares)
+const mapearEstadoBackendAFrontend = (estadoBackend: string | undefined): "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "En Mantenimiento Preventivo" | "En Mantenimiento por Avería" | "Entregado" => {
+  if (estadoBackend === 'DISPONIBLE') {
+    return 'Disponible';
+  } else if (estadoBackend === 'EN_MANTENIMIENTO_POR_AVERIA') {
+    return 'En Mantenimiento por Avería';
+  } else if (estadoBackend === 'EN_MANTENIMIENTO_PREVENTIVO') {
+    return 'En Mantenimiento Preventivo';
+  } else if (estadoBackend === 'INMOVILIZADO_POR_AVERIA') {
+    return 'Averiado';
+  } else if (estadoBackend === 'EN_MANTENIMIENTO' || estadoBackend === 'EN_MANTENIMIENTO_CORRECTIVO') {
+    return 'En Mantenimiento';
+  } else {
+    return 'En Camino';
+  }
+};
+
 
 
 
@@ -133,24 +150,14 @@ export const cargarDatos = async (
         const estaEnAlmacenCentral = ubicacion === '(0,0)' || ubicacion === '(0, 0)';
         
         // Mapear estados del backend al frontend solo si no está en almacén central
-        let estadoFrontend: "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "Entregado" | "En Mantenimiento por Avería";
+        let estadoFrontend: "En Camino" | "Disponible" | "Averiado" | "En Mantenimiento" | "En Mantenimiento Preventivo" | "En Mantenimiento por Avería" | "Entregado";
         
         if (estaEnAlmacenCentral) {
           // Si está en almacén central, mantener estado simple
           estadoFrontend = camion?.estado === 'DISPONIBLE' ? 'Disponible' : 'En Camino';
         } else {
           // Si no está en almacén central, aplicar mapeo completo de estados
-          if (camion?.estado === 'DISPONIBLE') {
-            estadoFrontend = 'Disponible';
-          } else if (camion?.estado === 'EN_MANTENIMIENTO_POR_AVERIA') {
-            estadoFrontend = 'En Mantenimiento por Avería'; // Los camiones en mantenimiento por avería no aparecen en el mapa
-          } else if (camion?.estado === 'INMOVILIZADO_POR_AVERIA') {
-            estadoFrontend = 'Averiado';
-          } else if (camion?.estado === 'EN_MANTENIMIENTO' || camion?.estado === 'EN_MANTENIMIENTO_PREVENTIVO' || camion?.estado === 'EN_MANTENIMIENTO_CORRECTIVO') {
-            estadoFrontend = 'En Mantenimiento';
-          } else {
-            estadoFrontend = 'En Camino';
-          }
+          estadoFrontend = mapearEstadoBackendAFrontend(camion?.estado);
         }
         
         const camionEstado: CamionEstado = {

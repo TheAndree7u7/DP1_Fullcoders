@@ -107,15 +107,17 @@ const SimulacionSemanal: React.FC = () => {
         {panel === 'camiones' ? (
           <>
             {/* Mapa */}
-            <div className={`transition-all duration-300 ${menuExpandido ? "flex-[2]" : "flex-[1]"}`}>
+            <div className={`transition-all duration-300 ${menuExpandido ? "flex-1" : "w-full"}`}>
               <div className="bg-white p-4 rounded-xl overflow-auto w-full h-full">
                 <Mapa elementoResaltado={elementoResaltado} />
               </div>
             </div>
-            {/* Menú derecho */}
-            <div className={`transition-all duration-300 ${menuExpandido ? "flex-[1]" : "w-0 overflow-hidden"}`}>
-              <RightMenu expanded={menuExpandido} setExpanded={setMenuExpandido} onElementoSeleccionado={setElementoResaltado} />
-            </div>
+            {/* Menú derecho - posicionado absolutamente */}
+            {menuExpandido && (
+              <div className="absolute right-4 top-0 bottom-0 z-20">
+                <RightMenu expanded={menuExpandido} setExpanded={setMenuExpandido} onElementoSeleccionado={setElementoResaltado} />
+              </div>
+            )}
             {/* Botón flotante para mostrar menú si está oculto */}
             {!menuExpandido && (
               <button
