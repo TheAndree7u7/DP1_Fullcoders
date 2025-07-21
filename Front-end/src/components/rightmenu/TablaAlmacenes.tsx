@@ -1,6 +1,7 @@
 import React from 'react';
 import { Search, ChevronUp, ChevronDown, ChevronsUpDown, Building2 } from 'lucide-react';
 import { useSimulacion } from '../../context/SimulacionContext';
+import { colorSemaforoGLP } from '../mapa/utils';
 
 interface TablaAlmacenesProps {
   onElementoSeleccionado: (elemento: {tipo: 'camion' | 'pedido' | 'almacen', id: string} | null) => void;
@@ -207,23 +208,24 @@ const TablaAlmacenes: React.FC<TablaAlmacenesProps> = ({ onElementoSeleccionado 
                     <td className="px-4 py-2 text-gray-600">
                       ({almacen.coordenada.x}, {almacen.coordenada.y})
                     </td>
-                    <td className="px-4 py-2 text-blue-700 font-bold">
+                    <td className="px-4 py-2 font-bold" style={{ color: colorSemaforoGLP(porcentajeGLP) }}>
                       {almacen.capacidadActualGLP.toFixed(2)} / {almacen.capacidadMaximaGLP}
                     </td>
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-2">
                         <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
                           <div 
-                            className={`h-full transition-all duration-300 ${
-                              porcentajeGLP > 80 ? 'bg-green-500' :
-                              porcentajeGLP > 50 ? 'bg-yellow-500' :
-                              porcentajeGLP > 20 ? 'bg-orange-500' :
-                              'bg-red-500'
-                            }`}
-                            style={{ width: `${Math.min(porcentajeGLP, 100)}%` }}
+                            className="h-full transition-all duration-300"
+                            style={{ 
+                              width: `${Math.min(porcentajeGLP, 100)}%`,
+                              backgroundColor: colorSemaforoGLP(porcentajeGLP)
+                            }}
                           />
                         </div>
-                        <span className="text-xs font-medium text-gray-700 w-10">
+                        <span 
+                          className="text-xs font-medium w-10"
+                          style={{ color: colorSemaforoGLP(porcentajeGLP) }}
+                        >
                           {porcentajeGLP.toFixed(0)}%
                         </span>
                       </div>
