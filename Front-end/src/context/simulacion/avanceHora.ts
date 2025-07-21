@@ -8,6 +8,7 @@ import type {
   RutaCamion, 
   IndividuoConBloqueos 
 } from "./types";
+import type { Almacen } from "../../types";
 import { NODOS_PARA_ACTUALIZACION } from "./types";
 import { avanzarTodosLosCamiones } from "./camionLogic";
 
@@ -20,6 +21,7 @@ import { avanzarTodosLosCamiones } from "./camionLogic";
 export const avanzarHora = async (
   camiones: CamionEstado[],
   rutasCamiones: RutaCamion[],
+  almacenes: Almacen[],
   esperandoActualizacion: boolean,
   simulacionActiva: boolean,
   nodosRestantesAntesDeActualizar: number,
@@ -47,7 +49,7 @@ export const avanzarHora = async (
   }
 
   // Avanzar todos los camiones
-  const nuevosCamiones = avanzarTodosLosCamiones(camiones, rutasCamiones);
+  const nuevosCamiones = avanzarTodosLosCamiones(camiones, rutasCamiones, almacenes);
 
   const quedan = nodosRestantesAntesDeActualizar - 1;
   setNodosRestantesAntesDeActualizar(quedan);

@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
+import com.plg.entity.TipoNodo;
 import com.plg.utils.Gen;
 
 import lombok.Data;
@@ -21,7 +22,8 @@ public class GenDto {
         this.camion = new CamionDto(gen.getCamion());
         this.nodos = new ArrayList<>();
         for (Nodo nodo : gen.construirRutaFinalApi()) {
-            this.nodos.add(new NodoDto(nodo));
+            NodoDto nodoDto = obtenerTipoNodo(nodo, gen);
+            this.nodos.add(nodoDto);
         }
         // EL destino siempre el último nodo de la ruta
         this.destino = new CoordenadaDto(gen.getRutaFinal().getLast().getCoordenada());
@@ -30,5 +32,19 @@ public class GenDto {
             this.pedidos.add(new PedidoDto(pedido));
         }
  
+    }
+
+    public NodoDto obtenerTipoNodo(Nodo nodo, Gen gen) {
+        // Buscamos el nodo en la lista de almacenesIntermedios
+        TipoNodo tipopNodo = TipoNodo.NORMAL;
+        if (gen.getAlmacenesIntermedios().stream().anyMatch(a -> a.equals(nodo))) {
+            tipopNodo = TipoNodo.ALMACEN_RECARGA;
+        }else if(gen.getPedidos().stream().anyMatch(p -> p.equals(nodo))) {
+            tipopNodo = TipoNodo.PEDIDO;
+        } else if (gen.getCamionesAveriados().stream().anyMatch(c -> c.equals(nodo))) {
+            tipopNodo = TipoNodo.CAMION_AVERIADO;
+        }
+        NodoDto nuevo_nodo = new NodoDto(nodo, tipopNodo);
+        return nuevo_nodo;
     }
 }

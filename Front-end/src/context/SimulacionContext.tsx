@@ -818,6 +818,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     await avanzarHoraUtil(
       camiones,
       rutasCamiones,
+      almacenes,
       esperandoActualizacion,
       simulacionActiva,
       nodosRestantesAntesDeActualizar,
