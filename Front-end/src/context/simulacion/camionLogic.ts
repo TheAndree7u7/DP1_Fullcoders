@@ -93,10 +93,10 @@ const recargarCamionEnAlmacenCentral = (
     const combustibleRecargado = nuevoCombustible > camion.combustibleActual;
     
     if (glpRecargado || combustibleRecargado) {
-      console.log(`⛽ RECARGA: Camión ${camion.id} recargado en almacén central (${almacenCentralCoord}):`, {
-        glp: `${camion.capacidadActualGLP.toFixed(2)} → ${nuevoGLP.toFixed(2)}`,
-        combustible: `${camion.combustibleActual.toFixed(2)} → ${nuevoCombustible.toFixed(2)}`
-      });
+      // console.log(`⛽ RECARGA: Camión ${camion.id} recargado en almacén central (${almacenCentralCoord}):`, {
+      //   glp: `${camion.capacidadActualGLP.toFixed(2)} → ${nuevoGLP.toFixed(2)}`,
+      //   combustible: `${camion.combustibleActual.toFixed(2)} → ${nuevoCombustible.toFixed(2)}`
+      // });
     }
     
     return {
