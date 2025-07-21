@@ -10,6 +10,8 @@ const SimulacionSemanal: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
   const { diaSimulacion, fechaHoraSimulacion, horaActual } = useSimulacion();
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
+  // Estado para resaltar elementos en el mapa
+  const [elementoResaltado, setElementoResaltado] = useState<{tipo: 'camion' | 'pedido' | 'almacen', id: string} | null>(null);
 
   // Actualizar la hora simulada cuando avanza la simulación
   useEffect(() => {
@@ -75,13 +77,13 @@ const SimulacionSemanal: React.FC = () => {
         {/* Mapa */}
         <div className={`transition-all duration-300 ${menuExpandido ? "flex-[2]" : "flex-[1]"}`}>
           <div className="bg-white p-4 rounded-xl overflow-auto w-full h-full">
-            <Mapa />
+            <Mapa elementoResaltado={elementoResaltado} onElementoSeleccionado={setElementoResaltado} />
           </div>
         </div>
 
         {/* Menú derecho */}
         <div className={`transition-all duration-300 ${menuExpandido ? "flex-[1]" : "w-0 overflow-hidden"}`}>
-          <RightMenu expanded={menuExpandido} setExpanded={setMenuExpandido} />
+          <RightMenu expanded={menuExpandido} setExpanded={setMenuExpandido} onElementoSeleccionado={setElementoResaltado} />
         </div>
 
         {/* Botón flotante para mostrar menú si está oculto */}

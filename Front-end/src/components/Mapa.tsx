@@ -54,9 +54,10 @@ const BLOQUEO_STROKE_WIDTH = 4;
 
 interface MapaProps {
   elementoResaltado?: {tipo: 'camion' | 'pedido' | 'almacen', id: string} | null;
+  onElementoSeleccionado?: (elemento: {tipo: 'camion' | 'pedido' | 'almacen', id: string} | null) => void;
 }
 
-const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
+const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado }) => {
   const [camionesVisuales, setCamionesVisuales] = useState<CamionVisual[]>([]);
   const [running, setRunning] = useState(false);
   const [intervalo, setIntervalo] = useState(300);
@@ -383,6 +384,12 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                   setClickedAlmacen(null);
                   setTooltipCamion(null);
                   setTooltipAlmacen(null);
+                  
+                  // Limpiar el resaltado
+                  if (onElementoSeleccionado) {
+                    console.log('🎯 MAPA: Limpiando resaltado');
+                    onElementoSeleccionado(null);
+                  }
                 }
               }}
             >
@@ -398,6 +405,12 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                 setClickedAlmacen(null);
                 setTooltipCamion(null);
                 setTooltipAlmacen(null);
+                
+                // Limpiar el resaltado
+                if (onElementoSeleccionado) {
+                  console.log('🎯 MAPA: Limpiando resaltado');
+                  onElementoSeleccionado(null);
+                }
               }}
             />
             
@@ -594,6 +607,12 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                         setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
                         // Ocultar el tooltip de hover
                         setTooltipAlmacen(null);
+                        
+                        // Activar el resaltado del almacén en el mapa
+                        if (onElementoSeleccionado) {
+                          console.log('🎯 MAPA: Activando resaltado de almacén (texto):', almacen.id);
+                          onElementoSeleccionado({ tipo: 'almacen', id: almacen.id });
+                        }
                       }
                     }}
                   >
@@ -633,6 +652,11 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                       if (!clickedAlmacen) {
                         setClickedAlmacen(almacen.nombre);
                         setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
+                        
+                        // Activar el resaltado del almacén en el mapa
+                        if (onElementoSeleccionado) {
+                          onElementoSeleccionado({ tipo: 'almacen', id: almacen.id });
+                        }
                       }
                     }}
                   >
@@ -733,6 +757,12 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                            setClickedPos({ x: evt.clientX, y: evt.clientY });
                            // Ocultar el tooltip de hover
                            setTooltipCamion(null);
+                           
+                           // Activar el resaltado del camión en el mapa
+                           if (onElementoSeleccionado) {
+                             console.log('🎯 MAPA: Activando resaltado de camión:', camion.id);
+                             onElementoSeleccionado({ tipo: 'camion', id: camion.id });
+                           }
                          }
                        }}
                      >
