@@ -17,6 +17,87 @@ import {
 } from "../../types";
 import { INCREMENTO_PORCENTAJE } from "./types";
 
+// Coordenada del almacén central (según el backend)
+const ALMACEN_CENTRAL_COORD = '(8,12)';
+
+/**
+ * @function verificarCambioEstadoEnAlmacenCentral
+ * @description Verifica si debe cambiar el estado del camión cuando pasa por el almacén central
+ */
+const verificarCambioEstadoEnAlmacenCentral = (
+  camion: CamionEstado,
+  ruta: RutaCamion,
+  siguientePaso: number
+): "Disponible" | "Averiado" | "En Mantenimiento" | "En Mantenimiento Preventivo" | "En Mantenimiento por Avería" | "En Ruta" => {
+  // Obtener nodo actual y anterior
+  const nodoActual = ruta.ruta[siguientePaso];
+  const nodoAnterior = siguientePaso > 0 ? ruta.ruta[siguientePaso - 1] : ruta.ruta[0];
+  
+  // Verificar si ambos nodos (actual y anterior) son el almacén central
+  const ambosEnAlmacenCentral = nodoActual === ALMACEN_CENTRAL_COORD && nodoAnterior === ALMACEN_CENTRAL_COORD;
+  
+  // Verificar si ambos nodos son diferentes al almacén central
+  const ambosFueraAlmacenCentral = nodoActual !== ALMACEN_CENTRAL_COORD && nodoAnterior !== ALMACEN_CENTRAL_COORD;
+  
+  let nuevoEstado = camion.estado;
+  
+  // Si está "En Ruta" y ambos nodos son el almacén central, cambiar a "Disponible"
+  if (camion.estado === "En Ruta" && ambosEnAlmacenCentral) {
+    nuevoEstado = "Disponible";
+    console.log(`🔄 ESTADO: Camión ${camion.id} cambió de "En Ruta" a "Disponible" en almacén central`);
+  }
+  // Si está "Disponible" y ambos nodos son diferentes al almacén central, cambiar a "En Ruta"
+  else if (camion.estado === "Disponible" && ambosFueraAlmacenCentral) {
+    nuevoEstado = "En Ruta";
+    console.log(`🔄 ESTADO: Camión ${camion.id} cambió de "Disponible" a "En Ruta" fuera del almacén central`);
+  }
+  
+  return nuevoEstado;
+};
+
+/**
+ * @function recargarCamionEnAlmacenCentral
+ * @description Recarga el GLP y combustible del camión al máximo cuando está en el almacén central
+ */
+const recargarCamionEnAlmacenCentral = (
+  camion: CamionEstado,
+  ruta: RutaCamion,
+  siguientePaso: number
+): { nuevoGLP: number; nuevoCombustible: number; seRecargo: boolean } => {
+  const nodoActual = ruta.ruta[siguientePaso];
+  
+  // Verificar si el camión está en el almacén central
+  if (nodoActual === ALMACEN_CENTRAL_COORD) {
+    // Recargar GLP y combustible al máximo
+    const nuevoGLP = camion.capacidadMaximaGLP;
+    const nuevoCombustible = camion.combustibleMaximo;
+    
+    // Solo mostrar log si realmente se recargó algo
+    const glpRecargado = nuevoGLP > camion.capacidadActualGLP;
+    const combustibleRecargado = nuevoCombustible > camion.combustibleActual;
+    
+    if (glpRecargado || combustibleRecargado) {
+      console.log(`⛽ RECARGA: Camión ${camion.id} recargado en almacén central:`, {
+        glp: `${camion.capacidadActualGLP.toFixed(2)} → ${nuevoGLP.toFixed(2)}`,
+        combustible: `${camion.combustibleActual.toFixed(2)} → ${nuevoCombustible.toFixed(2)}`
+      });
+    }
+    
+    return {
+      nuevoGLP,
+      nuevoCombustible,
+      seRecargo: glpRecargado || combustibleRecargado
+    };
+  }
+  
+  // Si no está en el almacén central, mantener valores actuales
+  return {
+    nuevoGLP: camion.capacidadActualGLP,
+    nuevoCombustible: camion.combustibleActual,
+    seRecargo: false
+  };
+};
+
 /**
  * @function avanzarCamion
  * @description Avanza un camión en su ruta y actualiza su estado
@@ -59,9 +140,12 @@ export const avanzarCamion = (
   const ubicacionActual = camion.ubicacion;
   const seMovio = ubicacionActual !== nuevaUbicacion;
   
-  // Solo consumir combustible si el camión se movió
-  let nuevoCombustible = camion.combustibleActual;
-  if (seMovio) {
+  // Verificar si el camión debe recargar en el almacén central
+  const recarga = recargarCamionEnAlmacenCentral(camion, ruta, siguientePaso);
+  
+  // Solo consumir combustible si el camión se movió y no se recargó
+  let nuevoCombustible = recarga.nuevoCombustible;
+  if (seMovio && !recarga.seRecargo) {
     // En un mapa reticular, cada paso entre nodos adyacentes es exactamente 1km
     const distanciaRecorrida = 1; // 1km por paso/nodo en mapa reticular
 
@@ -82,36 +166,39 @@ export const avanzarCamion = (
   }
 
   // Verificar si hay pedidos para entregar en la NUEVA ubicación
-  let nuevoGLP = camion.capacidadActualGLP;
+  let nuevoGLP = recarga.nuevoGLP;
   const pedidosEntregadosAhora: Pedido[] = [];
 
-  ruta.pedidos.forEach((pedido) => {
-    // Buscar el índice del nodo que corresponde a este pedido
-    const indicePedidoEnRuta = ruta.ruta.findIndex((nodo) => {
-      const coordNodo = parseCoord(nodo);
-      return (
-        coordNodo.x === pedido.coordenada.x &&
-        coordNodo.y === pedido.coordenada.y
-      );
+  // Solo procesar entrega de pedidos si no se recargó (para evitar entregar GLP recién recargado)
+  if (!recarga.seRecargo) {
+    ruta.pedidos.forEach((pedido) => {
+      // Buscar el índice del nodo que corresponde a este pedido
+      const indicePedidoEnRuta = ruta.ruta.findIndex((nodo) => {
+        const coordNodo = parseCoord(nodo);
+        return (
+          coordNodo.x === pedido.coordenada.x &&
+          coordNodo.y === pedido.coordenada.y
+        );
+      });
+
+      // Si el camión llegó exactamente al nodo del pedido
+      if (indicePedidoEnRuta === siguientePaso) {
+        pedidosEntregadosAhora.push(pedido);
+      }
     });
 
-    // Si el camión llegó exactamente al nodo del pedido
-    if (indicePedidoEnRuta === siguientePaso) {
-      pedidosEntregadosAhora.push(pedido);
-    }
-  });
-
-  // Log para debuggear los pedidos que se entregan
-  if (pedidosEntregadosAhora.length > 0) {
-    for (const pedido of pedidosEntregadosAhora) {
-      if (pedido.volumenGLPAsignado) {
-        nuevoGLP -= pedido.volumenGLPAsignado;
-      } else {
-        console.log(`⚠️ Pedido sin volumenGLPAsignado:`, pedido);
+    // Log para debuggear los pedidos que se entregan
+    if (pedidosEntregadosAhora.length > 0) {
+      for (const pedido of pedidosEntregadosAhora) {
+        if (pedido.volumenGLPAsignado) {
+          nuevoGLP -= pedido.volumenGLPAsignado;
+        } else {
+          console.log(`⚠️ Pedido sin volumenGLPAsignado:`, pedido);
+        }
       }
+      // Asegurar que no sea negativo
+      nuevoGLP = Math.max(0, nuevoGLP);
     }
-    // Asegurar que no sea negativo
-    nuevoGLP = Math.max(0, nuevoGLP);
   }
 
   // Crear nuevo estado del camión con valores actualizados
@@ -123,8 +210,8 @@ export const avanzarCamion = (
     capacidadActualGLP: nuevoGLP,
   };
 
-  // SOLO actualizar peso de carga y peso combinado cuando se entregan pedidos
-  if (pedidosEntregadosAhora.length > 0) {
+  // Actualizar peso de carga y peso combinado cuando se entregan pedidos O se recarga
+  if (pedidosEntregadosAhora.length > 0 || recarga.seRecargo) {
     // Adaptar el nuevo estado del camión para los cálculos
     const nuevoCamionAdaptado = adaptarCamionParaCalculos(nuevoCamion);
 
@@ -142,6 +229,9 @@ export const avanzarCamion = (
   // Si el camión se quedó sin combustible, cambiar su estado
   if (nuevoCombustible <= 0) {
     nuevoCamion.estado = "Averiado";
+  } else {
+    // Verificar cambio de estado en almacén central
+    nuevoCamion.estado = verificarCambioEstadoEnAlmacenCentral(nuevoCamion, ruta, siguientePaso);
   }
 
   return nuevoCamion;
