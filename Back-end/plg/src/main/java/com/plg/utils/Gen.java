@@ -179,10 +179,10 @@ public class Gen {
                 rutaApi.add(nodo);
             }
         }
-
-        if (rutaApi.size() < Parametros.velocidadCamion) {
+        int cantNodosRecorridos = (int) (Parametros.velocidadCamion * Parametros.intervaloTiempo / 60);
+        if (rutaApi.size() < cantNodosRecorridos) {
             Nodo ultimoNodo = rutaApi.get(rutaApi.size() - 1);
-            int nodosFaltantes = (int) Parametros.velocidadCamion - rutaApi.size();
+            int nodosFaltantes = cantNodosRecorridos - rutaApi.size();
             for (int i = 0; i < nodosFaltantes; i++) {
                 rutaApi.add(ultimoNodo);
             }
