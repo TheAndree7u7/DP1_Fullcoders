@@ -53,16 +53,25 @@ public class Individuo {
 
         ordenarPedidosPorFechaVencimiento(pedidosOrdenados, fechaActual);
         asignarPedidosACamiones(camionesDisponibles, pedidosOrdenados, cromosoma, fechaActual);
+        crearGenesParaCamionesNoDisponibles();
+    }
 
-        for (Camion camion : Parametros.dataLoader.camiones) {
-            if (camion.getEstado() == EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA
-                    || camion.getEstado() == EstadoCamion.INMOVILIZADO_POR_AVERIA
-                    || camion.getEstado() == EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO) {
-                Gen gen = new Gen(camion, new ArrayList<>());
-                gen.getNodos().add(camion);
-                cromosoma.add(gen);
-            }
+    public void crearGenesParaCamionesNoDisponibles() {
+        List<Camion> camionesNoDisponibles = Parametros.dataLoader.camiones.stream()
+                .filter(c -> c.getEstado() == EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA
+                        || c.getEstado() == EstadoCamion.INMOVILIZADO_POR_AVERIA
+                        || c.getEstado() == EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
+                .toList();
+
+        for (Camion camion : camionesNoDisponibles) {
+            Gen gen = new Gen(camion, new ArrayList<>());
+            gen.getNodos().add(camion);
+            gen.setRutaFinal(new ArrayList<>());
+            gen.getRutaFinal().add(camion);
+            gen.setFitness(0.0); // Inicializar fitness a 0 para camiones
+            cromosoma.add(gen);
         }
+ 
     }
 
     private void ordenarPedidosPorFechaVencimiento(List<Pedido> pedidosOrdenados, LocalDateTime fechaActual) {
@@ -202,7 +211,7 @@ public class Individuo {
         Camion camionAveriado = camionesAveriados.get(random.nextInt(camionesAveriados.size()));
         double distanciaCamionAveriado = Mapa.calcularDistancia(camion.getCoordenada(),
                 camionAveriado.getCoordenada());
-        Almacen almacenCercano = hallarAlmacenMasCercano(camionAveriado, almacenesDisponibles);
+        Almacen almacenCercano = hallarAlmacenCercanoDadoUnNodo(camionAveriado, almacenesDisponibles);
         double distanciaRegreso = Mapa.calcularDistancia(camionAveriado.getCoordenada(),
                 almacenCercano.getCoordenada());
         double distanciaTotal = distanciaCamionAveriado + distanciaRegreso;
