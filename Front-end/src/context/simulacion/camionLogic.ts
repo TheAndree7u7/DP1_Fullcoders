@@ -4,7 +4,7 @@
  */
 
 import type { CamionEstado, RutaCamion } from "./types";
-import type { Pedido } from "../../types";
+import type { Pedido, Almacen } from "../../types";
 import { 
   parseCoord, 
   adaptarCamionParaCalculos 
@@ -17,8 +17,19 @@ import {
 } from "../../types";
 import { INCREMENTO_PORCENTAJE } from "./types";
 
-// Coordenada del almacén central (según el backend)
-const ALMACEN_CENTRAL_COORD = '(8,12)';
+/**
+ * @function obtenerCoordenadaAlmacenCentral
+ * @description Obtiene la coordenada del almacén central desde la lista de almacenes
+ */
+const obtenerCoordenadaAlmacenCentral = (almacenes: Almacen[]): string => {
+  const almacenCentral = almacenes.find(almacen => almacen.esCentral || almacen.tipo === 'CENTRAL');
+  if (almacenCentral) {
+    return `(${almacenCentral.coordenada.x},${almacenCentral.coordenada.y})`;
+  }
+  // Fallback a la coordenada hardcodeada si no se encuentra el almacén central
+  console.warn('⚠️ No se encontró almacén central en los datos, usando coordenada por defecto (8,12)');
+  return '(8,12)';
+};
 
 /**
  * @function verificarCambioEstadoEnAlmacenCentral
@@ -27,29 +38,32 @@ const ALMACEN_CENTRAL_COORD = '(8,12)';
 const verificarCambioEstadoEnAlmacenCentral = (
   camion: CamionEstado,
   ruta: RutaCamion,
-  siguientePaso: number
+  siguientePaso: number,
+  almacenes: Almacen[]
 ): "Disponible" | "Averiado" | "En Mantenimiento" | "En Mantenimiento Preventivo" | "En Mantenimiento por Avería" | "En Ruta" => {
+  const almacenCentralCoord = obtenerCoordenadaAlmacenCentral(almacenes);
+  
   // Obtener nodo actual y anterior
   const nodoActual = ruta.ruta[siguientePaso];
   const nodoAnterior = siguientePaso > 0 ? ruta.ruta[siguientePaso - 1] : ruta.ruta[0];
   
   // Verificar si ambos nodos (actual y anterior) son el almacén central
-  const ambosEnAlmacenCentral = nodoActual === ALMACEN_CENTRAL_COORD && nodoAnterior === ALMACEN_CENTRAL_COORD;
+  const ambosEnAlmacenCentral = nodoActual === almacenCentralCoord && nodoAnterior === almacenCentralCoord;
   
   // Verificar si ambos nodos son diferentes al almacén central
-  const ambosFueraAlmacenCentral = nodoActual !== ALMACEN_CENTRAL_COORD && nodoAnterior !== ALMACEN_CENTRAL_COORD;
+  const ambosFueraAlmacenCentral = nodoActual !== almacenCentralCoord && nodoAnterior !== almacenCentralCoord;
   
   let nuevoEstado = camion.estado;
   
   // Si está "En Ruta" y ambos nodos son el almacén central, cambiar a "Disponible"
   if (camion.estado === "En Ruta" && ambosEnAlmacenCentral) {
     nuevoEstado = "Disponible";
-    console.log(`🔄 ESTADO: Camión ${camion.id} cambió de "En Ruta" a "Disponible" en almacén central`);
+    console.log(`🔄 ESTADO: Camión ${camion.id} cambió de "En Ruta" a "Disponible" en almacén central (${almacenCentralCoord})`);
   }
   // Si está "Disponible" y ambos nodos son diferentes al almacén central, cambiar a "En Ruta"
   else if (camion.estado === "Disponible" && ambosFueraAlmacenCentral) {
     nuevoEstado = "En Ruta";
-    console.log(`🔄 ESTADO: Camión ${camion.id} cambió de "Disponible" a "En Ruta" fuera del almacén central`);
+    console.log(`🔄 ESTADO: Camión ${camion.id} cambió de "Disponible" a "En Ruta" fuera del almacén central (${almacenCentralCoord})`);
   }
   
   return nuevoEstado;
@@ -62,12 +76,14 @@ const verificarCambioEstadoEnAlmacenCentral = (
 const recargarCamionEnAlmacenCentral = (
   camion: CamionEstado,
   ruta: RutaCamion,
-  siguientePaso: number
+  siguientePaso: number,
+  almacenes: Almacen[]
 ): { nuevoGLP: number; nuevoCombustible: number; seRecargo: boolean } => {
+  const almacenCentralCoord = obtenerCoordenadaAlmacenCentral(almacenes);
   const nodoActual = ruta.ruta[siguientePaso];
   
   // Verificar si el camión está en el almacén central
-  if (nodoActual === ALMACEN_CENTRAL_COORD) {
+  if (nodoActual === almacenCentralCoord) {
     // Recargar GLP y combustible al máximo
     const nuevoGLP = camion.capacidadMaximaGLP;
     const nuevoCombustible = camion.combustibleMaximo;
@@ -77,7 +93,7 @@ const recargarCamionEnAlmacenCentral = (
     const combustibleRecargado = nuevoCombustible > camion.combustibleActual;
     
     if (glpRecargado || combustibleRecargado) {
-      console.log(`⛽ RECARGA: Camión ${camion.id} recargado en almacén central:`, {
+      console.log(`⛽ RECARGA: Camión ${camion.id} recargado en almacén central (${almacenCentralCoord}):`, {
         glp: `${camion.capacidadActualGLP.toFixed(2)} → ${nuevoGLP.toFixed(2)}`,
         combustible: `${camion.combustibleActual.toFixed(2)} → ${nuevoCombustible.toFixed(2)}`
       });
@@ -104,7 +120,8 @@ const recargarCamionEnAlmacenCentral = (
  */
 export const avanzarCamion = (
   camion: CamionEstado,
-  ruta: RutaCamion
+  ruta: RutaCamion,
+  almacenes: Almacen[]
 ): CamionEstado => {
   // Si el camión está averiado, no avanza
   if (camion.estado === "Averiado") {
@@ -141,7 +158,7 @@ export const avanzarCamion = (
   const seMovio = ubicacionActual !== nuevaUbicacion;
   
   // Verificar si el camión debe recargar en el almacén central
-  const recarga = recargarCamionEnAlmacenCentral(camion, ruta, siguientePaso);
+  const recarga = recargarCamionEnAlmacenCentral(camion, ruta, siguientePaso, almacenes);
   
   // Solo consumir combustible si el camión se movió y no se recargó
   let nuevoCombustible = recarga.nuevoCombustible;
@@ -231,7 +248,7 @@ export const avanzarCamion = (
     nuevoCamion.estado = "Averiado";
   } else {
     // Verificar cambio de estado en almacén central
-    nuevoCamion.estado = verificarCambioEstadoEnAlmacenCentral(nuevoCamion, ruta, siguientePaso);
+    nuevoCamion.estado = verificarCambioEstadoEnAlmacenCentral(nuevoCamion, ruta, siguientePaso, almacenes);
   }
 
   return nuevoCamion;
@@ -243,13 +260,14 @@ export const avanzarCamion = (
  */
 export const avanzarTodosLosCamiones = (
   camiones: CamionEstado[],
-  rutasCamiones: RutaCamion[]
+  rutasCamiones: RutaCamion[],
+  almacenes: Almacen[]
 ): CamionEstado[] => {
   return camiones.map((camion) => {
     const ruta = rutasCamiones.find((r) => r.id === camion.id);
     if (!ruta) return camion;
 
-    return avanzarCamion(camion, ruta);
+    return avanzarCamion(camion, ruta, almacenes);
   });
 };
 
