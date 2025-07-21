@@ -1,51 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { EstadoCargaArchivos } from "../types";
 import CargaArchivosSimulacion from "../components/CargaArchivosSimulacion";
 import SimulacionSemanal from "./SimulacionSemanal";
-import { cargaArchivosService } from "../services/cargaArchivosService";
 import { toast } from "react-toastify";
 
 const SimulacionSemanalConCarga: React.FC = () => {
   const [paso, setPaso] = useState<'carga' | 'simulacion'>('carga');
-  const [estadoCarga, setEstadoCarga] = useState<EstadoCargaArchivos>({
-    ventas: { cargado: false, errores: [] },
-    bloqueos: { cargado: false, errores: [] },
-    camiones: { cargado: false, errores: [] },
-    mantenimiento: { cargado: false, errores: [] }
-  });
-  const [cargando, setCargando] = useState(false);
+  const [cargando] = useState(false);
   const navigate = useNavigate();
-
-  const manejarArchivosCargados = (nuevoEstado: EstadoCargaArchivos) => {
-    setEstadoCarga(nuevoEstado);
-  };
-
-  const manejarContinuar = async () => {
-    setCargando(true);
-    
-    try {
-      // Cargar archivos al backend
-      const resultado = await cargaArchivosService.cargarTodosLosArchivos(estadoCarga);
-      
-      if (resultado.success) {
-        toast.success('Archivos cargados exitosamente. Iniciando simulación...');
-        setPaso('simulacion');
-      } else {
-        toast.error(`Error al cargar archivos: ${resultado.message}`);
-        if (resultado.errores) {
-          resultado.errores.forEach(error => {
-            toast.error(error);
-          });
-        }
-      }
-    } catch (error) {
-      toast.error('Error inesperado al cargar archivos');
-      console.error('Error al cargar archivos:', error);
-    } finally {
-      setCargando(false);
-    }
-  };
 
   const manejarSaltarCarga = () => {
     toast.info('Continuando con datos de prueba existentes...');
@@ -87,8 +49,6 @@ const SimulacionSemanalConCarga: React.FC = () => {
       {/* Contenido */}
       <div className="flex-1 overflow-auto">
         <CargaArchivosSimulacion
-          onArchivosCargados={manejarArchivosCargados}
-          onContinuar={manejarContinuar}
           onSaltarCarga={manejarSaltarCarga}
         />
       </div>
