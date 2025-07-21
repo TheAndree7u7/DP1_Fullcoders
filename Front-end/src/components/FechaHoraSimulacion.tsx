@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSimulacion } from '../context/SimulacionContext';
 import { formatearTiempoTranscurridoCompleto } from '../context/simulacion/utils/tiempo';
+import { useCurrentDateTime } from '../hooks/useCurrentDateTime';
 import { SEGUNDOS_POR_NODO, NODOS_PARA_ACTUALIZACION } from '../context/simulacion/types';
 
 // Estilos CSS en línea
@@ -111,6 +112,7 @@ const FechaHoraSimulacion: React.FC = () => {
   } = useSimulacion();
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
   const [tiempoTranscurridoFormateado, setTiempoTranscurridoFormateado] = useState<string>("");
+  const currentDateTime = useCurrentDateTime();
   
   // Actualizar la hora simulada cuando cambia fechaHoraSimulacion (datos del backend)
   useEffect(() => {
@@ -217,8 +219,15 @@ const FechaHoraSimulacion: React.FC = () => {
         </div>
         <div style={styles.infoAdicional}>
           <div>
-            <span style={styles.etiqueta}>Nodo actual: </span>
-            <span style={styles.destacado}>{horaActual}</span>
+            <span style={styles.etiqueta}>Hora y fecha Actual: </span>
+            <span style={styles.destacado}>{currentDateTime.toLocaleString('es-ES', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit'
+            })}</span>
           </div>
           <div>
             <span style={styles.etiqueta}>Tiempo transcurrido: </span>

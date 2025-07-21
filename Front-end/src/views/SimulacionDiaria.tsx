@@ -7,6 +7,7 @@ import BottomMenu from "../components/BottomMenu";
 import { ChevronLeft } from "lucide-react";
 import { useSimulacion } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
+import { useCurrentDateTime } from "../hooks/useCurrentDateTime";
  
 
 const SimulacionSemanal: React.FC = () => {
@@ -18,10 +19,10 @@ const SimulacionSemanal: React.FC = () => {
   
   const { 
     fechaHoraSimulacion, 
-    horaActual, 
     tiempoTranscurridoSimulado, 
     fechaHoraAcumulada
   } = useSimulacion();
+  const currentDateTime = useCurrentDateTime();
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
   // Estado para alternar paneles
   const [panel, setPanel] = useState<'camiones' | 'bloqueos'>('camiones');
@@ -123,12 +124,15 @@ const SimulacionSemanal: React.FC = () => {
                 <span className="font-bold text-blue-300">{fechaHoraAcumulada}</span>
               </div> 
               <div>
-                <span className="mr-2">Nodo actual:</span>
-                <span className="font-bold text-blue-300">{horaActual}</span>
-              </div>
-              <div>
-                <span className="mr-2">Seg/nodo:</span>
-                <span className="font-bold text-blue-300">36</span>
+                <span className="mr-2">Hora y fecha Actual:</span>
+                <span className="font-bold text-blue-300">{currentDateTime.toLocaleString('es-ES', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit'
+                })}</span>
               </div>
             </div>
           )}
