@@ -20,7 +20,8 @@ export enum TipoNodo {
   INTERMEDIO = 'INTERMEDIO',
   NORMAL = 'NORMAL',
   CAMION_AVERIADO = 'CAMION_AVERIADO',
-  PEDIDO = 'PEDIDO'
+  PEDIDO = 'PEDIDO',
+  ALMACEN_RECARGA = 'ALMACEN_RECARGA'
 }
 
 export enum EstadoCamion {

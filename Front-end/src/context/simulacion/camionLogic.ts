@@ -115,6 +115,96 @@ const recargarCamionEnAlmacenCentral = (
 };
 
 /**
+ * @function recargarCamionEnAlmacenRecarga
+ * @description Recarga el GLP y combustible del camión en un nodo de tipo ALMACEN_RECARGA
+ * @param camion - Estado actual del camión
+ * @param ruta - Ruta del camión
+ * @param siguientePaso - Índice del siguiente paso en la ruta
+ * @param almacenes - Lista de almacenes disponibles
+ * @returns Objeto con los nuevos valores de GLP y combustible, y si se realizó recarga
+ */
+const recargarCamionEnAlmacenRecarga = (
+  camion: CamionEstado,
+  ruta: RutaCamion,
+  siguientePaso: number,
+  almacenes: Almacen[]
+): { nuevoGLP: number; nuevoCombustible: number; seRecargo: boolean } => {
+  const nodoActual = ruta.ruta[siguientePaso];
+  const coordenadaNodo = parseCoord(nodoActual);
+  
+  // Buscar si hay un almacén en esta coordenada
+  const almacenEnNodo = almacenes.find(almacen => 
+    almacen.coordenada.x === coordenadaNodo.x && 
+    almacen.coordenada.y === coordenadaNodo.y
+  );
+  
+  if (!almacenEnNodo) {
+    return {
+      nuevoGLP: camion.capacidadActualGLP,
+      nuevoCombustible: camion.combustibleActual,
+      seRecargo: false
+    };
+  }
+  
+  let nuevoGLP = camion.capacidadActualGLP;
+  let nuevoCombustible = camion.combustibleActual;
+  let seRecargo = false;
+  
+  // Recargar GLP: verificar si puede recargar todo lo que le falta o solo lo disponible
+  const glpRequerido = (camion.capacidadMaximaGLP || 0) - (camion.capacidadActualGLP || 0);
+  const glpDisponible = almacenEnNodo.capacidadActualGLP;
+  
+  if (glpRequerido > 0 && glpDisponible > 0) {
+    const glpRecargar = Math.min(glpRequerido, glpDisponible);
+    nuevoGLP = (camion.capacidadActualGLP || 0) + glpRecargar;
+    
+    // Actualizar la capacidad del almacén (simular la reducción)
+    // Nota: En una implementación real, esto debería actualizarse en el backend
+    console.log(`⛽ RECARGA GLP: Camión ${camion.id} recargó ${glpRecargar.toFixed(2)} m³ de GLP en almacén ${almacenEnNodo.nombre} (disponible: ${glpDisponible.toFixed(2)} → ${(glpDisponible - glpRecargar).toFixed(2)} m³)`);
+    seRecargo = true;
+  }
+  
+  // Recargar combustible: siempre al máximo (como especifica el requerimiento)
+  if (camion.combustibleActual < (camion.combustibleMaximo || 0)) {
+    nuevoCombustible = camion.combustibleMaximo || 0;
+    console.log(`⛽ RECARGA COMBUSTIBLE: Camión ${camion.id} recargó combustible al máximo en almacén ${almacenEnNodo.nombre}`);
+    seRecargo = true;
+  }
+  
+  return {
+    nuevoGLP,
+    nuevoCombustible,
+    seRecargo
+  };
+};
+
+/**
+ * @function verificarNodoAlmacenRecarga
+ * @description Verifica si el nodo actual es de tipo ALMACEN_RECARGA
+ * @param ruta - Ruta del camión
+ * @param siguientePaso - Índice del siguiente paso en la ruta
+ * @param almacenes - Lista de almacenes disponibles
+ * @returns true si es un nodo de tipo ALMACEN_RECARGA
+ */
+const verificarNodoAlmacenRecarga = (
+  ruta: RutaCamion,
+  siguientePaso: number,
+  almacenes: Almacen[]
+): boolean => {
+  const nodoActual = ruta.ruta[siguientePaso];
+  const coordenadaNodo = parseCoord(nodoActual);
+  
+  // Buscar si hay un almacén secundario en esta coordenada
+  const almacenEnNodo = almacenes.find(almacen => 
+    almacen.coordenada.x === coordenadaNodo.x && 
+    almacen.coordenada.y === coordenadaNodo.y &&
+    almacen.tipo === 'SECUNDARIO' // Solo almacenes secundarios pueden ser ALMACEN_RECARGA
+  );
+  
+  return almacenEnNodo !== undefined;
+};
+
+/**
  * @function avanzarCamion
  * @description Avanza un camión en su ruta y actualiza su estado
  */
@@ -158,7 +248,12 @@ export const avanzarCamion = (
   const seMovio = ubicacionActual !== nuevaUbicacion;
   
   // Verificar si el camión debe recargar en el almacén central
-  const recarga = recargarCamionEnAlmacenCentral(camion, ruta, siguientePaso, almacenes);
+  let recarga = recargarCamionEnAlmacenCentral(camion, ruta, siguientePaso, almacenes);
+  
+  // Si no se recargó en el almacén central, verificar si es un nodo ALMACEN_RECARGA
+  if (!recarga.seRecargo && verificarNodoAlmacenRecarga(ruta, siguientePaso, almacenes)) {
+    recarga = recargarCamionEnAlmacenRecarga(camion, ruta, siguientePaso, almacenes);
+  }
   
   // Solo consumir combustible si el camión se movió y no se recargó
   let nuevoCombustible = recarga.nuevoCombustible;
