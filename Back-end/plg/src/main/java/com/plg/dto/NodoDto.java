@@ -28,4 +28,9 @@ public class NodoDto {
             this.tipo = TipoNodo.NORMAL;
         }
     }
+
+    public NodoDto(Nodo nodo, TipoNodo tipoNodo){
+        this.coordenada = new CoordenadaDto(nodo.getCoordenada());
+        this.tipo = tipoNodo;
+    }
 }
