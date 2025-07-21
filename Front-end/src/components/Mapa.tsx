@@ -61,6 +61,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
   const [running, setRunning] = useState(false);
   const [intervalo, setIntervalo] = useState(300);
   const intervalRef = useRef<number | null>(null);
+  const [mostrarRecargaAutomatica, setMostrarRecargaAutomatica] = useState(false);
   const { 
     camiones, 
     rutasCamiones, 
@@ -105,6 +106,28 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
   const pedidosPendientes = getPedidosPendientes(rutasCamiones, camiones, pedidosNoAsignados);
   //console.log('👥 MAPA: Pedidos pendientes (clientes):', pedidosPendientes);
   //console.log('🚚 MAPA: Estado de camiones:', camiones);
+
+  // Detectar recarga automática de almacenes
+  useEffect(() => {
+    // Verificar si todos los almacenes INTERMEDIOS están al 100% de capacidad
+    const almacenesIntermedios = almacenes.filter(almacen => almacen.tipo === 'SECUNDARIO');
+    const todosLlenos = almacenesIntermedios.length > 0 && almacenesIntermedios.every(almacen => 
+      almacen.capacidadActualGLP === almacen.capacidadMaximaGLP &&
+      almacen.capacidadActualCombustible === almacen.capacidadCombustible
+    );
+    
+    if (todosLlenos) {
+      // Mostrar indicador de recarga automática
+      setMostrarRecargaAutomatica(true);
+      
+      // Ocultar el indicador después de 5 segundos
+      const timer = setTimeout(() => {
+        setMostrarRecargaAutomatica(false);
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [almacenes]);
 
   // Removido: useEffect duplicado que causaba conflictos
 
@@ -782,6 +805,19 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
           </div>
         </div>
       </div>
+
+      {/* Indicador de recarga automática */}
+      {mostrarRecargaAutomatica && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-pulse">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🔄</span>
+            <div>
+              <div className="font-bold text-sm">Recarga Automática</div>
+              <div className="text-xs opacity-90">Almacenes intermedios recargados a las 00:00:00</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tooltip para camión (hover) */}
       {tooltipCamion && tooltipPos && (

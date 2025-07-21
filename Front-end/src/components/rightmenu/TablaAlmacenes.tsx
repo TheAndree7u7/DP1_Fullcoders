@@ -12,6 +12,29 @@ const TablaAlmacenes: React.FC<TablaAlmacenesProps> = ({ onElementoSeleccionado 
   const [busquedaAlmacen, setBusquedaAlmacen] = React.useState<string>('');
   const [sortColumn, setSortColumn] = React.useState<string>('');
   const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('asc');
+  const [mostrarRecargaAutomatica, setMostrarRecargaAutomatica] = React.useState(false);
+
+  // Detectar recarga automática de almacenes
+  React.useEffect(() => {
+    // Verificar si todos los almacenes INTERMEDIOS están al 100% de capacidad
+    const almacenesIntermedios = almacenes.filter(almacen => almacen.tipo === 'SECUNDARIO');
+    const todosLlenos = almacenesIntermedios.length > 0 && almacenesIntermedios.every(almacen => 
+      almacen.capacidadActualGLP === almacen.capacidadMaximaGLP &&
+      almacen.capacidadActualCombustible === almacen.capacidadCombustible
+    );
+    
+    if (todosLlenos) {
+      // Mostrar indicador de recarga automática
+      setMostrarRecargaAutomatica(true);
+      
+      // Ocultar el indicador después de 5 segundos
+      const timer = setTimeout(() => {
+        setMostrarRecargaAutomatica(false);
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [almacenes]);
 
   // Función para manejar el ordenamiento
   const handleSort = (column: string) => {
@@ -95,6 +118,19 @@ const TablaAlmacenes: React.FC<TablaAlmacenesProps> = ({ onElementoSeleccionado 
         <Building2 className="w-5 h-5" />
         Lista de Almacenes
       </div>
+      
+      {/* Indicador de recarga automática */}
+      {mostrarRecargaAutomatica && (
+        <div className="mb-3 p-2 bg-green-100 border border-green-300 rounded-lg">
+          <div className="flex items-center gap-2 text-green-700">
+            <span className="text-lg">🔄</span>
+            <div className="text-sm">
+              <div className="font-semibold">Recarga Automática Completada</div>
+              <div className="text-xs opacity-90">Almacenes intermedios recargados a las 00:00:00</div>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Campo de búsqueda */}
       <div className="mb-3">
