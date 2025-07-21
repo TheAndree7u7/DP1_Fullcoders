@@ -28,7 +28,7 @@ public class AlgoritmoGenetico {
 
     public AlgoritmoGenetico(Mapa mapa) {
         this.mapa = mapa;
-        poblacionTamano = 20;
+        poblacionTamano = 1;
     }
 
     public void ejecutarAlgoritmo() {
