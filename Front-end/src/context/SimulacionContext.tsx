@@ -32,6 +32,7 @@ import {
   inicializarEstadoAveriasAutomaticas, 
   incrementarContadorPaquetes,
   verificarYEjecutarAveriaAutomatica,
+  limpiarEstadoAveriasAutomaticas,
   type EstadoAveriasAutomaticas 
 } from "./simulacion/autoAverias";
 
@@ -826,9 +827,15 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * y recargando datos del backend cuando sea necesario
    */
   const avanzarHora = async () => {
+    console.log(`⏰ DEBUG: Función avanzarHora ejecutándose`);
+    console.log(`⏰ DEBUG: paqueteActualConsumido = ${paqueteActualConsumido}`);
+    console.log(`⏰ DEBUG: estadoAveriasAutomaticas.contadorPaquetes = ${estadoAveriasAutomaticas.contadorPaquetes}`);
+
     // Incrementar contador de paquetes para averías automáticas
     const nuevoEstadoAverias = incrementarContadorPaquetes(estadoAveriasAutomaticas, paqueteActualConsumido);
     setEstadoAveriasAutomaticas(nuevoEstadoAverias);
+
+    console.log(`⏰ DEBUG: Nuevo estado de averías: contadorPaquetes = ${nuevoEstadoAverias.contadorPaquetes}`);
 
     // Verificar y ejecutar averías automáticas si es necesario
     const resultadoAveria = await verificarYEjecutarAveriaAutomatica(
@@ -861,9 +868,12 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     );
 
+    console.log(`⏰ DEBUG: Resultado de avería automática: averiaEjecutada = ${resultadoAveria.averiaEjecutada}`);
+
     // Actualizar estado de averías si se ejecutó una
     if (resultadoAveria.averiaEjecutada) {
       setEstadoAveriasAutomaticas(resultadoAveria.nuevoEstado);
+      console.log(`⏰ DEBUG: Estado de averías actualizado después de avería exitosa`);
     }
 
     // Continuar con el avance normal de la simulación
@@ -1073,6 +1083,15 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     );
   };
 
+  /**
+   * @function limpiarEstadoAveriasAutomaticas
+   * @description Limpia el estado de averías automáticas para reiniciar el contador
+   */
+  const limpiarEstadoAveriasAutomaticasLocal = () => {
+    console.log('🔄 LIMPIANDO: Estado de averías automáticas');
+    setEstadoAveriasAutomaticas(limpiarEstadoAveriasAutomaticas());
+  };
+
   // ============================
   // FUNCIONES DE CONTROL DE POLLING
   // ============================
@@ -1105,7 +1124,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
   /**
    * @function obtenerInfoPaqueteActual
-   * @description Obtiene información del paquete que se está consumiendo actualmente en el mapa
+   * @description Obtiene información del paquete actual de la simulación
    * @returns {Object} Información del paquete actual: inicio, fin y número
    */
   const obtenerInfoPaqueteActual = () => {
@@ -1142,6 +1161,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     horaSimulacionAcumulada,
     fechaHoraAcumulada,
     paqueteActualConsumido,
+    estadoAveriasAutomaticas,
     
     // Estados de control
     simulacionActiva,
@@ -1157,6 +1177,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     // Funciones de gestión de estado
     limpiarEstadoParaNuevaSimulacion,
     limpiarSimulacionCompleta,
+    limpiarEstadoAveriasAutomaticas: limpiarEstadoAveriasAutomaticasLocal,
     
     // Funciones de control de polling
     iniciarPollingPrimerPaquete,

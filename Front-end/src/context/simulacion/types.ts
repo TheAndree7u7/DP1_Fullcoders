@@ -4,6 +4,7 @@
  */
 
 import type { Pedido, Individuo, Almacen, Coordenada } from "../../types";
+import type { EstadoAveriasAutomaticas } from "./autoAverias";
 
 /**
  * Constantes de configuración de la simulación
@@ -82,6 +83,7 @@ export interface SimulacionContextType {
   horaSimulacionAcumulada: string;
   fechaHoraAcumulada: string;
   paqueteActualConsumido: number;
+  estadoAveriasAutomaticas: EstadoAveriasAutomaticas;
   avanzarHora: () => void;
   reiniciar: () => Promise<void>;
   iniciarContadorTiempo: () => void;
@@ -98,6 +100,7 @@ export interface SimulacionContextType {
   limpiarSimulacionCompleta: () => void;
   obtenerInfoPaqueteActual: () => { inicio: string | null; fin: string | null; numero: number };
   setFechaInicioSimulacion: (fecha: string) => void;
+  limpiarEstadoAveriasAutomaticas: () => void;
   aplicarNuevaSolucionDespuesAveria: (data: IndividuoConBloqueos) => Promise<void>;
 }
 
