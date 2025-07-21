@@ -95,6 +95,9 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
   // Estados para el modal de almacenes
   const [clickedAlmacen, setClickedAlmacen] = useState<string | null>(null);
   const [clickedAlmacenPos, setClickedAlmacenPos] = useState<{x: number, y: number} | null>(null);
+  // Estados para tooltip de almacenes
+  const [tooltipAlmacen, setTooltipAlmacen] = useState<string | null>(null);
+  const [tooltipAlmacenPos, setTooltipAlmacenPos] = useState<{x: number, y: number} | null>(null);
 
   // DEBUG: Verificar que almacenes llega al componente
   // console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
@@ -355,6 +358,8 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                 if (evt.target === evt.currentTarget) {
                   setClickedCamion(null);
                   setClickedAlmacen(null);
+                  setTooltipCamion(null);
+                  setTooltipAlmacen(null);
                 }
               }}
             >
@@ -368,6 +373,8 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
               onClick={() => {
                 setClickedCamion(null);
                 setClickedAlmacen(null);
+                setTooltipCamion(null);
+                setTooltipAlmacen(null);
               }}
             />
             
@@ -541,10 +548,29 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                   {/* Icono del almacén con color aplicado */}
                   <g
                     transform={`translate(${almacen.coordenada.x * CELL_SIZE - 10}, ${almacen.coordenada.y * CELL_SIZE - 10})`}
-                    onClick={evt => {
+                    onMouseEnter={evt => {
+                      // Solo mostrar tooltip si no hay modal activo
                       if (!clickedAlmacen) {
-                        setClickedAlmacen(almacen.id);
+                        setTooltipAlmacen(almacen.nombre);
+                        setTooltipAlmacenPos({ x: evt.clientX, y: evt.clientY });
+                      }
+                    }}
+                    onMouseMove={evt => {
+                      if (!clickedAlmacen && tooltipAlmacen === almacen.nombre) {
+                        setTooltipAlmacenPos({ x: evt.clientX, y: evt.clientY });
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      setTooltipAlmacen(null);
+                    }}
+                    onClick={evt => {
+                      // Solo abrir el modal si no hay otro modal ya abierto
+                      if (!clickedAlmacen) {
+                        console.log('🖱️ Click en almacén:', almacen.nombre, 'en posición:', evt.clientX, evt.clientY);
+                        setClickedAlmacen(almacen.nombre);
                         setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
+                        // Ocultar el tooltip de hover
+                        setTooltipAlmacen(null);
                       }
                     }}
                   >
@@ -582,7 +608,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                     strokeWidth="0.5"
                     onClick={evt => {
                       if (!clickedAlmacen) {
-                        setClickedAlmacen(almacen.id);
+                        setClickedAlmacen(almacen.nombre);
                         setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
                       }
                     }}
@@ -802,6 +828,45 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
         })()
       )}
 
+      {/* Tooltip para almacén (hover) */}
+      {tooltipAlmacen && tooltipAlmacenPos && (
+        (() => {
+          const almacen = almacenes.find(a => a.nombre === tooltipAlmacen);
+          
+          if (!almacen) return null;
+
+          const porcentajeGLP = almacen.capacidadMaximaGLP > 0 
+            ? (almacen.capacidadActualGLP / almacen.capacidadMaximaGLP) * 100 
+            : 0;
+
+          return (
+            <div
+              style={{
+                position: 'fixed',
+                left: tooltipAlmacenPos.x + 10,
+                top: tooltipAlmacenPos.y + 10,
+                background: 'white',
+                border: '1px solid #ccc',
+                borderRadius: 8,
+                padding: 12,
+                zIndex: 1000,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+              }}
+            >
+              <div className="mb-2 font-bold">{almacen.nombre}</div>
+              <div className="text-xs mb-2">
+                Tipo: {almacen.tipo === 'CENTRAL' ? 'Almacén Central' : 'Almacén Secundario'}<br />
+                Ubicación: ({almacen.coordenada.x}, {almacen.coordenada.y})<br />
+                GLP actual: {almacen.capacidadActualGLP.toFixed(1)} m³<br />
+                GLP máximo: {almacen.capacidadMaximaGLP.toFixed(1)} m³<br />
+                Porcentaje: {porcentajeGLP.toFixed(1)}%<br />
+                Estado: {almacen.activo ? 'Activo' : 'Inactivo'}
+              </div>
+            </div>
+          );
+        })()
+      )}
+
       {/* Modal para camión (click) */}
       {clickedCamion && clickedPos && (
         (() => {
@@ -933,9 +998,15 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
       {/* Modal para almacén (click) */}
       {clickedAlmacen && clickedAlmacenPos && (
         (() => {
-          const almacen = almacenes.find(a => a.id === clickedAlmacen);
+          console.log('🔍 Renderizando modal de almacén:', clickedAlmacen, 'en posición:', clickedAlmacenPos);
+          const almacen = almacenes.find(a => a.nombre === clickedAlmacen);
           
-          if (!almacen) return null;
+          if (!almacen) {
+            console.log('❌ No se encontró el almacén:', clickedAlmacen);
+            return null;
+          }
+
+          console.log('✅ Almacén encontrado:', almacen.nombre);
 
           const porcentajeGLP = almacen.capacidadMaximaGLP > 0 
             ? (almacen.capacidadActualGLP / almacen.capacidadMaximaGLP) * 100 
