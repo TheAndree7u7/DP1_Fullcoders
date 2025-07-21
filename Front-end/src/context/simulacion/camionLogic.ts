@@ -201,7 +201,7 @@ const recargarCamionEnAlmacenRecarga = (
   // Recargar combustible: siempre al máximo (como especifica el requerimiento)
   if (camion.combustibleActual < (camion.combustibleMaximo || 0)) {
     nuevoCombustible = camion.combustibleMaximo || 0;
-    console.log(`⛽ RECARGA COMBUSTIBLE: Camión ${camion.id} recargó combustible al máximo en almacén ${almacenEnNodo.nombre}`);
+    // console.log(`⛽ RECARGA COMBUSTIBLE: Camión ${camion.id} recargó combustible al máximo en almacén ${almacenEnNodo.nombre}`);
     seRecargo = true;
   }
   
