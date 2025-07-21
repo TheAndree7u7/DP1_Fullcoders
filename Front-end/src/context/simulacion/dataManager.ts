@@ -201,7 +201,7 @@ export const cargarDatos = async (
         }
         
         // Log para verificar el estado del backend vs frontend
-        console.log(`🔍 ESTADO: Camión ${ruta.id} - Backend: ${camion?.estado} -> Frontend: ${estadoFrontend} en ubicación ${ubicacion}`);
+        // console.log(`🔍 ESTADO: Camión ${ruta.id} - Backend: ${camion?.estado} -> Frontend: ${estadoFrontend} en ubicación ${ubicacion}`);
         
         const camionEstado: CamionEstado = {
           id: ruta.id,

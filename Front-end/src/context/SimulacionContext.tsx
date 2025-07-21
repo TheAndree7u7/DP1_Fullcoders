@@ -113,11 +113,11 @@ const determinarUbicacionCamion = (
   // Esto asegura que los camiones aparezcan en la posición correcta según el algoritmo genético
   if (ruta.ruta && ruta.ruta.length > 0) {
     ubicacion = ruta.ruta[0];
-    console.log(`🔍 UBICACIÓN: Camión ${ruta.id} - Nueva posición desde backend: "${ubicacion}"`);
+    // console.log(`🔍 UBICACIÓN: Camión ${ruta.id} - Nueva posición desde backend: "${ubicacion}"`);
   } else {
     // Si no hay ruta, usar la coordenada del almacén central (8,12) según el backend
     ubicacion = '(8,12)';
-    console.log(`🔍 UBICACIÓN: Camión ${ruta.id} - Sin ruta, usando almacén central: "${ubicacion}"`);
+    // console.log(`🔍 UBICACIÓN: Camión ${ruta.id} - Sin ruta, usando almacén central: "${ubicacion}"`);
   }
   
   // Validar que la ubicación no sea undefined o null
@@ -476,7 +476,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         }
         
         // Log para verificar el estado del backend vs frontend
-        console.log(`🔍 ESTADO: Camión ${ruta.id} - Backend: ${camion?.estado} -> Frontend: ${estadoFrontend} en ubicación ${ubicacion}`);
+        // console.log(`🔍 ESTADO: Camión ${ruta.id} - Backend: ${camion?.estado} -> Frontend: ${estadoFrontend} en ubicación ${ubicacion}`);
         
         return {
           id: ruta.id,
@@ -602,7 +602,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         }
         
         // Log para verificar el estado del backend vs frontend
-        console.log(`🔍 ESTADO: Camión ${ruta.id} - Backend: ${camion?.estado} -> Frontend: ${estadoFrontend} en ubicación ${ubicacion}`);
+        // console.log(`🔍 ESTADO: Camión ${ruta.id} - Backend: ${camion?.estado} -> Frontend: ${estadoFrontend} en ubicación ${ubicacion}`);
         
         return {
           id: ruta.id,

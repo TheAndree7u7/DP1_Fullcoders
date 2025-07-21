@@ -58,12 +58,12 @@ const verificarCambioEstadoEnAlmacenCentral = (
   // Si está "En Ruta" y ambos nodos son el almacén central, cambiar a "Disponible"
   if (camion.estado === "En Ruta" && ambosEnAlmacenCentral) {
     nuevoEstado = "Disponible";
-    console.log(`🔄 ESTADO: Camión ${camion.id} cambió de "En Ruta" a "Disponible" en almacén central (${almacenCentralCoord})`);
+    // console.log(`🔄 ESTADO: Camión ${camion.id} cambió de "En Ruta" a "Disponible" en almacén central (${almacenCentralCoord})`);
   }
   // Si está "Disponible" y ambos nodos son diferentes al almacén central, cambiar a "En Ruta"
   else if (camion.estado === "Disponible" && ambosFueraAlmacenCentral) {
     nuevoEstado = "En Ruta";
-    console.log(`🔄 ESTADO: Camión ${camion.id} cambió de "Disponible" a "En Ruta" fuera del almacén central (${almacenCentralCoord})`);
+    // console.log(`🔄 ESTADO: Camión ${camion.id} cambió de "Disponible" a "En Ruta" fuera del almacén central (${almacenCentralCoord})`);
   }
   
   return nuevoEstado;
