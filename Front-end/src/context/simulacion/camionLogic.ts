@@ -194,7 +194,7 @@ const recargarCamionEnAlmacenRecarga = (
     );
     setAlmacenes(nuevosAlmacenes);
     
-    console.log(`⛽ RECARGA GLP: Camión ${camion.id} recargó ${glpRecargado.toFixed(2)} m³ de GLP en almacén ${almacenEnNodo.nombre} (disponible: ${glpDisponible.toFixed(2)} → ${(glpDisponible - glpRecargado).toFixed(2)} m³)`);
+    // console.log(`⛽ RECARGA GLP: Camión ${camion.id} recargó ${glpRecargado.toFixed(2)} m³ de GLP en almacén ${almacenEnNodo.nombre} (disponible: ${glpDisponible.toFixed(2)} → ${(glpDisponible - glpRecargado).toFixed(2)} m³)`);
     seRecargo = true;
   }
   
