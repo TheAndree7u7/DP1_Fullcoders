@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSimulacion } from '../context/SimulacionContext';
 import type { Coordenada } from '../types';
-import almacenCentralIcon from '../assets/almacen_central.svg';
-import almacenIntermedioIcon from '../assets/almacen_intermedio.svg';
 import clienteIcon from '../assets/cliente.svg'; 
 import { CAMION_COLORS, ESTADO_COLORS } from '../config/colors';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -217,13 +215,19 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
             <div className="space-y-1.5">
               {/* Almacén Central */}
               <div className="flex items-center gap-1.5">
-                <img src={almacenCentralIcon} alt="Almacén Central" className="w-4 h-4" />
+                <svg width="16" height="12" viewBox="0 0 20 20">
+                  <polygon points="2,18 18,18 22,2 2,2" fill="#2563eb" stroke="black" strokeWidth="0.5" />
+                  <text x="12" y="12" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">C</text>
+                </svg>
                 <span className="text-xs text-gray-700">A. Central</span>
               </div>
               
               {/* Almacén Intermedio */}
               <div className="flex items-center gap-1.5">
-                <img src={almacenIntermedioIcon} alt="Almacén Intermedio" className="w-4 h-4" />
+                <svg width="16" height="12" viewBox="0 0 20 20">
+                  <polygon points="2,18 18,18 22,2 2,2" fill="#16a34a" stroke="black" strokeWidth="0.5" />
+                  <text x="12" y="12" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">I</text>
+                </svg>
                 <span className="text-xs text-gray-700">A. Intermedio</span>
               </div>
               
@@ -304,23 +308,31 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                   </div>
                 </div>
               </div>
-              {/* Leyenda de colores de GLP para camión/ruta */}
+              {/* Leyenda de colores de GLP para camión/ruta/almacén */}
               <div className="pt-1 border-t border-gray-200 mt-2">
-                <div className="text-xs font-medium text-gray-600 mb-1">Nivel GLP camión/ruta:</div>
+                <div className="text-xs font-medium text-gray-600 mb-1">Nivel GLP camión/ruta/almacén:</div>
                 <div className="flex items-center gap-1 mb-1">
-                  <div className="w-4 h-2 rounded bg-blue-500 border border-gray-400"></div>
+                  <svg width="16" height="12" viewBox="0 0 20 20">
+                    <polygon points="2,18 18,18 22,2 2,2" fill="#3b82f6" stroke="black" strokeWidth="0.5" />
+                  </svg>
                   <span className="text-xs text-gray-700">100% (inicio, lleno)</span>
                 </div>
                 <div className="flex items-center gap-1 mb-1">
-                  <div className="w-4 h-2 rounded bg-green-500 border border-gray-400"></div>
+                  <svg width="16" height="12" viewBox="0 0 20 20">
+                    <polygon points="2,18 18,18 22,2 2,2" fill="#22c55e" stroke="black" strokeWidth="0.5" />
+                  </svg>
                   <span className="text-xs text-gray-700">&gt; 75% (óptima)</span>
                 </div>
                 <div className="flex items-center gap-1 mb-1">
-                  <div className="w-4 h-2 rounded bg-yellow-400 border border-gray-400"></div>
+                  <svg width="16" height="12" viewBox="0 0 20 20">
+                    <polygon points="2,18 18,18 22,2 2,2" fill="#eab308" stroke="black" strokeWidth="0.5" />
+                  </svg>
                   <span className="text-xs text-gray-700">40% - 75% (media)</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-4 h-2 rounded bg-orange-400 border border-gray-400"></div>
+                  <svg width="16" height="12" viewBox="0 0 20 20">
+                    <polygon points="2,18 18,18 22,2 2,2" fill="#f97316" stroke="black" strokeWidth="0.5" />
+                  </svg>
                   <span className="text-xs text-gray-700">&lt; 40% (baja)</span>
                 </div>
               </div>
@@ -489,6 +501,14 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
               // console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
               const esResaltado = elementoResaltado?.tipo === 'almacen' && elementoResaltado?.id === almacen.id;
               
+              // Calcular porcentaje de GLP para el color
+              const porcentajeGLP = almacen.capacidadMaximaGLP > 0 
+                ? (almacen.capacidadActualGLP / almacen.capacidadMaximaGLP) * 100 
+                : 0;
+              
+              // Usar la función colorSemaforoGLP para obtener el color exacto
+              const colorAlmacen = colorSemaforoGLP(porcentajeGLP);
+              
               return (
                 <g key={almacen.id} style={{ cursor: 'pointer' }}>
                   {/* Círculo de resaltado para almacenes */}
@@ -518,21 +538,39 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                     </circle>
                   )}
                   
-                  <image
-                    href={almacen.tipo === 'CENTRAL' ? almacenCentralIcon : almacenIntermedioIcon}
-                    x={almacen.coordenada.x * CELL_SIZE - 20}
-                    y={almacen.coordenada.y * CELL_SIZE - 20}
-                    width={40}
-                    height={40}
+                  {/* Icono del almacén con color aplicado */}
+                  <g
+                    transform={`translate(${almacen.coordenada.x * CELL_SIZE - 10}, ${almacen.coordenada.y * CELL_SIZE - 10})`}
                     onClick={evt => {
                       if (!clickedAlmacen) {
                         setClickedAlmacen(almacen.id);
                         setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
-                        // Actualizar información de almacenes para tener datos frescos
-                        
                       }
                     }}
-                  />
+                  >
+                    {/* Trapecio del almacén con el color del semáforo */}
+                    <polygon
+                      points="2,18 18,18 22,2 2,2"
+                      fill={colorAlmacen}
+                      stroke="black"
+                      strokeWidth="1"
+                    />
+                    
+                    {/* Indicador del tipo de almacén (central o intermedio) */}
+                    <text
+                      x="12"
+                      y="12"
+                      textAnchor="middle"
+                      fontSize="10"
+                      fill="white"
+                      fontWeight="bold"
+                      stroke="black"
+                      strokeWidth="0.3"
+                    >
+                      {almacen.tipo === 'CENTRAL' ? 'C' : 'I'}
+                    </text>
+                  </g>
+                  
                   <text
                     x={almacen.coordenada.x * CELL_SIZE}
                     y={almacen.coordenada.y * CELL_SIZE + 30}
@@ -546,8 +584,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                       if (!clickedAlmacen) {
                         setClickedAlmacen(almacen.id);
                         setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
-                        // Actualizar información de almacenes para tener datos frescos
-                     
                       }
                     }}
                   >
