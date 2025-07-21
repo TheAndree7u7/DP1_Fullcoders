@@ -10,7 +10,8 @@ import {
   parseCoord, 
   calcularRotacion, 
   getPedidosPendientes,
-  handleAveriar 
+  handleAveriar,
+  colorSemaforoGLP // <-- importar la función
 } from './mapa/utils';
 import type { Pedido } from '../types';
 
@@ -303,6 +304,26 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                   </div>
                 </div>
               </div>
+              {/* Leyenda de colores de GLP para camión/ruta */}
+              <div className="pt-1 border-t border-gray-200 mt-2">
+                <div className="text-xs font-medium text-gray-600 mb-1">Nivel GLP camión/ruta:</div>
+                <div className="flex items-center gap-1 mb-1">
+                  <div className="w-4 h-2 rounded bg-blue-500 border border-gray-400"></div>
+                  <span className="text-xs text-gray-700">100% (inicio, lleno)</span>
+                </div>
+                <div className="flex items-center gap-1 mb-1">
+                  <div className="w-4 h-2 rounded bg-green-500 border border-gray-400"></div>
+                  <span className="text-xs text-gray-700">&gt; 75% (óptima)</span>
+                </div>
+                <div className="flex items-center gap-1 mb-1">
+                  <div className="w-4 h-2 rounded bg-yellow-400 border border-gray-400"></div>
+                  <span className="text-xs text-gray-700">40% - 75% (media)</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-4 h-2 rounded bg-orange-400 border border-gray-400"></div>
+                  <span className="text-xs text-gray-700">&lt; 40% (baja)</span>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -544,16 +565,26 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                        estadoCamion?.estado !== 'En Mantenimiento por Avería' && 
                        camion.ruta.length > 1;
               })
-              .map((camion, index) => (
-                <polyline
-                  key={`ruta-${camion.id}-${index}`}
-                  fill="none"
-                  stroke={camion.color}
-                  strokeWidth={2}
-                  strokeDasharray="4 2"
-                  points={camion.ruta.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
-                />
-              ))}
+              .map((camion, index) => {
+                const estadoCamion = camiones.find(c => c.id === camion.id);
+                const tieneGLP = estadoCamion && typeof estadoCamion.capacidadActualGLP === 'number' && typeof estadoCamion.capacidadMaximaGLP === 'number' && estadoCamion.capacidadMaximaGLP > 0;
+                const colorRuta = tieneGLP
+                  ? colorSemaforoGLP(
+                      (estadoCamion.capacidadActualGLP! / estadoCamion.capacidadMaximaGLP!) * 100,
+                      estadoCamion.estado === 'Disponible' && estadoCamion.capacidadActualGLP === estadoCamion.capacidadMaximaGLP
+                    )
+                  : '#3b82f6'; // Azul por defecto
+                return (
+                  <polyline
+                    key={`ruta-${camion.id}-${index}`}
+                    fill="none"
+                    stroke={colorRuta}
+                    strokeWidth={2}
+                    strokeDasharray="4 2"
+                    points={camion.ruta.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
+                  />
+                );
+              })}
 
             {/* Camiones */}
             {camionesVisuales
@@ -577,12 +608,17 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                  const esEnMantenimiento = estadoCamion?.estado === 'En Mantenimiento';
                  const esEnMantenimientoPreventivo = estadoCamion?.estado === 'En Mantenimiento Preventivo';
                  const esResaltado = elementoResaltado?.tipo === 'camion' && elementoResaltado?.id === camion.id;
-                 const { posicion, rotacion, color } = camion;
-                 // Rojo para averiados, negro para mantenimiento, ámbar para mantenimiento preventivo, color original para otros estados
+                 const { posicion, rotacion } = camion;
+                 const tieneGLP = estadoCamion && typeof estadoCamion.capacidadActualGLP === 'number' && typeof estadoCamion.capacidadMaximaGLP === 'number' && estadoCamion.capacidadMaximaGLP > 0;
                  const colorFinal = esAveriado ? ESTADO_COLORS.AVERIADO : 
                                    esEnMantenimiento ? ESTADO_COLORS.MANTENIMIENTO : 
                                    esEnMantenimientoPreventivo ? ESTADO_COLORS.MANTENIMIENTO_PREVENTIVO : 
-                                   color;
+                                   (tieneGLP
+                                     ? colorSemaforoGLP(
+                                         (estadoCamion.capacidadActualGLP! / estadoCamion.capacidadMaximaGLP!) * 100,
+                                         estadoCamion.estado === 'Disponible' && estadoCamion.capacidadActualGLP === estadoCamion.capacidadMaximaGLP
+                                       )
+                                     : '#3b82f6'); // Azul por defecto si no hay datos
                  const cx = posicion.x * CELL_SIZE;
                  const cy = posicion.y * CELL_SIZE;
                  return (
@@ -930,8 +966,8 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado }) => {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                     <div 
-                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min(100, Math.max(0, porcentajeGLP))}%` }}
+                      className="h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(100, Math.max(0, porcentajeGLP))}%`, background: colorSemaforoGLP(porcentajeGLP) }}
                     ></div>
                   </div>
                   <div className="text-xs text-gray-600 text-center">
