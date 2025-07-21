@@ -41,6 +41,11 @@ public class Gen {
         this.pedidos = new ArrayList<>();
         this.camionesAveriados = new ArrayList<>();
         this.almacenesIntermedios = new ArrayList<>();
+        this.fitness = 0.0;
+    }
+
+    public double distanciaRecorrida(){
+        return (double) rutaFinal.size();
     }
 
     private void recargarCamion(Camion camion, Nodo nodo) {
@@ -197,6 +202,13 @@ public class Gen {
             posicionActual = rutaSalida.get(rutaSalida.size() - 1);
         }
         return new ResultadoSalidaBloqueo(fitness, posicionActual);
+    }
+
+    public Nodo ultimoNodo() {
+        if(rutaFinal.isEmpty()) {
+            return camion;
+        }
+        return rutaFinal.getLast();
     }
 
     // Clases auxiliares para devolver múltiples valores
