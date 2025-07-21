@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Mapa from "../components/Mapa";
 import Navbar from "../components/Navbar";
 import BloqueosTable from "../components/BloqueosTable";
@@ -12,6 +12,10 @@ import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo"
 const SimulacionSemanal: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
   const [bottomMenuExpandido, setBottomMenuExpandido] = useState(false);
+  const [mapaWidth, setMapaWidth] = useState(66); // Porcentaje inicial del mapa (66% = flex-[2])
+  const [isResizing, setIsResizing] = useState(false);
+  const resizeRef = useRef<HTMLDivElement>(null);
+  
   const { 
     fechaHoraSimulacion, 
     horaActual, 
@@ -74,6 +78,38 @@ const SimulacionSemanal: React.FC = () => {
     }
   }, [bottomMenuExpandido]);
 
+  // Event handlers para el resize
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      
+      const container = document.querySelector('.resize-container');
+      if (!container) return;
+      
+      const containerRect = container.getBoundingClientRect();
+      const newMapaWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+      
+      // Limitar el tamaño del mapa entre 30% y 80%
+      if (newMapaWidth >= 30 && newMapaWidth <= 80) {
+        setMapaWidth(newMapaWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
+
   return (
     <div className="bg-[#F5F5F5] w-screen h-screen flex flex-col pt-16">
       <Navbar />
@@ -103,21 +139,41 @@ const SimulacionSemanal: React.FC = () => {
       
       
       {/* Contenido principal - ahora con altura dinámica */}
-      <div className={`flex flex-row flex-1 gap-4 px-4 overflow-hidden relative transition-all duration-300 ${bottomMenuExpandido ? 'pb-4' : ''}`}>
+      <div className={`resize-container flex flex-row flex-1 px-4 overflow-hidden relative transition-all duration-300 ${bottomMenuExpandido ? 'pb-4' : ''}`}>
         {panel === 'camiones' ? (
           <>
             {/* Mapa */}
-            <div className={`transition-all duration-300 ${menuExpandido ? "flex-1" : "w-full"}`}>
+            <div 
+              className={`transition-all duration-300 ${menuExpandido ? "" : "w-full"}`}
+              style={menuExpandido ? { width: `${mapaWidth}%` } : {}}
+            >
               <div className="bg-white p-4 rounded-xl overflow-auto w-full h-full">
                 <Mapa elementoResaltado={elementoResaltado} />
               </div>
             </div>
-            {/* Menú derecho - posicionado absolutamente */}
+            
+            {/* Separador movible */}
             {menuExpandido && (
-              <div className="absolute right-4 top-0 bottom-0 z-20">
-                <RightMenu expanded={menuExpandido} setExpanded={setMenuExpandido} onElementoSeleccionado={setElementoResaltado} />
+              <div
+                ref={resizeRef}
+                className="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize transition-colors relative"
+                onMouseDown={() => setIsResizing(true)}
+                style={{ minWidth: '4px' }}
+              >
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-1 h-8 bg-gray-400 rounded-full"></div>
+                </div>
               </div>
             )}
+            
+            {/* Menú derecho - que desplaza el mapa */}
+            <div 
+              className={`transition-all duration-300 ${menuExpandido ? "" : "w-0 overflow-hidden"}`}
+              style={menuExpandido ? { width: `${100 - mapaWidth}%` } : {}}
+            >
+              <RightMenu expanded={menuExpandido} setExpanded={setMenuExpandido} onElementoSeleccionado={setElementoResaltado} />
+            </div>
+            
             {/* Botón flotante para mostrar menú si está oculto */}
             {!menuExpandido && (
               <button

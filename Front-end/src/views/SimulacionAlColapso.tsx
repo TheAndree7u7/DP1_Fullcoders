@@ -1,20 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Mapa from "../components/Mapa";
 import Navbar from "../components/Navbar";
 import BloqueosTable from "../components/BloqueosTable";
 import RightMenu from "../components/RightMenu";
 import BottomMenu from "../components/BottomMenu";
-import { ChevronLeft, ChevronUp } from "lucide-react";
-import { useSimulacion,  } from "../context/SimulacionContext";
+import { ChevronLeft } from "lucide-react";
+import { useSimulacion } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
-import ControlSimulacion from "../components/ControlSimulacion";
-import IndicadorPaqueteActual from "../components/IndicadorPaqueteActual";
-import { SEGUNDOS_POR_NODO } from "../context/simulacion/types";
-
+ 
 
 const SimulacionSemanal: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
   const [bottomMenuExpandido, setBottomMenuExpandido] = useState(false);
+  const [mapaWidth, setMapaWidth] = useState(66); // Porcentaje inicial del mapa (66% = flex-[2])
+  const [isResizing, setIsResizing] = useState(false);
+  const resizeRef = useRef<HTMLDivElement>(null);
+  
   const { 
     fechaHoraSimulacion, 
     horaActual, 
@@ -29,12 +30,8 @@ const SimulacionSemanal: React.FC = () => {
   // Estado para resaltar elementos en el mapa
   const [elementoResaltado, setElementoResaltado] = useState<{tipo: 'camion' | 'pedido' | 'almacen', id: string} | null>(null);
   // Estado para el panel de control
-  const [controlPanelExpandido, setControlPanelExpandido] = useState(false);
 
 
-  
-
-  
   // Actualizar la hora simulada solo cuando cambia la fecha del backend
   useEffect(() => {
     if (fechaHoraSimulacion) {
@@ -42,10 +39,6 @@ const SimulacionSemanal: React.FC = () => {
       setTiempoSimulado(new Date(fechaHoraSimulacion));
     }
   }, [fechaHoraSimulacion]);
-  
-
-
-
 
   // Efecto para escuchar clicks en los botones de la navbar
   useEffect(() => {
@@ -85,13 +78,44 @@ const SimulacionSemanal: React.FC = () => {
     }
   }, [bottomMenuExpandido]);
 
+  // Event handlers para el resize
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      
+      const container = document.querySelector('.resize-container');
+      if (!container) return;
+      
+      const containerRect = container.getBoundingClientRect();
+      const newMapaWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+      
+      // Limitar el tamaño del mapa entre 30% y 80%
+      if (newMapaWidth >= 30 && newMapaWidth <= 80) {
+        setMapaWidth(newMapaWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
+
   return (
     <div className="bg-[#F5F5F5] w-screen h-screen flex flex-col pt-16">
       <Navbar />
-      <div className="bg-[#1E293B] text-white py-2 px-4 flex justify-between items-center">
+      <div className="bg-[#10093B] text-white py-2 px-4 flex justify-between items-center">
         <h1 className="font-bold">Ejecución Semanal - {formatearTiempoTranscurrido(tiempoTranscurridoSimulado)}</h1>
         <div className="flex items-center gap-4">
- 
           {tiempoSimulado && (
             <div className="text-sm flex items-center gap-4">
               <div>
@@ -104,56 +128,52 @@ const SimulacionSemanal: React.FC = () => {
               </div>
               <div>
                 <span className="mr-2">Seg/nodo:</span>
-                <span className="font-bold text-blue-300">{SEGUNDOS_POR_NODO}</span>
+                <span className="font-bold text-blue-300">36</span>
               </div>
             </div>
           )}
         </div>
       </div>
       
-      {/* Panel de control de simulación */}
-      <div className="px-4 py-2">
-        <div className="flex items-center justify-between mb-2">
-          <button
-            onClick={() => setControlPanelExpandido(!controlPanelExpandido)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
-          >
-            {controlPanelExpandido ? '🔼 Ocultar Control' : '🔽 Mostrar Control de Simulación'}
-          </button>
-        </div>
-        
-        {controlPanelExpandido && (
-          <div className="transition-all duration-300">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Control de simulación */}
-              <div className="lg:col-span-2">
-                <ControlSimulacion />
-              </div>
-              {/* Indicador detallado del paquete actual */}
-              <div className="lg:col-span-1">
-                <IndicadorPaqueteActual />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      
+      
       
       {/* Contenido principal - ahora con altura dinámica */}
-      <div className={`flex flex-row flex-1 gap-4 px-4 overflow-hidden relative transition-all duration-300 ${bottomMenuExpandido ? 'pb-4' : ''}`}>
+      <div className={`resize-container flex flex-row flex-1 px-4 overflow-hidden relative transition-all duration-300 ${bottomMenuExpandido ? 'pb-4' : ''}`}>
         {panel === 'camiones' ? (
           <>
             {/* Mapa */}
-            <div className={`transition-all duration-300 ${menuExpandido ? "flex-1" : "w-full"}`}>
+            <div 
+              className={`transition-all duration-300 ${menuExpandido ? "" : "w-full"}`}
+              style={menuExpandido ? { width: `${mapaWidth}%` } : {}}
+            >
               <div className="bg-white p-4 rounded-xl overflow-auto w-full h-full">
                 <Mapa elementoResaltado={elementoResaltado} />
               </div>
             </div>
-            {/* Menú derecho - posicionado absolutamente */}
+            
+            {/* Separador movible */}
             {menuExpandido && (
-              <div className="absolute right-4 top-0 bottom-0 z-20">
-                <RightMenu expanded={menuExpandido} setExpanded={setMenuExpandido} onElementoSeleccionado={setElementoResaltado} />
+              <div
+                ref={resizeRef}
+                className="w-1 bg-gray-300 hover:bg-blue-500 cursor-col-resize transition-colors relative"
+                onMouseDown={() => setIsResizing(true)}
+                style={{ minWidth: '4px' }}
+              >
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-1 h-8 bg-gray-400 rounded-full"></div>
+                </div>
               </div>
             )}
+            
+            {/* Menú derecho - que desplaza el mapa */}
+            <div 
+              className={`transition-all duration-300 ${menuExpandido ? "" : "w-0 overflow-hidden"}`}
+              style={menuExpandido ? { width: `${100 - mapaWidth}%` } : {}}
+            >
+              <RightMenu expanded={menuExpandido} setExpanded={setMenuExpandido} onElementoSeleccionado={setElementoResaltado} />
+            </div>
+            
             {/* Botón flotante para mostrar menú si está oculto */}
             {!menuExpandido && (
               <button
@@ -220,24 +240,13 @@ const SimulacionSemanal: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Botón flotante para mostrar menú inferior */}
-      {!bottomMenuExpandido && panel === 'camiones' && (
-        <button
-          onClick={() => setBottomMenuExpandido(true)}
-          className="absolute bottom-4 right-4 z-20 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg p-3 transition-all duration-200"
-          title="Mostrar ruta del camión"
-        >
-          <ChevronUp size={20} />
-        </button>
-      )}
-
-      {/* Menú inferior - ahora empuja el contenido hacia arriba */}
-      <div className={`transition-all duration-300 ${bottomMenuExpandido ? 'flex-shrink-0' : 'h-0 overflow-hidden'}`}>
-        <BottomMenu expanded={bottomMenuExpandido} setExpanded={setBottomMenuExpandido} camionSeleccionadoExterno={camionSeleccionadoExterno} />
-      </div>
-
-
+      
+      {/* Menú inferior */}
+      <BottomMenu 
+        expanded={bottomMenuExpandido} 
+        setExpanded={setBottomMenuExpandido}
+        camionSeleccionadoExterno={camionSeleccionadoExterno}
+      />
     </div>
   );
 };
