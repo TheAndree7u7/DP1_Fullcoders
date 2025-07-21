@@ -1,6 +1,6 @@
 // components/IndicadoresCamiones.tsx
 import { useSimulacion } from '../context/SimulacionContext';
-import { CircleDashed, Fuel, Wrench, CheckCircle2, AlertTriangle, Settings } from 'lucide-react';
+import { CircleDashed, Fuel, Wrench, AlertTriangle, Settings } from 'lucide-react';
 
 /**
  * Componente que muestra indicadores resumen de los camiones
@@ -11,10 +11,8 @@ const IndicadoresCamiones: React.FC = () => {
 
   // Contador de camiones por estado
   const contadorEstados = {
-    Entregado: 0,
-    'En Camino': 0,
+    'En Ruta': 0,
     Averiado: 0,
-    'En Mantenimiento': 0,
     'En Mantenimiento Preventivo': 0,
     'En Mantenimiento por Avería': 0,
     Disponible: 0,
@@ -28,7 +26,7 @@ const IndicadoresCamiones: React.FC = () => {
   });
 
   return (
-    <div className="grid grid-cols-7 gap-1 mb-1">
+    <div className="grid grid-cols-5 gap-1 mb-1">
       {/* Camiones Disponibles */}
       <div className="flex flex-col items-center justify-center bg-blue-50 rounded p-1 text-center">
         <div className="bg-blue-100 p-1 rounded">
@@ -38,22 +36,13 @@ const IndicadoresCamiones: React.FC = () => {
         <div className="text-sm font-bold">{contadorEstados.Disponible}</div>
       </div>
       
-      {/* Camiones En Camino */}
+      {/* Camiones En Ruta */}
       <div className="flex flex-col items-center justify-center bg-green-50 rounded p-1 text-center">
         <div className="bg-green-100 p-1 rounded">
           <Fuel size={14} className="text-green-600" />
         </div>
         <div className="text-[10px] font-medium">En Ruta</div>
-        <div className="text-sm font-bold">{contadorEstados['En Camino']}</div>
-      </div>
-      
-      {/* Camiones En Mantenimiento */}
-      <div className="flex flex-col items-center justify-center bg-yellow-50 rounded p-1 text-center">
-        <div className="bg-yellow-100 p-1 rounded">
-          <Wrench size={14} className="text-yellow-600" />
-        </div>
-        <div className="text-[10px] font-medium">Mantenim.</div>
-        <div className="text-sm font-bold">{contadorEstados['En Mantenimiento']}</div>
+        <div className="text-sm font-bold">{contadorEstados['En Ruta']}</div>
       </div>
       
       {/* Camiones En Mantenimiento Preventivo */}
@@ -81,15 +70,6 @@ const IndicadoresCamiones: React.FC = () => {
         </div>
         <div className="text-[10px] font-medium">Averiados</div>
         <div className="text-sm font-bold">{contadorEstados.Averiado}</div>
-      </div>
-      
-      {/* Camiones con Entregas Completadas */}
-      <div className="flex flex-col items-center justify-center bg-emerald-50 rounded p-1 text-center">
-        <div className="bg-emerald-100 p-1 rounded">
-          <CheckCircle2 size={14} className="text-emerald-600" />
-        </div>
-        <div className="text-[10px] font-medium">Entregados</div>
-        <div className="text-sm font-bold">{contadorEstados.Entregado}</div>
       </div>
     </div>
   );
