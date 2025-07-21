@@ -115,19 +115,46 @@ const recargarCamionEnAlmacenCentral = (
 };
 
 /**
+ * @function actualizarAlmacenEnEstado
+ * @description Actualiza la capacidad de GLP de un almacén específico en el estado
+ * @param almacenes - Lista actual de almacenes
+ * @param coordenadaAlmacen - Coordenada del almacén a actualizar
+ * @param glpRecargado - Cantidad de GLP que se recargó (para restar de la capacidad)
+ * @returns Nueva lista de almacenes con el almacén actualizado
+ */
+const actualizarAlmacenEnEstado = (
+  almacenes: Almacen[],
+  coordenadaAlmacen: { x: number; y: number },
+  glpRecargado: number
+): Almacen[] => {
+  return almacenes.map(almacen => {
+    if (almacen.coordenada.x === coordenadaAlmacen.x && 
+        almacen.coordenada.y === coordenadaAlmacen.y) {
+      return {
+        ...almacen,
+        capacidadActualGLP: Math.max(0, almacen.capacidadActualGLP - glpRecargado)
+      };
+    }
+    return almacen;
+  });
+};
+
+/**
  * @function recargarCamionEnAlmacenRecarga
  * @description Recarga el GLP y combustible del camión en un nodo de tipo ALMACEN_RECARGA
  * @param camion - Estado actual del camión
  * @param ruta - Ruta del camión
  * @param siguientePaso - Índice del siguiente paso en la ruta
  * @param almacenes - Lista de almacenes disponibles
+ * @param setAlmacenes - Función para actualizar el estado de almacenes
  * @returns Objeto con los nuevos valores de GLP y combustible, y si se realizó recarga
  */
 const recargarCamionEnAlmacenRecarga = (
   camion: CamionEstado,
   ruta: RutaCamion,
   siguientePaso: number,
-  almacenes: Almacen[]
+  almacenes: Almacen[],
+  setAlmacenes: (almacenes: Almacen[]) => void
 ): { nuevoGLP: number; nuevoCombustible: number; seRecargo: boolean } => {
   const nodoActual = ruta.ruta[siguientePaso];
   const coordenadaNodo = parseCoord(nodoActual);
@@ -149,18 +176,25 @@ const recargarCamionEnAlmacenRecarga = (
   let nuevoGLP = camion.capacidadActualGLP;
   let nuevoCombustible = camion.combustibleActual;
   let seRecargo = false;
+  let glpRecargado = 0;
   
   // Recargar GLP: verificar si puede recargar todo lo que le falta o solo lo disponible
   const glpRequerido = (camion.capacidadMaximaGLP || 0) - (camion.capacidadActualGLP || 0);
   const glpDisponible = almacenEnNodo.capacidadActualGLP;
   
   if (glpRequerido > 0 && glpDisponible > 0) {
-    const glpRecargar = Math.min(glpRequerido, glpDisponible);
-    nuevoGLP = (camion.capacidadActualGLP || 0) + glpRecargar;
+    glpRecargado = Math.min(glpRequerido, glpDisponible);
+    nuevoGLP = (camion.capacidadActualGLP || 0) + glpRecargado;
     
-    // Actualizar la capacidad del almacén (simular la reducción)
-    // Nota: En una implementación real, esto debería actualizarse en el backend
-    console.log(`⛽ RECARGA GLP: Camión ${camion.id} recargó ${glpRecargar.toFixed(2)} m³ de GLP en almacén ${almacenEnNodo.nombre} (disponible: ${glpDisponible.toFixed(2)} → ${(glpDisponible - glpRecargar).toFixed(2)} m³)`);
+    // Actualizar la capacidad del almacén en el estado
+    const nuevosAlmacenes = actualizarAlmacenEnEstado(
+      almacenes, 
+      coordenadaNodo, 
+      glpRecargado
+    );
+    setAlmacenes(nuevosAlmacenes);
+    
+    console.log(`⛽ RECARGA GLP: Camión ${camion.id} recargó ${glpRecargado.toFixed(2)} m³ de GLP en almacén ${almacenEnNodo.nombre} (disponible: ${glpDisponible.toFixed(2)} → ${(glpDisponible - glpRecargado).toFixed(2)} m³)`);
     seRecargo = true;
   }
   
@@ -211,7 +245,8 @@ const verificarNodoAlmacenRecarga = (
 export const avanzarCamion = (
   camion: CamionEstado,
   ruta: RutaCamion,
-  almacenes: Almacen[]
+  almacenes: Almacen[],
+  setAlmacenes: (almacenes: Almacen[]) => void
 ): CamionEstado => {
   // Si el camión está averiado, no avanza
   if (camion.estado === "Averiado") {
@@ -252,7 +287,7 @@ export const avanzarCamion = (
   
   // Si no se recargó en el almacén central, verificar si es un nodo ALMACEN_RECARGA
   if (!recarga.seRecargo && verificarNodoAlmacenRecarga(ruta, siguientePaso, almacenes)) {
-    recarga = recargarCamionEnAlmacenRecarga(camion, ruta, siguientePaso, almacenes);
+    recarga = recargarCamionEnAlmacenRecarga(camion, ruta, siguientePaso, almacenes, setAlmacenes);
   }
   
   // Solo consumir combustible si el camión se movió y no se recargó
@@ -356,13 +391,14 @@ export const avanzarCamion = (
 export const avanzarTodosLosCamiones = (
   camiones: CamionEstado[],
   rutasCamiones: RutaCamion[],
-  almacenes: Almacen[]
+  almacenes: Almacen[],
+  setAlmacenes: (almacenes: Almacen[]) => void
 ): CamionEstado[] => {
   return camiones.map((camion) => {
     const ruta = rutasCamiones.find((r) => r.id === camion.id);
     if (!ruta) return camion;
 
-    return avanzarCamion(camion, ruta, almacenes);
+    return avanzarCamion(camion, ruta, almacenes, setAlmacenes);
   });
 };
 

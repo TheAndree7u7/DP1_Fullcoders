@@ -34,7 +34,8 @@ export const avanzarHora = async (
   setSolicitudAnticipadaEnviada: (enviada: boolean) => void,
   cargarSolucionAnticipadaLocal: () => Promise<void>,
   aplicarSolucionPrecargada: (data: IndividuoConBloqueos) => Promise<void>,
-  cargarDatosSimulacion: () => Promise<void>
+  cargarDatosSimulacion: () => Promise<void>,
+  setAlmacenes: (almacenes: Almacen[]) => void
 ): Promise<void> => {
   if (esperandoActualizacion || !simulacionActiva) return;
 
@@ -49,7 +50,7 @@ export const avanzarHora = async (
   }
 
   // Avanzar todos los camiones
-  const nuevosCamiones = avanzarTodosLosCamiones(camiones, rutasCamiones, almacenes);
+  const nuevosCamiones = avanzarTodosLosCamiones(camiones, rutasCamiones, almacenes, setAlmacenes);
 
   const quedan = nodosRestantesAntesDeActualizar - 1;
   setNodosRestantesAntesDeActualizar(quedan);

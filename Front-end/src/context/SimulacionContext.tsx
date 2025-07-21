@@ -831,7 +831,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setSolicitudAnticipadaEnviada,
       cargarSolucionAnticipadaLocal,
       aplicarSolucionPrecargada,
-      cargarDatosSimulacion
+      cargarDatosSimulacion,
+      setAlmacenes
     );
   };
 
