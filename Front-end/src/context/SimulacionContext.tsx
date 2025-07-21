@@ -28,6 +28,12 @@ import type {
   Bloqueo,
   IndividuoConBloqueos,
 } from "./simulacion";
+import { 
+  inicializarEstadoAveriasAutomaticas, 
+  incrementarContadorPaquetes,
+  verificarYEjecutarAveriaAutomatica,
+  type EstadoAveriasAutomaticas 
+} from "./simulacion/autoAverias";
 
 // Re-exportar tipos para uso en otros archivos
 export type { CamionEstado, RutaCamion } from "./simulacion";
@@ -195,6 +201,11 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [horaSimulacionAcumulada, setHoraSimulacionAcumulada] = useState<string>("00:00:00");
   const [fechaHoraAcumulada, setFechaHoraAcumulada] = useState<string>("");
   const [paqueteActualConsumido, setPaqueteActualConsumido] = useState<number>(0);
+
+  // Estado de averías automáticas
+  const [estadoAveriasAutomaticas, setEstadoAveriasAutomaticas] = useState<EstadoAveriasAutomaticas>(
+    inicializarEstadoAveriasAutomaticas()
+  );
 
   // ============================
   // EFECTOS DE CONTROL DE TIEMPO
@@ -815,6 +826,47 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * y recargando datos del backend cuando sea necesario
    */
   const avanzarHora = async () => {
+    // Incrementar contador de paquetes para averías automáticas
+    const nuevoEstadoAverias = incrementarContadorPaquetes(estadoAveriasAutomaticas, paqueteActualConsumido);
+    setEstadoAveriasAutomaticas(nuevoEstadoAverias);
+
+    // Verificar y ejecutar averías automáticas si es necesario
+    const resultadoAveria = await verificarYEjecutarAveriaAutomatica(
+      nuevoEstadoAverias,
+      paqueteActualConsumido,
+      camiones,
+      rutasCamiones,
+      fechaHoraInicioIntervalo,
+      fechaHoraFinIntervalo,
+      {
+        horaActual,
+        horaSimulacion,
+        fechaHoraSimulacion,
+        fechaInicioSimulacion,
+        diaSimulacion,
+        tiempoRealSimulacion,
+        tiempoTranscurridoSimulado,
+        camiones,
+        rutasCamiones,
+        almacenes,
+        bloqueos
+      },
+      {
+        marcarCamionAveriado,
+        setAveriando: () => {}, // Función dummy para averías automáticas
+        setClickedCamion: () => {}, // Función dummy para averías automáticas
+        setSimulacionActiva,
+        setPollingActivo,
+        aplicarNuevaSolucionDespuesAveria
+      }
+    );
+
+    // Actualizar estado de averías si se ejecutó una
+    if (resultadoAveria.averiaEjecutada) {
+      setEstadoAveriasAutomaticas(resultadoAveria.nuevoEstado);
+    }
+
+    // Continuar con el avance normal de la simulación
     await avanzarHoraUtil(
       camiones,
       rutasCamiones,

@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import BloqueosTable from "../components/BloqueosTable";
 import RightMenu from "../components/RightMenu";
 import BottomMenu from "../components/BottomMenu";
+import ControlAveriasAutomaticas from "../components/ControlAveriasAutomaticas";
 import { ChevronLeft } from "lucide-react";
 import { useSimulacion } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
@@ -142,6 +143,11 @@ const SimulacionSemanal: React.FC = () => {
       <div className={`resize-container flex flex-row flex-1 px-4 overflow-hidden relative transition-all duration-300 ${bottomMenuExpandido ? 'pb-4' : ''}`}>
         {panel === 'camiones' ? (
           <>
+            {/* Panel de control de averías automáticas */}
+            <div className="absolute top-4 left-4 z-30 w-80">
+              <ControlAveriasAutomaticas />
+            </div>
+            
             {/* Mapa */}
             <div 
               className={`transition-all duration-300 ${menuExpandido ? "" : "w-full"}`}
