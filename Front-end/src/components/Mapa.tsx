@@ -772,7 +772,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado }
                     key={`ruta-seleccionada-${camion.id}`}
                     fill="none"
                     stroke="#000000"
-                    strokeWidth={4}
+                    strokeWidth={2}
                     strokeDasharray="none"
                     points={rutaAMostrar.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
                   />
