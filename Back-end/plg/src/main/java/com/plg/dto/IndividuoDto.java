@@ -6,9 +6,12 @@ import java.util.List;
 
 import com.plg.utils.Parametros;
 import com.plg.entity.Almacen;
+import com.plg.entity.Averia;
 import com.plg.entity.Bloqueo;
+import com.plg.entity.EstadoCamion;
 import com.plg.entity.Pedido;
 import com.plg.utils.Gen;
+import com.plg.utils.Herramientas;
 import com.plg.utils.Individuo;
 
 import lombok.Data;
@@ -58,5 +61,36 @@ public class IndividuoDto {
         }
     }
     // !AVERIAS AUTOMATICAS
+
     // Metodo para agregar averias automaticas en la ruta del mejor individuo
+    // verificando cada cromosoma
+    public void agregarAveriasAutomaticas(List<Averia> averiasAutomaticas) {
+        //
+        // sacar la fecha en medio del intervalo de simulacion
+        LocalDateTime fechaMedio = fechaHoraInicioIntervalo
+                .plusSeconds(fechaHoraFinIntervalo.getSecond() - fechaHoraInicioIntervalo.getSecond() / 2);
+        int turno = Herramientas.detectarTurno(fechaMedio);
+        // Sacar la lista de averias automaticas del turno
+        List<Averia> averiasAutomaticasTurno = averiasAutomaticas.stream()
+                .filter(averia -> averia.getTurnoOcurrencia() == turno)
+                .toList();
+
+        // Sacar los camiones que se encuentran en el gen del mejor individuo tal que
+        // esten dentro de las averias automaticas tenr una lista
+        List<CamionDto> camiones_para_averiar_automaticamente = new ArrayList<>();
+        for (GenDto gen : cromosoma) {
+            boolean camion_en_averias_automaticas = averiasAutomaticasTurno.stream()
+                    .anyMatch(averia -> averia.getCamion().getCodigo().equals(gen.getCamion().getCodigo()));
+            boolean camion_estado_disponible = gen.getCamion().getEstado().equals(EstadoCamion.DISPONIBLE);
+
+            if (camion_en_averias_automaticas && camion_estado_disponible) {
+                camiones_para_averiar_automaticamente.add(gen.getCamion());
+            }
+        }
+
+        System.out.println("Camiones para averiar automaticamente: " + camiones_para_averiar_automaticamente.size());
+        // !Ahora por cada camion elegir un nodo aleatorio dentro de los nodos que puede
+        // recorrer el camion pero que este en el rango de averias automaticas
+        //
+    }
 }

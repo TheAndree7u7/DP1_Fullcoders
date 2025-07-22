@@ -3,11 +3,11 @@ package com.plg.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
 import com.plg.entity.TipoNodo;
 import com.plg.utils.Gen;
+import com.plg.utils.Parametros;
 
 import lombok.Data;
 
@@ -31,7 +31,7 @@ public class GenDto {
         for (Pedido pedido : gen.getPedidos()) {
             this.pedidos.add(new PedidoDto(pedido));
         }
- 
+
     }
 
     public NodoDto obtenerTipoNodo(Nodo nodo, Gen gen) {
@@ -39,12 +39,18 @@ public class GenDto {
         TipoNodo tipopNodo = TipoNodo.NORMAL;
         if (gen.getAlmacenesIntermedios().stream().anyMatch(a -> a.equals(nodo))) {
             tipopNodo = TipoNodo.ALMACEN_RECARGA;
-        }else if(gen.getPedidos().stream().anyMatch(p -> p.equals(nodo))) {
+        } else if (gen.getPedidos().stream().anyMatch(p -> p.equals(nodo))) {
             tipopNodo = TipoNodo.PEDIDO;
         } else if (gen.getCamionesAveriados().stream().anyMatch(c -> c.equals(nodo))) {
             tipopNodo = TipoNodo.CAMION_AVERIADO;
         }
         NodoDto nuevo_nodo = new NodoDto(nodo, tipopNodo);
         return nuevo_nodo;
+    }
+
+    // ! calcula la cantidad de nodos que puede recorrer como maximo el camion segun
+    // su velocidad
+    public int calcularCantidadDeNodosQuePuedeRecorrerElCamion() {
+        return (int) (Parametros.velocidadCamion);
     }
 }

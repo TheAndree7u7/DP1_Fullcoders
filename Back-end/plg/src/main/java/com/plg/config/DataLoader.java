@@ -47,7 +47,7 @@ public class DataLoader {
         try {
             initializePedidos();
             initializeMantenimientos();
-            initializeAverias(); // !AVERIAS AUTOMATICAS
+            initializeAveriasAutomaticas(); // !AVERIAS AUTOMATICAS
             initializeBloqueos();
         } catch (InvalidDataFormatException | IOException e) {
             // Manejo simple: imprimir el error, puedes personalizar según tus necesidades
@@ -88,7 +88,7 @@ public class DataLoader {
         return this.camiones;
     }
 
-    public List<Averia> initializeAverias() throws InvalidDataFormatException, IOException {
+    public List<Averia> initializeAveriasAutomaticas() throws InvalidDataFormatException, IOException {
         List<String> lines = Herramientas.readAllLines(pathAverias);
         for (String line : lines) {
             Averia averia = new Averia(line);
