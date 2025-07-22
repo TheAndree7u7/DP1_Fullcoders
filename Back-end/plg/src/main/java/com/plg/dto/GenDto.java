@@ -2,6 +2,7 @@ package com.plg.dto;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
@@ -52,5 +53,24 @@ public class GenDto {
     // su velocidad
     public int calcularCantidadDeNodosQuePuedeRecorrerElCamion() {
         return (int) (Parametros.velocidadCamion);
+    }
+    //!Calcula el indice iniial y final de los nodos que estan en el rango de averias automaticas
+    public void colocar_nodo_de_averia_automatica() {
+        int posicion_inicial = calcularCantidadDeNodosQuePuedeRecorrerElCamion()  * Parametros.rango_inicial_tramo_averia;
+        int posicion_final = calcularCantidadDeNodosQuePuedeRecorrerElCamion()  * Parametros.rango_final_tramo_averia;
+
+      
+        // da una lista de pocisiones en numeros enteros de los nodos que estan en el rango de averias automaticas y que son del tipo normal 
+        List<Integer> posiciones_normales = new ArrayList<>();
+        for(int i = 0; i < nodos.size(); i++){
+            if(nodos.get(i).getTipo().equals(TipoNodo.NORMAL)){
+                posiciones_normales.add(i);
+            }
+        }
+        //elige una posicion aleatoria dentro de los rangos
+        int posicion_aleatoria = new Random().nextInt(posiciones_normales.size());
+
+        //coloca el nodo de avería automática en la posición aleatoria
+
     }
 }

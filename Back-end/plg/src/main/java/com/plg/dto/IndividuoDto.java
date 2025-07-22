@@ -90,7 +90,6 @@ public class IndividuoDto {
 
         System.out.println("Camiones para averiar automaticamente: " + camiones_para_averiar_automaticamente.size());
         // !Ahora por cada camion elegir un nodo aleatorio dentro de los nodos que puede
-        // recorrer el camion pero que este en el rango de averias automaticas
-        //
+        // recorrer el camion pero que este en el rango de averias
     }
 }
