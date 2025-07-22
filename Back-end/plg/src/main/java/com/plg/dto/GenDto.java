@@ -59,15 +59,23 @@ public class GenDto {
     // !Calcula el indice iniial y final de los nodos que estan en el rango de
     // averias automaticas
     public void colocar_nodo_de_averia_automatica() {
-        int posicion_inicial = calcularCantidadDeNodosQuePuedeRecorrerElCamion()
-                * Parametros.rango_inicial_tramo_averia;
-        int posicion_final = calcularCantidadDeNodosQuePuedeRecorrerElCamion() * Parametros.rango_final_tramo_averia;
-
+        int posicion_inicial = (int) (calcularCantidadDeNodosQuePuedeRecorrerElCamion()
+                * (Parametros.rango_inicial_tramo_averia / 100.0));
+        int posicion_final = (int) (calcularCantidadDeNodosQuePuedeRecorrerElCamion()
+                * (Parametros.rango_final_tramo_averia / 100.0));
+        if (posicion_inicial > 1) {
+            posicion_inicial = posicion_inicial - 1;
+        }
+        if (posicion_final > 1) {
+            posicion_final = posicion_final - 1;
+        }
+        // System.out.println("Posicion inicial: " + posicion_inicial);
+        // System.out.println("Posicion final: " + posicion_final);
         int cantidad_nodos_que_puede_recorrer_el_camion = calcularCantidadDeNodosQuePuedeRecorrerElCamion();
         // da una lista de pocisiones en numeros enteros de los nodos que estan en el
         // rango de averias automaticas y que son del tipo normal
         List<Integer> posiciones_normales = new ArrayList<>();
-        for (int i = posicion_inicial; i < posicion_final; i++) {
+        for (int i = posicion_inicial; i < posicion_final - 1; i++) {
             if (nodos.get(i).getTipo().equals(TipoNodo.NORMAL)) {
                 posiciones_normales.add(i);
             }

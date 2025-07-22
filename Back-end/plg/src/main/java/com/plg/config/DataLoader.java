@@ -47,6 +47,7 @@ public class DataLoader {
         try {
             initializePedidos();
             initializeMantenimientos();
+
             initializeAveriasAutomaticas(); // !AVERIAS AUTOMATICAS
             initializeBloqueos();
         } catch (InvalidDataFormatException | IOException e) {
@@ -93,6 +94,10 @@ public class DataLoader {
         for (String line : lines) {
             Averia averia = new Averia(line);
             this.averiasAutomaticas.add(averia);
+        }
+        System.out.println("Averias automaticas: " + this.averiasAutomaticas.size());
+        for (Averia averia : this.averiasAutomaticas) {
+            System.out.println(averia.toString());
         }
         return this.averiasAutomaticas;
     }
