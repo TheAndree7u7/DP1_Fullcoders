@@ -81,7 +81,7 @@ public class IndividuoDto {
         for (GenDto gen : cromosoma) {
             boolean camion_en_averias_automaticas = averiasAutomaticasTurno.stream()
                     .anyMatch(averia -> averia.getCamion().getCodigo().equals(gen.getCamion().getCodigo()));
-            boolean camion_estado_disponible = gen.getCamion().getEstado().equals(EstadoCamion.DISPONIBLE);
+            boolean camion_estado_disponible = gen.getCamion().getEstado().equals(EstadoCamion.DISPONIBLE.toString());
 
             if (camion_en_averias_automaticas && camion_estado_disponible) {
                 camiones_para_averiar_automaticamente.add(gen.getCamion());
@@ -90,6 +90,11 @@ public class IndividuoDto {
 
         System.out.println("Camiones para averiar automaticamente: " + camiones_para_averiar_automaticamente.size());
         // !Ahora por cada camion elegir un nodo aleatorio dentro de los nodos que puede
-        // recorrer el camion pero que este en el rango de averias
+        // recorrer el camion pero que este en el rango de averiasa
+        for (GenDto gen : cromosoma) {
+            if (camiones_para_averiar_automaticamente.contains(gen.getCamion())) {
+                gen.colocar_nodo_de_averia_automatica();
+            }
+        }
     }
 }

@@ -105,10 +105,10 @@ public class SimulacionController {
         for (Bloqueo bloqueo : Simulacion.bloqueosActivos) {
             bloqueo.desactivarBloqueo();
         }
-        //! Aca se podria agregar averias en la ruta del mejor individuo
-        if(Parametros.tipoDeSimulacion == TipoDeSimulacion.SEMANAL){
-            //! Aca se podria agregar averias en la ruta del mejor individuo
-            
+        // ! Aca se podria agregar averias en la ruta del mejor individuo
+        if (Parametros.tipoDeSimulacion == TipoDeSimulacion.SEMANAL) {
+            // ! Aca se podria agregar averias en la ruta del mejor individuo
+            mejorIndividuoDto.agregarAveriasAutomaticas(Parametros.dataLoader.averiasAutomaticas);
         }
         System.out.println("✅ Mejor individuo generado y retornado para la fecha: " + fechaDateTime);
         System.out.println("____________FIN____________");
