@@ -27,13 +27,18 @@ public class DataLoader {
         return "data/bloqueos/" + Parametros.anho + Parametros.mes + ".bloqueos.txt";
     }
 
+    private String getPathAverias() {
+        return "data/averias/averias.v1.txt";
+    }
+
     private Coordenada coordenadaCentral = new Coordenada(8, 12);
 
     public final List<Mantenimiento> mantenimientos = new ArrayList<>();
     public List<Pedido> pedidos = new ArrayList<>();
     public List<Almacen> almacenes = new ArrayList<>();
     public List<Camion> camiones = new ArrayList<>();
-    public List<Averia> averias = new ArrayList<>();
+    public List<Averia> averias = new ArrayList<>(); // Averias automaticas
+    public List<Averia> averiasAutomaticas = new ArrayList<>(); // !AVERIAS AUTOMATICAS
     public List<Bloqueo> bloqueos = new ArrayList<>();
 
     public DataLoader() {
@@ -42,7 +47,7 @@ public class DataLoader {
         try {
             initializePedidos();
             initializeMantenimientos();
-            // initializeAverias();
+            initializeAverias(); // !AVERIAS AUTOMATICAS
             initializeBloqueos();
         } catch (InvalidDataFormatException | IOException e) {
             // Manejo simple: imprimir el error, puedes personalizar según tus necesidades
@@ -87,9 +92,9 @@ public class DataLoader {
         List<String> lines = Herramientas.readAllLines(pathAverias);
         for (String line : lines) {
             Averia averia = new Averia(line);
-            this.averias.add(averia);
+            this.averiasAutomaticas.add(averia);
         }
-        return this.averias;
+        return this.averiasAutomaticas;
     }
 
     public List<Pedido> initializePedidos() throws InvalidDataFormatException, IOException {

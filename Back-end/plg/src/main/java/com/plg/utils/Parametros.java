@@ -22,10 +22,17 @@ public class Parametros {
     public static TipoDeSimulacion tipoDeSimulacion = TipoDeSimulacion.SEMANAL;
     public static LocalDateTime fecha_inicio_simulacion;
 
-    public static int cantNodosEnPedidos =  10; // Cantidad de nodos generados extra por un pedido
+    public static int cantNodosEnPedidos = 10; // Cantidad de nodos generados extra por un pedido
     public static double diferenciaParaPedidoEntregado = 0.5; // Diferencia para considerar un pedido como entregado
 
     public static double velocidadCamion = 70.0; // Velocidad promedio de los camiones en km/h
+
+    // ! PARA LAS AVERIAS AUTOMATICAS
+    public static int numero_de_paquete = 0; // Numero de paquete para averias automaticas
+    //!RANGO DE TRAMOS PARA AVERIAS AUTOMATICAS
+    public static int rango_inicial_tramo_averia = 5; // Rango inicial para averias automaticas
+    public static int rango_final_tramo_averia = 35; 
+    
 
     public static Parametros getInstance() {
         if (instance == null) {

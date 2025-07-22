@@ -57,4 +57,6 @@ public class IndividuoDto {
             this.almacenes.add(new AlmacenDto(almacen));
         }
     }
+    // !AVERIAS AUTOMATICAS
+    // Metodo para agregar averias automaticas en la ruta del mejor individuo
 }

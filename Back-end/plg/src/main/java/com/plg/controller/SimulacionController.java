@@ -1,6 +1,7 @@
 package com.plg.controller;
 
 import com.plg.utils.Simulacion;
+import com.plg.utils.TipoDeSimulacion;
 import com.plg.utils.AlgoritmoGenetico;
 import com.plg.utils.Parametros;
 import com.plg.config.DataLoader;
@@ -103,6 +104,11 @@ public class SimulacionController {
         mejorIndividuoDto.setFechaHoraFinIntervalo(fechaDateTime.plusMinutes(Parametros.intervaloTiempo));
         for (Bloqueo bloqueo : Simulacion.bloqueosActivos) {
             bloqueo.desactivarBloqueo();
+        }
+        //! Aca se podria agregar averias en la ruta del mejor individuo
+        if(Parametros.tipoDeSimulacion == TipoDeSimulacion.SEMANAL){
+            //! Aca se podria agregar averias en la ruta del mejor individuo
+            
         }
         System.out.println("✅ Mejor individuo generado y retornado para la fecha: " + fechaDateTime);
         System.out.println("____________FIN____________");
