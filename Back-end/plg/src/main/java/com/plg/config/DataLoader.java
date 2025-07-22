@@ -96,9 +96,9 @@ public class DataLoader {
             this.averiasAutomaticas.add(averia);
         }
         System.out.println("Averias automaticas: " + this.averiasAutomaticas.size());
-        for (Averia averia : this.averiasAutomaticas) {
-            System.out.println(averia.toString());
-        }
+        // for (Averia averia : this.averiasAutomaticas) {
+        // System.out.println(averia.toString());
+        // }
         return this.averiasAutomaticas;
     }
 
