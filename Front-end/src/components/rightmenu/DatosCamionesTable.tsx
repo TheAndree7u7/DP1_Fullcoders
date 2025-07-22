@@ -197,7 +197,7 @@ const DatosCamionesTable: React.FC<DatosCamionesTableProps> = ({ onElementoSelec
                   if (!camion.id) {
                     console.error(`❌ ERROR: Camión en índice ${index} no tiene ID:`, camion);
                     return (
-                      <tr key={`error-${index}`} className="border-b last:border-b-0 bg-red-50">
+                      <tr key={`error-no-id-${index}`} className="border-b last:border-b-0 bg-red-50">
                         <td colSpan={5} className="px-4 py-2 text-red-600 text-center">
                           Error: Camión sin ID
                         </td>
@@ -221,7 +221,7 @@ const DatosCamionesTable: React.FC<DatosCamionesTableProps> = ({ onElementoSelec
 
                   return (
                     <tr 
-                      key={`camion-table-${camion.id}-${index}`} 
+                      key={`camion-table-${camion.id}`} 
                       onClick={() => onElementoSeleccionado({tipo: 'camion', id: camion.id})}
                       className={
                         `border-b last:border-b-0 bg-white hover:bg-blue-50 hover:cursor-pointer transition-colors`
@@ -255,7 +255,7 @@ const DatosCamionesTable: React.FC<DatosCamionesTableProps> = ({ onElementoSelec
                 } catch (error) {
                   console.error(`❌ ERROR al renderizar fila de camión ${index}:`, error, camion);
                   return (
-                    <tr key={`error-${index}`} className="border-b last:border-b-0 bg-red-50">
+                    <tr key={`error-render-${index}`} className="border-b last:border-b-0 bg-red-50">
                       <td colSpan={5} className="px-4 py-2 text-red-600 text-center">
                         Error al renderizar camión: {error instanceof Error ? error.message : 'Error desconocido'}
                       </td>

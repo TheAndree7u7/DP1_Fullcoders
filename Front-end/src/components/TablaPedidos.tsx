@@ -74,6 +74,28 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
 
   // Extraer y agrupar pedidos por código para evitar duplicados
   const todosPedidos = React.useMemo(() => {
+    // Log para verificar duplicados en datos originales
+    const codigosRutas = rutasCamiones.flatMap(ruta => ruta.pedidos.map(p => p.codigo));
+    const codigosNoAsignados = pedidosNoAsignados.map(p => p.codigo);
+    const todosCodigos = [...codigosRutas, ...codigosNoAsignados];
+    const codigosUnicos = [...new Set(todosCodigos)];
+    
+    if (todosCodigos.length !== codigosUnicos.length) {
+      console.warn('🚨 TABLA PEDIDOS: Hay códigos duplicados en datos originales:', {
+        total: todosCodigos.length,
+        unicos: codigosUnicos.length,
+        duplicados: todosCodigos.filter((codigo, index) => todosCodigos.indexOf(codigo) !== index)
+      });
+      
+      // Log detallado de códigos por fuente
+      console.log('🔍 TABLA PEDIDOS: Códigos por fuente:', {
+        rutasCamiones: codigosRutas,
+        pedidosNoAsignados: codigosNoAsignados,
+        duplicadosEnRutas: codigosRutas.filter((codigo, index) => codigosRutas.indexOf(codigo) !== index),
+        duplicadosEnNoAsignados: codigosNoAsignados.filter((codigo, index) => codigosNoAsignados.indexOf(codigo) !== index)
+      });
+    }
+    
     const pedidosMap = new Map<string, Pedido & { 
       camionesAsignados: string[]; 
       estadosCamiones: string[];
@@ -152,6 +174,17 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
         estadoPedido: estadoFinal
       };
     });
+    
+    // Log para verificar duplicados en resultado final
+    const codigosFinales = pedidosAgrupados.map(p => p.codigo);
+    const codigosFinalesUnicos = [...new Set(codigosFinales)];
+    if (codigosFinales.length !== codigosFinalesUnicos.length) {
+      console.error('🚨 TABLA PEDIDOS: ERROR - Hay códigos duplicados en resultado final:', {
+        total: codigosFinales.length,
+        unicos: codigosFinalesUnicos.length,
+        duplicados: codigosFinales.filter((codigo, index) => codigosFinales.indexOf(codigo) !== index)
+      });
+    }
     
     return pedidosAgrupados;
   }, [rutasCamiones, camiones, pedidosNoAsignados]);
@@ -426,7 +459,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
                          <div className="flex flex-wrap gap-1">
                            {pedido.camionesAsignados.map((camionId: string) => (
                              <span
-                               key={camionId}
+                               key={`${pedido.codigo}-${camionId}`}
                                className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold"
                              >
                                {camionId}

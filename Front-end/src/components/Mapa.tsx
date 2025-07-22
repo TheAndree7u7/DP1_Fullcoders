@@ -147,6 +147,18 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado }
 
   useEffect(() => {
     // Rebuild visuals whenever routes or truck states change
+    
+    // Log para verificar duplicados en rutasCamiones
+    const rutasIds = rutasCamiones.map(r => r.id);
+    const rutasIdsUnicos = [...new Set(rutasIds)];
+    if (rutasIds.length !== rutasIdsUnicos.length) {
+      console.warn('🚨 MAPA: Hay IDs duplicados en rutasCamiones:', {
+        total: rutasIds.length,
+        unicos: rutasIdsUnicos.length,
+        duplicados: rutasIds.filter((id, index) => rutasIds.indexOf(id) !== index)
+      });
+    }
+    
     const nuevosVisuales = rutasCamiones.map((info, idx) => {
       // Filtrar valores undefined o null de la ruta
       const rutaValida = info.ruta.filter(nodo => nodo && typeof nodo === 'string');
@@ -211,12 +223,38 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado }
       } as CamionVisual;
     });
 
-    // Eliminar duplicados basándose en el ID
-    const visualesUnicos = nuevosVisuales.filter((visual, index, array) => 
-      array.findIndex(v => v.id === visual.id) === index
-    );
+    // Eliminar duplicados basándose en el ID usando Map para garantizar unicidad
+    const visualesMap = new Map();
+    nuevosVisuales.forEach(visual => {
+      if (!visualesMap.has(visual.id)) {
+        visualesMap.set(visual.id, visual);
+      } else {
+        console.warn('🚨 MAPA: Camión duplicado encontrado:', visual.id);
+      }
+    });
+    const visualesUnicos = Array.from(visualesMap.values());
+
+    // Log para debugging de duplicados
+    if (nuevosVisuales.length !== visualesUnicos.length) {
+      console.warn('🚨 MAPA: Se encontraron camiones duplicados:', {
+        total: nuevosVisuales.length,
+        unicos: visualesUnicos.length,
+        duplicados: nuevosVisuales.length - visualesUnicos.length
+      });
+    }
 
     setCamionesVisuales(visualesUnicos);
+    
+    // Log para verificar IDs únicos
+    const ids = visualesUnicos.map(v => v.id);
+    const idsUnicos = [...new Set(ids)];
+    if (ids.length !== idsUnicos.length) {
+      console.error('🚨 MAPA: ERROR - Hay IDs duplicados en camionesVisuales:', {
+        total: ids.length,
+        unicos: idsUnicos.length,
+        duplicados: ids.filter((id, index) => ids.indexOf(id) !== index)
+      });
+    }
   }, [camiones, rutasCamiones]);
 
   // Función handleAveriar movida a mapa/utils/averias.ts
@@ -674,23 +712,47 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado }
                        estadoCamion?.estado !== 'En Mantenimiento por Avería' && 
                        camion.ruta.length > 1;
               })
-              .map((camion, index) => {
+              .map((camion) => {
                 const estadoCamion = camiones.find(c => c.id === camion.id);
-                const tieneGLP = estadoCamion && typeof estadoCamion.capacidadActualGLP === 'number' && typeof estadoCamion.capacidadMaximaGLP === 'number' && estadoCamion.capacidadMaximaGLP > 0;
-                const colorRuta = tieneGLP
-                  ? colorSemaforoGLP(
-                      (estadoCamion.capacidadActualGLP! / estadoCamion.capacidadMaximaGLP!) * 100,
-                      estadoCamion.estado === 'Disponible' && estadoCamion.capacidadActualGLP === estadoCamion.capacidadMaximaGLP
-                    )
-                  : '#3b82f6'; // Azul por defecto
+                const esResaltado = elementoResaltado?.tipo === 'camion' && elementoResaltado?.id === camion.id;
+                
+                // Si el camión está resaltado, mostrar la ruta completa en azul sólido
+                let rutaAMostrar = camion.ruta;
+                let colorRuta = '#3b82f6'; // Azul por defecto
+                let strokeDasharray = "4 2"; // Punteado por defecto
+                let strokeWidth = 2;
+                
+                if (esResaltado) {
+                  // Obtener la ruta completa del camión desde rutasCamiones
+                  const rutaCompleta = rutasCamiones.find(r => r.id === camion.id);
+                  if (rutaCompleta && rutaCompleta.ruta.length > 1) {
+                    const rutaCoordsCompleta = rutaCompleta.ruta
+                      .filter(nodo => nodo && typeof nodo === 'string')
+                      .map(parseCoord);
+                    rutaAMostrar = rutaCoordsCompleta;
+                    colorRuta = '#2563eb'; // Azul más intenso para la ruta completa
+                    strokeDasharray = "none"; // Línea sólida
+                    strokeWidth = 3; // Más gruesa
+                  }
+                } else {
+                  // Ruta normal con color según GLP
+                  const tieneGLP = estadoCamion && typeof estadoCamion.capacidadActualGLP === 'number' && typeof estadoCamion.capacidadMaximaGLP === 'number' && estadoCamion.capacidadMaximaGLP > 0;
+                  colorRuta = tieneGLP
+                    ? colorSemaforoGLP(
+                        (estadoCamion.capacidadActualGLP! / estadoCamion.capacidadMaximaGLP!) * 100,
+                        estadoCamion.estado === 'Disponible' && estadoCamion.capacidadActualGLP === estadoCamion.capacidadMaximaGLP
+                      )
+                    : '#3b82f6'; // Azul por defecto
+                }
+                
                 return (
                   <polyline
-                    key={`ruta-${camion.id}-${index}`}
+                    key={`ruta-${camion.id}`}
                     fill="none"
                     stroke={colorRuta}
-                    strokeWidth={2}
-                    strokeDasharray="4 2"
-                    points={camion.ruta.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
+                    strokeWidth={strokeWidth}
+                    strokeDasharray={strokeDasharray}
+                    points={rutaAMostrar.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
                   />
                 );
               })}
@@ -711,7 +773,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado }
                 
                 return true;
               })
-              .map((camion, index) => {
+              .map((camion) => {
                  const estadoCamion = camiones.find(c => c.id === camion.id);
                  const esAveriado = estadoCamion?.estado === 'Averiado';
                  const esEnMantenimiento = estadoCamion?.estado === 'En Mantenimiento';
@@ -731,7 +793,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado }
                  const cx = posicion.x * CELL_SIZE;
                  const cy = posicion.y * CELL_SIZE;
                  return (
-                   <g key={`camion-${camion.id}-${index}`}>
+                   <g key={`camion-${camion.id}`}>
                      <g
                        transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
                        style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}

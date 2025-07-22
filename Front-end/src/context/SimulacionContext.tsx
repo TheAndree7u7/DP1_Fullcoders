@@ -725,6 +725,18 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Validar y eliminar duplicados antes de establecer los camiones
       // console.log("🔍 VALIDACIÓN: Procesando camiones...");
+      
+      // Log para verificar duplicados en datos originales
+      const camionesIds = datos.nuevosCamiones.map(c => c.id);
+      const camionesIdsUnicos = [...new Set(camionesIds)];
+      if (camionesIds.length !== camionesIdsUnicos.length) {
+        console.warn('🚨 CONTEXTO: Hay IDs duplicados en datos.nuevosCamiones:', {
+          total: camionesIds.length,
+          unicos: camionesIdsUnicos.length,
+          duplicados: camionesIds.filter((id, index) => camionesIds.indexOf(id) !== index)
+        });
+      }
+      
       const camionesUnicos = datos.nuevosCamiones.filter((camion, index, array) => {
         if (!camion.id) {
           console.error(`❌ ERROR: Camión en índice ${index} no tiene ID:`, camion);
