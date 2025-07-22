@@ -113,7 +113,11 @@ public class Simulacion {
 
     private static void actualizarRepositorios(LocalDateTime fechaActual) {
         List<Almacen> almacenes = Parametros.dataLoader.almacenes;
-        if (fechaActual.getHour() == 0 && fechaActual.getMinute() == 0) {
+        LocalDateTime fechaAnterior = fechaActual.minusMinutes(Parametros.intervaloTiempo);
+        int diaFechaAnterior = fechaAnterior.getDayOfMonth();
+        int diaFechaActual = fechaActual.getDayOfMonth();
+        if (diaFechaAnterior != diaFechaActual) {
+            // Si es un nuevo día, reiniciamos los almacenes secundarios
             for (Almacen almacen : almacenes) {
                 if (almacen.getTipo() == TipoAlmacen.SECUNDARIO) {
                     almacen.setCapacidadActualGLP(almacen.getCapacidadMaximaGLP());

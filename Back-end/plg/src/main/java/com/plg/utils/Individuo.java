@@ -186,11 +186,11 @@ public class Individuo {
         if (camion.getTipo() == TipoCamion.TD) {
             return 1;
         } else if (camion.getTipo() == TipoCamion.TA) {
-            return 1;
+            return 4;
         } else if (camion.getTipo() == TipoCamion.TB) {
-            return 1;
+            return 2;
         } else if (camion.getTipo() == TipoCamion.TC) {
-            return 1;
+            return 2;
         }
         return 1; // Por defecto
     }
