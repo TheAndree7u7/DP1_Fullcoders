@@ -704,54 +704,76 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado }
               );
             })}
 
-            {/* Rutas de camiones */}
+            {/* Rutas de camiones normales (primero para que estén por debajo) */}
             {camionesVisuales
               .filter(camion => {
                 const estadoCamion = camiones.find(c => c.id === camion.id);
+                const esResaltado = elementoResaltado?.tipo === 'camion' && elementoResaltado?.id === camion.id;
                 return estadoCamion?.estado !== 'Averiado' && 
                        estadoCamion?.estado !== 'En Mantenimiento por Avería' && 
-                       camion.ruta.length > 1;
+                       camion.ruta.length > 1 &&
+                       !esResaltado; // Solo rutas normales (no resaltadas)
               })
               .map((camion) => {
                 const estadoCamion = camiones.find(c => c.id === camion.id);
+                
+                // Ruta normal con color según GLP
+                const tieneGLP = estadoCamion && typeof estadoCamion.capacidadActualGLP === 'number' && typeof estadoCamion.capacidadMaximaGLP === 'number' && estadoCamion.capacidadMaximaGLP > 0;
+                const colorRuta = tieneGLP
+                  ? colorSemaforoGLP(
+                      (estadoCamion.capacidadActualGLP! / estadoCamion.capacidadMaximaGLP!) * 100,
+                      estadoCamion.estado === 'Disponible' && estadoCamion.capacidadActualGLP === estadoCamion.capacidadMaximaGLP
+                    )
+                  : '#3b82f6'; // Azul por defecto
+                
+                return (
+                  <polyline
+                    key={`ruta-normal-${camion.id}`}
+                    fill="none"
+                    stroke={colorRuta}
+                    strokeWidth={2}
+                    strokeDasharray="4 2"
+                    points={camion.ruta.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
+                  />
+                );
+              })}
+
+            {/* Rutas de camiones seleccionados (después para que estén por encima) */}
+            {camionesVisuales
+              .filter(camion => {
+                const estadoCamion = camiones.find(c => c.id === camion.id);
                 const esResaltado = elementoResaltado?.tipo === 'camion' && elementoResaltado?.id === camion.id;
-                
-                // Si el camión está resaltado, mostrar la ruta completa en azul sólido
+                return estadoCamion?.estado !== 'Averiado' && 
+                       estadoCamion?.estado !== 'En Mantenimiento por Avería' && 
+                       camion.ruta.length > 1 &&
+                       esResaltado; // Solo rutas de camiones seleccionados
+              })
+              .map((camion) => {
+                const estadoCamion = camiones.find(c => c.id === camion.id);
+                // Obtener la ruta completa del camión desde rutasCamiones
+                const rutaCompleta = rutasCamiones.find(r => r.id === camion.id);
                 let rutaAMostrar = camion.ruta;
-                let colorRuta = '#3b82f6'; // Azul por defecto
-                let strokeDasharray = "4 2"; // Punteado por defecto
-                let strokeWidth = 2;
                 
-                if (esResaltado) {
-                  // Obtener la ruta completa del camión desde rutasCamiones
-                  const rutaCompleta = rutasCamiones.find(r => r.id === camion.id);
-                  if (rutaCompleta && rutaCompleta.ruta.length > 1) {
-                    const rutaCoordsCompleta = rutaCompleta.ruta
-                      .filter(nodo => nodo && typeof nodo === 'string')
-                      .map(parseCoord);
-                    rutaAMostrar = rutaCoordsCompleta;
-                    colorRuta = '#2563eb'; // Azul más intenso para la ruta completa
-                    strokeDasharray = "none"; // Línea sólida
-                    strokeWidth = 3; // Más gruesa
-                  }
-                } else {
-                  // Ruta normal con color según GLP
-                  const tieneGLP = estadoCamion && typeof estadoCamion.capacidadActualGLP === 'number' && typeof estadoCamion.capacidadMaximaGLP === 'number' && estadoCamion.capacidadMaximaGLP > 0;
-                  colorRuta = tieneGLP
-                    ? colorSemaforoGLP(
-                        (estadoCamion.capacidadActualGLP! / estadoCamion.capacidadMaximaGLP!) * 100,
-                        estadoCamion.estado === 'Disponible' && estadoCamion.capacidadActualGLP === estadoCamion.capacidadMaximaGLP
-                      )
-                    : '#3b82f6'; // Azul por defecto
+                if (rutaCompleta && rutaCompleta.ruta.length > 1) {
+                  const rutaCoordsCompleta = rutaCompleta.ruta
+                    .filter(nodo => nodo && typeof nodo === 'string')
+                    .map(parseCoord);
+                  
+                  // Calcular qué parte de la ruta mostrar basándose en el progreso del camión
+                  const porcentaje = estadoCamion ? estadoCamion.porcentaje : 0;
+                  const indiceInicio = Math.ceil(porcentaje);
+                  
+                  // Mostrar solo la parte de la ruta que aún no ha sido recorrida
+                  rutaAMostrar = rutaCoordsCompleta.slice(indiceInicio);
                 }
                 
                 return (
                   <polyline
-                    key={`ruta-${camion.id}`}
+                    key={`ruta-seleccionada-${camion.id}`}
                     fill="none"
-                    stroke={colorRuta}
-                    strokeWidth={strokeWidth}
-                    strokeDasharray={strokeDasharray}
+                    stroke="#000000"
+                    strokeWidth={4}
+                    strokeDasharray="none"
                     points={rutaAMostrar.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
                   />
                 );
