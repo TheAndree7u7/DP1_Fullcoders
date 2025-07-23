@@ -7,6 +7,7 @@ import BloqueosTable from './BloqueosTable';
 import TablaPedidos from './TablaPedidos';
 import AgregarPedidosPanel from './AgregarPedidosPanel';
 import DatosCamionesTable from './rightmenu/DatosCamionesTable';
+import CamionesAveriadosTable from './rightmenu/CamionesAveriadosTable';
 import TablaAlmacenes from './rightmenu/TablaAlmacenes';
 
 interface RightMenuProps {
@@ -16,7 +17,7 @@ interface RightMenuProps {
 }
 
 const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded, onElementoSeleccionado }) => {
-  const [panel, setPanel] = React.useState<'camiones' | 'bloqueos' | 'metricas' | 'estadoCamiones' | 'pedidos' | 'almacenes' | 'agregarPedidos'>('camiones');
+  const [panel, setPanel] = React.useState<'camiones' | 'camionesAveriados' | 'bloqueos' | 'metricas' | 'estadoCamiones' | 'pedidos' | 'almacenes' | 'agregarPedidos'>('camiones');
   
   if (!expanded) return null;
 
@@ -37,6 +38,12 @@ const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded, onElemento
           onClick={() => setPanel('camiones')}
         >
           Camiones
+        </button>
+        <button
+          className={`px-3 py-1 rounded font-semibold transition ${panel === 'camionesAveriados' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-800 hover:bg-red-100'}`}
+          onClick={() => setPanel('camionesAveriados')}
+        >
+          Averiar Camion
         </button>
         <button
           className={`px-3 py-1 rounded font-semibold transition ${panel === 'bloqueos' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800 hover:bg-blue-100'}`}
@@ -80,6 +87,9 @@ const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded, onElemento
       <div className="flex flex-col flex-1 min-h-0">
         {panel === 'camiones' && (
           <DatosCamionesTable onElementoSeleccionado={onElementoSeleccionado} />
+        )}
+        {panel === 'camionesAveriados' && (
+          <CamionesAveriadosTable onElementoSeleccionado={onElementoSeleccionado} />
         )}
         {panel === 'estadoCamiones' && (
           <div className="flex flex-col flex-1 min-h-0">
