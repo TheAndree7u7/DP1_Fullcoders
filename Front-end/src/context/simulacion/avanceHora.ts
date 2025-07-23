@@ -91,15 +91,12 @@ export const avanzarHora = async (
   camiones: CamionEstado[],
   rutasCamiones: RutaCamion[],
   almacenes: Almacen[],
-  esperandoActualizacion: boolean,
-  simulacionActiva: boolean,
   nodosRestantesAntesDeActualizar: number,
   solicitudAnticipadaEnviada: boolean,
   proximaSolucionCargada: IndividuoConBloqueos | null,
   setCamiones: (camiones: CamionEstado[]) => void,
   setHoraActual: (hora: number | ((prev: number) => number)) => void,
   setNodosRestantesAntesDeActualizar: (nodos: number) => void,
-  setEsperandoActualizacion: (esperando: boolean) => void,
   setSolicitudAnticipadaEnviada: (enviada: boolean) => void,
   cargarSolucionAnticipadaLocal: () => Promise<void>,
   aplicarSolucionPrecargada: (data: IndividuoConBloqueos) => Promise<void>,
@@ -164,7 +161,6 @@ export const avanzarHora = async (
 
   //! Aqui se actualiza al siguiente paquete
   if (quedan <= 0) {
-    setEsperandoActualizacion(true);
     setCamiones(nuevosCamiones);
     setHoraActual((prev) => prev + 1);
 

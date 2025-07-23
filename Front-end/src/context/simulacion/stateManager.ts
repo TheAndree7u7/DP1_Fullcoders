@@ -33,7 +33,6 @@ export const limpiarEstadoParaNuevaSimulacion = (
   setFechaHoraAcumulada: (fecha: string) => void,
   setHoraActual: (hora: number) => void,
   setNodosRestantesAntesDeActualizar: (nodos: number) => void,
-  setEsperandoActualizacion: (esperando: boolean) => void,
   setSolicitudAnticipadaEnviada: (enviada: boolean) => void,
   setProximaSolucionCargada: (solucion: IndividuoConBloqueos | null) => void,
   setPaqueteActualConsumido: (paquete: number) => void,
@@ -64,7 +63,6 @@ export const limpiarEstadoParaNuevaSimulacion = (
   // Resetear contadores
   setHoraActual(HORA_INICIAL);
   setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
-  setEsperandoActualizacion(false);
   setSolicitudAnticipadaEnviada(false);
   setProximaSolucionCargada(null);
   setPaqueteActualConsumido(0); // Resetear contador de paquetes
@@ -109,7 +107,6 @@ export const limpiarSimulacionCompleta = (
   setFechaHoraAcumulada: (fecha: string) => void,
   setHoraActual: (hora: number) => void,
   setNodosRestantesAntesDeActualizar: (nodos: number) => void,
-  setEsperandoActualizacion: (esperando: boolean) => void,
   setSolicitudAnticipadaEnviada: (enviada: boolean) => void,
   setProximaSolucionCargada: (solucion: IndividuoConBloqueos | null) => void,
   setPaqueteActualConsumido: (paquete: number) => void,
@@ -137,7 +134,6 @@ export const limpiarSimulacionCompleta = (
   // Resetear contadores
   setHoraActual(HORA_INICIAL);
   setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
-  setEsperandoActualizacion(false);
   setSolicitudAnticipadaEnviada(false);
   setProximaSolucionCargada(null);
   setPaqueteActualConsumido(0);

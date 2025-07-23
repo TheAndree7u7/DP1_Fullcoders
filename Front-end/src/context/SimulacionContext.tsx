@@ -172,8 +172,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   // Estados de control de actualización
   const [nodosRestantesAntesDeActualizar, setNodosRestantesAntesDeActualizar] =
     useState<number>(NODOS_PARA_ACTUALIZACION);
-  const [esperandoActualizacion, setEsperandoActualizacion] =
-    useState<boolean>(false);
   const [solicitudAnticipadaEnviada, setSolicitudAnticipadaEnviada] =
     useState<boolean>(false);
   const [proximaSolucionCargada, setProximaSolucionCargada] =
@@ -544,7 +542,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Esto evita que el reloj siga avanzando mientras los camiones empiezan desde 0
       setHoraActual(0); // Reiniciar el nodo actual
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
-      setEsperandoActualizacion(false);
       setSolicitudAnticipadaEnviada(false);
       setProximaSolucionCargada(null);
 
@@ -692,7 +689,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Esto evita que el reloj siga avanzando mientras los camiones empiezan desde 0
       setHoraActual(0); // Reiniciar el nodo actual
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
-      setEsperandoActualizacion(false);
       setSolicitudAnticipadaEnviada(false);
       setProximaSolucionCargada(null);
 
@@ -830,7 +826,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Esto evita que el reloj siga avanzando mientras los camiones empiezan desde 0
       setHoraActual(0); // Reiniciar el nodo actual
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
-      setEsperandoActualizacion(false);
       setSolicitudAnticipadaEnviada(false);
       setProximaSolucionCargada(null);
 
@@ -903,15 +898,12 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       camiones,
       rutasCamiones,
       almacenes,
-      esperandoActualizacion,
-      simulacionActiva,
       nodosRestantesAntesDeActualizar,
       solicitudAnticipadaEnviada,
       proximaSolucionCargada,
       setCamiones,
       setHoraActual,
       setNodosRestantesAntesDeActualizar,
-      setEsperandoActualizacion,
       setSolicitudAnticipadaEnviada,
       cargarSolucionAnticipadaLocal,
       aplicarSolucionPrecargada,
@@ -978,7 +970,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         setFechaHoraAcumulada,
         setHoraActual,
         setNodosRestantesAntesDeActualizar,
-        setEsperandoActualizacion,
         setSolicitudAnticipadaEnviada,
         setProximaSolucionCargada,
         setPaqueteActualConsumido,
@@ -1024,7 +1015,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         setFechaHoraAcumulada,
         setHoraActual,
         setNodosRestantesAntesDeActualizar,
-        setEsperandoActualizacion,
         setSolicitudAnticipadaEnviada,
         setProximaSolucionCargada,
         setPaqueteActualConsumido,
@@ -1063,7 +1053,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setFechaHoraAcumulada,
       setHoraActual,
       setNodosRestantesAntesDeActualizar,
-      setEsperandoActualizacion,
       setSolicitudAnticipadaEnviada,
       setProximaSolucionCargada,
       setPaqueteActualConsumido,
@@ -1098,7 +1087,6 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       setFechaHoraAcumulada,
       setHoraActual,
       setNodosRestantesAntesDeActualizar,
-      setEsperandoActualizacion,
       setSolicitudAnticipadaEnviada,
       setProximaSolucionCargada,
       setPaqueteActualConsumido,
