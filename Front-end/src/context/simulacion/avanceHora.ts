@@ -120,12 +120,12 @@ export const avanzarHora = async (
     bloqueos: Bloqueo[]; 
   }
 ): Promise<void> => {
-  console.log('🚀 AVANCE_HORA: Iniciando avance de hora...', {
-    totalCamiones: camiones.length,
-    camionesAveriados: camiones.filter(c => c.estado === 'Averiado').length,
-    rutasConTiposNodos: rutasCamiones.filter(r => r.tiposNodos && r.tiposNodos.length > 0).length,
-    estadoSimulacionDisponible: !!estadoSimulacion
-  });
+  // console.log('🚀 AVANCE_HORA: Iniciando avance de hora...', {
+  //   totalCamiones: camiones.length,
+  //   camionesAveriados: camiones.filter(c => c.estado === 'Averiado').length,
+  //   rutasConTiposNodos: rutasCamiones.filter(r => r.tiposNodos && r.tiposNodos.length > 0).length,
+  //   estadoSimulacionDisponible: !!estadoSimulacion
+  // });
 
   // Verificar si necesitamos solicitar anticipadamente la próxima solución
   const nodosTres4 = Math.floor(NODOS_PARA_ACTUALIZACION * 0.1);
@@ -142,7 +142,7 @@ export const avanzarHora = async (
   setAlmacenes(almacenesActualizados);
 
   // Avanzar todos los camiones
-  console.log('🚛 AVANCE_HORA: Avanzando camiones con estado de simulación...');
+  // console.log('🚛 AVANCE_HORA: Avanzando camiones con estado de simulación...');
   const nuevosCamiones = avanzarTodosLosCamiones(camiones, rutasCamiones, almacenesActualizados, setAlmacenes, estadoSimulacion);
   
   // Log para verificar si hubo cambios en los camiones

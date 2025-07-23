@@ -155,12 +155,12 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado }
     }
     
     // NUEVO: Log para monitorear averías automáticas
-    console.log('🗺️ MAPA: Procesando camiones para visualización:', {
-      totalCamiones: camiones.length,
-      totalRutas: rutasCamiones.length,
-      camionesAveriados: camiones.filter(c => c.estado === 'Averiado').length,
-      rutasConTiposNodos: rutasCamiones.filter(r => r.tiposNodos && r.tiposNodos.length > 0).length
-    });
+    // console.log('🗺️ MAPA: Procesando camiones para visualización:', {
+    //   totalCamiones: camiones.length,
+    //   totalRutas: rutasCamiones.length,
+    //   camionesAveriados: camiones.filter(c => c.estado === 'Averiado').length,
+    //   rutasConTiposNodos: rutasCamiones.filter(r => r.tiposNodos && r.tiposNodos.length > 0).length
+    // });
     
     const nuevosVisuales = rutasCamiones.map((info, idx) => {
       // Filtrar valores undefined o null de la ruta
@@ -188,24 +188,24 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado }
                                         tipoNodoActual === 'AVERIA_AUTOMATICA_T3';
           
           if (esNodoAveriaAutomatica) {
-            console.log('🚛💥 MAPA: Camión en nodo de avería automática:', {
-              camionId: estadoCamion.id,
-              tipoNodo: tipoNodoActual,
-              porcentaje: porcentaje,
-              siguientePaso: siguientePaso,
-              estadoActual: estadoCamion.estado,
-              ubicacion: estadoCamion.ubicacion
-            });
+            // console.log('🚛💥 MAPA: Camión en nodo de avería automática:', {
+            //   camionId: estadoCamion.id,
+            //   tipoNodo: tipoNodoActual,
+            //   porcentaje: porcentaje,
+            //   siguientePaso: siguientePaso,
+            //   estadoActual: estadoCamion.estado,
+            //   ubicacion: estadoCamion.ubicacion
+            // });
           }
         }
         
         // Log para camiones averiados
         if (estadoCamion.estado === 'Averiado') {
-          console.log('🚛🔴 MAPA: Camión averiado detectado:', {
-            camionId: estadoCamion.id,
-            ubicacion: estadoCamion.ubicacion,
-            porcentaje: porcentaje
-          });
+          // console.log('🚛🔴 MAPA: Camión averiado detectado:', {
+          //   camionId: estadoCamion.id,
+          //   ubicacion: estadoCamion.ubicacion,
+          //   porcentaje: porcentaje
+          // });
         }
       }
       

@@ -484,36 +484,36 @@ export const detectarAveriaAutomatica = (
   siguientePaso: number
 ): { debeAveriarse: boolean; tipoAveria?: string } => {
   // Log para debugging de la función
-  console.log('🔍 DETECTAR_AVERIA: Verificando avería automática:', {
-    camionId: camion.id,
-    estadoActual: camion.estado,
-    siguientePaso: siguientePaso,
-    tieneTiposNodos: !!ruta.tiposNodos,
-    longitudTiposNodos: ruta.tiposNodos ? ruta.tiposNodos.length : 0,
-    longitudRuta: ruta.ruta.length
-  });
+  // console.log('🔍 DETECTAR_AVERIA: Verificando avería automática:', {
+  //   camionId: camion.id,
+  //   estadoActual: camion.estado,
+  //   siguientePaso: siguientePaso,
+  //   tieneTiposNodos: !!ruta.tiposNodos,
+  //   longitudTiposNodos: ruta.tiposNodos ? ruta.tiposNodos.length : 0,
+  //   longitudRuta: ruta.ruta.length
+  // });
   
   // Si el camión ya está averiado, no necesita detección
   if (camion.estado === "Averiado") {
-    console.log('🔍 DETECTAR_AVERIA: Camión ya está averiado, no necesita detección');
+    // console.log('🔍 DETECTAR_AVERIA: Camión ya está averiado, no necesita detección');
     return { debeAveriarse: false };
   }
 
   // Verificar si hay tipos de nodos disponibles
   if (!ruta.tiposNodos || siguientePaso >= ruta.tiposNodos.length) {
-    console.log('🔍 DETECTAR_AVERIA: No hay tipos de nodos disponibles o índice fuera de rango:', {
-      tieneTiposNodos: !!ruta.tiposNodos,
-      siguientePaso: siguientePaso,
-      longitudTiposNodos: ruta.tiposNodos ? ruta.tiposNodos.length : 0
-    });
+    // console.log('🔍 DETECTAR_AVERIA: No hay tipos de nodos disponibles o índice fuera de rango:', {
+    //   tieneTiposNodos: !!ruta.tiposNodos,
+    //   siguientePaso: siguientePaso,
+    //   longitudTiposNodos: ruta.tiposNodos ? ruta.tiposNodos.length : 0
+    // });
     return { debeAveriarse: false };
   }
 
   const tipoNodoActual = ruta.tiposNodos[siguientePaso];
-  console.log('🔍 DETECTAR_AVERIA: Tipo de nodo actual:', {
-    tipoNodo: tipoNodoActual,
-    siguientePaso: siguientePaso
-  });
+  // console.log('🔍 DETECTAR_AVERIA: Tipo de nodo actual:', {
+  //   tipoNodo: tipoNodoActual,
+  //   siguientePaso: siguientePaso
+  // });
   
   // Verificar si el nodo actual es un nodo de avería automática
   const esNodoAveriaAutomatica = tipoNodoActual === 'AVERIA_AUTOMATICA_T1' || 
@@ -528,7 +528,7 @@ export const detectarAveriaAutomatica = (
     };
   }
   
-  console.log('🔍 DETECTAR_AVERIA: No es nodo de avería automática');
+  // console.log('🔍 DETECTAR_AVERIA: No es nodo de avería automática');
   return { debeAveriarse: false };
 };
 
