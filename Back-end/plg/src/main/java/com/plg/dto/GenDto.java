@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import com.plg.entity.Averia;
 import com.plg.entity.Coordenada;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
@@ -108,13 +109,32 @@ public class GenDto {
 
         // coloca el nodo de avería automática en la posición aleatoria
         CoordenadaDto coordDto = nodos.get(posicion_aleatoria).getCoordenada();
+        TipoNodo tipo_nodo_averia;
+        // ! Busca el tipo de averia en la lista de averias automaticas
+        Averia averia = Parametros.dataLoader.averiasAutomaticas.stream()
+                .filter(a -> a.getCamion().getCodigo().equals(camion.getCodigo()))
+                .findFirst()
+                .orElse(null);
+        if (averia != null) {
+            String tipo_nodo_averia_string = averia.getTipoIncidente().getCodigo();
+            if (tipo_nodo_averia_string.equals("TI1")) {
+                tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T1;
+            } else if (tipo_nodo_averia_string.equals("TI2")) {
+                tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T2;
+            } else {
+                tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T3;
+            }
+        } else {
+            tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T1;
+        }
+
         NodoDto nodoAveria = new NodoDto(new Nodo(new Coordenada(coordDto.getY(), coordDto.getX())),
-                TipoNodo.AVERIA_AUTOMATICA);
+                tipo_nodo_averia);
         nodos.set(posicion_aleatoria, nodoAveria);
         // ! A partir de la posicion aleatoria se cambia el tipo de nodo de los nodos
         // que estan en el rango de averias automaticas
         for (int i = posicion_aleatoria; i < cantidad_nodos_que_puede_recorrer_el_camion; i++) {
-            nodos.get(i).setTipo(TipoNodo.AVERIA_AUTOMATICA);
+            nodos.get(i).setTipo(tipo_nodo_averia);
             nodos.get(i).setCoordenada(nodos.get(posicion_aleatoria).getCoordenada());
         }
     }
