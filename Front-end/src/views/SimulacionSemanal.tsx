@@ -20,7 +20,9 @@ const SimulacionSemanal: React.FC = () => {
   const { 
     fechaHoraSimulacion, 
     tiempoTranscurridoSimulado, 
-    fechaHoraAcumulada
+    fechaHoraAcumulada,
+    camiones,
+    rutasCamiones
   } = useSimulacion();
   const currentDateTime = useCurrentDateTime();
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
@@ -111,6 +113,22 @@ const SimulacionSemanal: React.FC = () => {
     };
   }, [isResizing]);
 
+  // Calcular capacidad total y disponible
+  const capacidadTotal = camiones.reduce((acc, c) => acc + (c.capacidadMaximaGLP || 0), 0);
+  const capacidadDisponible = camiones.reduce((acc, c) => acc + (c.capacidadActualGLP || 0), 0);
+  const porcentajeDisponible = capacidadTotal > 0 ? capacidadDisponible / capacidadTotal : 0;
+  
+  // Calcular GLP en uso (suma del GLP de pedidos PENDIENTE / capacidad total)
+  const pedidosAsignados = rutasCamiones.flatMap(r => r.pedidos);
+  const pedidosPendientes = pedidosAsignados.filter(p => p.estado === 'PENDIENTE');
+  const glpEnUso = pedidosPendientes.reduce((acc, p) => acc + (p.volumenGLPAsignado || 0), 0);
+  const porcentajeGLPEnUso = capacidadTotal > 0 ? glpEnUso / capacidadTotal : 0;
+  const getColorPorcentaje = (porcentaje: number) => {
+    if (porcentaje >= 0.7) return '#22c55e'; // verde
+    if (porcentaje >= 0.4) return '#eab308'; // amarillo
+    return '#f97316'; // naranja
+  };
+
   return (
     <div className="bg-[#F5F5F5] w-screen h-screen flex flex-col pt-16">
       <Navbar />
@@ -123,7 +141,7 @@ const SimulacionSemanal: React.FC = () => {
                 <span className="mr-2">Fecha y hora de la simulacion:</span>
                 <span className="font-bold text-blue-300">{fechaHoraAcumulada}</span>
               </div> 
-              <div>
+              <div className="flex items-center gap-2">
                 <span className="mr-2">Hora y fecha Actual:</span>
                 <span className="font-bold text-blue-300">{currentDateTime.toLocaleString('es-ES', {
                   day: '2-digit',
@@ -133,6 +151,31 @@ const SimulacionSemanal: React.FC = () => {
                   minute: '2-digit',
                   second: '2-digit'
                 })}</span>
+                {/* Badges GLP */}
+                <span style={{
+                  background: getColorPorcentaje(porcentajeGLPEnUso),
+                  color: 'white',
+                  borderRadius: 8,
+                  padding: '4px 10px',
+                  fontWeight: 'bold',
+                  minWidth: 80,
+                  textAlign: 'center',
+                  fontSize: 13
+                }}>
+                  Estado GLP USO: {(porcentajeGLPEnUso * 100).toFixed(0)}%
+                </span>
+                <span style={{
+                  background: getColorPorcentaje(porcentajeDisponible),
+                  color: 'white',
+                  borderRadius: 8,
+                  padding: '4px 10px',
+                  fontWeight: 'bold',
+                  minWidth: 80,
+                  textAlign: 'center',
+                  fontSize: 13
+                }}>
+                  Estado GLP Disponible: {(porcentajeDisponible * 100).toFixed(0)}%
+                </span>
               </div>
             </div>
           )}

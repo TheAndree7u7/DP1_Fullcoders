@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSimulacion } from '../context/SimulacionContext';
-import { formatearTiempoTranscurridoCompleto } from '../context/simulacion/utils/tiempo';
+// import { formatearTiempoTranscurridoCompleto } from '../context/simulacion/utils/tiempo';
 import { useCurrentDateTime } from '../hooks/useCurrentDateTime';
 import { SEGUNDOS_POR_NODO, NODOS_PARA_ACTUALIZACION } from '../context/simulacion/types';
 
@@ -96,24 +96,29 @@ const calcularHoraExactaSimulacion = (
   return fechaExacta;
 };
 
-
+const getColorPorcentaje = (porcentaje: number) => {
+  if (porcentaje >= 0.7) return '#22c55e'; // verde
+  if (porcentaje >= 0.4) return '#eab308'; // amarillo
+  return '#f97316'; // naranja
+};
 
 /**
  * Componente que muestra la fecha y hora actual de la simulación
  */
 const FechaHoraSimulacion: React.FC = () => {
-  const { 
-    fechaHoraSimulacion, 
-    fechaInicioSimulacion, 
-    horaActual, 
+  const {
+    fechaHoraSimulacion,
+    fechaInicioSimulacion,
+    horaActual,
     cargando,
     fechaHoraInicioIntervalo,
-    fechaHoraFinIntervalo
+    fechaHoraFinIntervalo,
+    camiones,
+    rutasCamiones
   } = useSimulacion();
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
-  const [tiempoTranscurridoFormateado, setTiempoTranscurridoFormateado] = useState<string>("");
   const currentDateTime = useCurrentDateTime();
-  
+
   // Actualizar la hora simulada cuando cambia fechaHoraSimulacion (datos del backend)
   useEffect(() => {
     if (fechaHoraSimulacion && fechaInicioSimulacion) {
@@ -127,16 +132,20 @@ const FechaHoraSimulacion: React.FC = () => {
     }
   }, [fechaHoraSimulacion, fechaInicioSimulacion]);
   
-  // Calcular tiempo transcurrido formateado
+  // Eliminado cálculo de tiempoFormateado porque ya no se usa
   useEffect(() => {
-    if (fechaHoraSimulacion && fechaInicioSimulacion) {
-      const tiempoFormateado = formatearTiempoTranscurridoCompleto(
-        fechaHoraSimulacion, 
-        fechaInicioSimulacion
-      );
-      setTiempoTranscurridoFormateado(tiempoFormateado);
-    }
+    // Eliminado cálculo de tiempoFormateado porque ya no se usa
   }, [fechaHoraSimulacion, fechaInicioSimulacion]);
+
+  // Calcular capacidad total y disponible
+  const capacidadTotal = camiones.reduce((acc, c) => acc + (c.capacidadMaximaGLP || 0), 0);
+  const capacidadDisponible = camiones.reduce((acc, c) => acc + (c.capacidadActualGLP || 0), 0);
+  const porcentajeDisponible = capacidadTotal > 0 ? capacidadDisponible / capacidadTotal : 0;
+
+  // Calcular GLP en uso (suma de pedidos asignados a camiones / capacidad total)
+  const pedidosAsignados = rutasCamiones.flatMap(r => r.pedidos);
+  const glpEnUso = pedidosAsignados.reduce((acc, p) => acc + (p.volumenGLPAsignado || 0), 0);
+  const porcentajeGLPEnUso = capacidadTotal > 0 ? glpEnUso / capacidadTotal : 0;
 
   if (cargando) {
     return (
@@ -201,6 +210,33 @@ const FechaHoraSimulacion: React.FC = () => {
 
   return (
     <div style={styles.fechaContainer}>
+      {/* Apartado de capacidad GLP */}
+      <div style={{ display: 'flex', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
+        <div style={{
+          background: getColorPorcentaje(porcentajeDisponible),
+          color: 'white',
+          borderRadius: 8,
+          padding: '8px 16px',
+          fontWeight: 'bold',
+          minWidth: 180,
+          textAlign: 'center',
+        }}>
+          Capacidad GLP disponible:<br />
+          {capacidadDisponible.toFixed(2)} / {capacidadTotal.toFixed(2)} m³
+        </div>
+        <div style={{
+          background: getColorPorcentaje(porcentajeGLPEnUso),
+          color: 'white',
+          borderRadius: 8,
+          padding: '8px 16px',
+          fontWeight: 'bold',
+          minWidth: 180,
+          textAlign: 'center',
+        }}>
+          GLP en uso (pedidos asignados):<br />
+          {glpEnUso.toFixed(2)} / {capacidadTotal.toFixed(2)} m³
+        </div>
+      </div>
       <div style={styles.titulo}>
         <span style={styles.iconoReloj}>🕒</span>
         <span>TIEMPO DE SIMULACIÓN</span>
@@ -229,9 +265,31 @@ const FechaHoraSimulacion: React.FC = () => {
               second: '2-digit'
             })}</span>
           </div>
-          <div>
-            <span style={styles.etiqueta}>Tiempo transcurrido: </span>
-            <span style={styles.destacado}>{tiempoTranscurridoFormateado}</span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <span style={{
+              background: getColorPorcentaje(porcentajeGLPEnUso),
+              color: 'white',
+              borderRadius: 8,
+              padding: '4px 10px',
+              fontWeight: 'bold',
+              minWidth: 80,
+              textAlign: 'center',
+              fontSize: 13
+            }}>
+              Estado GLP USO: {(porcentajeGLPEnUso * 100).toFixed(0)}%
+            </span>
+            <span style={{
+              background: getColorPorcentaje(porcentajeDisponible),
+              color: 'white',
+              borderRadius: 8,
+              padding: '4px 10px',
+              fontWeight: 'bold',
+              minWidth: 80,
+              textAlign: 'center',
+              fontSize: 13
+            }}>
+              Estado GLP Disponible: {(porcentajeDisponible * 100).toFixed(0)}%
+            </span>
           </div>
         </div>
       </div>
