@@ -110,6 +110,7 @@ public class SimulacionController {
             // ! Aca se podria agregar averias en la ruta del mejor individuo
             mejorIndividuoDto.agregarAveriasAutomaticas(Parametros.dataLoader.averiasAutomaticas);
         }
+        mejorIndividuoDto.cortarNodosQueVanDespuesDelUltimoNodoQuePuedeRecorrerElCamion();
         System.out.println("✅ Mejor individuo generado y retornado para la fecha: " + fechaDateTime);
         System.out.println("____________FIN____________");
         return mejorIndividuoDto;

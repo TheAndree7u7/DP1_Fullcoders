@@ -50,6 +50,21 @@ public class GenDto {
         return nuevo_nodo;
     }
 
+    // !Corta los nodos que van despues del ultimo nodo que puede recorrer el camion
+    public void cortarNodosQueVanDespuesDelUltimoNodoQuePuedeRecorrerElCamion() {
+        int cantidad_de_nodos_que_puede_recorrer_el_camion = calcularCantidadDeNodosQuePuedeRecorrerElCamion();
+
+        // Si puede recorrer todos los nodos, no se elimina nada
+        if (cantidad_de_nodos_que_puede_recorrer_el_camion >= nodos.size()) {
+            return;
+        }
+
+        // Elimina los nodos desde el final hasta dejar solo los que puede recorrer
+        for (int i = nodos.size() - 1; i >= cantidad_de_nodos_que_puede_recorrer_el_camion; i--) {
+            nodos.remove(i);
+        }
+    }
+
     // ! calcula la cantidad de nodos que puede recorrer como maximo el camion segun
     // su velocidad
     public int calcularCantidadDeNodosQuePuedeRecorrerElCamion() {

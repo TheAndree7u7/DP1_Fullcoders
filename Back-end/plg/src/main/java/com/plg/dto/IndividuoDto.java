@@ -97,4 +97,11 @@ public class IndividuoDto {
             }
         }
     }
+
+    //!Corta los nodos que van despues del ultimo nodo que puede recorrer el camion
+    public void cortarNodosQueVanDespuesDelUltimoNodoQuePuedeRecorrerElCamion() {
+        for (GenDto gen : cromosoma) {
+            gen.cortarNodosQueVanDespuesDelUltimoNodoQuePuedeRecorrerElCamion();
+        }
+    }
 }
