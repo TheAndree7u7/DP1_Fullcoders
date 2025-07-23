@@ -133,7 +133,7 @@ public class GenDto {
         nodos.set(posicion_aleatoria, nodoAveria);
         // ! A partir de la posicion aleatoria se cambia el tipo de nodo de los nodos
         // que estan en el rango de averias automaticas
-        for (int i = posicion_aleatoria; i < cantidad_nodos_que_puede_recorrer_el_camion; i++) {
+        for (int i = posicion_aleatoria; i < nodos.size(); i++) {
             nodos.get(i).setTipo(tipo_nodo_averia);
             nodos.get(i).setCoordenada(nodos.get(posicion_aleatoria).getCoordenada());
         }
