@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, ChevronUp, ChevronDown, ChevronsUpDown, Wrench, AlertTriangle, Settings } from 'lucide-react';
+import { Search, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { useSimulacion, type CamionEstado } from '../../context/SimulacionContext';
 import { handleAveriar } from '../mapa/utils/averias';
 import { toast, Bounce } from 'react-toastify';
