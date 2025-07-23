@@ -15,8 +15,8 @@ const SeleccionVista: React.FC = () => {
     {
       id: "tiempo-real",
       titulo: "Ejecución en Tiempo Real",
-      descripcion: "Simulación diaria que muestra la operación logística en tiempo real con actualizaciones continuas",
-      ruta: "/ejecucion-tiempo-real",
+      descripcion: "Simulación diaria que inicia automáticamente con la fecha y hora actual, mostrando la operación logística en tiempo real",
+      ruta: "/carga-simulacion-diaria",
       imagen: diarioImg,
       color: "from-blue-500 to-blue-600",
       icono: "⚡",
@@ -58,10 +58,15 @@ const SeleccionVista: React.FC = () => {
           tipo: 'success' 
         });
         
-        // Esperar un momento para mostrar el mensaje de éxito
-        setTimeout(() => {
+        // Para simulación diaria, navegar inmediatamente sin esperar
+        if (opcion.tipoSimulacion === 'DIARIA') {
           navigate(opcion.ruta);
-        }, 1000);
+        } else {
+          // Para otras simulaciones, esperar un momento para mostrar el mensaje de éxito
+          setTimeout(() => {
+            navigate(opcion.ruta);
+          }, 1000);
+        }
       } else {
         setMensaje({ 
           texto: `❌ Error: ${respuesta.mensaje}`, 
@@ -171,7 +176,7 @@ const SeleccionVista: React.FC = () => {
                         Configurando...
                       </div>
                     ) : (
-                      'Iniciar Simulación'
+                      opcion.tipoSimulacion === 'DIARIA' ? 'Iniciar Automáticamente' : 'Iniciar Simulación'
                     )}
                   </button>
                 </div>

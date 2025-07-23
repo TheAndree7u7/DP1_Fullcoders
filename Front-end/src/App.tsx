@@ -4,6 +4,7 @@ import SeleccionVista from './views/SeleccionVista';
 import SimulacionSemanalConCarga from './views/SimulacionSemanalConCarga';
 import SimulacionAlColapso from './views/SimulacionAlColapso';
 import SimulacionDiaria from './views/SimulacionDiaria';
+import CargaSimulacionDiaria from './views/CargaSimulacionDiaria';
 import { SimulacionProvider } from './context/SimulacionContext';
 import { ToastContainer, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -15,6 +16,7 @@ function App() {
         <Route path="/" element={<SeleccionVista />} />
         <Route path="/simulacion-semanal" element={<SimulacionSemanalConCarga />} />
         <Route path="/colapso-logistico" element={<SimulacionAlColapso />} />
+        <Route path="/carga-simulacion-diaria" element={<CargaSimulacionDiaria />} />
         <Route path="/ejecucion-tiempo-real" element={<SimulacionDiaria />} />
       </Routes>
       <ToastContainer

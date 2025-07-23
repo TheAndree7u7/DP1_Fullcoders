@@ -78,7 +78,16 @@ public class SimulacionController {
         if (!simulacionIniciada) {
             // Brindamos una advertencia e iniciamos la simulación
             System.out.println("⚠️ Advertencia: La simulación no ha sido iniciada. Iniciando simulación...");
-            Simulacion.configurarSimulacionSemanal(fechaDateTime);
+
+            // Configurar simulación según el tipo actual
+            if (Parametros.tipoDeSimulacion == TipoDeSimulacion.DIARIA) {
+                System.out.println("🌅 Configurando simulación DIARIA");
+                Simulacion.configurarSimulacionDiaria(fechaDateTime);
+            } else {
+                System.out.println("📅 Configurando simulación SEMANAL");
+                Simulacion.configurarSimulacionSemanal(fechaDateTime);
+            }
+
             simulacionIniciada = true; // Marcar que la simulación ha sido iniciada
             Parametros.fecha_inicio_simulacion = fechaDateTime;
         } else {
@@ -119,6 +128,7 @@ public class SimulacionController {
     public ResponseEntity<String> iniciarSimulacion(@RequestParam String fecha) {
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/iniciar (GET)");
         System.out.println("📅 Fecha recibida: " + fecha);
+        System.out.println("🎯 Tipo de simulación actual: " + Parametros.tipoDeSimulacion);
         try {
             // Validar que la fecha no sea nula
             if (fecha == null) {
@@ -127,9 +137,19 @@ public class SimulacionController {
             }
             LocalDateTime fechaDateTime = LocalDateTime.parse(fecha);
             Parametros.fecha_inicio_simulacion = fechaDateTime;
-            Simulacion.configurarSimulacionSemanal(fechaDateTime);
+
+            // Configurar simulación según el tipo actual
+            if (Parametros.tipoDeSimulacion == TipoDeSimulacion.DIARIA) {
+                System.out.println("🌅 Configurando simulación DIARIA");
+                Simulacion.configurarSimulacionDiaria(fechaDateTime);
+            } else {
+                System.out.println("📅 Configurando simulación SEMANAL");
+                Simulacion.configurarSimulacionSemanal(fechaDateTime);
+            }
+
             simulacionIniciada = true; // Marcar que la simulación ha sido iniciada
-            String mensaje = "Simulación iniciada correctamente con fecha: " + fecha;
+            String mensaje = "Simulación " + Parametros.tipoDeSimulacion + " iniciada correctamente con fecha: "
+                    + fecha;
             System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
             return ResponseEntity.ok(mensaje);
         } catch (Exception e) {
@@ -141,6 +161,7 @@ public class SimulacionController {
     public ResponseEntity<String> iniciarSimulacionPost(@RequestBody SimulacionRequest request) {
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/iniciar (POST)");
         System.out.println("📅 Fecha recibida: " + request.getFechaInicio());
+        System.out.println("🎯 Tipo de simulación actual: " + Parametros.tipoDeSimulacion);
         try {
             // Validar que la fecha no sea nula
             if (request.getFechaInicio() == null) {
@@ -149,9 +170,18 @@ public class SimulacionController {
             }
             LocalDateTime fechaDateTime = request.getFechaInicio();
             Parametros.fecha_inicio_simulacion = fechaDateTime;
-            Simulacion.configurarSimulacionSemanal(fechaDateTime);
+
+            // Configurar simulación según el tipo actual
+            if (Parametros.tipoDeSimulacion == TipoDeSimulacion.DIARIA) {
+                System.out.println("🌅 Configurando simulación DIARIA");
+                Simulacion.configurarSimulacionDiaria(fechaDateTime);
+            } else {
+                System.out.println("📅 Configurando simulación SEMANAL");
+                Simulacion.configurarSimulacionSemanal(fechaDateTime);
+            }
+
             simulacionIniciada = true; // Marcar que la simulación ha sido iniciada
-            String mensaje = "SIMULACION INICIADA: " + request.getFechaInicio();
+            String mensaje = "SIMULACION " + Parametros.tipoDeSimulacion + " INICIADA: " + request.getFechaInicio();
             System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
             return ResponseEntity.ok(mensaje);
         } catch (Exception e) {

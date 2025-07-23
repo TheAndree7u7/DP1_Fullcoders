@@ -107,11 +107,28 @@ export const formatearFechaParaBackend = (fecha: Date | string): string => {
     }
     // Si es una fecha ISO con zona horaria, convertirla
     const date = new Date(fecha);
-    return date.toISOString().slice(0, 19);
+    return formatearFechaLocal(date);
   } else {
     // Si es un objeto Date, convertir a LocalDateTime
-    return fecha.toISOString().slice(0, 19);
+    return formatearFechaLocal(fecha);
   }
+};
+
+/**
+ * @function formatearFechaLocal
+ * @description Convierte una fecha a formato LocalDateTime sin zona horaria
+ * @param {Date} fecha - Fecha a formatear
+ * @returns {string} Fecha en formato YYYY-MM-DDTHH:mm:ss
+ */
+const formatearFechaLocal = (fecha: Date): string => {
+  const año = fecha.getFullYear();
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+  const dia = String(fecha.getDate()).padStart(2, '0');
+  const hora = String(fecha.getHours()).padStart(2, '0');
+  const minuto = String(fecha.getMinutes()).padStart(2, '0');
+  const segundo = String(fecha.getSeconds()).padStart(2, '0');
+  
+  return `${año}-${mes}-${dia}T${hora}:${minuto}:${segundo}`;
 };
 
 /**

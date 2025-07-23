@@ -32,7 +32,19 @@ public class Simulacion {
     public static List<Pedido> pedidosEnviar = new ArrayList<>();
 
     public static void configurarSimulacionDiaria(LocalDateTime startDate) {
-        // Aun no implementado
+        // 1. Actualizar parámetros globales antes de cargar datos
+        Parametros.actualizarParametrosGlobales(startDate);
+        // 2. Limpiamos el mapa antes de iniciar la simulación
+        Mapa.getInstance().limpiarMapa();
+        // 3. Creamos un nuevo dataLoader para la simulación diaria
+        Parametros.dataLoader = new DataLoader();
+
+        // 4. Limpiamos las listas de pedidos
+        pedidosPlanificados.clear();
+        pedidosEntregados.clear();
+        pedidosEnviar.clear();
+
+        System.out.println("✅ Simulación diaria configurada para fecha: " + startDate);
     }
 
     public static void configurarSimulacionSemanal(LocalDateTime startDate) {

@@ -55,9 +55,10 @@ const BLOQUEO_STROKE_WIDTH = 4;
 interface MapaProps {
   elementoResaltado?: {tipo: 'camion' | 'pedido' | 'almacen', id: string} | null;
   onElementoSeleccionado?: (elemento: {tipo: 'camion' | 'pedido' | 'almacen', id: string} | null) => void;
+  iniciarAutomaticamente?: boolean; // Nueva prop para iniciar automáticamente
 }
 
-const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado }) => {
+const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, iniciarAutomaticamente = false }) => {
   const [camionesVisuales, setCamionesVisuales] = useState<CamionVisual[]>([]);
   const [running, setRunning] = useState(false);
   const [intervalo, setIntervalo] = useState(300);
@@ -100,6 +101,17 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado }
   // console.log('🗺️ MAPA: Almacenes recibidos:', almacenes);
 
   const pedidosPendientes = getPedidosPendientes(rutasCamiones, camiones, pedidosNoAsignados);
+  
+  // Efecto para iniciar automáticamente la simulación si se especifica
+  useEffect(() => {
+    if (iniciarAutomaticamente && !running && !cargando && camiones.length > 0) {
+      console.log("🚀 MAPA: Iniciando simulación automáticamente...");
+      // Activar la simulación y el contador de tiempo
+      setSimulacionActiva(true);
+      iniciarContadorTiempo();
+      setRunning(true);
+    }
+  }, [iniciarAutomaticamente, running, setSimulacionActiva, iniciarContadorTiempo, cargando, camiones.length]);
   //console.log('👥 MAPA: Pedidos pendientes (clientes):', pedidosPendientes);
   //console.log('🚚 MAPA: Estado de camiones:', camiones);
 

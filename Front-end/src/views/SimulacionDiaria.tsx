@@ -8,9 +8,8 @@ import { ChevronLeft } from "lucide-react";
 import { useSimulacion } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
 import { useCurrentDateTime } from "../hooks/useCurrentDateTime";
- 
 
-const SimulacionSemanal: React.FC = () => {
+const SimulacionDiaria: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
   const [bottomMenuExpandido, setBottomMenuExpandido] = useState(false);
   const [mapaWidth, setMapaWidth] = useState(66); // Porcentaje inicial del mapa (66% = flex-[2])
@@ -30,8 +29,11 @@ const SimulacionSemanal: React.FC = () => {
   const [camionSeleccionadoExterno, setCamionSeleccionadoExterno] = useState<string | null>(null);
   // Estado para resaltar elementos en el mapa
   const [elementoResaltado, setElementoResaltado] = useState<{tipo: 'camion' | 'pedido' | 'almacen', id: string} | null>(null);
-  // Estado para el panel de control
 
+  // La simulación ya se inicia desde la página de carga, aquí solo mostramos el estado
+  useEffect(() => {
+    console.log("📊 FRONTEND: Simulación diaria cargada - mostrando estado actual");
+  }, []);
 
   // Actualizar la hora simulada solo cuando cambia la fecha del backend
   useEffect(() => {
@@ -115,12 +117,12 @@ const SimulacionSemanal: React.FC = () => {
     <div className="bg-[#F5F5F5] w-screen h-screen flex flex-col pt-16">
       <Navbar />
       <div className="bg-[#10093B] text-white py-2 px-4 flex justify-between items-center">
-        <h1 className="font-bold">Ejecución Semanal - {formatearTiempoTranscurrido(tiempoTranscurridoSimulado)}</h1>
+        <h1 className="font-bold">Ejecución Diaria en Tiempo Real - {formatearTiempoTranscurrido(tiempoTranscurridoSimulado)}</h1>
         <div className="flex items-center gap-4">
           {tiempoSimulado && (
             <div className="text-sm flex items-center gap-4">
               <div>
-                <span className="mr-2">Fecha y hora de la simulacion:</span>
+                <span className="mr-2">Fecha y hora de la simulación:</span>
                 <span className="font-bold text-blue-300">{fechaHoraAcumulada}</span>
               </div> 
               <div>
@@ -139,9 +141,6 @@ const SimulacionSemanal: React.FC = () => {
         </div>
       </div>
       
-      
-      
-      
       {/* Contenido principal - ahora con altura dinámica */}
       <div className={`resize-container flex flex-row flex-1 px-4 overflow-hidden relative transition-all duration-300 ${bottomMenuExpandido ? 'pb-4' : ''}`}>
         {panel === 'camiones' ? (
@@ -152,7 +151,11 @@ const SimulacionSemanal: React.FC = () => {
               style={menuExpandido ? { width: `${mapaWidth}%` } : {}}
             >
               <div className="bg-white p-4 rounded-xl overflow-auto w-full h-full">
-                <Mapa elementoResaltado={elementoResaltado} onElementoSeleccionado={setElementoResaltado} />
+                <Mapa 
+              elementoResaltado={elementoResaltado} 
+              onElementoSeleccionado={setElementoResaltado} 
+              iniciarAutomaticamente={true}
+            />
               </div>
             </div>
             
@@ -255,4 +258,4 @@ const SimulacionSemanal: React.FC = () => {
   );
 };
 
-export default SimulacionSemanal;
+export default SimulacionDiaria;
