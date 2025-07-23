@@ -15,6 +15,7 @@ import type { Almacen } from "../../../types";
  * @param {string} camionId - ID del camión averiado automáticamente
  * @param {string} tipoNodo - Tipo de nodo de avería automática (AVERIA_AUTOMATICA_T1, AVERIA_AUTOMATICA_T2, AVERIA_AUTOMATICA_T3)
  * @param {Object} estadoSimulacion - Estado completo actual de la simulación
+ * @param {boolean} mostrarToasts - Si debe mostrar notificaciones toast (por defecto true)
  * @returns {Promise<void>}
  */
 export const handleAveriaAutomatica = async (
@@ -32,7 +33,8 @@ export const handleAveriaAutomatica = async (
     rutasCamiones: RutaCamion[];
     almacenes: Almacen[];
     bloqueos: Bloqueo[]; 
-  }
+  },
+  mostrarToasts: boolean = true
 ): Promise<void> => {
   console.log("🚛💥 INICIO DE AVERÍA AUTOMÁTICA:", {
     camionId,
@@ -83,17 +85,19 @@ export const handleAveriaAutomatica = async (
     await averiarCamionConEstado(camionId, tipoAveria, timestampSimulacion, estadoCompleto);
     
     // Mostrar toast informativo
-    toast.info(`🚛💥 Camión ${camionId} averiado automáticamente (${tipoAveriaString})`, {
-      position: "top-right",
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
-      transition: Bounce,
-    });
+    if (mostrarToasts) {
+      toast.info(`🚛💥 Camión ${camionId} averiado automáticamente (${tipoAveriaString})`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+    }
     
     console.log("✅ AVERÍA AUTOMÁTICA PROCESADA EXITOSAMENTE:", {
       camionId,
@@ -107,17 +111,19 @@ export const handleAveriaAutomatica = async (
   } catch (error) {
     console.error("❌ ERROR AL PROCESAR AVERÍA AUTOMÁTICA:", error);
     
-    toast.error(`❌ Error al procesar la avería automática: ${error instanceof Error ? error.message : 'Error desconocido'}`, {
-      position: "top-right",
-      autoClose: 8000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
-      transition: Bounce,
-    });
+    if (mostrarToasts) {
+      toast.error(`❌ Error al procesar la avería automática: ${error instanceof Error ? error.message : 'Error desconocido'}`, {
+        position: "top-right",
+        autoClose: 8000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition: Bounce,
+      });
+    }
     
     // Re-lanzar el error para que el llamador pueda manejarlo
     throw error;

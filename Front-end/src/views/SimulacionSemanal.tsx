@@ -124,17 +124,17 @@ const SimulacionSemanal: React.FC = () => {
     return acc + (capacidadMaxima - capacidadActual);
   }, 0);
   
-  console.log('🔍 DEBUG: GLP en uso calculado:', {
-    capacidadTotal,
-    capacidadDisponible,
-    glpEnUso,
-    camiones: camiones.map(c => ({
-      id: c.id,
-      capacidadMaxima: c.capacidadMaximaGLP,
-      capacidadActual: c.capacidadActualGLP,
-      glpTransportando: (c.capacidadMaximaGLP || 0) - (c.capacidadActualGLP || 0)
-    }))
-  });
+  // console.log('🔍 DEBUG: GLP en uso calculado:', {
+  //   capacidadTotal,
+  //   capacidadDisponible,
+  //   glpEnUso,
+  //   camiones: camiones.map(c => ({
+  //     id: c.id,
+  //     capacidadMaxima: c.capacidadMaximaGLP,
+  //     capacidadActual: c.capacidadActualGLP,
+  //     glpTransportando: (c.capacidadMaximaGLP || 0) - (c.capacidadActualGLP || 0)
+  //   }))
+  // });
   
   const porcentajeGLPEnUso = capacidadTotal > 0 ? glpEnUso / capacidadTotal : 0;
   const getColorPorcentaje = (porcentaje: number) => {

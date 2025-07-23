@@ -161,6 +161,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [simulacionActiva, setSimulacionActiva] = useState<boolean>(false);
   const [cargando, setCargando] = useState<boolean>(true);
   const [pollingActivo, setPollingActivo] = useState<boolean>(false);
+  const [averiasAutomaticasActivas, setAveriasAutomaticasActivas] = useState<boolean>(true);
   
   // Estados de datos de la simulación
   const [camiones, setCamiones] = useState<CamionEstado[]>([]);
@@ -918,7 +919,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       cargarDatosSimulacion,
       setAlmacenes,
       fechaHoraSimulacion,
-      estadoSimulacion
+      estadoSimulacion,
+      averiasAutomaticasActivas
     );
     
     // console.log('✅ CONTEXTO: Avance de hora completado');
@@ -1136,6 +1138,18 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   // ============================
+  // FUNCIONES DE CONTROL DE AVERÍAS AUTOMÁTICAS
+  // ============================
+
+  /**
+   * @function toggleAveriasAutomaticas
+   * @description Alterna el estado de activación de las averías automáticas
+   */
+  const toggleAveriasAutomaticas = () => {
+    setAveriasAutomaticasActivas(prev => !prev);
+  };
+
+  // ============================
   // FUNCIONES DE INFORMACIÓN
   // ============================
 
@@ -1181,6 +1195,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     
     // Estados de control
     simulacionActiva,
+    averiasAutomaticasActivas,
     
     // Funciones de control de simulación
     avanzarHora,
@@ -1199,6 +1214,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     
     // Funciones de gestión de camiones
     marcarCamionAveriado,
+    toggleAveriasAutomaticas,
     
     // Funciones de información
     obtenerInfoPaqueteActual,

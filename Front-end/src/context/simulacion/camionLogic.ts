@@ -260,7 +260,8 @@ export const avanzarCamion = (
     rutasCamiones: RutaCamion[];
     almacenes: Almacen[];
     bloqueos: Bloqueo[]; 
-  }
+  },
+  averiasAutomaticasActivas: boolean = true
 ): CamionEstado => {
   // Si el camión está averiado, no avanza
   if (camion.estado === "Averiado") {
@@ -281,7 +282,7 @@ export const avanzarCamion = (
   const siguientePaso = camion.porcentaje + INCREMENTO_PORCENTAJE;
 
   // NUEVO: Detectar avería automática antes de mover el camión
-  const { debeAveriarse, tipoAveria } = detectarAveriaAutomatica(camion, ruta, siguientePaso);
+  const { debeAveriarse, tipoAveria } = detectarAveriaAutomatica(camion, ruta, siguientePaso, averiasAutomaticasActivas);
   
   // Log detallado para debugging de averías automáticas
   if (debeAveriarse) {
@@ -309,7 +310,7 @@ export const avanzarCamion = (
     // Registrar la avería automática en el backend si tenemos el estado de simulación
     if (estadoSimulacion) {
       console.log('📡 CAMION_LOGIC: Registrando avería automática en backend...');
-      handleAveriaAutomatica(camion.id, tipoAveria!, estadoSimulacion).catch(error => {
+      handleAveriaAutomatica(camion.id, tipoAveria!, estadoSimulacion, averiasAutomaticasActivas).catch(error => {
         console.error("❌ Error al registrar avería automática:", error);
       });
     } else {
@@ -463,26 +464,37 @@ export const avanzarTodosLosCamiones = (
     rutasCamiones: RutaCamion[];
     almacenes: Almacen[];
     bloqueos: Bloqueo[]; 
-  }
+  },
+  averiasAutomaticasActivas: boolean = true
 ): CamionEstado[] => {
   return camiones.map((camion) => {
     const ruta = rutasCamiones.find((r) => r.id === camion.id);
     if (!ruta) return camion;
 
-    return avanzarCamion(camion, ruta, almacenes, setAlmacenes, estadoSimulacion);
+    return avanzarCamion(camion, ruta, almacenes, setAlmacenes, estadoSimulacion, averiasAutomaticasActivas);
   });
 };
 
 /**
  * @function detectarAveriaAutomatica
  * @description Detecta si un camión debe ser marcado como averiado automáticamente al recorrer un nodo con avería automática
+ * @param {CamionEstado} camion - El camión a verificar
+ * @param {RutaCamion} ruta - La ruta del camión
+ * @param {number} siguientePaso - El siguiente paso en la ruta
+ * @param {boolean} averiasAutomaticasActivas - Si las averías automáticas están activadas
  * @returns {object} Objeto con { debeAveriarse: boolean, tipoAveria?: string }
  */
 export const detectarAveriaAutomatica = (
   camion: CamionEstado,
   ruta: RutaCamion,
-  siguientePaso: number
+  siguientePaso: number,
+  averiasAutomaticasActivas: boolean = true
 ): { debeAveriarse: boolean; tipoAveria?: string } => {
+  // Si las averías automáticas están desactivadas, no detectar ninguna
+  if (!averiasAutomaticasActivas) {
+    return { debeAveriarse: false };
+  }
+
   // Log para debugging de la función
   // console.log('🔍 DETECTAR_AVERIA: Verificando avería automática:', {
   //   camionId: camion.id,
