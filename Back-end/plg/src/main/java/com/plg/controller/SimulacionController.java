@@ -8,6 +8,8 @@ import com.plg.utils.Parametros;
 import com.plg.config.DataLoader;
 import com.plg.dto.IndividuoDto;
 import com.plg.dto.request.SimulacionRequest;
+import com.plg.dto.request.TipoSimulacionRequest;
+import com.plg.dto.response.TipoSimulacionResponse;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -95,7 +97,9 @@ public class SimulacionController {
         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance());
         algoritmoGenetico.ejecutarAlgoritmo();
         if (Parametros.tipoDeSimulacion == TipoDeSimulacion.SEMANAL) {
-            Herramientas.agregarAveriasAutomaticas(Parametros.dataLoader.averiasAutomaticas, algoritmoGenetico.getMejorIndividuo().getCromosoma(), fechaDateTime, fechaDateTime.plusMinutes(Parametros.intervaloTiempo));
+            Herramientas.agregarAveriasAutomaticas(Parametros.dataLoader.averiasAutomaticas,
+                    algoritmoGenetico.getMejorIndividuo().getCromosoma(), fechaDateTime,
+                    fechaDateTime.plusMinutes(Parametros.intervaloTiempo));
         }
         IndividuoDto mejorIndividuoDto = new IndividuoDto(
                 algoritmoGenetico.getMejorIndividuo(),
@@ -106,7 +110,7 @@ public class SimulacionController {
         mejorIndividuoDto.setFechaHoraFinIntervalo(fechaDateTime.plusMinutes(Parametros.intervaloTiempo));
         for (Bloqueo bloqueo : Simulacion.bloqueosActivos) {
             bloqueo.desactivarBloqueo();
-        }        
+        }
         System.out.println("____________FIN____________");
         return mejorIndividuoDto;
     }
@@ -295,5 +299,78 @@ public class SimulacionController {
 
         System.out.println("✅ Estado de archivos: " + estado);
         return ResponseEntity.ok(estado);
+    }
+
+    @PostMapping("/cambiar-tipo-simulacion")
+    public ResponseEntity<TipoSimulacionResponse> cambiarTipoSimulacion(@RequestBody TipoSimulacionRequest request) {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/cambiar-tipo-simulacion");
+        System.out.println("🔄 Solicitando cambio de tipo de simulación a: " + request.getTipoSimulacion());
+
+        try {
+            // Validar que el tipo de simulación no sea nulo
+            if (request.getTipoSimulacion() == null) {
+                System.out.println("❌ Error: Tipo de simulación no proporcionado");
+                TipoSimulacionResponse response = new TipoSimulacionResponse(
+                        Parametros.tipoDeSimulacion,
+                        null,
+                        "Error: Tipo de simulación no proporcionado",
+                        false);
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Guardar el tipo anterior
+            TipoDeSimulacion tipoAnterior = Parametros.tipoDeSimulacion;
+
+            // Cambiar el tipo de simulación
+            Parametros.tipoDeSimulacion = request.getTipoSimulacion();
+
+            System.out.println("✅ Tipo de simulación cambiado exitosamente:");
+            System.out.println("   • Tipo anterior: " + tipoAnterior);
+            System.out.println("   • Tipo nuevo: " + Parametros.tipoDeSimulacion);
+
+            // Crear respuesta exitosa
+            TipoSimulacionResponse response = new TipoSimulacionResponse(
+                    tipoAnterior,
+                    Parametros.tipoDeSimulacion,
+                    "Tipo de simulación cambiado exitosamente de " + tipoAnterior + " a " + Parametros.tipoDeSimulacion,
+                    true);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            System.out.println("❌ Error al cambiar tipo de simulación: " + e.getMessage());
+            TipoSimulacionResponse response = new TipoSimulacionResponse(
+                    Parametros.tipoDeSimulacion,
+                    null,
+                    "Error al cambiar tipo de simulación: " + e.getMessage(),
+                    false);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+
+    @GetMapping("/tipo-simulacion-actual")
+    public ResponseEntity<Map<String, Object>> obtenerTipoSimulacionActual() {
+        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/tipo-simulacion-actual");
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("tipoSimulacion", Parametros.tipoDeSimulacion);
+        response.put("descripcion", obtenerDescripcionTipoSimulacion(Parametros.tipoDeSimulacion));
+        response.put("timestamp", LocalDateTime.now());
+
+        System.out.println("✅ Tipo de simulación actual: " + Parametros.tipoDeSimulacion);
+        return ResponseEntity.ok(response);
+    }
+
+    private String obtenerDescripcionTipoSimulacion(TipoDeSimulacion tipo) {
+        switch (tipo) {
+            case DIARIA:
+                return "Simulación diaria - Simula un día completo de operaciones";
+            case SEMANAL:
+                return "Simulación semanal - Simula una semana completa de operaciones";
+            case COLAPSO:
+                return "Simulación de colapso - Simula condiciones extremas del sistema";
+            default:
+                return "Tipo de simulación desconocido";
+        }
     }
 }

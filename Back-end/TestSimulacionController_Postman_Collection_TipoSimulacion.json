@@ -1,0 +1,182 @@
+{
+	"info": {
+		"_postman_id": "test-tipo-simulacion-endpoints",
+		"name": "Test Tipo Simulación Endpoints",
+		"description": "Colección para probar los endpoints de cambio de tipo de simulación",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Consultar Tipo de Simulación Actual",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/simulacion/tipo-simulacion-actual",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"simulacion",
+						"tipo-simulacion-actual"
+					]
+				},
+				"description": "Obtiene el tipo de simulación actualmente configurado"
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar a Simulación Diaria",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"tipoSimulacion\": \"DIARIA\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/simulacion/cambiar-tipo-simulacion",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"simulacion",
+						"cambiar-tipo-simulacion"
+					]
+				},
+				"description": "Cambia el tipo de simulación a DIARIA"
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar a Simulación Semanal",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"tipoSimulacion\": \"SEMANAL\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/simulacion/cambiar-tipo-simulacion",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"simulacion",
+						"cambiar-tipo-simulacion"
+					]
+				},
+				"description": "Cambia el tipo de simulación a SEMANAL"
+			},
+			"response": []
+		},
+		{
+			"name": "Cambiar a Simulación de Colapso",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"tipoSimulacion\": \"COLAPSO\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/simulacion/cambiar-tipo-simulacion",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"simulacion",
+						"cambiar-tipo-simulacion"
+					]
+				},
+				"description": "Cambia el tipo de simulación a COLAPSO"
+			},
+			"response": []
+		},
+		{
+			"name": "Error - Tipo de Simulación Inválido",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"tipoSimulacion\": \"INVALIDO\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/simulacion/cambiar-tipo-simulacion",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"simulacion",
+						"cambiar-tipo-simulacion"
+					]
+				},
+				"description": "Prueba el manejo de errores con un tipo de simulación inválido"
+			},
+			"response": []
+		},
+		{
+			"name": "Error - Tipo de Simulación Nulo",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"tipoSimulacion\": null\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/simulacion/cambiar-tipo-simulacion",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"simulacion",
+						"cambiar-tipo-simulacion"
+					]
+				},
+				"description": "Prueba el manejo de errores con un tipo de simulación nulo"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+} 

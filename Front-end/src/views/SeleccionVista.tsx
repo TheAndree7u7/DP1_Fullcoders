@@ -1,12 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import semanalImg from "../assets/semanal.svg";
 import diarioImg from "../assets/diario.svg";
 import colapsoImg from "../assets/colapso.svg";
 import logo from "../assets/logo.png";
+import { cambiarTipoSimulacion, type TipoSimulacion } from "../services/simulacionApiService";
 
 const SeleccionVista: React.FC = () => {
   const navigate = useNavigate();
+  const [cargando, setCargando] = useState<string | null>(null);
+  const [mensaje, setMensaje] = useState<{ texto: string; tipo: 'success' | 'error' | 'info' } | null>(null);
 
   const opciones = [
     {
@@ -16,7 +19,8 @@ const SeleccionVista: React.FC = () => {
       ruta: "/ejecucion-tiempo-real",
       imagen: diarioImg,
       color: "from-blue-500 to-blue-600",
-      icono: "⚡"
+      icono: "⚡",
+      tipoSimulacion: "DIARIA" as TipoSimulacion
     },
     {
       id: "semanal",
@@ -25,7 +29,8 @@ const SeleccionVista: React.FC = () => {
       ruta: "/simulacion-semanal",
       imagen: semanalImg,
       color: "from-green-500 to-green-600",
-      icono: "📊"
+      icono: "📊",
+      tipoSimulacion: "SEMANAL" as TipoSimulacion
     },
     {
       id: "colapso",
@@ -34,13 +39,44 @@ const SeleccionVista: React.FC = () => {
       ruta: "/colapso-logistico",
       imagen: colapsoImg,
       color: "from-red-500 to-red-600",
-      icono: "🚨"
+      icono: "🚨",
+      tipoSimulacion: "COLAPSO" as TipoSimulacion
     }
   ];
 
   const handleSeleccionVista = async (opcion: typeof opciones[0]) => {
-    // Para todas las vistas, navegar directamente
-    navigate(opcion.ruta);
+    try {
+      setCargando(opcion.id);
+      setMensaje({ texto: `Configurando simulación ${opcion.titulo.toLowerCase()}...`, tipo: 'info' });
+
+      // Cambiar el tipo de simulación en el backend
+      const respuesta = await cambiarTipoSimulacion(opcion.tipoSimulacion);
+      
+      if (respuesta.exito) {
+        setMensaje({ 
+          texto: `✅ ${respuesta.mensaje}`, 
+          tipo: 'success' 
+        });
+        
+        // Esperar un momento para mostrar el mensaje de éxito
+        setTimeout(() => {
+          navigate(opcion.ruta);
+        }, 1000);
+      } else {
+        setMensaje({ 
+          texto: `❌ Error: ${respuesta.mensaje}`, 
+          tipo: 'error' 
+        });
+      }
+    } catch (error) {
+      console.error("Error al cambiar tipo de simulación:", error);
+      setMensaje({ 
+        texto: `❌ Error al configurar la simulación: ${error instanceof Error ? error.message : 'Error desconocido'}`, 
+        tipo: 'error' 
+      });
+    } finally {
+      setCargando(null);
+    }
   };
 
   return (
@@ -70,6 +106,23 @@ const SeleccionVista: React.FC = () => {
             Selecciona el tipo de simulación que deseas ejecutar para analizar diferentes escenarios logísticos
           </p>
         </div>
+
+        {/* Mensaje de estado */}
+        {mensaje && (
+          <div className={`mb-6 p-4 rounded-lg max-w-2xl mx-auto ${
+            mensaje.tipo === 'success' ? 'bg-green-100 text-green-800 border border-green-200' :
+            mensaje.tipo === 'error' ? 'bg-red-100 text-red-800 border border-red-200' :
+            'bg-blue-100 text-blue-800 border border-blue-200'
+          }`}>
+            <div className="flex items-center justify-center">
+              <span className="mr-2">
+                {mensaje.tipo === 'success' ? '✅' : 
+                 mensaje.tipo === 'error' ? '❌' : '⏳'}
+              </span>
+              <span className="font-medium">{mensaje.texto}</span>
+            </div>
+          </div>
+        )}
 
         {/* Opciones de simulación */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full">
@@ -107,9 +160,19 @@ const SeleccionVista: React.FC = () => {
                   
                   {/* Botón de acción */}
                   <button 
-                    className={`w-full bg-gradient-to-r ${opcion.color} text-white py-3 px-6 rounded-lg font-semibold text-sm transition-all duration-300 transform group-hover:translate-y-[-2px] group-hover:shadow-lg`}
+                    disabled={cargando === opcion.id}
+                    className={`w-full bg-gradient-to-r ${opcion.color} text-white py-3 px-6 rounded-lg font-semibold text-sm transition-all duration-300 transform group-hover:translate-y-[-2px] group-hover:shadow-lg ${
+                      cargando === opcion.id ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                   >
-                    Iniciar Simulación
+                    {cargando === opcion.id ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Configurando...
+                      </div>
+                    ) : (
+                      'Iniciar Simulación'
+                    )}
                   </button>
                 </div>
 

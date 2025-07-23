@@ -2,6 +2,22 @@ import type { Individuo } from "../types";
 import { API_URLS } from "../config/api";
 import { formatearFechaParaBackend } from "../context/simulacion/utils/tiempo";
 
+// Tipos para el manejo de tipo de simulación
+export type TipoSimulacion = 'DIARIA' | 'SEMANAL' | 'COLAPSO';
+
+export interface TipoSimulacionResponse {
+  tipoSimulacionAnterior: TipoSimulacion;
+  tipoSimulacionNuevo: TipoSimulacion;
+  mensaje: string;
+  exito: boolean;
+}
+
+export interface TipoSimulacionActualResponse {
+  tipoSimulacion: TipoSimulacion;
+  descripcion: string;
+  timestamp: string;
+}
+
 export async function getMejorIndividuo(fechaInicio: string): Promise<Individuo> {
   try {
     console.log("Iniciando solicitud al servidor (GET con fecha). Fecha: " + fechaInicio);
@@ -250,6 +266,70 @@ export async function recalcularAlgoritmoDespuesAveria(fechaHoraActual: string):
     return data as Individuo;
   } catch (error) {
     console.error("❌ RECALCULANDO: Error al recalcular algoritmo:", error);
+    throw error;
+  }
+}
+
+/**
+ * Cambia el tipo de simulación en el backend
+ * @param tipoSimulacion - El nuevo tipo de simulación a establecer
+ * @returns Promise con la respuesta del cambio
+ */
+export async function cambiarTipoSimulacion(tipoSimulacion: TipoSimulacion): Promise<TipoSimulacionResponse> {
+  try {
+    console.log("🔄 TIPO SIMULACIÓN: Cambiando tipo de simulación a:", tipoSimulacion);
+    
+    const response = await fetch(API_URLS.CAMBIAR_TIPO_SIMULACION, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        tipoSimulacion: tipoSimulacion
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ TIPO SIMULACIÓN: Error al cambiar tipo de simulación:", errorText);
+      throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("✅ TIPO SIMULACIÓN: Tipo de simulación cambiado exitosamente:", data);
+    return data as TipoSimulacionResponse;
+  } catch (error) {
+    console.error("❌ TIPO SIMULACIÓN: Error al cambiar tipo de simulación:", error);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene el tipo de simulación actual del backend
+ * @returns Promise con la información del tipo de simulación actual
+ */
+export async function obtenerTipoSimulacionActual(): Promise<TipoSimulacionActualResponse> {
+  try {
+    console.log("📋 TIPO SIMULACIÓN: Obteniendo tipo de simulación actual...");
+    
+    const response = await fetch(API_URLS.TIPO_SIMULACION_ACTUAL, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ TIPO SIMULACIÓN: Error al obtener tipo de simulación actual:", errorText);
+      throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("✅ TIPO SIMULACIÓN: Tipo de simulación actual obtenido:", data);
+    return data as TipoSimulacionActualResponse;
+  } catch (error) {
+    console.error("❌ TIPO SIMULACIÓN: Error al obtener tipo de simulación actual:", error);
     throw error;
   }
 }
