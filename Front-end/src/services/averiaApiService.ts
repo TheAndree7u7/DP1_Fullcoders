@@ -112,10 +112,33 @@ export async function averiarCamionConEstado(
 
   // 🔍 AGREGADO: Logs detallados de todos los datos que se envían
   const estadoConvertido = convertirEstadoParaBackend(estadoCompleto) as EstadoConvertidoParaBackend;
+  
+  // 🔧 CORREGIDO: Extraer la coordenada del camión averiado del estado
+  const camionAveriado = estadoCompleto.camiones.find(c => c.id === codigoCamion);
+  let coordenadaAveria = null;
+  
+  if (camionAveriado && camionAveriado.ubicacion) {
+    // Parsear la coordenada del formato "(x,y)" a objeto Coordenada
+    const match = camionAveriado.ubicacion.match(/\((\d+),(\d+)\)/);
+    if (match) {
+      coordenadaAveria = {
+        fila: parseInt(match[2]), // y
+        columna: parseInt(match[1]) // x
+      };
+      console.log("📍 AVERÍA: Coordenada extraída del camión averiado:", coordenadaAveria);
+    }
+  }
+  
+  if (!coordenadaAveria) {
+    console.warn("⚠️ AVERÍA: No se pudo extraer la coordenada del camión averiado, usando coordenada por defecto");
+    coordenadaAveria = { fila: 8, columna: 12 }; // Coordenada del almacén central por defecto
+  }
+  
   const datosEnvio = {
     codigoCamion,
     tipoIncidente: `TI${tipo}`,
     fechaHoraReporte,
+    coordenada: coordenadaAveria, // 🔧 AGREGADO: Incluir la coordenada de la avería
     estadoSimulacion: estadoConvertido
   };
 
@@ -124,6 +147,7 @@ export async function averiarCamionConEstado(
   console.log("   - Código del camión:", datosEnvio.codigoCamion);
   console.log("   - Tipo de incidente:", datosEnvio.tipoIncidente);
   console.log("   - Fecha y hora del reporte:", datosEnvio.fechaHoraReporte);
+  console.log("   - Coordenada de la avería:", datosEnvio.coordenada); // 🔧 AGREGADO: Log de la coordenada
   
   console.log("🔢 ESTADO DE LA SIMULACIÓN (CONVERTIDO):");
   console.log("   - Timestamp:", estadoConvertido.timestamp);

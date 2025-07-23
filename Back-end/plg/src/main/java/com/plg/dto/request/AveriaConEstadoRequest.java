@@ -3,6 +3,7 @@ package com.plg.dto.request;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.plg.entity.Coordenada;
 import com.plg.entity.TipoIncidente;
 
 import lombok.AllArgsConstructor;
@@ -29,6 +30,7 @@ public class AveriaConEstadoRequest {
     private String codigoCamion;
     private TipoIncidente tipoIncidente;
     private String fechaHoraReporte;
+    private Coordenada coordenada; // 🔧 AGREGADO: Coordenada donde ocurrió la avería
 
     // Estado completo de la simulación
     private EstadoSimulacion estadoSimulacion;
@@ -179,6 +181,7 @@ public class AveriaConEstadoRequest {
         AveriaRequest request = new AveriaRequest();
         request.setCodigoCamion(this.codigoCamion);
         request.setTipoIncidente(this.tipoIncidente);
+        request.setCoordenada(this.coordenada); // 🔧 AGREGADO: Incluir la coordenada
 
         // Convertir la fecha string a LocalDateTime
         if (this.fechaHoraReporte != null) {
