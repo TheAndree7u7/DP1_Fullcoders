@@ -3,7 +3,7 @@
  * @description Lógica para el avance y actualización de camiones en la simulación
  */
 
-import type { CamionEstado, RutaCamion } from "./types";
+import type { CamionEstado, RutaCamion, Bloqueo } from "./types";
 import type { Pedido, Almacen } from "../../types";
 import { 
   parseCoord, 
@@ -16,6 +16,7 @@ import {
   calcularDistanciaMaxima,
 } from "../../types";
 import { INCREMENTO_PORCENTAJE } from "./types";
+import { handleAveriaAutomatica } from "../../components/mapa/utils/averiasAutomaticas";
 
 /**
  * @function obtenerCoordenadaAlmacenCentral
@@ -246,7 +247,20 @@ export const avanzarCamion = (
   camion: CamionEstado,
   ruta: RutaCamion,
   almacenes: Almacen[],
-  setAlmacenes: (almacenes: Almacen[]) => void
+  setAlmacenes: (almacenes: Almacen[]) => void,
+  estadoSimulacion?: {
+    horaActual: number;
+    horaSimulacion: string;
+    fechaHoraSimulacion: string | null;
+    fechaInicioSimulacion: string | null;
+    diaSimulacion: number | null;
+    tiempoRealSimulacion: string;
+    tiempoTranscurridoSimulado: string;
+    camiones: CamionEstado[];
+    rutasCamiones: RutaCamion[];
+    almacenes: Almacen[];
+    bloqueos: Bloqueo[]; 
+  }
 ): CamionEstado => {
   // Si el camión está averiado, no avanza
   if (camion.estado === "Averiado") {
@@ -265,6 +279,50 @@ export const avanzarCamion = (
   }
 
   const siguientePaso = camion.porcentaje + INCREMENTO_PORCENTAJE;
+
+  // NUEVO: Detectar avería automática antes de mover el camión
+  const { debeAveriarse, tipoAveria } = detectarAveriaAutomatica(camion, ruta, siguientePaso);
+  
+  // Log detallado para debugging de averías automáticas
+  if (debeAveriarse) {
+    console.log('🚛💥 CAMION_LOGIC: DETECTADA AVERÍA AUTOMÁTICA EN avanzarCamion:', {
+      camionId: camion.id,
+      tipoAveria: tipoAveria,
+      porcentaje: camion.porcentaje,
+      siguientePaso: siguientePaso,
+      ubicacionActual: camion.ubicacion,
+      estadoActual: camion.estado,
+      estadoSimulacionDisponible: !!estadoSimulacion,
+      rutaLength: rutaLength,
+      tiposNodosDisponibles: ruta.tiposNodos ? ruta.tiposNodos.length : 0
+    });
+  }
+  
+  // Si debe marcar como averiado, registrar la avería automática y retornar el camión con estado "Averiado"
+  if (debeAveriarse) {
+    console.log('🚛🔴 CAMION_LOGIC: Marcando camión como averiado automáticamente:', {
+      camionId: camion.id,
+      tipoAveria: tipoAveria,
+      nuevaUbicacion: ruta.ruta[siguientePaso]
+    });
+    
+    // Registrar la avería automática en el backend si tenemos el estado de simulación
+    if (estadoSimulacion) {
+      console.log('📡 CAMION_LOGIC: Registrando avería automática en backend...');
+      handleAveriaAutomatica(camion.id, tipoAveria!, estadoSimulacion).catch(error => {
+        console.error("❌ Error al registrar avería automática:", error);
+      });
+    } else {
+      console.warn('⚠️ CAMION_LOGIC: No se pudo registrar avería automática - estadoSimulacion no disponible');
+    }
+    
+    return {
+      ...camion,
+      estado: "Averiado",
+      porcentaje: siguientePaso,
+      ubicacion: ruta.ruta[siguientePaso],
+    };
+  }
 
   // Mover el camión a la nueva posición
   const nuevaUbicacion = ruta.ruta[siguientePaso];
@@ -392,14 +450,86 @@ export const avanzarTodosLosCamiones = (
   camiones: CamionEstado[],
   rutasCamiones: RutaCamion[],
   almacenes: Almacen[],
-  setAlmacenes: (almacenes: Almacen[]) => void
+  setAlmacenes: (almacenes: Almacen[]) => void,
+  estadoSimulacion?: {
+    horaActual: number;
+    horaSimulacion: string;
+    fechaHoraSimulacion: string | null;
+    fechaInicioSimulacion: string | null;
+    diaSimulacion: number | null;
+    tiempoRealSimulacion: string;
+    tiempoTranscurridoSimulado: string;
+    camiones: CamionEstado[];
+    rutasCamiones: RutaCamion[];
+    almacenes: Almacen[];
+    bloqueos: Bloqueo[]; 
+  }
 ): CamionEstado[] => {
   return camiones.map((camion) => {
     const ruta = rutasCamiones.find((r) => r.id === camion.id);
     if (!ruta) return camion;
 
-    return avanzarCamion(camion, ruta, almacenes, setAlmacenes);
+    return avanzarCamion(camion, ruta, almacenes, setAlmacenes, estadoSimulacion);
   });
+};
+
+/**
+ * @function detectarAveriaAutomatica
+ * @description Detecta si un camión debe ser marcado como averiado automáticamente al recorrer un nodo con avería automática
+ * @returns {object} Objeto con { debeAveriarse: boolean, tipoAveria?: string }
+ */
+export const detectarAveriaAutomatica = (
+  camion: CamionEstado,
+  ruta: RutaCamion,
+  siguientePaso: number
+): { debeAveriarse: boolean; tipoAveria?: string } => {
+  // Log para debugging de la función
+  console.log('🔍 DETECTAR_AVERIA: Verificando avería automática:', {
+    camionId: camion.id,
+    estadoActual: camion.estado,
+    siguientePaso: siguientePaso,
+    tieneTiposNodos: !!ruta.tiposNodos,
+    longitudTiposNodos: ruta.tiposNodos ? ruta.tiposNodos.length : 0,
+    longitudRuta: ruta.ruta.length
+  });
+  
+  // Si el camión ya está averiado, no necesita detección
+  if (camion.estado === "Averiado") {
+    console.log('🔍 DETECTAR_AVERIA: Camión ya está averiado, no necesita detección');
+    return { debeAveriarse: false };
+  }
+
+  // Verificar si hay tipos de nodos disponibles
+  if (!ruta.tiposNodos || siguientePaso >= ruta.tiposNodos.length) {
+    console.log('🔍 DETECTAR_AVERIA: No hay tipos de nodos disponibles o índice fuera de rango:', {
+      tieneTiposNodos: !!ruta.tiposNodos,
+      siguientePaso: siguientePaso,
+      longitudTiposNodos: ruta.tiposNodos ? ruta.tiposNodos.length : 0
+    });
+    return { debeAveriarse: false };
+  }
+
+  const tipoNodoActual = ruta.tiposNodos[siguientePaso];
+  console.log('🔍 DETECTAR_AVERIA: Tipo de nodo actual:', {
+    tipoNodo: tipoNodoActual,
+    siguientePaso: siguientePaso
+  });
+  
+  // Verificar si el nodo actual es un nodo de avería automática
+  const esNodoAveriaAutomatica = tipoNodoActual === 'AVERIA_AUTOMATICA_T1' || 
+                                 tipoNodoActual === 'AVERIA_AUTOMATICA_T2' || 
+                                 tipoNodoActual === 'AVERIA_AUTOMATICA_T3';
+  
+  if (esNodoAveriaAutomatica) {
+    console.log(`🚛💥 DETECTAR_AVERIA: DETECTADA AVERÍA AUTOMÁTICA: Camión ${camion.id} en nodo ${tipoNodoActual}`);
+    return { 
+      debeAveriarse: true, 
+      tipoAveria: tipoNodoActual 
+    };
+  }
+  
+  console.log('🔍 DETECTAR_AVERIA: No es nodo de avería automática');
+  return { debeAveriarse: false };
 };
 
 /**

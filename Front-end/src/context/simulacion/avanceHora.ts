@@ -3,11 +3,7 @@
  * @description Lógica para el avance de hora en la simulación
  */
 
-import type { 
-  CamionEstado, 
-  RutaCamion, 
-  IndividuoConBloqueos 
-} from "./types";
+import type { CamionEstado, RutaCamion, Bloqueo, IndividuoConBloqueos } from "./types";
 import type { Almacen } from "../../types";
 import { NODOS_PARA_ACTUALIZACION } from "./types";
 import { avanzarTodosLosCamiones } from "./camionLogic";
@@ -109,9 +105,27 @@ export const avanzarHora = async (
   aplicarSolucionPrecargada: (data: IndividuoConBloqueos) => Promise<void>,
   cargarDatosSimulacion: () => Promise<void>,
   setAlmacenes: (almacenes: Almacen[]) => void,
-  fechaHoraSimulacion: string | null
+  fechaHoraSimulacion: string | null,
+  estadoSimulacion?: {
+    horaActual: number;
+    horaSimulacion: string;
+    fechaHoraSimulacion: string | null;
+    fechaInicioSimulacion: string | null;
+    diaSimulacion: number | null;
+    tiempoRealSimulacion: string;
+    tiempoTranscurridoSimulado: string;
+    camiones: CamionEstado[];
+    rutasCamiones: RutaCamion[];
+    almacenes: Almacen[];
+    bloqueos: Bloqueo[]; 
+  }
 ): Promise<void> => {
-  if (esperandoActualizacion || !simulacionActiva) return;
+  console.log('🚀 AVANCE_HORA: Iniciando avance de hora...', {
+    totalCamiones: camiones.length,
+    camionesAveriados: camiones.filter(c => c.estado === 'Averiado').length,
+    rutasConTiposNodos: rutasCamiones.filter(r => r.tiposNodos && r.tiposNodos.length > 0).length,
+    estadoSimulacionDisponible: !!estadoSimulacion
+  });
 
   // Verificar si necesitamos solicitar anticipadamente la próxima solución
   const nodosTres4 = Math.floor(NODOS_PARA_ACTUALIZACION * 0.1);
@@ -123,14 +137,27 @@ export const avanzarHora = async (
     await cargarSolucionAnticipadaLocal();
   }
 
-  // Verificar y recargar almacenes si es medianoche
+  // Verificar y recargar almacenes si es necesario
   const almacenesActualizados = verificarYRecargarAlmacenes(almacenes, fechaHoraSimulacion, nodosRestantesAntesDeActualizar);
-  if (almacenesActualizados !== almacenes) {
-    setAlmacenes(almacenesActualizados);
-  }
+  setAlmacenes(almacenesActualizados);
 
   // Avanzar todos los camiones
-  const nuevosCamiones = avanzarTodosLosCamiones(camiones, rutasCamiones, almacenesActualizados, setAlmacenes);
+  console.log('🚛 AVANCE_HORA: Avanzando camiones con estado de simulación...');
+  const nuevosCamiones = avanzarTodosLosCamiones(camiones, rutasCamiones, almacenesActualizados, setAlmacenes, estadoSimulacion);
+  
+  // Log para verificar si hubo cambios en los camiones
+  const camionesAveriadosAntes = camiones.filter(c => c.estado === 'Averiado').length;
+  const camionesAveriadosDespues = nuevosCamiones.filter(c => c.estado === 'Averiado').length;
+  
+  if (camionesAveriadosDespues > camionesAveriadosAntes) {
+    console.log('🚛💥 AVANCE_HORA: Se detectaron nuevas averías automáticas:', {
+      averiadosAntes: camionesAveriadosAntes,
+      averiadosDespues: camionesAveriadosDespues,
+      nuevasAverias: camionesAveriadosDespues - camionesAveriadosAntes
+    });
+  }
+  
+  setCamiones(nuevosCamiones);
 
   const quedan = nodosRestantesAntesDeActualizar - 1;
   setNodosRestantesAntesDeActualizar(quedan);

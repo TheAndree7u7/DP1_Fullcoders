@@ -21,7 +21,10 @@ export enum TipoNodo {
   NORMAL = 'NORMAL',
   CAMION_AVERIADO = 'CAMION_AVERIADO',
   PEDIDO = 'PEDIDO',
-  ALMACEN_RECARGA = 'ALMACEN_RECARGA'
+  ALMACEN_RECARGA = 'ALMACEN_RECARGA',
+  AVERIA_AUTOMATICA_T1 = 'AVERIA_AUTOMATICA_T1',
+  AVERIA_AUTOMATICA_T2 = 'AVERIA_AUTOMATICA_T2',
+  AVERIA_AUTOMATICA_T3 = 'AVERIA_AUTOMATICA_T3'
 }
 
 export enum EstadoCamion {
@@ -83,7 +86,7 @@ export interface Nodo {
   bloqueado: boolean;
   gScore: number;
   fScore: number;
-  tipoNodo: TipoNodo;
+  tipo: string; // Cambiado de tipoNodo: TipoNodo a tipo: string para coincidir con el backend
 }
 
 // ============================

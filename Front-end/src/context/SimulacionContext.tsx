@@ -446,12 +446,34 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       // Procesar rutas de camiones
-      const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => ({
-        id: gen.camion.codigo,
-        ruta: gen.nodos.map((n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`),
-        puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
-        pedidos: gen.pedidos,
-      }));
+      const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => {
+        // Log para verificar los tipos de nodos que llegan del backend
+        const tiposNodosRecibidos = gen.nodos.map(n => n.tipo);
+        console.log('🔍 CONTEXTO: Tipos de nodos recibidos del backend para camión', gen.camion.codigo, ':', tiposNodosRecibidos);
+        
+        // Contar nodos de avería automática
+        const nodosAveriaAutomatica = tiposNodosRecibidos.filter(tipo => 
+          tipo === 'AVERIA_AUTOMATICA_T1' || 
+          tipo === 'AVERIA_AUTOMATICA_T2' || 
+          tipo === 'AVERIA_AUTOMATICA_T3'
+        );
+        
+        if (nodosAveriaAutomatica.length > 0) {
+          console.log('🚛💥 CONTEXTO: Nodos de avería automática encontrados:', {
+            camionId: gen.camion.codigo,
+            nodosAveria: nodosAveriaAutomatica,
+            totalNodos: tiposNodosRecibidos.length
+          });
+        }
+        
+        return {
+          id: gen.camion.codigo,
+          ruta: gen.nodos.map((n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`),
+          puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
+          pedidos: gen.pedidos,
+          tiposNodos: tiposNodosRecibidos, // Usar los tipos ya extraídos
+        };
+      });
 
       setRutasCamiones(nuevasRutas);
 
@@ -572,12 +594,34 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       // Procesar rutas de camiones
-      const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => ({
-        id: gen.camion.codigo,
-        ruta: gen.nodos.map((n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`),
-        puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
-        pedidos: gen.pedidos,
-      }));
+      const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => {
+        // Log para verificar los tipos de nodos que llegan del backend
+        const tiposNodosRecibidos = gen.nodos.map(n => n.tipo);
+        console.log('🔍 CONTEXTO (NUEVA SOLUCIÓN): Tipos de nodos recibidos del backend para camión', gen.camion.codigo, ':', tiposNodosRecibidos);
+        
+        // Contar nodos de avería automática
+        const nodosAveriaAutomatica = tiposNodosRecibidos.filter(tipo => 
+          tipo === 'AVERIA_AUTOMATICA_T1' || 
+          tipo === 'AVERIA_AUTOMATICA_T2' || 
+          tipo === 'AVERIA_AUTOMATICA_T3'
+        );
+        
+        if (nodosAveriaAutomatica.length > 0) {
+          console.log('🚛💥 CONTEXTO (NUEVA SOLUCIÓN): Nodos de avería automática encontrados:', {
+            camionId: gen.camion.codigo,
+            nodosAveria: nodosAveriaAutomatica,
+            totalNodos: tiposNodosRecibidos.length
+          });
+        }
+        
+        return {
+          id: gen.camion.codigo,
+          ruta: gen.nodos.map((n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`),
+          puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
+          pedidos: gen.pedidos,
+          tiposNodos: tiposNodosRecibidos, // Usar los tipos ya extraídos
+        };
+      });
 
       setRutasCamiones(nuevasRutas);
 
@@ -824,9 +868,37 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   /**
    * @function avanzarHora
    * @description Avanza la simulación una hora, actualizando la posición de los camiones
-   * y recargando datos del backend cuando sea necesario
    */
   const avanzarHora = async () => {
+    console.log('⏰ CONTEXTO: Iniciando avance de hora...', {
+      horaActual,
+      totalCamiones: camiones.length,
+      camionesAveriados: camiones.filter(c => c.estado === 'Averiado').length,
+      rutasConTiposNodos: rutasCamiones.filter(r => r.tiposNodos && r.tiposNodos.length > 0).length
+    });
+    
+    // Crear el estado de simulación para pasar a la función de averías automáticas
+    const estadoSimulacion = {
+      horaActual,
+      horaSimulacion,
+      fechaHoraSimulacion,
+      fechaInicioSimulacion,
+      diaSimulacion,
+      tiempoRealSimulacion,
+      tiempoTranscurridoSimulado,
+      camiones,
+      rutasCamiones,
+      almacenes,
+      bloqueos
+    };
+
+    console.log('📊 CONTEXTO: Estado de simulación creado para averías automáticas:', {
+      horaSimulacion: estadoSimulacion.horaSimulacion,
+      fechaHoraSimulacion: estadoSimulacion.fechaHoraSimulacion,
+      totalCamiones: estadoSimulacion.camiones.length,
+      totalRutas: estadoSimulacion.rutasCamiones.length
+    });
+
     await avanzarHoraUtil(
       camiones,
       rutasCamiones,
@@ -845,8 +917,11 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       aplicarSolucionPrecargada,
       cargarDatosSimulacion,
       setAlmacenes,
-      fechaHoraSimulacion
+      fechaHoraSimulacion,
+      estadoSimulacion
     );
+    
+    console.log('✅ CONTEXTO: Avance de hora completado');
   };
 
   /**

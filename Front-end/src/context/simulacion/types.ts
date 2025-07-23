@@ -48,6 +48,7 @@ export interface RutaCamion {
   ruta: string[]; // ["(12,8)", "(13,8)", ...]
   puntoDestino: string; // "(x,y)"
   pedidos: Pedido[];
+  tiposNodos?: string[]; // Tipos de nodos correspondientes a cada posición en la ruta
 }
 
 /**
