@@ -8,6 +8,7 @@ import TablaPedidos from './TablaPedidos';
 import AgregarPedidosPanel from './AgregarPedidosPanel';
 import DatosCamionesTable from './rightmenu/DatosCamionesTable';
 import TablaAlmacenes from './rightmenu/TablaAlmacenes';
+import AveriarCamiones from './rightmenu/AveriarCamiones';
 
 interface RightMenuProps {
   expanded: boolean;
@@ -16,7 +17,7 @@ interface RightMenuProps {
 }
 
 const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded, onElementoSeleccionado }) => {
-  const [panel, setPanel] = React.useState<'camiones' | 'bloqueos' | 'metricas' | 'estadoCamiones' | 'pedidos' | 'almacenes' | 'agregarPedidos'>('camiones');
+  const [panel, setPanel] = React.useState<'camiones' | 'bloqueos' | 'metricas' | 'estadoCamiones' | 'pedidos' | 'almacenes' | 'agregarPedidos' | 'averiarCamiones'>('camiones');
   
   if (!expanded) return null;
 
@@ -75,11 +76,20 @@ const RightMenu: React.FC<RightMenuProps> = ({ expanded, setExpanded, onElemento
           <Plus className="w-4 h-4 inline mr-1" />
           Agregar Pedidos
         </button>
+        <button
+          className={`px-3 py-1 rounded font-semibold transition ${panel === 'averiarCamiones' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800 hover:bg-blue-100'}`}
+          onClick={() => setPanel('averiarCamiones')}
+        >
+          Averiar Camiones
+        </button>
       </div>
 
       <div className="flex flex-col flex-1 min-h-0">
         {panel === 'camiones' && (
           <DatosCamionesTable onElementoSeleccionado={onElementoSeleccionado} />
+        )}
+        {panel === 'averiarCamiones' && (
+          <AveriarCamiones onElementoSeleccionado={onElementoSeleccionado} />
         )}
         {panel === 'estadoCamiones' && (
           <div className="flex flex-col flex-1 min-h-0">
