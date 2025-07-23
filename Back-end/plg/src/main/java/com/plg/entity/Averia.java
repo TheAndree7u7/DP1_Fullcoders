@@ -57,8 +57,7 @@ public class Averia {
         }
 
         this.tipoIncidente = new TipoIncidente(tipoIncidenteStr); // El constructor de TipoIncidente ya valida
-        // this.setTurnoOcurrencia(Integer.parseInt(turnoStr));
-        // System.out.println("Turno: " + turnoStr);
+
         turnoStr = turnoStr.replace("T", "");
         this.turnoOcurrencia = Integer.parseInt(turnoStr);
         try {

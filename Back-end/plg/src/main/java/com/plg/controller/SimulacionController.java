@@ -3,6 +3,7 @@ package com.plg.controller;
 import com.plg.utils.Simulacion;
 import com.plg.utils.TipoDeSimulacion;
 import com.plg.utils.AlgoritmoGenetico;
+import com.plg.utils.Herramientas;
 import com.plg.utils.Parametros;
 import com.plg.config.DataLoader;
 import com.plg.dto.IndividuoDto;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import com.plg.entity.Bloqueo;
+import com.plg.entity.Camion;
 import com.plg.entity.Mapa;
 import com.plg.entity.Pedido;
 import com.plg.utils.simulacion.UtilesSimulacion;
@@ -87,31 +89,24 @@ public class SimulacionController {
                 fechaDateTime);
         Parametros.actualizarParametrosGlobales(fechaDateTime);
         Simulacion.actualizarEstadoGlobal(fechaDateTime);
-        System.out.println("🧩 Pedidos a enviar unidos para la fecha: " +
-                Simulacion.pedidosEnviar.size());
         System.out.println("🧬 Ejecutando algoritmo genético para la fecha: " + fechaDateTime);
 
         // Algoritmo Genético
         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance());
         algoritmoGenetico.ejecutarAlgoritmo();
+        if (Parametros.tipoDeSimulacion == TipoDeSimulacion.SEMANAL) {
+            Herramientas.agregarAveriasAutomaticas(Parametros.dataLoader.averiasAutomaticas, algoritmoGenetico.getMejorIndividuo().getCromosoma(), fechaDateTime, fechaDateTime.plusMinutes(Parametros.intervaloTiempo));
+        }
         IndividuoDto mejorIndividuoDto = new IndividuoDto(
                 algoritmoGenetico.getMejorIndividuo(),
                 Simulacion.pedidosEnviar,
                 Simulacion.bloqueosActivos,
                 fechaDateTime);
-        // Esta es la fecha que se envia al front
         mejorIndividuoDto.setFechaHoraInicioIntervalo(fechaDateTime);
         mejorIndividuoDto.setFechaHoraFinIntervalo(fechaDateTime.plusMinutes(Parametros.intervaloTiempo));
         for (Bloqueo bloqueo : Simulacion.bloqueosActivos) {
             bloqueo.desactivarBloqueo();
-        }
-        // ! Aca se podria agregar averias en la ruta del mejor individuo
-        if (Parametros.tipoDeSimulacion == TipoDeSimulacion.SEMANAL) {
-            // ! Aca se podria agregar averias en la ruta del mejor individuo
-            mejorIndividuoDto.agregarAveriasAutomaticas(Parametros.dataLoader.averiasAutomaticas);
-        }
-        // mejorIndividuoDto.cortarNodosQueVanDespuesDelUltimoNodoQuePuedeRecorrerElCamion();
-        System.out.println("✅ Mejor individuo generado y retornado para la fecha: " + fechaDateTime);
+        }        
         System.out.println("____________FIN____________");
         return mejorIndividuoDto;
     }

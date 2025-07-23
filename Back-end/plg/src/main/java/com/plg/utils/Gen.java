@@ -3,16 +3,20 @@ package com.plg.utils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.time.LocalDateTime;
 import com.plg.utils.Simulacion;
-
+import com.plg.dto.CoordenadaDto;
+import com.plg.dto.NodoDto;
 import com.plg.entity.Almacen;
+import com.plg.entity.Averia;
 import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
 import com.plg.entity.EstadoCamion;
 import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
+import com.plg.entity.TipoNodo;
 import com.plg.entity.EstadoPedido;
 
 import lombok.AllArgsConstructor;
@@ -44,7 +48,7 @@ public class Gen {
         this.fitness = 0.0;
     }
 
-    public double distanciaRecorrida(){
+    public double distanciaRecorrida() {
         return (double) rutaFinal.size();
     }
 
@@ -174,7 +178,7 @@ public class Gen {
                     for (int j = 0; j < Parametros.cantNodosEnPedidos; j++) {
                         rutaApi.add(nodo);
                     }
-                } 
+                }
             } else {
                 rutaApi.add(nodo);
             }
@@ -205,7 +209,7 @@ public class Gen {
     }
 
     public Nodo ultimoNodo() {
-        if(rutaFinal.isEmpty()) {
+        if (rutaFinal.isEmpty()) {
             return camion;
         }
         return rutaFinal.getLast();
@@ -236,4 +240,70 @@ public class Gen {
             this.posicionActual = posicionActual;
         }
     }
+
+    // ! calcula la cantidad de nodos que puede recorrer como maximo el camion segun
+    // su velocidad
+    public int calcularCantidadDeNodosQuePuedeRecorrerElCamion() {
+        double velocidad_en_km_h = Parametros.velocidadCamion;
+
+        double cantidad_de_horas_intervalo = Parametros.intervaloTiempo / 60.0;
+
+        double cantidad_de_km_que_puede_recorrer_el_camion = velocidad_en_km_h * cantidad_de_horas_intervalo;
+        // System.out
+        // .println("Cantidad de km que puede recorrer el camion: " +
+        // cantidad_de_km_que_puede_recorrer_el_camion);
+        return (int) (cantidad_de_km_que_puede_recorrer_el_camion);
+    }
+
+    // !Calcula el indice iniial y final de los nodos que estan en el rango de
+    // averias automaticas
+    public void colocar_nodo_de_averia_automatica() {
+        int cantidad_nodos_que_puede_recorrer_el_camion = this.getCamion().calcularCantidadDeNodos();
+        int posicion_inicial = (int) (cantidad_nodos_que_puede_recorrer_el_camion
+                * Parametros.rango_inicial_tramo_averia);
+        int posicion_final = (int) (cantidad_nodos_que_puede_recorrer_el_camion * Parametros.rango_final_tramo_averia);
+        // if (posicion_inicial > 1) {
+        // posicion_inicial = posicion_inicial - 1;
+        // }
+        // if (posicion_final > 1) {
+        // posicion_final = posicion_final - 1;
+        // }
+
+        List<Integer> posiciones_normales = new ArrayList<>();
+        for (int i = posicion_inicial; i <= posicion_final; i++) {
+            if (rutaFinal.get(i).getTipoNodo().equals(TipoNodo.NORMAL)) {
+                posiciones_normales.add(i);
+            }
+        }
+        if(posiciones_normales.isEmpty()) {
+            // Si no hay posiciones normales, no se coloca el nodo de averia automatica
+            return;
+        }
+        // elige una posicion aleatoria dentro de los rangos
+        int posicion_aleatoria = new Random().nextInt(posiciones_normales.size());
+
+        // Realizamos un padding de todos los nodos de ruta final desde la posicion
+        // aleatoria hasta el final de la lista, es decir los eliminamos
+        rutaFinal = new ArrayList<>(rutaFinal.subList(0, posiciones_normales.get(posicion_aleatoria)));
+        Averia averia = Parametros.dataLoader.averiasAutomaticas.stream()
+                .filter(a -> a.getCamion().getCodigo().equals(camion.getCodigo()))
+                .findFirst()
+                .orElse(null);
+        TipoNodo tipo_nodo_averia;
+        if (averia != null) {
+            String tipo_nodo_averia_string = averia.getTipoIncidente().getCodigo();
+            if (tipo_nodo_averia_string.equals("TI1")) {
+                tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T1;
+            } else if (tipo_nodo_averia_string.equals("TI2")) {
+                tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T2;
+            } else {
+                tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T3;
+            }
+        } else {
+            tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T1;
+        }
+        Nodo ultimoNodo = rutaFinal.getLast();
+        ultimoNodo.setTipoNodo(tipo_nodo_averia);
+    }
+
 }

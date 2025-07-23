@@ -72,7 +72,7 @@ public class CamionFactory {
                 .bloqueado(false)
                 .gScore(0)
                 .fScore(0)
-                .tipoNodo(TipoNodo.NORMAL)
+                .tipoNodo(TipoNodo.CAMION)
                 .build();
     }
 

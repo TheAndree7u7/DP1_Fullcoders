@@ -139,6 +139,11 @@ public class Camion extends Nodo {
         gen.setPosNodo(antiguo + cantNodos);
         int distanciaRecorrida = gen.getPosNodo() - antiguo;
         actualizarCombustible(distanciaRecorrida);
+        
+        if(Parametros.dataLoader.camionesAveriados.stream()
+                .anyMatch(c -> c.getCodigo().equals(this.codigo))) {
+            this.setEstado(EstadoCamion.INMOVILIZADO_POR_AVERIA);
+        }
 
         // En el tiempo transcurrido donde se puede encontrar el camión
         // Verificar que la ruta final no esté vacía
@@ -156,6 +161,9 @@ public class Camion extends Nodo {
             setCoordenada(nuevaCoordenada);
     
         }
+
+        
+
 
         // RECORRER RUTA HASTA PUNTO INTERMEDIO
         for (int i = 0; i <= intermedio; i++) {
@@ -233,11 +241,14 @@ public class Camion extends Nodo {
         }
     }
 
-    private int calcularCantidadDeNodos() {
- 
-        int cantNodos = (int) (Parametros.diferenciaTiempoMinRequest * velocidadPromedio / 60);
+    public int calcularCantidadDeNodos() {
+        double diferenciaTiempo = Parametros.intervaloTiempo;
+        if (Parametros.diferenciaTiempoMinRequest != 0){
+            diferenciaTiempo = Parametros.diferenciaTiempoMinRequest;
+        }
+        int cantNodos = (int) (diferenciaTiempo * velocidadPromedio / 60);
         List<Nodo> rutaApi = gen.construirRutaFinalApi();
-        Nodo nodo_final = rutaApi.get(cantNodos-1);
+        Nodo nodo_final = rutaApi.get(Math.max(cantNodos-1, 0));
         for(int i = 0; i < gen.getRutaFinal().size(); i++) {
             if (gen.getRutaFinal().get(i).equals(nodo_final)) {
                 cantNodos = i;

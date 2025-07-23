@@ -26,11 +26,6 @@ public class DataLoader {
     private String getPathBloqueos() {
         return "data/bloqueos/" + Parametros.anho + Parametros.mes + ".bloqueos.txt";
     }
-
-    private String getPathAverias() {
-        return "data/averias/averias.v1.txt";
-    }
-
     private Coordenada coordenadaCentral = new Coordenada(8, 12);
 
     public final List<Mantenimiento> mantenimientos = new ArrayList<>();
@@ -40,6 +35,7 @@ public class DataLoader {
     public List<Averia> averias = new ArrayList<>(); // Averias automaticas
     public List<Averia> averiasAutomaticas = new ArrayList<>(); // !AVERIAS AUTOMATICAS
     public List<Bloqueo> bloqueos = new ArrayList<>();
+    public List<Camion> camionesAveriados = new ArrayList<>(); // Camiones que se averian automaticamente
 
     public DataLoader() {
         initializeAlmacenes();
@@ -96,9 +92,6 @@ public class DataLoader {
             this.averiasAutomaticas.add(averia);
         }
         System.out.println("Averias automaticas: " + this.averiasAutomaticas.size());
-        // for (Averia averia : this.averiasAutomaticas) {
-        // System.out.println(averia.toString());
-        // }
         return this.averiasAutomaticas;
     }
 
