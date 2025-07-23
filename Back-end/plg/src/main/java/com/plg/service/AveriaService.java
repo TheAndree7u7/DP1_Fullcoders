@@ -65,7 +65,7 @@ public class AveriaService {
     /**
      * Lista averías por camión y tipo de incidente.
      *
-     * @param codigoCamion código del camión
+     * @param codigoCamion  código del camión
      * @param tipoIncidente tipo de incidente ("TI1", "TI2", "TI3")
      * @return Lista de averías filtradas
      */
@@ -91,22 +91,26 @@ public class AveriaService {
         try {
             // Crear la avería solo con los campos requeridos
             Averia averia = request.toAveria();
-            //!CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE INCIDENTE
+            // !CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE
+            // INCIDENTE
             averia.calcularTurnoOcurrencia();
 
             averia.getTipoIncidente().initDefaultAverias();
             averia.setFechaHoraFinEsperaEnRuta(averia.calcularFechaHoraFinEsperaEnRuta());
             averia.setFechaHoraDisponible(averia.calcularFechaHoraDisponible());
             averia.setTiempoReparacionEstimado(averia.calcularTiempoInoperatividad());
-            //! CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE INCIDENTE            //?--------------------------------------
-            //! Ahora se actualiza el estado del camión a INMOVILIZADO_POR_AVERIA
+            // ! CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE
+            // INCIDENTE //?--------------------------------------
+            // ! Ahora se actualiza el estado del camión a INMOVILIZADO_POR_AVERIA
             camionService.cambiarEstado(request.getCodigoCamion(), EstadoCamion.INMOVILIZADO_POR_AVERIA);
 
-            //! Cambiar la posición del camión con la coordenada del request
+            // ! Cambiar la posición del camión con la coordenada del request
             if (request.getCoordenada() != null) {
                 camionService.cambiarCoordenada(request.getCodigoCamion(), request.getCoordenada());
+                System.out.println("Coordenada actualizada: " + request.getCoordenada());
+            } else {
+                System.out.println("No se actualizo la coordenada");
             }
-
             averia.setEstado(true); // Asegurarse de que la avería esté activa
             return averiaRepository.save(averia);
         } catch (NoSuchElementException e) {
@@ -144,8 +148,6 @@ public class AveriaService {
     public List<String> listarCodigosCamionesAveriados() {
         return averiaRepository.findCodigosCamionesAveriados();
     }
-
-
 
     /**
      * Actualiza los estados de los camiones con averías según las fechas de
@@ -203,7 +205,8 @@ public class AveriaService {
             // Verificar si el camión aún está en el lugar de la avería
             if (esCamionEnLugarAveria(codigoCamion)) {
                 trasladarCamionAlTaller(codigoCamion);
-                System.out.println("🚛 Camión " + codigoCamion + " trasladado al taller - Estado: EN_MANTENIMIENTO_POR_AVERIA");
+                System.out.println(
+                        "🚛 Camión " + codigoCamion + " trasladado al taller - Estado: EN_MANTENIMIENTO_POR_AVERIA");
             }
         }
 
@@ -273,7 +276,7 @@ public class AveriaService {
      * @param fecha1 Primera fecha
      * @param fecha2 Segunda fecha
      * @return true si fecha1 es anterior o igual a fecha2 (sin considerar
-     * segundos)
+     *         segundos)
      */
     private boolean esFechaAnteriorSinSegundos(LocalDateTime fecha1, LocalDateTime fecha2) {
         // Truncar a minutos para ignorar segundos
