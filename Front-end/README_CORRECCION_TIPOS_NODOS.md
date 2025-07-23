@@ -62,7 +62,7 @@ Se agregaron logs para verificar que los tipos se procesen correctamente:
 ```typescript
 // Log para verificar los tipos de nodos que llegan del backend
 const tiposNodosRecibidos = gen.nodos.map(n => n.tipo);
-console.log('🔍 CONTEXTO: Tipos de nodos recibidos del backend para camión', gen.camion.codigo, ':', tiposNodosRecibidos);
+//console.log('🔍 CONTEXTO: Tipos de nodos recibidos del backend para camión', gen.camion.codigo, ':', tiposNodosRecibidos);
 
 // Contar nodos de avería automática
 const nodosAveriaAutomatica = tiposNodosRecibidos.filter(tipo => 
@@ -72,11 +72,11 @@ const nodosAveriaAutomatica = tiposNodosRecibidos.filter(tipo =>
 );
 
 if (nodosAveriaAutomatica.length > 0) {
-  console.log('🚛💥 CONTEXTO: Nodos de avería automática encontrados:', {
-    camionId: gen.camion.codigo,
-    nodosAveria: nodosAveriaAutomatica,
-    totalNodos: tiposNodosRecibidos.length
-  });
+  // console.log('🚛💥 CONTEXTO: Nodos de avería automática encontrados:', {
+  //   camionId: gen.camion.codigo,
+  //   nodosAveria: nodosAveriaAutomatica,
+  //   totalNodos: tiposNodosRecibidos.length
+  // });
 }
 ```
 

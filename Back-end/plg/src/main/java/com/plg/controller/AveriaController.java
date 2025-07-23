@@ -16,6 +16,8 @@ import com.plg.entity.Averia;
 import com.plg.entity.EstadoCamion;
 import com.plg.service.AveriaService;
 import com.plg.service.CamionService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Controlador REST para averías.
@@ -180,6 +182,46 @@ public class AveriaController {
     }
 
     /**
+     * Endpoint temporal para debugging - captura el JSON raw que llega
+     */
+    @PostMapping("/debug-averia-raw")
+    public ResponseEntity<?> debugAveriaRaw(@RequestBody String jsonRaw) {
+        try {
+            System.out.println("🔍 DEBUG BACKEND: JSON Raw recibido:");
+            System.out.println(jsonRaw);
+
+            // Intentar parsear el JSON para ver si hay errores
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode jsonNode = mapper.readTree(jsonRaw);
+
+            System.out.println("🔍 DEBUG BACKEND: JSON parseado correctamente");
+            System.out.println("   - Tiene coordenada: " + jsonNode.has("coordenada"));
+            if (jsonNode.has("coordenada")) {
+                JsonNode coordenadaNode = jsonNode.get("coordenada");
+                System.out.println("   - Coordenada es null: " + coordenadaNode.isNull());
+                if (!coordenadaNode.isNull()) {
+                    System.out.println("   - Coordenada tiene fila: " + coordenadaNode.has("fila"));
+                    System.out.println("   - Coordenada tiene columna: " + coordenadaNode.has("columna"));
+                    if (coordenadaNode.has("fila")) {
+                        System.out.println("   - Valor fila: " + coordenadaNode.get("fila"));
+                    }
+                    if (coordenadaNode.has("columna")) {
+                        System.out.println("   - Valor columna: " + coordenadaNode.get("columna"));
+                    }
+                }
+            }
+
+            return ResponseEntity.ok("JSON recibido y analizado correctamente");
+
+        } catch (Exception e) {
+            System.err.println("❌ DEBUG BACKEND: Error al analizar JSON: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Error al analizar JSON: " + e.getMessage());
+        }
+    }
+
+    /**
      * Agrega una nueva avería con estado completo de la simulación.
      * Este endpoint recibe tanto los datos de la avería como el estado
      * completo de la simulación en el momento de la avería.
@@ -187,6 +229,47 @@ public class AveriaController {
     @PostMapping("/averiar-camion-con-estado")
     public ResponseEntity<?> averiarCamionConEstado(@RequestBody AveriaConEstadoRequest request) {
         try {
+            // 🔍 AGREGADO: Logs detallados para debugging de coordenadas
+            System.out.println("🔍 AVERÍA BACKEND: Recibida solicitud de avería con estado completo");
+            System.out.println("   - Código del camión: " + request.getCodigoCamion());
+            System.out.println("   - Tipo de incidente: " + request.getTipoIncidente());
+            System.out.println("   - Fecha y hora del reporte: " + request.getFechaHoraReporte());
+            System.out.println("   - Coordenada recibida: " + request.getCoordenada());
+
+            // 🔍 AGREGADO: Log detallado de la coordenada
+            if (request.getCoordenada() != null) {
+                System.out.println("   - Coordenada (fila): " + request.getCoordenada().getFila());
+                System.out.println("   - Coordenada (columna): " + request.getCoordenada().getColumna());
+            } else {
+                System.out.println("   - ⚠️ ADVERTENCIA: La coordenada es NULL");
+            }
+
+            // 🔍 AGREGADO: Log del estado de simulación
+            if (request.getEstadoSimulacion() != null) {
+                System.out.println("   - Estado de simulación recibido: SÍ");
+                System.out.println("   - Timestamp: " + request.getEstadoSimulacion().getTimestamp());
+                System.out.println("   - Hora simulación: " + request.getEstadoSimulacion().getHoraSimulacion());
+                System.out.println("   - Cantidad de camiones en estado: " +
+                        (request.getEstadoSimulacion().getCamiones() != null
+                                ? request.getEstadoSimulacion().getCamiones().size()
+                                : 0));
+
+                // 🔍 AGREGADO: Buscar el camión averiado en el estado
+                if (request.getEstadoSimulacion().getCamiones() != null) {
+                    request.getEstadoSimulacion().getCamiones().stream()
+                            .filter(c -> c.getId().equals(request.getCodigoCamion()))
+                            .findFirst()
+                            .ifPresent(camion -> {
+                                System.out.println(
+                                        "   - Camión averiado en estado - ubicación: " + camion.getUbicacion());
+                                System.out.println(
+                                        "   - Camión averiado en estado - porcentaje: " + camion.getPorcentaje());
+                            });
+                }
+            } else {
+                System.out.println("   - ⚠️ ADVERTENCIA: El estado de simulación es NULL");
+            }
+
             // Validaciones básicas
             if (request.getCodigoCamion() == null || request.getCodigoCamion().trim().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -200,13 +283,31 @@ public class AveriaController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("El estado de la simulación es obligatorio");
             }
+
             System.out.println("AVERIA CAMION");
+
+            // 🔧 MEJORADO: Crear el AveriaRequest y verificar la coordenada
+            AveriaRequest averiaRequest = request.toAveriaRequest();
+            System.out.println("🔍 AVERÍA BACKEND: AveriaRequest creado");
+            System.out.println("   - Coordenada en AveriaRequest: " + averiaRequest.getCoordenada());
+            if (averiaRequest.getCoordenada() != null) {
+                System.out.println("   - Coordenada (fila): " + averiaRequest.getCoordenada().getFila());
+                System.out.println("   - Coordenada (columna): " + averiaRequest.getCoordenada().getColumna());
+            } else {
+                System.out.println("   - ⚠️ ADVERTENCIA: La coordenada en AveriaRequest es NULL");
+            }
+
             // Procesar la avería con estado completo
-            Averia averia = averiaService.agregar(request.toAveriaRequest());
-            // Averia averia = new Averia();
-            // Cambiar el estado del camión
-            // camionService.cambiarEstado(request.getCodigoCamion(),
-            // EstadoCamion.EN_MANTENIMIENTO_POR_AVERIA);
+            Averia averia = averiaService.agregar(averiaRequest);
+
+            // 🔍 AGREGADO: Verificar la avería creada
+            System.out.println("🔍 AVERÍA BACKEND: Avería creada exitosamente");
+            System.out.println("   - Camión: " + averia.getCamion().getCodigo());
+            System.out.println("   - Coordenada en avería: " + averia.getCoordenada());
+            if (averia.getCoordenada() != null) {
+                System.out.println("   - Coordenada final (fila): " + averia.getCoordenada().getFila());
+                System.out.println("   - Coordenada final (columna): " + averia.getCoordenada().getColumna());
+            }
 
             // Crear respuesta con información adicional
             return ResponseEntity.status(HttpStatus.CREATED).body(new AveriaConEstadoResponse(
@@ -216,6 +317,8 @@ public class AveriaController {
                     request.getEstadoSimulacion().getHoraSimulacion()));
 
         } catch (Exception e) {
+            System.err.println("❌ AVERÍA BACKEND: Error al crear avería con estado completo: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Error al crear avería con estado completo: " + e.getMessage());
         }
