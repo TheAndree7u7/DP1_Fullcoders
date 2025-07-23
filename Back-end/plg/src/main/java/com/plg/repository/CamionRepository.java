@@ -14,7 +14,6 @@ import com.plg.entity.Camion;
  */
 @Repository
 public class CamionRepository {
-  
 
     /**
      * Obtiene la lista completa de camiones.
@@ -43,6 +42,28 @@ public class CamionRepository {
             }
         }
         throw new RuntimeException("Camión no encontrado: " + camion.getCodigo());
+    }
+
+    /* Actulizar estado de un camion */
+    public Camion updateEstado(Camion camion) {
+        for (int i = 0; i < Parametros.dataLoader.camiones.size(); i++) {
+            if (Parametros.dataLoader.camiones.get(i).getCodigo().equals(camion.getCodigo())) {
+                Parametros.dataLoader.camiones.get(i).setEstado(camion.getEstado());
+                return Parametros.dataLoader.camiones.get(i);
+            }
+        }
+        return camion;
+    }
+
+    // Actualizar coordenada de un camion
+    public Camion updateCoordenada(Camion camion) {
+        for (int i = 0; i < Parametros.dataLoader.camiones.size(); i++) {
+            if (Parametros.dataLoader.camiones.get(i).getCodigo().equals(camion.getCodigo())) {
+                Parametros.dataLoader.camiones.get(i).setCoordenada(camion.getCoordenada());
+                return Parametros.dataLoader.camiones.get(i);
+            }
+        }
+        return camion;
     }
 
     /**

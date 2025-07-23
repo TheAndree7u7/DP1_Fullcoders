@@ -96,7 +96,7 @@ public class CamionService {
      * Cambia el estado de un camión por su código.
      *
      * @param codigoCamion Código del camión
-     * @param nuevoEstado Nuevo estado a asignar
+     * @param nuevoEstado  Nuevo estado a asignar
      * @return El camión actualizado
      */
     public Camion cambiarEstado(String codigoCamion, EstadoCamion nuevoEstado) {
@@ -105,13 +105,14 @@ public class CamionService {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Camión no encontrado: " + codigoCamion));
         camion.setEstado(nuevoEstado);
+        camionRepository.updateEstado(camion);
         return camion;
     }
 
     /**
      * Cambia la coordenada de un camión por su código.
      *
-     * @param codigoCamion Código del camión
+     * @param codigoCamion    Código del camión
      * @param nuevaCoordenada Nueva coordenada a asignar
      * @return El camión actualizado
      */
@@ -121,6 +122,7 @@ public class CamionService {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Camión no encontrado: " + codigoCamion));
         camion.setCoordenada(nuevaCoordenada);
+        camionRepository.updateCoordenada(camion);
         return camion;
     }
 
@@ -183,7 +185,8 @@ public class CamionService {
             // Cantidad de gasolina
             infoCamion.put("combustibleMaximo", camion.getCombustibleMaximo());
             infoCamion.put("combustibleActual", camion.getCombustibleActual());
-            infoCamion.put("porcentajeCombustible", (camion.getCombustibleActual() / camion.getCombustibleMaximo()) * 100);
+            infoCamion.put("porcentajeCombustible",
+                    (camion.getCombustibleActual() / camion.getCombustibleMaximo()) * 100);
 
             // Kilómetros restantes
             infoCamion.put("distanciaMaxima", camion.getDistanciaMaxima());
@@ -200,7 +203,8 @@ public class CamionService {
             resultado.add(infoCamion);
         }
 
-        // Ordenar primero por número de pedidos (de mayor a menor) y luego por combustible restante (de menor a mayor)
+        // Ordenar primero por número de pedidos (de mayor a menor) y luego por
+        // combustible restante (de menor a mayor)
         resultado.sort((a, b) -> {
             // Primero comparar por número de pedidos (descendente)
             Long pedidosA = (Long) a.get("numeroPedidos");
@@ -211,7 +215,8 @@ public class CamionService {
                 return comparePedidos;
             }
 
-            // Si tienen el mismo número de pedidos, comparar por combustible restante (ascendente)
+            // Si tienen el mismo número de pedidos, comparar por combustible restante
+            // (ascendente)
             Double combustibleA = (Double) a.get("combustibleActual");
             Double combustibleB = (Double) b.get("combustibleActual");
             return combustibleA.compareTo(combustibleB);
