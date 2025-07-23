@@ -108,7 +108,11 @@ public class SimulacionController {
         // ! Aca se podria agregar averias en la ruta del mejor individuo
         if (Parametros.tipoDeSimulacion == TipoDeSimulacion.SEMANAL) {
             // ! Aca se podria agregar averias en la ruta del mejor individuo
-            mejorIndividuoDto.agregarAveriasAutomaticas(Parametros.dataLoader.averiasAutomaticas);
+            boolean averiasAplicadas = mejorIndividuoDto
+                    .agregarAveriasAutomaticas(Parametros.dataLoader.averiasAutomaticas);
+            if (!averiasAplicadas) {
+                System.out.println("⚠️ No se pudieron aplicar las averías automáticas, continuando sin ellas");
+            }
         }
         // mejorIndividuoDto.cortarNodosQueVanDespuesDelUltimoNodoQuePuedeRecorrerElCamion();
         System.out.println("✅ Mejor individuo generado y retornado para la fecha: " + fechaDateTime);

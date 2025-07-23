@@ -21,8 +21,7 @@ const SimulacionSemanal: React.FC = () => {
     fechaHoraSimulacion, 
     tiempoTranscurridoSimulado, 
     fechaHoraAcumulada,
-    camiones,
-    rutasCamiones
+    camiones
   } = useSimulacion();
   const currentDateTime = useCurrentDateTime();
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
@@ -118,10 +117,25 @@ const SimulacionSemanal: React.FC = () => {
   const capacidadDisponible = camiones.reduce((acc, c) => acc + (c.capacidadActualGLP || 0), 0);
   const porcentajeDisponible = capacidadTotal > 0 ? capacidadDisponible / capacidadTotal : 0;
   
-  // Calcular GLP en uso (suma del GLP de pedidos PENDIENTE / capacidad total)
-  const pedidosAsignados = rutasCamiones.flatMap(r => r.pedidos);
-  const pedidosPendientes = pedidosAsignados.filter(p => p.estado === 'PENDIENTE');
-  const glpEnUso = pedidosPendientes.reduce((acc, p) => acc + (p.volumenGLPAsignado || 0), 0);
+  // Calcular GLP en uso (GLP que están transportando los camiones)
+  const glpEnUso = camiones.reduce((acc, c) => {
+    const capacidadMaxima = c.capacidadMaximaGLP || 0;
+    const capacidadActual = c.capacidadActualGLP || 0;
+    return acc + (capacidadMaxima - capacidadActual);
+  }, 0);
+  
+  console.log('🔍 DEBUG: GLP en uso calculado:', {
+    capacidadTotal,
+    capacidadDisponible,
+    glpEnUso,
+    camiones: camiones.map(c => ({
+      id: c.id,
+      capacidadMaxima: c.capacidadMaximaGLP,
+      capacidadActual: c.capacidadActualGLP,
+      glpTransportando: (c.capacidadMaximaGLP || 0) - (c.capacidadActualGLP || 0)
+    }))
+  });
+  
   const porcentajeGLPEnUso = capacidadTotal > 0 ? glpEnUso / capacidadTotal : 0;
   const getColorPorcentaje = (porcentaje: number) => {
     if (porcentaje >= 0.7) return '#22c55e'; // verde
