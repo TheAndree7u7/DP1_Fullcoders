@@ -53,7 +53,15 @@ public class GenDto {
     // ! calcula la cantidad de nodos que puede recorrer como maximo el camion segun
     // su velocidad
     public int calcularCantidadDeNodosQuePuedeRecorrerElCamion() {
-        return (int) (Parametros.velocidadCamion);
+        double velocidad_en_km_h = Parametros.velocidadCamion;
+
+        double cantidad_de_horas_intervalo = Parametros.intervaloTiempo / 60.0;
+
+        double cantidad_de_km_que_puede_recorrer_el_camion = velocidad_en_km_h * cantidad_de_horas_intervalo;
+        // System.out
+        // .println("Cantidad de km que puede recorrer el camion: " +
+        // cantidad_de_km_que_puede_recorrer_el_camion);
+        return (int) (cantidad_de_km_que_puede_recorrer_el_camion);
     }
 
     // !Calcula el indice iniial y final de los nodos que estan en el rango de
@@ -92,6 +100,7 @@ public class GenDto {
         // que estan en el rango de averias automaticas
         for (int i = posicion_aleatoria; i < cantidad_nodos_que_puede_recorrer_el_camion; i++) {
             nodos.get(i).setTipo(TipoNodo.AVERIA_AUTOMATICA);
+            nodos.get(i).setCoordenada(nodos.get(posicion_aleatoria).getCoordenada());
         }
     }
 }
