@@ -65,7 +65,7 @@ export const calcularIntervaloTiempoReal = (
   const intervaloMs = Math.round(segundosPorNodo * 1000 * factorAjuste);
   
   // Limitar el intervalo entre 100ms y 10000ms (0.1s a 10s)
-  return Math.max(100, Math.min(10000, intervaloMs));
+  return Math.max(100, intervaloMs);
 };
 
 /**

@@ -79,8 +79,10 @@ public class Simulacion {
         // Parametros.fecha_inicial.minusMinutes(Parametros.intervaloTiempo).minusMinutes(10);
         LocalDateTime fecha_inferior = Parametros.fecha_inicio_simulacion;
         LocalDateTime fecha_superior = Parametros.fecha_inicial.plusMinutes(Parametros.intervaloTiempo).plusMinutes(10);
+
         List<Pedido> pedidosEnRango = Parametros.dataLoader.pedidos.stream()
-                .filter(pedido -> pedido.getFechaRegistro().isAfter(fecha_inferior)
+                .filter(pedido -> (pedido.getFechaRegistro().isAfter(fecha_inferior)
+                        || pedido.getFechaRegistro().isEqual(fecha_inferior))
                         && pedido.getFechaRegistro().isBefore(fecha_superior)
                         && !pedidosEntregados.contains(pedido))
                 .collect(Collectors.toList());
