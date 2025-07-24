@@ -30,6 +30,8 @@ const esCoordenadaValida = (coord: Coordenada | undefined | null): coord is Coor
          !isNaN(coord.y);
 };
 import { formatearCapacidadGLP, formatearCombustible, calcularGLPEntregaPorCamion } from '../utils/validacionCamiones';
+import { obtenerIntervaloPorDefecto, calcularIntervaloTiempoReal } from '../context/simulacion/types';
+import ControlVelocidad from './ControlVelocidad';
 
 interface CamionVisual {
   id: string;
@@ -61,7 +63,9 @@ interface MapaProps {
 const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, iniciarAutomaticamente = false }) => {
   const [camionesVisuales, setCamionesVisuales] = useState<CamionVisual[]>([]);
   const [running, setRunning] = useState(false);
-  const [intervalo, setIntervalo] = useState(300);
+  const [intervalo, setIntervalo] = useState(obtenerIntervaloPorDefecto());
+  const [segundosPorNodo, setSegundosPorNodo] = useState(62.9);
+  const [mostrarControlVelocidad, setMostrarControlVelocidad] = useState(false);
   const intervalRef = useRef<number | null>(null);
   const { 
     camiones, 
@@ -102,6 +106,13 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
 
   const pedidosPendientes = getPedidosPendientes(rutasCamiones, camiones, pedidosNoAsignados);
   
+  // Efecto para recalcular el intervalo cuando cambie la configuración
+  useEffect(() => {
+    const nuevoIntervalo = calcularIntervaloTiempoReal(segundosPorNodo);
+    setIntervalo(nuevoIntervalo);
+    console.log(`⏱️ MAPA: Intervalo recalculado: ${nuevoIntervalo}ms (${segundosPorNodo}s por nodo)`);
+  }, [segundosPorNodo]);
+
   // Efecto para iniciar automáticamente la simulación si se especifica
   useEffect(() => {
     if (iniciarAutomaticamente && !running && !cargando && camiones.length > 0) {
@@ -1203,19 +1214,42 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
               : 'Iniciar'
           }
         </button>
+        <button
+          onClick={() => setMostrarControlVelocidad(!mostrarControlVelocidad)}
+          className="px-4 py-1 rounded text-white bg-green-500 hover:bg-green-600"
+        >
+          {mostrarControlVelocidad ? '⚡ Ocultar Control' : '⚡ Control Velocidad'}
+        </button>
         <label className="flex items-center gap-1 text-sm">
-          Velocidad:
+          Segundos por nodo:
           <input
             type="number"
-            min={100}
-            step={100}
-            value={intervalo}
-            onChange={e => setIntervalo(parseInt(e.target.value))}
+            min={0.1}
+            max={100}
+            step={0.1}
+            value={segundosPorNodo}
+            onChange={e => setSegundosPorNodo(parseFloat(e.target.value))}
             className="border rounded px-2 py-0.5 w-20"
           />
-          ms
+          s
+        </label>
+        <label className="flex items-center gap-1 text-sm text-gray-600">
+          Intervalo: {intervalo}ms
         </label>
       </div>
+
+      {/* Panel de control de velocidad */}
+      {mostrarControlVelocidad && (
+        <div className="mt-4">
+          <ControlVelocidad
+            camiones={camiones}
+            segundosPorNodo={segundosPorNodo}
+            onSegundosPorNodoChange={setSegundosPorNodo}
+            onIntervaloChange={setIntervalo}
+            intervaloActual={intervalo}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -33,4 +33,13 @@ export {
   determinarUbicacionCamion,
   determinarUbicacionFinalCamion,
   camionConsumioTodosLosNodos
-} from './ubicacionCamion'; 
+} from './ubicacionCamion';
+
+// Exportar utilidades de velocidad
+export {
+  calcularVelocidadPromedioCamiones,
+  calcularIntervaloDinamico,
+  obtenerVelocidadCamionEspecifico,
+  formatearVelocidad,
+  obtenerRangoVelocidad
+} from './velocidad'; 

@@ -19,6 +19,43 @@ export const INCREMENTO_PORCENTAJE = 1;
 export const SEGUNDOS_POR_NODO = (HORAS_POR_ACTUALIZACION * 60 * 60) / NODOS_PARA_ACTUALIZACION; // 36 segundos
 
 /**
+ * @function calcularIntervaloTiempoReal
+ * @description Calcula el intervalo en milisegundos para que cada nodo dure el tiempo especificado en tiempo real
+ * @param {number} segundosPorNodo - Segundos que debe durar cada nodo en tiempo real (por defecto 62.9)
+ * @param {number} velocidadCamion - Velocidad promedio del camión en km/h (opcional, para ajuste dinámico)
+ * @returns {number} Intervalo en milisegundos
+ */
+export const calcularIntervaloTiempoReal = (
+  segundosPorNodo: number = 62.9,
+  velocidadCamion?: number
+): number => {
+  // Factor de ajuste basado en la velocidad del camión (si se proporciona)
+  let factorAjuste = 1;
+  
+  if (velocidadCamion && velocidadCamion > 0) {
+    // Velocidad de referencia: 60 km/h
+    const velocidadReferencia = 70;
+    // Ajustar el tiempo basado en la velocidad (camiones más rápidos = menos tiempo por nodo)
+    factorAjuste = velocidadReferencia / velocidadCamion;
+  }
+  
+  // Calcular el intervalo en milisegundos
+  const intervaloMs = Math.round(segundosPorNodo * 1000 * factorAjuste);
+  
+  // Limitar el intervalo entre 100ms y 10000ms (0.1s a 10s)
+  return Math.max(100, Math.min(10000, intervaloMs));
+};
+
+/**
+ * @function obtenerIntervaloPorDefecto
+ * @description Obtiene el intervalo por defecto para la simulación en tiempo real
+ * @returns {number} Intervalo en milisegundos (62.9 segundos por nodo)
+ */
+export const obtenerIntervaloPorDefecto = (): number => {
+  return calcularIntervaloTiempoReal(62.9);
+};
+
+/**
  * @interface CamionEstado
  * @description Representa el estado actual de un camión en la simulación
  */
