@@ -166,6 +166,7 @@ export interface SimulacionContextType {
   horaSimulacionAcumulada: string;
   fechaHoraAcumulada: string;
   paqueteActualConsumido: number;
+  tipoSimulacion: string;
   avanzarHora: () => void;
   reiniciar: () => Promise<void>;
   iniciarContadorTiempo: () => void;
@@ -176,6 +177,7 @@ export interface SimulacionContextType {
   reanudarSimulacion: () => void;
   setSimulacionActiva: (value: boolean) => void;
   setPollingActivo: (value: boolean) => void;
+  setTipoSimulacion: (tipo: string) => void;
   cargando: boolean;
   bloqueos: Bloqueo[];
   marcarCamionAveriado: (camionId: string) => void;

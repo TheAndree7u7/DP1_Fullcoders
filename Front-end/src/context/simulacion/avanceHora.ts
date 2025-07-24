@@ -115,7 +115,8 @@ export const avanzarHora = async (
     rutasCamiones: RutaCamion[];
     almacenes: Almacen[];
     bloqueos: Bloqueo[]; 
-  }
+  },
+  averiasAutomaticasActivas: boolean = false
 ): Promise<void> => {
   // console.log('🚀 AVANCE_HORA: Iniciando avance de hora...', {
   //   totalCamiones: camiones.length,
@@ -140,7 +141,7 @@ export const avanzarHora = async (
 
   // Avanzar todos los camiones
   // console.log('🚛 AVANCE_HORA: Avanzando camiones con estado de simulación...');
-  const nuevosCamiones = avanzarTodosLosCamiones(camiones, rutasCamiones, almacenesActualizados, setAlmacenes, estadoSimulacion);
+  const nuevosCamiones = avanzarTodosLosCamiones(camiones, rutasCamiones, almacenesActualizados, setAlmacenes, estadoSimulacion, averiasAutomaticasActivas);
   
   // Log para verificar si hubo cambios en los camiones
   const camionesAveriadosAntes = camiones.filter(c => c.estado === 'Averiado').length;

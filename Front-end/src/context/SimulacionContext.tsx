@@ -74,6 +74,9 @@ import {
 // Importar utilidades de validación
 import { esValorValido } from "../utils/validacionCamiones";
 
+// Importar constantes de configuración
+import { obtenerAveriasAutomaticasActivas } from "../config/constants";
+
 // ============================
 // FUNCIONES AUXILIARES
 // ============================
@@ -193,6 +196,9 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   const [horaSimulacionAcumulada, setHoraSimulacionAcumulada] = useState<string>("00:00:00");
   const [fechaHoraAcumulada, setFechaHoraAcumulada] = useState<string>("");
   const [paqueteActualConsumido, setPaqueteActualConsumido] = useState<number>(0);
+  
+  // Estado del tipo de simulación
+  const [tipoSimulacion, setTipoSimulacion] = useState<string>("SEMANAL");
 
   // ============================
   // EFECTOS DE CONTROL DE TIEMPO
@@ -910,7 +916,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       cargarDatosSimulacion,
       setAlmacenes,
       fechaHoraSimulacion,
-      estadoSimulacion
+      estadoSimulacion,
+      obtenerAveriasAutomaticasActivas(tipoSimulacion)
     );
     
     // console.log('✅ CONTEXTO: Avance de hora completado');
@@ -1179,6 +1186,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     
     // Estados de control
     simulacionActiva,
+    tipoSimulacion,
     
     // Funciones de control de simulación
     avanzarHora,
@@ -1207,6 +1215,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     // Setters
     setSimulacionActiva,
     setPollingActivo,
+    setTipoSimulacion,
     setFechaInicioSimulacion,
   };
 
