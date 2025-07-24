@@ -57,6 +57,14 @@ public class Camion extends Nodo {
         super(coordenada, bloqueado, gScore, fScore, tipoNodo);
     }
 
+    private static boolean isPosInf(double v) {
+        return Double.isInfinite(v) && v > 0;
+    }
+
+    private static boolean isNegInf(double v) {
+        return Double.isInfinite(v) && v < 0;
+    }
+
     @Override
     public String toString() {
         return String.format(
@@ -79,10 +87,8 @@ public class Camion extends Nodo {
     }
 
     public double calcularDistanciaMaxima() {
-        // Prevenir división por cero y valores negativos
         double pesoTotal = tara + pesoCarga;
 
-        // Validaciones de seguridad
         if (combustibleActual <= 0) {
             this.distanciaMaxima = 0.0;
             return this.distanciaMaxima;
@@ -91,18 +97,39 @@ public class Camion extends Nodo {
         if (pesoTotal <= 0) {
             System.err.println("⚠️ ADVERTENCIA: Peso total del camión " + codigo + " es <= 0. Tara: " + tara
                     + ", Carga: " + pesoCarga);
-            this.distanciaMaxima = 50.0; // Valor mínimo de seguridad
-            return this.distanciaMaxima;
+            pesoTotal = 0.1; // valor mínimo para evitar división por cero
         }
 
-        this.distanciaMaxima = (combustibleActual * 250) / (tara + pesoCarga);
+        this.distanciaMaxima = (combustibleActual * 250) / pesoTotal;
+
+        // Manejo de Infinity y NaN
+        if (Double.isInfinite(this.distanciaMaxima) && this.distanciaMaxima > 0) {
+            this.distanciaMaxima = combustibleMaximo * 250 / pesoTotal; // distancia máxima posible
+        } else if (Double.isNaN(this.distanciaMaxima) || this.distanciaMaxima < 0) {
+            this.distanciaMaxima = 0.0;
+        }
+
         return this.distanciaMaxima;
     }
 
     public void actualizarCombustible(double distancia) {
+        if (distancia <= 0 || this.distanciaMaxima <= 0) {
+            return; // nada que hacer
+        }
 
         double combustibleUsado = this.combustibleActual * distancia / this.distanciaMaxima;
+
+        // Manejo de Infinity y NaN
+        if (Double.isInfinite(combustibleUsado) && combustibleUsado > 0) {
+            combustibleUsado = this.combustibleActual; // usar todo el tanque
+        } else if (Double.isNaN(combustibleUsado) || combustibleUsado < 0) {
+            combustibleUsado = 0;
+        }
+
         this.combustibleActual -= combustibleUsado;
+        if (this.combustibleActual < 0) {
+            this.combustibleActual = 0;
+        }
     }
 
     public void entregarVolumenGLP(double volumenGLP) {
@@ -139,8 +166,8 @@ public class Camion extends Nodo {
         gen.setPosNodo(antiguo + cantNodos);
         int distanciaRecorrida = gen.getPosNodo() - antiguo;
         actualizarCombustible(distanciaRecorrida);
-        
-        if(Parametros.dataLoader.camionesAveriados.stream()
+
+        if (Parametros.dataLoader.camionesAveriados.stream()
                 .anyMatch(c -> c.getCodigo().equals(this.codigo))) {
             this.setEstado(EstadoCamion.INMOVILIZADO_POR_AVERIA);
         }
@@ -154,16 +181,12 @@ public class Camion extends Nodo {
 
         int intermedio = Math.min(gen.getPosNodo(), gen.getRutaFinal().size() - 1);
 
-
         // Actualiza la posición del camión en el mapa solo si está disponible
         if (intermedio < gen.getRutaFinal().size()) {
             Coordenada nuevaCoordenada = gen.getRutaFinal().get(intermedio).getCoordenada();
             setCoordenada(nuevaCoordenada);
-    
+
         }
-
-        
-
 
         // RECORRER RUTA HASTA PUNTO INTERMEDIO
         for (int i = 0; i <= intermedio; i++) {
@@ -171,11 +194,11 @@ public class Camion extends Nodo {
             if (nodo.getTipoNodo() == TipoNodo.PEDIDO) {
                 Pedido pedido = (Pedido) nodo;
                 entregarPedido(pedido, pedidosPlanificados, pedidosEntregados);
-            }else if(nodo instanceof Almacen && gen.getAlmacenesIntermedios().contains(nodo)) {
+            } else if (nodo instanceof Almacen && gen.getAlmacenesIntermedios().contains(nodo)) {
                 Almacen almacen = (Almacen) nodo;
                 almacen.recargarGlPCamion(this);
                 almacen.recargarCombustible(this);
-            }else {
+            } else {
                 if (nodo instanceof Camion && gen.getCamionesAveriados().contains(nodo)) {
                     Camion camionRecarga = (Camion) nodo;
                     camionRecarga.recargarGlPSiAveriado(this);
@@ -234,7 +257,8 @@ public class Camion extends Nodo {
         }
 
         // Si ya se entregó todo el GLP, marcar como entregado y actualizar sets
-        if (Math.abs(pedido.getVolumenGLPEntregado() - pedido.getVolumenGLPAsignado()) < Parametros.diferenciaParaPedidoEntregado) {
+        if (Math.abs(pedido.getVolumenGLPEntregado()
+                - pedido.getVolumenGLPAsignado()) < Parametros.diferenciaParaPedidoEntregado) {
             pedido.setEstado(EstadoPedido.ENTREGADO);
             pedidosEntregados.add(pedido);
             pedidosPlanificados.remove(pedido);
@@ -243,13 +267,13 @@ public class Camion extends Nodo {
 
     public int calcularCantidadDeNodos() {
         double diferenciaTiempo = Parametros.intervaloTiempo;
-        if (Parametros.diferenciaTiempoMinRequest != 0){
+        if (Parametros.diferenciaTiempoMinRequest != 0) {
             diferenciaTiempo = Parametros.diferenciaTiempoMinRequest;
         }
         int cantNodos = (int) (diferenciaTiempo * velocidadPromedio / 60);
         List<Nodo> rutaApi = gen.construirRutaFinalApi();
-        Nodo nodo_final = rutaApi.get(Math.max(cantNodos-1, 0));
-        for(int i = 0; i < gen.getRutaFinal().size(); i++) {
+        Nodo nodo_final = rutaApi.get(Math.max(cantNodos - 1, 0));
+        for (int i = 0; i < gen.getRutaFinal().size(); i++) {
             if (gen.getRutaFinal().get(i).equals(nodo_final)) {
                 cantNodos = i;
                 break;
@@ -269,7 +293,6 @@ public class Camion extends Nodo {
         this.setCapacidadActualGLP(this.getCapacidadActualGLP() - glpRecargar);
         return true;
     }
-
 
     @JsonIgnore
     public Camion getClone() {
