@@ -59,4 +59,11 @@ public class PedidoRepository {
         }
         throw new RuntimeException("Pedido no encontrado: " + pedido.getCodigo());
     }
+
+    /**
+     * Elimina todos los pedidos almacenados.
+     */
+    public void deleteAll() {
+        Parametros.dataLoader.pedidos.clear();
+    }
 }

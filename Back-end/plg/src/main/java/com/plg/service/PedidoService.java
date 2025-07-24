@@ -70,13 +70,14 @@ public class PedidoService {
     public List<Pedido> agregar(PedidoRequest request) {
         try {
             Coordenada coordenada = new Coordenada(request.getY(), request.getX());
-            
+
             // Verificar si el pedido necesita ser dividido
             if (necesitaDivision(request.getVolumenGLP())) {
                 return dividirPedido(coordenada, request.getVolumenGLP(), request.getHorasLimite());
             } else {
                 // Crear pedido normal
-                Pedido pedido = PedidoFactory.crearPedido(coordenada, request.getVolumenGLP(), request.getHorasLimite(), request.getFechaRegistro());
+                Pedido pedido = PedidoFactory.crearPedido(coordenada, request.getVolumenGLP(), request.getHorasLimite(),
+                        request.getFechaRegistro());
                 return List.of(pedidoRepository.save(pedido));
             }
         } catch (Exception e) {
@@ -85,7 +86,8 @@ public class PedidoService {
     }
 
     /**
-     * Verifica si un pedido necesita ser dividido en función de las capacidades de los camiones.
+     * Verifica si un pedido necesita ser dividido en función de las capacidades de
+     * los camiones.
      */
     private boolean necesitaDivision(double volumenGLP) {
         if (volumenGLP <= 0) {
@@ -102,11 +104,11 @@ public class PedidoService {
         List<Camion> camionesDisponibles = Parametros.dataLoader.camiones.stream()
                 .filter(camion -> camion.getEstado() != EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
                 .collect(Collectors.toList());
-        
+
         if (camionesDisponibles.isEmpty()) {
             camionesDisponibles = Parametros.dataLoader.camiones;
         }
-        
+
         return camionesDisponibles.stream()
                 .mapToDouble(Camion::getCapacidadMaximaGLP)
                 .max()
@@ -118,36 +120,36 @@ public class PedidoService {
      */
     private List<Pedido> dividirPedido(Coordenada coordenada, double volumenTotal, double horasLimite) {
         List<Pedido> pedidosDivididos = new ArrayList<>();
-        
+
         // Validar entrada
         if (volumenTotal <= 0) {
             throw new InvalidInputException("El volumen total debe ser mayor a cero");
         }
-        
+
         // Obtener capacidades de todos los camiones disponibles
         List<Double> capacidadesCamiones = obtenerCapacidadesCamiones();
-        
+
         if (capacidadesCamiones.isEmpty()) {
             throw new InvalidInputException("No hay camiones disponibles para dividir el pedido");
         }
-        
+
         // Calcular la división óptima
         List<Double> volumenePorPedido = calcularDivisionOptima(volumenTotal, capacidadesCamiones);
-        
+
         // Validar que la división sea exitosa
         double totalDividido = volumenePorPedido.stream().mapToDouble(Double::doubleValue).sum();
         if (Math.abs(totalDividido - volumenTotal) > 0.001) {
             throw new InvalidInputException("Error en la división del pedido: volumen total no coincide");
         }
-        
+
         // Crear pedidos divididos
         for (int i = 0; i < volumenePorPedido.size(); i++) {
             double volumenPedido = volumenePorPedido.get(i);
-            
+
             // Generar código único para cada pedido dividido
             String codigoBase = "PEDIDO-" + coordenada.getFila() + "-" + coordenada.getColumna();
             String codigoCompleto = codigoBase + "-DIV" + (i + 1);
-            
+
             Pedido pedido = Pedido.builder()
                     .coordenada(coordenada)
                     .bloqueado(false)
@@ -159,11 +161,12 @@ public class PedidoService {
                     .volumenGLPAsignado(volumenPedido)
                     .estado(com.plg.entity.EstadoPedido.REGISTRADO)
                     .build();
-            
+
             pedidosDivididos.add(pedidoRepository.save(pedido));
         }
-        
-        System.out.println("Pedido dividido exitosamente: " + volumenTotal + " m³ en " + pedidosDivididos.size() + " pedidos");
+
+        System.out.println(
+                "Pedido dividido exitosamente: " + volumenTotal + " m³ en " + pedidosDivididos.size() + " pedidos");
         return pedidosDivididos;
     }
 
@@ -174,11 +177,11 @@ public class PedidoService {
         List<Camion> camionesDisponibles = Parametros.dataLoader.camiones.stream()
                 .filter(camion -> camion.getEstado() != EstadoCamion.EN_MANTENIMIENTO_PREVENTIVO)
                 .collect(Collectors.toList());
-        
+
         if (camionesDisponibles.isEmpty()) {
             camionesDisponibles = Parametros.dataLoader.camiones;
         }
-        
+
         return camionesDisponibles.stream()
                 .map(Camion::getCapacidadMaximaGLP)
                 .sorted((a, b) -> Double.compare(b, a)) // Ordenar de mayor a menor
@@ -192,19 +195,19 @@ public class PedidoService {
     private List<Double> calcularDivisionOptima(double volumenTotal, List<Double> capacidadesCamiones) {
         List<Double> volumenPorPedido = new ArrayList<>();
         double volumenRestante = volumenTotal;
-        
+
         // Usar algoritmo greedy: asignar primero a los camiones más grandes
         int indiceCamion = 0;
-        
+
         while (volumenRestante > 0 && indiceCamion < capacidadesCamiones.size()) {
             double capacidadCamion = capacidadesCamiones.get(indiceCamion);
             double volumenAsignado = Math.min(volumenRestante, capacidadCamion);
-            
+
             volumenPorPedido.add(volumenAsignado);
             volumenRestante -= volumenAsignado;
             indiceCamion++;
         }
-        
+
         // Si aún queda volumen después de asignar a todos los camiones,
         // comenzar un nuevo ciclo con los camiones más grandes
         while (volumenRestante > 0) {
@@ -212,13 +215,13 @@ public class PedidoService {
             while (volumenRestante > 0 && indiceCamion < capacidadesCamiones.size()) {
                 double capacidadCamion = capacidadesCamiones.get(indiceCamion);
                 double volumenAsignado = Math.min(volumenRestante, capacidadCamion);
-                
+
                 volumenPorPedido.add(volumenAsignado);
                 volumenRestante -= volumenAsignado;
                 indiceCamion++;
             }
         }
-        
+
         return volumenPorPedido;
     }
 
@@ -235,5 +238,16 @@ public class PedidoService {
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado: " + request.getCodigo()));
         pedido.setEstado(request.getEstado());
         return pedido;
+    }
+
+    /**
+     * Elimina todos los pedidos almacenados.
+     *
+     * @return Mensaje de confirmación con la cantidad de pedidos eliminados
+     */
+    public String limpiarTodos() {
+        int cantidadPedidos = pedidoRepository.findAll().size();
+        pedidoRepository.deleteAll();
+        return "Se eliminaron " + cantidadPedidos + " pedidos exitosamente";
     }
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Play, RotateCcw, Clock, Calendar, Info } from 'lucide-react';
 import { iniciarSimulacion, obtenerInfoSimulacion } from '../services/simulacionApiService';
+import { limpiarPedidos } from '../services/pedidoApiService';
 import { useSimulacion } from '../context/SimulacionContext';
 import { reanudarSimulacion as reanudarSimulacionUtil } from '../context/simulacion/utils/controles';
 
@@ -85,13 +86,23 @@ const ControlSimulacion: React.FC = () => {
     setTipoMensaje('info');
 
     try {
-      console.log("===================🚀 FRONTEND: Iniciando SIMULAION==============");
+      console.log("===================🚀 FRONTEND: Iniciando SIMULACIÓN==============");
       const fechaHoraISO = `${fechaInicio}T${horaInicio}:00`;
       
       // 1. Guarda la fecha de inicio en el contexto global
       setFechaInicioSimulacion(fechaHoraISO);
 
-      // 2. Inicia la simulación en el backend
+      // 2. Limpiar todos los pedidos antes de iniciar la simulación
+      setMensaje('Limpiando pedidos anteriores...');
+      try {
+        await limpiarPedidos();
+        console.log("🧹 FRONTEND: Pedidos limpiados exitosamente antes de iniciar simulación");
+      } catch (error) {
+        console.warn("⚠️ FRONTEND: No se pudieron limpiar los pedidos, continuando con la simulación:", error);
+        // No bloqueamos la simulación si falla la limpieza de pedidos
+      }
+
+      // 3. Inicia la simulación en el backend
       setMensaje('Configurando simulación en el backend...');
       await iniciarSimulacion(fechaHoraISO);
       
