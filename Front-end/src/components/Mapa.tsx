@@ -6,7 +6,9 @@ import { CAMION_COLORS, ESTADO_COLORS } from '../config/colors';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { 
   parseCoord, 
-  calcularRotacion, 
+  calcularPosicionInterpoladaMejorada,
+  calcularRotacionConLookAhead,
+  calcularAnguloInicial,
   getPedidosPendientes,
   handleAveriar,
   colorSemaforoGLP // <-- importar la función
@@ -69,6 +71,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
   const [segundosPorNodo, setSegundosPorNodo] = useState(62.9);
   const [mostrarControlVelocidad, setMostrarControlVelocidad] = useState(false);
   const [tipoSimulacion, setTipoSimulacion] = useState<string>('DIARIA'); // Estado para el tipo de simulación
+  const [angulosCamiones, setAngulosCamiones] = useState<Record<string, number>>({}); // Estado para los ángulos de los camiones
   const intervalRef = useRef<number | null>(null);
   const { 
     camiones, 
@@ -254,42 +257,40 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
         }
       }
       
-      // Determinar posición actual y dirección
+      // NUEVA LÓGICA: Calcular posición interpolada y rotación mejorada
       let currentPos = rutaCoords[0]; // Posición por defecto
+      let rotacion = 0;
       
-      if (estadoCamion && estadoCamion.ubicacion && typeof estadoCamion.ubicacion === 'string') {
-        currentPos = parseCoord(estadoCamion.ubicacion);
+      if (estadoCamion && rutaCoords.length > 0) {
+        const porcentaje = estadoCamion.porcentaje;
+        
+        // Calcular posición interpolada mejorada con suavizado
+        currentPos = calcularPosicionInterpoladaMejorada(rutaCoords, porcentaje);
+        
+        // Calcular rotación con look-ahead para evitar el "baile" en las esquinas
+        if (rutaCoords.length > 1) {
+          const anguloActual = angulosCamiones[info.id] || 0;
+          
+          // Si es la primera vez que se calcula el ángulo para este camión, usar el ángulo inicial
+          if (anguloActual === 0 && porcentaje < 0.1) {
+            const anguloInicial = calcularAnguloInicial(rutaCoords);
+            rotacion = anguloInicial;
+          } else {
+            rotacion = calcularRotacionConLookAhead(rutaCoords, porcentaje, anguloActual);
+          }
+          
+          // Actualizar el ángulo actual del camión
+          setAngulosCamiones(prev => ({
+            ...prev,
+            [info.id]: rotacion
+          }));
+        }
       }
       
       // Asegurar que currentPos sea siempre una coordenada válida
       if (!esCoordenadaValida(currentPos)) {
         console.warn('🚨 MAPA: Coordenada actual inválida para camión:', info.id, currentPos);
         currentPos = { x: 0, y: 0 }; // Coordenada por defecto
-      }
-      
-      let rotacion = 0;
-      
-      if (estadoCamion && rutaCoords.length > 1) {
-        const porcentaje = estadoCamion.porcentaje;
-        // Usar Math.floor para sincronizar con la línea restante
-        const currentIdx = Math.floor(porcentaje);
-        
-        // Validar que currentPos sea válido antes de usarlo
-        if (esCoordenadaValida(currentPos)) {
-          // Si hay un siguiente nodo en la ruta, calcular dirección hacia él
-          if (currentIdx + 1 < rutaCoords.length) {
-            const nextPos = rutaCoords[currentIdx + 1];
-            if (esCoordenadaValida(nextPos)) {
-              rotacion = calcularRotacion(currentPos, nextPos);
-            }
-          } else if (currentIdx > 0) {
-            // Si estamos en el último nodo, usar la dirección del último movimiento
-            const prevPos = rutaCoords[currentIdx - 1];
-            if (esCoordenadaValida(prevPos)) {
-              rotacion = calcularRotacion(prevPos, currentPos);
-            }
-          }
-        }
       }
       
       // Compute remaining path
@@ -911,7 +912,11 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
                    <g key={`camion-${camion.id}`}>
                      <g
                        transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
-                       style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}
+                       style={{ 
+                         transition: 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)', 
+                         cursor: 'pointer',
+                         willChange: 'transform'
+                       }}
 
                        onClick={() => {
                          // Solo abrir el modal si no hay otro modal ya abierto

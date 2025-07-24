@@ -7,7 +7,22 @@
 export { parseCoord } from "./coordenadas";
 
 // Utilidades de camiones
-export { calcularRotacion, esCoordenadaValida } from "./camiones";
+export { 
+  calcularRotacion, 
+  esCoordenadaValida,
+  calcularPosicionInterpolada,
+  calcularPosicionInterpoladaMejorada,
+  calcularRotacionSuavizada,
+  calcularRotacionConsistente,
+  calcularRotacionOptimizada,
+  calcularRotacionConLookAhead,
+  calcularAnguloInicial,
+  direction,
+  shortestDelta,
+  buildSteps,
+  interpolarPosicion,
+  calcularRotacionMejorada
+} from "./camiones";
 
 // Utilidades de pedidos
 export { getPedidosPendientes } from "./pedidos";
