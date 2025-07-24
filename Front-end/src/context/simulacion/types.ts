@@ -30,7 +30,7 @@ export const obtenerSegundosPorNodoSegunTipo = (tipoSimulacion: string): number 
       // Simulación en tiempo real: 62.9 segundos por nodo (configurable)
       return 62.9;
     case 'SEMANAL':
-      return 0.20;
+      return 0.16;
     case 'COLAPSO':
       // Simulación semanal/colapso: 36 segundos por nodo (fijo)
       return SEGUNDOS_POR_NODO;
@@ -65,7 +65,7 @@ export const calcularIntervaloTiempoReal = (
   const intervaloMs = Math.round(segundosPorNodo * 1000 * factorAjuste);
   
   // Limitar el intervalo entre 100ms y 10000ms (0.1s a 10s)
-  return Math.max(100, intervaloMs);
+  return Math.max(10, intervaloMs);
 };
 
 /**
