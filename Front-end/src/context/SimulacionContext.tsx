@@ -1039,6 +1039,16 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
    * @description Limpia el estado para una nueva simulación y carga los primeros datos
    */
   const limpiarEstadoParaNuevaSimulacion = async () => {
+    // Limpiar pedidos en el backend antes de limpiar el estado local
+    // try {
+    //   console.log("🧹 CONTEXT: Limpiando pedidos antes de nueva simulación...");
+    //   await limpiarPedidos();
+    //   console.log("✅ CONTEXT: Pedidos limpiados exitosamente");
+    // } catch (error) {
+    //   console.warn("⚠️ CONTEXT: No se pudieron limpiar los pedidos, continuando con la limpieza local:", error);
+    //   // No bloqueamos la simulación si falla la limpieza de pedidos
+    // }
+
     limpiarEstadoParaNuevaSimulacionUtil(
       setCamiones,
       setRutasCamiones,

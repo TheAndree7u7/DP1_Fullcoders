@@ -1,6 +1,7 @@
 import type { Individuo } from "../types";
 import { API_URLS } from "../config/api";
 import { formatearFechaParaBackend } from "../context/simulacion/utils/tiempo";
+//import { limpiarPedidos } from "./pedidoApiService";
 
 // Tipos para el manejo de tipo de simulación
 export type TipoSimulacion = 'DIARIA' | 'SEMANAL' | 'COLAPSO';
@@ -297,6 +298,8 @@ export async function cambiarTipoSimulacion(tipoSimulacion: TipoSimulacion): Pro
 
     const data = await response.json();
     console.log("✅ TIPO SIMULACIÓN: Tipo de simulación cambiado exitosamente:", data);
+
+ 
     return data as TipoSimulacionResponse;
   } catch (error) {
     console.error("❌ TIPO SIMULACIÓN: Error al cambiar tipo de simulación:", error);

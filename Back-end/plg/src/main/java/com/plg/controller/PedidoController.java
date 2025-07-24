@@ -3,6 +3,7 @@ package com.plg.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -92,6 +93,20 @@ public class PedidoController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Error al actualizar estado del pedido: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Elimina todos los pedidos almacenados.
+     */
+    @DeleteMapping("/limpiar")
+    public ResponseEntity<?> limpiarTodos() {
+        try {
+            String mensaje = pedidoService.limpiarTodos();
+            return ResponseEntity.ok(mensaje);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al limpiar pedidos: " + e.getMessage());
         }
     }
 }
