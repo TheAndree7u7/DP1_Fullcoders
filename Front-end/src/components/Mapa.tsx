@@ -348,140 +348,151 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
       {/* Contenedor horizontal para leyenda y mapa */}
       <div className="flex flex-row w-full h-full flex-1">
         {/* Leyenda lateral compacta */}
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-2 w-32 flex-shrink-0 h-full">
-          <button
-            onClick={() => setLeyendaVisible(!leyendaVisible)}
-            className="flex items-center justify-between w-full text-left text-xs font-semibold text-gray-800 hover:text-gray-900 mb-2"
-          >
-            <span>LEYENDA</span>
-            {leyendaVisible ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-          </button>
-          {leyendaVisible && (
-            <div className="space-y-1.5 overflow-y-auto max-h-[80vh]">
-              {/* Almacén Central */}
-              <div className="flex items-center gap-1.5">
-                <svg width="16" height="12" viewBox="0 0 20 20">
-                  <polygon points="2,18 18,18 22,2 2,2" fill="#2563eb" stroke="black" strokeWidth="0.5" />
-                  <text x="12" y="12" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">C</text>
-                </svg>
-                <span className="text-xs text-gray-700">A. Central</span>
-              </div>
-              
-              {/* Almacén Intermedio */}
-              <div className="flex items-center gap-1.5">
-                <svg width="16" height="12" viewBox="0 0 20 20">
-                  <polygon points="2,18 18,18 22,2 2,2" fill="#16a34a" stroke="black" strokeWidth="0.5" />
-                  <text x="12" y="12" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">I</text>
-                </svg>
-                <span className="text-xs text-gray-700">A. Intermedio</span>
-              </div>
-              
-              {/* Cliente */}
-              <div className="flex items-center gap-1.5">
-                <img src={clienteIcon} alt="Cliente" className="w-4 h-4" />
-                <span className="text-xs text-gray-700">Cliente</span>
-              </div>
-                          
-              {/* Cliente No Asignado */}
-              <div className="flex items-center gap-1.5">
-                <img src={clienteIcon} alt="Cliente No Asignado" className="w-4 h-4" style={{ filter: 'grayscale(100%) brightness(0.7)' }} />
-                <span className="text-xs text-gray-700">Cliente N/A</span>
-              </div>
-              
-              {/* Estados de pedidos */}
-              <div className="pt-1 border-t border-gray-200">
-                <div className="text-xs font-medium text-gray-600 mb-1">Estados Pedidos:</div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
-                    <span className="text-xs text-gray-700">Pendiente</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-sm"></div>
-                    <span className="text-xs text-gray-700">En Tránsito</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-gray-500 rounded-sm"></div>
-                    <span className="text-xs text-gray-700">No Asignado</span>
-                  </div>
-                </div>
-              </div>
-              {/* Camión */}
-              <div className="flex items-center gap-1.5">
-                <svg width="16" height="12" viewBox="0 0 16 12" className="border border-gray-300 rounded">
-                  <rect x="2" y="4" width="10" height="4" rx="0.5" fill="#3b82f6" stroke="black" strokeWidth="0.3" />
-                  <rect x="10" y="5" width="3" height="2" rx="0.3" fill="#3b82f6" stroke="black" strokeWidth="0.3" />
-                  <circle cx="4" cy="9" r="1" fill="black" />
-                  <circle cx="8" cy="9" r="1" fill="black" />
-                  <circle cx="11" cy="9" r="1" fill="black" />
-                  <polygon points="13,6 12,5.5 12,6.5" fill="white" stroke="black" strokeWidth="0.2" />
-                </svg>
-                <span className="text-xs text-gray-700">Camión</span>
-              </div>
-              
-              {/* Ruta */}
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-0.5 border-t border-dashed border-blue-500"></div>
-                <span className="text-xs text-gray-700">Ruta</span>
-              </div>
-              
-              {/* Bloqueos */}
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-0.5 bg-red-600 rounded-full"></div>
-                <span className="text-xs text-gray-700">Bloqueos</span>
-              </div>
-              
-              {/* Estados de camiones */}
-              <div className="pt-1 border-t border-gray-200">
-                <div className="text-xs font-medium text-gray-600 mb-1">Estados:</div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-blue-500 rounded-sm"></div>
-                    <span className="text-xs text-gray-700">Normal</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
-                    <span className="text-xs text-gray-700">Averiado</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-gray-800 rounded-sm"></div>
-                    <span className="text-xs text-gray-700">Mant.</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-orange-500 rounded-sm"></div>
-                    <span className="text-xs text-gray-700">Mant. Avería</span>
-                  </div>
-                </div>
-              </div>
-              {/* Leyenda de colores de GLP para camión/ruta/almacén */}
-              <div className="pt-1 border-t border-gray-200 mt-2">
-                <div className="text-xs font-medium text-gray-600 mb-1">Nivel GLP camión/ruta/almacén:</div>
-                <div className="flex items-center gap-1 mb-1">
+        <div className={`bg-white rounded-lg shadow-md border border-gray-200 flex-shrink-0 h-full flex flex-col transition-all duration-300 ${leyendaVisible ? 'p-2 w-32' : 'p-0 w-0 overflow-hidden'}`}>
+          {leyendaVisible ? (
+            <>
+              <button
+                onClick={() => setLeyendaVisible(false)}
+                className="flex items-center justify-between w-full text-left text-xs font-semibold text-gray-800 hover:text-gray-900 mb-2"
+              >
+                <span>LEYENDA</span>
+                <ChevronUp size={12} />
+              </button>
+              <div className="space-y-1.5 overflow-y-auto max-h-[80vh]">
+                {/* Almacén Central */}
+                <div className="flex items-center gap-1.5">
                   <svg width="16" height="12" viewBox="0 0 20 20">
-                    <polygon points="2,18 18,18 22,2 2,2" fill="#3b82f6" stroke="black" strokeWidth="0.5" />
+                    <polygon points="2,18 18,18 22,2 2,2" fill="#2563eb" stroke="black" strokeWidth="0.5" />
+                    <text x="12" y="12" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">C</text>
                   </svg>
-                  <span className="text-xs text-gray-700">100% (inicio, lleno)</span>
+                  <span className="text-xs text-gray-700">A. Central</span>
                 </div>
-                <div className="flex items-center gap-1 mb-1">
+                
+                {/* Almacén Intermedio */}
+                <div className="flex items-center gap-1.5">
                   <svg width="16" height="12" viewBox="0 0 20 20">
-                    <polygon points="2,18 18,18 22,2 2,2" fill="#22c55e" stroke="black" strokeWidth="0.5" />
+                    <polygon points="2,18 18,18 22,2 2,2" fill="#16a34a" stroke="black" strokeWidth="0.5" />
+                    <text x="12" y="12" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">I</text>
                   </svg>
-                  <span className="text-xs text-gray-700">&gt; 75% (óptima)</span>
+                  <span className="text-xs text-gray-700">A. Intermedio</span>
                 </div>
-                <div className="flex items-center gap-1 mb-1">
-                  <svg width="16" height="12" viewBox="0 0 20 20">
-                    <polygon points="2,18 18,18 22,2 2,2" fill="#eab308" stroke="black" strokeWidth="0.5" />
-                  </svg>
-                  <span className="text-xs text-gray-700">40% - 75% (media)</span>
+                
+                {/* Cliente */}
+                <div className="flex items-center gap-1.5">
+                  <img src={clienteIcon} alt="Cliente" className="w-4 h-4" />
+                  <span className="text-xs text-gray-700">Cliente</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <svg width="16" height="12" viewBox="0 0 20 20">
-                    <polygon points="2,18 18,18 22,2 2,2" fill="#f97316" stroke="black" strokeWidth="0.5" />
+                            
+                {/* Cliente No Asignado */}
+                <div className="flex items-center gap-1.5">
+                  <img src={clienteIcon} alt="Cliente No Asignado" className="w-4 h-4" style={{ filter: 'grayscale(100%) brightness(0.7)' }} />
+                  <span className="text-xs text-gray-700">Cliente N/A</span>
+                </div>
+                
+                {/* Estados de pedidos */}
+                <div className="pt-1 border-t border-gray-200">
+                  <div className="text-xs font-medium text-gray-600 mb-1">Estados Pedidos:</div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
+                      <span className="text-xs text-gray-700">Pendiente</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-sm"></div>
+                      <span className="text-xs text-gray-700">En Tránsito</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-gray-500 rounded-sm"></div>
+                      <span className="text-xs text-gray-700">No Asignado</span>
+                    </div>
+                  </div>
+                </div>
+                {/* Camión */}
+                <div className="flex items-center gap-1.5">
+                  <svg width="16" height="12" viewBox="0 0 16 12" className="border border-gray-300 rounded">
+                    <rect x="2" y="4" width="10" height="4" rx="0.5" fill="#3b82f6" stroke="black" strokeWidth="0.3" />
+                    <rect x="10" y="5" width="3" height="2" rx="0.3" fill="#3b82f6" stroke="black" strokeWidth="0.3" />
+                    <circle cx="4" cy="9" r="1" fill="black" />
+                    <circle cx="8" cy="9" r="1" fill="black" />
+                    <circle cx="11" cy="9" r="1" fill="black" />
+                    <polygon points="13,6 12,5.5 12,6.5" fill="white" stroke="black" strokeWidth="0.2" />
                   </svg>
-                  <span className="text-xs text-gray-700">&lt; 40% (baja)</span>
+                  <span className="text-xs text-gray-700">Camión</span>
+                </div>
+                
+                {/* Ruta */}
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-0.5 border-t border-dashed border-blue-500"></div>
+                  <span className="text-xs text-gray-700">Ruta</span>
+                </div>
+                
+                {/* Bloqueos */}
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-0.5 bg-red-600 rounded-full"></div>
+                  <span className="text-xs text-gray-700">Bloqueos</span>
+                </div>
+                
+                {/* Estados de camiones */}
+                <div className="pt-1 border-t border-gray-200">
+                  <div className="text-xs font-medium text-gray-600 mb-1">Estados:</div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-blue-500 rounded-sm"></div>
+                      <span className="text-xs text-gray-700">Normal</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
+                      <span className="text-xs text-gray-700">Averiado</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-gray-800 rounded-sm"></div>
+                      <span className="text-xs text-gray-700">Mant.</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-orange-500 rounded-sm"></div>
+                      <span className="text-xs text-gray-700">Mant. Avería</span>
+                    </div>
+                  </div>
+                </div>
+                {/* Leyenda de colores de GLP para camión/ruta/almacén */}
+                <div className="pt-1 border-t border-gray-200 mt-2">
+                  <div className="text-xs font-medium text-gray-600 mb-1">Nivel GLP camión/ruta/almacén:</div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <svg width="16" height="12" viewBox="0 0 20 20">
+                      <polygon points="2,18 18,18 22,2 2,2" fill="#3b82f6" stroke="black" strokeWidth="0.5" />
+                    </svg>
+                    <span className="text-xs text-gray-700">100% (inicio, lleno)</span>
+                  </div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <svg width="16" height="12" viewBox="0 0 20 20">
+                      <polygon points="2,18 18,18 22,2 2,2" fill="#22c55e" stroke="black" strokeWidth="0.5" />
+                    </svg>
+                    <span className="text-xs text-gray-700">&gt; 75% (óptima)</span>
+                  </div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <svg width="16" height="12" viewBox="0 0 20 20">
+                      <polygon points="2,18 18,18 22,2 2,2" fill="#eab308" stroke="black" strokeWidth="0.5" />
+                    </svg>
+                    <span className="text-xs text-gray-700">40% - 75% (media)</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <svg width="16" height="12" viewBox="0 0 20 20">
+                      <polygon points="2,18 18,18 22,2 2,2" fill="#f97316" stroke="black" strokeWidth="0.5" />
+                    </svg>
+                    <span className="text-xs text-gray-700">&lt; 40% (baja)</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </>
+          ) : (
+            <button
+              onClick={() => setLeyendaVisible(true)}
+              className="absolute left-0 top-4 bg-white border border-gray-300 rounded-r-lg shadow px-2 py-1 text-xs font-semibold text-gray-800 hover:text-gray-900 z-10"
+              style={{ minWidth: '24px' }}
+              title="Mostrar leyenda"
+            >
+              <ChevronDown size={12} />
+            </button>
           )}
         </div>
         {/* Contenedor principal del mapa */}
