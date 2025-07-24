@@ -1234,12 +1234,26 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
               : 'Iniciar'
           }
         </button>
-        <button
-          onClick={() => setMostrarControlVelocidad(!mostrarControlVelocidad)}
-          className="px-4 py-1 rounded text-white bg-green-500 hover:bg-green-600"
-        >
-          {mostrarControlVelocidad ? '⚡ Ocultar Control' : '⚡ Control Velocidad'}
-        </button>
+        {/* Botón de control de velocidad y de iniciar solo si corresponde */}
+        {tipoSimulacion !== 'SEMANAL' && (
+          <button
+            onClick={() => setMostrarControlVelocidad(!mostrarControlVelocidad)}
+            className="px-4 py-1 rounded text-white bg-green-500 hover:bg-green-600"
+          >
+            {mostrarControlVelocidad ? '⚡ Ocultar Control' : '⚡ Control Velocidad'}
+          </button>
+        )}
+        {/* Control de velocidad */}
+        {tipoSimulacion !== 'SEMANAL' && mostrarControlVelocidad && (
+          <ControlVelocidad
+            camiones={camiones}
+            segundosPorNodo={segundosPorNodo}
+            onSegundosPorNodoChange={setSegundosPorNodo}
+            onIntervaloChange={setIntervalo}
+            intervaloActual={intervalo}
+            tipoSimulacion={tipoSimulacion}
+          />
+        )}
         <label className="flex items-center gap-1 text-sm">
           Segundos por nodo:
           <input
@@ -1260,20 +1274,6 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
           Intervalo: {intervalo}ms
         </label>
       </div>
-
-      {/* Panel de control de velocidad */}
-      {mostrarControlVelocidad && (
-        <div className="mt-4">
-          <ControlVelocidad
-            camiones={camiones}
-            segundosPorNodo={segundosPorNodo}
-            onSegundosPorNodoChange={setSegundosPorNodo}
-            onIntervaloChange={setIntervalo}
-            intervaloActual={intervalo}
-            tipoSimulacion={tipoSimulacion}
-          />
-        </div>
-      )}
     </div>
   );
 };
