@@ -481,14 +481,13 @@ export const avanzarTodosLosCamiones = (
  * @returns {object} Objeto con { debeAveriarse: boolean, tipoAveria?: string }
  */
 export const detectarAveriaAutomatica = (
-  camion: CamionEstado,
-  ruta: RutaCamion,
-  siguientePaso: number,
-  averiasAutomaticasActivas: boolean = false
+  _camion: CamionEstado,
+  _ruta: RutaCamion,
+  _siguientePaso: number,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _averiasAutomaticasActivas: boolean = false
 ): { debeAveriarse: boolean; tipoAveria?: string } => {
   // DESACTIVADO TEMPORALMENTE: Siempre retornar false para desactivar averías automáticas
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  console.log('Averías automáticas desactivadas temporalmente', { averiasAutomaticasActivas });
   return { debeAveriarse: false };
   
   // Código original comentado:
