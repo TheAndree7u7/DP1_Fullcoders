@@ -73,13 +73,42 @@ public class Herramientas {
         }
     }
 
-    public static void  agregarAveriasAutomaticas(List<Averia> averiasAutomaticas, List<Gen> cromosoma, 
+    public static void agregarAveriasAutomaticas(List<Averia> averiasAutomaticas, List<Gen> cromosoma,
             LocalDateTime fechaHoraInicioIntervalo, LocalDateTime fechaHoraFinIntervalo) {
         //
         // sacar la fecha en medio del intervalo de simulacion
+        // !Obtener el turno de la fecha en medio del intervalo de simulacion
         LocalDateTime fechaMedio = fechaHoraInicioIntervalo
                 .plusSeconds(fechaHoraFinIntervalo.getSecond() - fechaHoraInicioIntervalo.getSecond() / 2);
         int turno = Herramientas.detectarTurno(fechaMedio);
+        boolean averio_turno_1 = false;
+        boolean averio_turno_2 = false;
+        boolean averio_turno_3 = false;
+        // ! Prevenir que se agreguen averias en el mismo turno
+        switch (turno) {
+            case 1:
+                if (averio_turno_1 == true) {
+                    averio_turno_3 = false;
+                    return;
+                }
+                averio_turno_1 = true;
+                break;
+            case 2:
+                if (averio_turno_2 == true) {
+                    averio_turno_1 = false;
+                    return;
+                }
+                averio_turno_2 = true;
+                break;
+            case 3:
+                if (averio_turno_3 == true) {
+                    averio_turno_2 = false;
+                    return;
+                }
+                averio_turno_3 = true;
+                break;
+        }
+
         // Sacar la lista de averias automaticas del turno
         List<Averia> averiasAutomaticasTurno = averiasAutomaticas.stream()
                 .filter(averia -> averia.getTurnoOcurrencia() == turno)
@@ -103,5 +132,5 @@ public class Herramientas {
         }
         Parametros.dataLoader.camionesAveriados = camiones_para_averiar_automaticamente;
     }
-    
+
 }

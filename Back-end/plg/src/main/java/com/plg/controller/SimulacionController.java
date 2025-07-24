@@ -106,9 +106,9 @@ public class SimulacionController {
         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(Mapa.getInstance());
         algoritmoGenetico.ejecutarAlgoritmo();
         if (Parametros.tipoDeSimulacion == TipoDeSimulacion.SEMANAL) {
-            // Herramientas.agregarAveriasAutomaticas(Parametros.dataLoader.averiasAutomaticas,
-            // algoritmoGenetico.getMejorIndividuo().getCromosoma(), fechaDateTime,
-            // fechaDateTime.plusMinutes(Parametros.intervaloTiempo));
+            Herramientas.agregarAveriasAutomaticas(Parametros.dataLoader.averiasAutomaticas,
+            algoritmoGenetico.getMejorIndividuo().getCromosoma(), fechaDateTime,
+            fechaDateTime.plusMinutes(Parametros.intervaloTiempo));
         }
         IndividuoDto mejorIndividuoDto = new IndividuoDto(
                 algoritmoGenetico.getMejorIndividuo(),
