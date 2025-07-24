@@ -30,7 +30,7 @@ const esCoordenadaValida = (coord: Coordenada | undefined | null): coord is Coor
          !isNaN(coord.y);
 };
 import { formatearCapacidadGLP, formatearCombustible, calcularGLPEntregaPorCamion } from '../utils/validacionCamiones';
-import { obtenerIntervaloPorDefecto, calcularIntervaloTiempoReal } from '../context/simulacion/types';
+import { obtenerIntervaloPorDefecto, calcularIntervaloSegunTipo, obtenerSegundosPorNodoSegunTipo } from '../context/simulacion/types';
 import ControlVelocidad from './ControlVelocidad';
 
 interface CamionVisual {
@@ -66,6 +66,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
   const [intervalo, setIntervalo] = useState(obtenerIntervaloPorDefecto());
   const [segundosPorNodo, setSegundosPorNodo] = useState(62.9);
   const [mostrarControlVelocidad, setMostrarControlVelocidad] = useState(false);
+  const [tipoSimulacion, setTipoSimulacion] = useState<string>('DIARIA'); // Estado para el tipo de simulación
   const intervalRef = useRef<number | null>(null);
   const { 
     camiones, 
@@ -106,12 +107,31 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
 
   const pedidosPendientes = getPedidosPendientes(rutasCamiones, camiones, pedidosNoAsignados);
   
-  // Efecto para recalcular el intervalo cuando cambie la configuración
+  // Efecto para detectar el tipo de simulación basado en la URL
   useEffect(() => {
-    const nuevoIntervalo = calcularIntervaloTiempoReal(segundosPorNodo);
+    const detectarTipoSimulacion = () => {
+      const pathname = window.location.pathname;
+      if (pathname.includes('/simulacion-semanal') || pathname.includes('/colapso-logistico')) {
+        setTipoSimulacion(pathname.includes('/simulacion-semanal') ? 'SEMANAL' : 'COLAPSO');
+        // Para simulación semanal/colapso, usar velocidad fija
+        const segundosFijos = obtenerSegundosPorNodoSegunTipo(pathname.includes('/simulacion-semanal') ? 'SEMANAL' : 'COLAPSO');
+        setSegundosPorNodo(segundosFijos);
+        console.log(`📊 MAPA: Detectada simulación ${pathname.includes('/simulacion-semanal') ? 'SEMANAL' : 'COLAPSO'} - velocidad fija: ${segundosFijos}s por nodo`);
+      } else {
+        setTipoSimulacion('DIARIA');
+        console.log('⚡ MAPA: Detectada simulación DIARIA - velocidad configurable');
+      }
+    };
+
+    detectarTipoSimulacion();
+  }, []);
+
+  // Efecto para recalcular el intervalo cuando cambie la configuración o el tipo de simulación
+  useEffect(() => {
+    const nuevoIntervalo = calcularIntervaloSegunTipo(tipoSimulacion, segundosPorNodo);
     setIntervalo(nuevoIntervalo);
-    console.log(`⏱️ MAPA: Intervalo recalculado: ${nuevoIntervalo}ms (${segundosPorNodo}s por nodo)`);
-  }, [segundosPorNodo]);
+    console.log(`⏱️ MAPA: Intervalo recalculado para ${tipoSimulacion}: ${nuevoIntervalo}ms (${segundosPorNodo}s por nodo)`);
+  }, [segundosPorNodo, tipoSimulacion]);
 
   // Efecto para iniciar automáticamente la simulación si se especifica
   useEffect(() => {
@@ -1229,7 +1249,10 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
             step={0.1}
             value={segundosPorNodo}
             onChange={e => setSegundosPorNodo(parseFloat(e.target.value))}
-            className="border rounded px-2 py-0.5 w-20"
+            className={`border rounded px-2 py-0.5 w-20 ${
+              tipoSimulacion !== 'DIARIA' ? 'bg-gray-100 cursor-not-allowed' : ''
+            }`}
+            disabled={tipoSimulacion !== 'DIARIA'}
           />
           s
         </label>
@@ -1247,6 +1270,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
             onSegundosPorNodoChange={setSegundosPorNodo}
             onIntervaloChange={setIntervalo}
             intervaloActual={intervalo}
+            tipoSimulacion={tipoSimulacion}
           />
         </div>
       )}

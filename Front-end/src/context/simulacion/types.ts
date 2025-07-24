@@ -19,6 +19,28 @@ export const INCREMENTO_PORCENTAJE = 1;
 export const SEGUNDOS_POR_NODO = (HORAS_POR_ACTUALIZACION * 60 * 60) / NODOS_PARA_ACTUALIZACION; // 36 segundos
 
 /**
+ * @function obtenerSegundosPorNodoSegunTipo
+ * @description Obtiene los segundos por nodo según el tipo de simulación
+ * @param {string} tipoSimulacion - Tipo de simulación ('DIARIA', 'SEMANAL', 'COLAPSO')
+ * @returns {number} Segundos por nodo para el tipo de simulación
+ */
+export const obtenerSegundosPorNodoSegunTipo = (tipoSimulacion: string): number => {
+  switch (tipoSimulacion) {
+    case 'DIARIA':
+      // Simulación en tiempo real: 62.9 segundos por nodo (configurable)
+      return 62.9;
+    case 'SEMANAL':
+      return 0.3;
+    case 'COLAPSO':
+      // Simulación semanal/colapso: 36 segundos por nodo (fijo)
+      return SEGUNDOS_POR_NODO;
+    default:
+      // Por defecto usar el valor de tiempo real
+      return 62.9;
+  }
+};
+
+/**
  * @function calcularIntervaloTiempoReal
  * @description Calcula el intervalo en milisegundos para que cada nodo dure el tiempo especificado en tiempo real
  * @param {number} segundosPorNodo - Segundos que debe durar cada nodo en tiempo real (por defecto 62.9)
@@ -44,6 +66,30 @@ export const calcularIntervaloTiempoReal = (
   
   // Limitar el intervalo entre 100ms y 10000ms (0.1s a 10s)
   return Math.max(100, Math.min(10000, intervaloMs));
+};
+
+/**
+ * @function calcularIntervaloSegunTipo
+ * @description Calcula el intervalo según el tipo de simulación
+ * @param {string} tipoSimulacion - Tipo de simulación ('DIARIA', 'SEMANAL', 'COLAPSO')
+ * @param {number} segundosPorNodoPersonalizado - Segundos por nodo personalizado (solo para tiempo real)
+ * @param {number} velocidadCamion - Velocidad promedio del camión (opcional)
+ * @returns {number} Intervalo en milisegundos
+ */
+export const calcularIntervaloSegunTipo = (
+  tipoSimulacion: string,
+  segundosPorNodoPersonalizado?: number,
+  velocidadCamion?: number
+): number => {
+  const segundosPorNodo = obtenerSegundosPorNodoSegunTipo(tipoSimulacion);
+  
+  // Para simulación en tiempo real, permitir personalización
+  if (tipoSimulacion === 'DIARIA' && segundosPorNodoPersonalizado) {
+    return calcularIntervaloTiempoReal(segundosPorNodoPersonalizado, velocidadCamion);
+  }
+  
+  // Para otros tipos, usar el valor fijo
+  return calcularIntervaloTiempoReal(segundosPorNodo, velocidadCamion);
 };
 
 /**

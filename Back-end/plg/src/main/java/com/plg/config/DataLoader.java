@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import com.plg.utils.TipoDeSimulacion;
 
 public class DataLoader {
 
@@ -26,10 +27,12 @@ public class DataLoader {
     private String getPathBloqueos() {
         return "data/bloqueos/" + Parametros.anho + Parametros.mes + ".bloqueos.txt";
     }
+
     private Coordenada coordenadaCentral = new Coordenada(8, 12);
 
     public final List<Mantenimiento> mantenimientos = new ArrayList<>();
     public List<Pedido> pedidos = new ArrayList<>();
+    public List<Pedido> pedidosDiaria = new ArrayList<>();
     public List<Almacen> almacenes = new ArrayList<>();
     public List<Camion> camiones = new ArrayList<>();
     public List<Averia> averias = new ArrayList<>(); // Averias automaticas
@@ -43,7 +46,7 @@ public class DataLoader {
         try {
             initializePedidos();
             initializeMantenimientos();
-
+            initializePedidosDiaria();
             initializeAveriasAutomaticas(); // !AVERIAS AUTOMATICAS
             initializeBloqueos();
         } catch (InvalidDataFormatException | IOException e) {
@@ -96,14 +99,26 @@ public class DataLoader {
     }
 
     public List<Pedido> initializePedidos() throws InvalidDataFormatException, IOException {
-        List<String> lines = Herramientas.readAllLines(getPathPedidos());
+        if (Parametros.tipoDeSimulacion == TipoDeSimulacion.DIARIA) {
+            if (this.pedidos != null) {
+                this.pedidos.clear();
+            }
+        } else {
+            List<String> lines = Herramientas.readAllLines(getPathPedidos());
 
-        for (String line : lines) {
-            Pedido pedido = PedidoFactory.crearPedido(line);
-            this.pedidos.add(pedido);
+            for (String line : lines) {
+                Pedido pedido = PedidoFactory.crearPedido(line);
+                this.pedidos.add(pedido);
+            }
         }
 
         return this.pedidos;
+    }
+
+    public List<Pedido> initializePedidosDiaria() throws InvalidDataFormatException, IOException {
+        // this.pedidosDiaria.clear();
+
+        return this.pedidosDiaria;
     }
 
     public List<Mantenimiento> initializeMantenimientos()

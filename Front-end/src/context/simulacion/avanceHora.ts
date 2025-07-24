@@ -5,7 +5,7 @@
 
 import type { CamionEstado, RutaCamion, Bloqueo, IndividuoConBloqueos } from "./types";
 import type { Almacen } from "../../types";
-import { NODOS_PARA_ACTUALIZACION } from "./types";
+import { NODOS_PARA_ACTUALIZACION, SEGUNDOS_POR_NODO } from "./types";
 import { avanzarTodosLosCamiones } from "./camionLogic";
 
 /**
@@ -24,7 +24,7 @@ const verificarYRecargarAlmacenes = (
     const fechaBase = new Date(fechaHoraSimulacion);
     // Calcular cuántos nodos han pasado desde el inicio del ciclo actual
     const nodosTranscurridos = NODOS_PARA_ACTUALIZACION - nodosRestantesAntesDeActualizar;
-    const segundosAdicionales = nodosTranscurridos * 36; // 36 segundos por nodo
+    const segundosAdicionales = nodosTranscurridos * SEGUNDOS_POR_NODO; // Usar constante en lugar de hardcodeo
     const fechaActual = new Date(fechaBase.getTime() + segundosAdicionales * 1000);
     
     // Log para debugging
