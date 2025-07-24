@@ -8,6 +8,7 @@ import { ChevronLeft } from "lucide-react";
 import { useSimulacion } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
 import { useCurrentDateTime } from "../hooks/useCurrentDateTime";
+import IndicadorGLPTotal from "../components/IndicadorGLPTotal";
 
 const SimulacionDiaria: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
@@ -122,9 +123,12 @@ const SimulacionDiaria: React.FC = () => {
           {tiempoSimulado && (
             <div className="text-sm flex items-center gap-4">
               <div>
+                <IndicadorGLPTotal />
+              </div>
+              <div>
                 <span className="mr-2">Fecha y hora de la simulación:</span>
                 <span className="font-bold text-blue-300">{fechaHoraAcumulada}</span>
-              </div> 
+              </div>
               <div>
                 <span className="mr-2">Hora y fecha Actual:</span>
                 <span className="font-bold text-blue-300">{currentDateTime.toLocaleString('es-ES', {

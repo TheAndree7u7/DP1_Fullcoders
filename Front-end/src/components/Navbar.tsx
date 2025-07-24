@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { useSimulacion,  } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
+import IndicadorGLPTotal from "./IndicadorGLPTotal";
 
 const Navbar: React.FC = () => {
   const [, setIsOpen] = useState(false);
