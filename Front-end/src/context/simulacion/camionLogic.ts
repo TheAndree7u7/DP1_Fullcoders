@@ -484,10 +484,10 @@ export const detectarAveriaAutomatica = (
   _camion: CamionEstado,
   _ruta: RutaCamion,
   _siguientePaso: number,
-  averiasAutomaticasActivas: boolean = false
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _averiasAutomaticasActivas: boolean = false
 ): { debeAveriarse: boolean; tipoAveria?: string } => {
   // DESACTIVADO TEMPORALMENTE: Siempre retornar false para desactivar averías automáticas
-  console.log('Averías automáticas desactivadas temporalmente', { averiasAutomaticasActivas });
   return { debeAveriarse: false };
   
   // Código original comentado:
