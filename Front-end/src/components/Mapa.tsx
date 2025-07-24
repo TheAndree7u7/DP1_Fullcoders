@@ -269,6 +269,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
       
       if (estadoCamion && rutaCoords.length > 1) {
         const porcentaje = estadoCamion.porcentaje;
+        // Usar Math.floor para sincronizar con la línea restante
         const currentIdx = Math.floor(porcentaje);
         
         // Validar que currentPos sea válido antes de usarlo
@@ -291,7 +292,9 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
       
       // Compute remaining path
       const porcentaje = estadoCamion ? estadoCamion.porcentaje : 0;
-      const idxRest = Math.ceil(porcentaje);
+      // La línea se consume solo después de que el camión pase completamente por cada nodo
+      // Cuando el camión está en porcentaje 1.0, está en el nodo 1, pero la línea debe mostrarse desde el nodo 2
+      const idxRest = Math.floor(porcentaje) - 1;
       const rutaRestante = rutaCoords.slice(idxRest);
       
       return {
@@ -848,7 +851,8 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
                   
                   // Calcular qué parte de la ruta mostrar basándose en el progreso del camión
                   const porcentaje = estadoCamion ? estadoCamion.porcentaje : 0;
-                  const indiceInicio = Math.ceil(porcentaje);
+                  // La línea se consume solo después de que el camión pase completamente por cada nodo
+                  const indiceInicio = Math.floor(porcentaje) - 1;
                   
                   // Mostrar solo la parte de la ruta que aún no ha sido recorrida
                   rutaAMostrar = rutaCoordsCompleta.slice(indiceInicio);
