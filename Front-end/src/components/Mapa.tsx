@@ -13,6 +13,8 @@ import {
 } from './mapa/utils';
 import type { Pedido } from '../types';
 
+const RETRASO_CONSUMO_RUTA = 2;
+
 // Definir el tipo localmente para evitar problemas de importación
 interface PedidoConAsignacion extends Pedido {
   esNoAsignado: boolean;
@@ -294,7 +296,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
       const porcentaje = estadoCamion ? estadoCamion.porcentaje : 0;
       // La línea se consume solo después de que el camión pase completamente por cada nodo
       // Cuando el camión está en porcentaje 1.0, está en el nodo 1, pero la línea debe mostrarse desde el nodo 2
-      const idxRest = Math.floor(porcentaje) - 1;
+      const idxRest = Math.floor(porcentaje) - RETRASO_CONSUMO_RUTA;
       const rutaRestante = rutaCoords.slice(idxRest);
       
       return {
@@ -852,7 +854,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
                   // Calcular qué parte de la ruta mostrar basándose en el progreso del camión
                   const porcentaje = estadoCamion ? estadoCamion.porcentaje : 0;
                   // La línea se consume solo después de que el camión pase completamente por cada nodo
-                  const indiceInicio = Math.floor(porcentaje) - 1;
+                  const indiceInicio = Math.floor(porcentaje) - RETRASO_CONSUMO_RUTA;
                   
                   // Mostrar solo la parte de la ruta que aún no ha sido recorrida
                   rutaAMostrar = rutaCoordsCompleta.slice(indiceInicio);
