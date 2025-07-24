@@ -152,7 +152,7 @@ const SimulacionSemanal: React.FC = () => {
               style={menuExpandido ? { width: `${mapaWidth}%` } : {}}
             >
               <div className="bg-white p-4 rounded-xl overflow-auto w-full h-full">
-                <Mapa elementoResaltado={elementoResaltado} onElementoSeleccionado={setElementoResaltado} iniciarAutomaticamente={true} />
+                <Mapa elementoResaltado={elementoResaltado} onElementoSeleccionado={setElementoResaltado} iniciarAutomaticamente={true} controlesSimulacionHabilitados={false} />
               </div>
             </div>
             

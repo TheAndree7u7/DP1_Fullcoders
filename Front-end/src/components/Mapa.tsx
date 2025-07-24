@@ -50,17 +50,17 @@ const SVG_HEIGHT = GRID_HEIGHT * CELL_SIZE;
 // Parametrización del grosor de línea de bloqueos
 const BLOQUEO_STROKE_WIDTH = 4;
 
-
-
-
+// Agregar constante global para habilitar/deshabilitar controles
+export const CONTROLES_SIMULACION_HABILITADOS = true;
 
 interface MapaProps {
   elementoResaltado?: {tipo: 'camion' | 'pedido' | 'almacen', id: string} | null;
   onElementoSeleccionado?: (elemento: {tipo: 'camion' | 'pedido' | 'almacen', id: string} | null) => void;
   iniciarAutomaticamente?: boolean; // Nueva prop para iniciar automáticamente
+  controlesSimulacionHabilitados?: boolean; // Nueva prop para habilitar/deshabilitar controles
 }
 
-const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, iniciarAutomaticamente = false }) => {
+const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, iniciarAutomaticamente = false, controlesSimulacionHabilitados = CONTROLES_SIMULACION_HABILITADOS }) => {
   const [camionesVisuales, setCamionesVisuales] = useState<CamionVisual[]>([]);
   const [running, setRunning] = useState(false);
   const [intervalo, setIntervalo] = useState(obtenerIntervaloPorDefecto());
@@ -345,157 +345,178 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
 
   return (
     <div className="w-full h-full flex flex-col">
-      {/* Leyenda lateral compacta */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 p-2 w-32 flex-shrink-0">
-        <button
-          onClick={() => setLeyendaVisible(!leyendaVisible)}
-          className="flex items-center justify-between w-full text-left text-xs font-semibold text-gray-800 hover:text-gray-900 mb-2"
-        >
-          <span>LEYENDA</span>
-          {leyendaVisible ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-        </button>
-        
-        {leyendaVisible && (
-          <div className="space-y-1.5">
-            {/* Almacén Central */}
-            <div className="flex items-center gap-1.5">
-              <svg width="16" height="12" viewBox="0 0 20 20">
-                <polygon points="2,18 18,18 22,2 2,2" fill="#2563eb" stroke="black" strokeWidth="0.5" />
-                <text x="12" y="12" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">C</text>
-              </svg>
-              <span className="text-xs text-gray-700">A. Central</span>
-            </div>
-            
-            {/* Almacén Intermedio */}
-            <div className="flex items-center gap-1.5">
-              <svg width="16" height="12" viewBox="0 0 20 20">
-                <polygon points="2,18 18,18 22,2 2,2" fill="#16a34a" stroke="black" strokeWidth="0.5" />
-                <text x="12" y="12" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">I</text>
-              </svg>
-              <span className="text-xs text-gray-700">A. Intermedio</span>
-            </div>
-            
-            {/* Cliente */}
-            <div className="flex items-center gap-1.5">
-              <img src={clienteIcon} alt="Cliente" className="w-4 h-4" />
-              <span className="text-xs text-gray-700">Cliente</span>
-            </div>
+      {/* Contenedor horizontal para leyenda y mapa */}
+      <div className="flex flex-row w-full h-full flex-1">
+        {/* Leyenda lateral compacta */}
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-2 w-32 flex-shrink-0 h-full">
+          <button
+            onClick={() => setLeyendaVisible(!leyendaVisible)}
+            className="flex items-center justify-between w-full text-left text-xs font-semibold text-gray-800 hover:text-gray-900 mb-2"
+          >
+            <span>LEYENDA</span>
+            {leyendaVisible ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          </button>
+          {leyendaVisible && (
+            <div className="space-y-1.5 overflow-y-auto max-h-[80vh]">
+              {/* Almacén Central */}
+              <div className="flex items-center gap-1.5">
+                <svg width="16" height="12" viewBox="0 0 20 20">
+                  <polygon points="2,18 18,18 22,2 2,2" fill="#2563eb" stroke="black" strokeWidth="0.5" />
+                  <text x="12" y="12" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">C</text>
+                </svg>
+                <span className="text-xs text-gray-700">A. Central</span>
+              </div>
+              
+              {/* Almacén Intermedio */}
+              <div className="flex items-center gap-1.5">
+                <svg width="16" height="12" viewBox="0 0 20 20">
+                  <polygon points="2,18 18,18 22,2 2,2" fill="#16a34a" stroke="black" strokeWidth="0.5" />
+                  <text x="12" y="12" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">I</text>
+                </svg>
+                <span className="text-xs text-gray-700">A. Intermedio</span>
+              </div>
+              
+              {/* Cliente */}
+              <div className="flex items-center gap-1.5">
+                <img src={clienteIcon} alt="Cliente" className="w-4 h-4" />
+                <span className="text-xs text-gray-700">Cliente</span>
+              </div>
                           
-            {/* Cliente No Asignado */}
-            <div className="flex items-center gap-1.5">
-              <img src={clienteIcon} alt="Cliente No Asignado" className="w-4 h-4" style={{ filter: 'grayscale(100%) brightness(0.7)' }} />
-              <span className="text-xs text-gray-700">Cliente N/A</span>
-            </div>
-            
-            {/* Estados de pedidos */}
-            <div className="pt-1 border-t border-gray-200">
-              <div className="text-xs font-medium text-gray-600 mb-1">Estados Pedidos:</div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
-                  <span className="text-xs text-gray-700">Pendiente</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-sm"></div>
-                  <span className="text-xs text-gray-700">En Tránsito</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-gray-500 rounded-sm"></div>
-                  <span className="text-xs text-gray-700">No Asignado</span>
+              {/* Cliente No Asignado */}
+              <div className="flex items-center gap-1.5">
+                <img src={clienteIcon} alt="Cliente No Asignado" className="w-4 h-4" style={{ filter: 'grayscale(100%) brightness(0.7)' }} />
+                <span className="text-xs text-gray-700">Cliente N/A</span>
+              </div>
+              
+              {/* Estados de pedidos */}
+              <div className="pt-1 border-t border-gray-200">
+                <div className="text-xs font-medium text-gray-600 mb-1">Estados Pedidos:</div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">Pendiente</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">En Tránsito</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-gray-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">No Asignado</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            {/* Camión */}
-            <div className="flex items-center gap-1.5">
-              <svg width="16" height="12" viewBox="0 0 16 12" className="border border-gray-300 rounded">
-                <rect x="2" y="4" width="10" height="4" rx="0.5" fill="#3b82f6" stroke="black" strokeWidth="0.3" />
-                <rect x="10" y="5" width="3" height="2" rx="0.3" fill="#3b82f6" stroke="black" strokeWidth="0.3" />
-                <circle cx="4" cy="9" r="1" fill="black" />
-                <circle cx="8" cy="9" r="1" fill="black" />
-                <circle cx="11" cy="9" r="1" fill="black" />
-                <polygon points="13,6 12,5.5 12,6.5" fill="white" stroke="black" strokeWidth="0.2" />
-              </svg>
-              <span className="text-xs text-gray-700">Camión</span>
-            </div>
-            
-            {/* Ruta */}
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-0.5 border-t border-dashed border-blue-500"></div>
-              <span className="text-xs text-gray-700">Ruta</span>
-            </div>
-            
-            {/* Bloqueos */}
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-0.5 bg-red-600 rounded-full"></div>
-              <span className="text-xs text-gray-700">Bloqueos</span>
-            </div>
-            
-            {/* Estados de camiones */}
-            <div className="pt-1 border-t border-gray-200">
-              <div className="text-xs font-medium text-gray-600 mb-1">Estados:</div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-blue-500 rounded-sm"></div>
-                  <span className="text-xs text-gray-700">Normal</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
-                  <span className="text-xs text-gray-700">Averiado</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-gray-800 rounded-sm"></div>
-                  <span className="text-xs text-gray-700">Mant.</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-orange-500 rounded-sm"></div>
-                  <span className="text-xs text-gray-700">Mant. Avería</span>
-                </div>
-              </div>
-            </div>
-            {/* Leyenda de colores de GLP para camión/ruta/almacén */}
-            <div className="pt-1 border-t border-gray-200 mt-2">
-              <div className="text-xs font-medium text-gray-600 mb-1">Nivel GLP camión/ruta/almacén:</div>
-              <div className="flex items-center gap-1 mb-1">
-                <svg width="16" height="12" viewBox="0 0 20 20">
-                  <polygon points="2,18 18,18 22,2 2,2" fill="#3b82f6" stroke="black" strokeWidth="0.5" />
+              {/* Camión */}
+              <div className="flex items-center gap-1.5">
+                <svg width="16" height="12" viewBox="0 0 16 12" className="border border-gray-300 rounded">
+                  <rect x="2" y="4" width="10" height="4" rx="0.5" fill="#3b82f6" stroke="black" strokeWidth="0.3" />
+                  <rect x="10" y="5" width="3" height="2" rx="0.3" fill="#3b82f6" stroke="black" strokeWidth="0.3" />
+                  <circle cx="4" cy="9" r="1" fill="black" />
+                  <circle cx="8" cy="9" r="1" fill="black" />
+                  <circle cx="11" cy="9" r="1" fill="black" />
+                  <polygon points="13,6 12,5.5 12,6.5" fill="white" stroke="black" strokeWidth="0.2" />
                 </svg>
-                <span className="text-xs text-gray-700">100% (inicio, lleno)</span>
+                <span className="text-xs text-gray-700">Camión</span>
               </div>
-              <div className="flex items-center gap-1 mb-1">
-                <svg width="16" height="12" viewBox="0 0 20 20">
-                  <polygon points="2,18 18,18 22,2 2,2" fill="#22c55e" stroke="black" strokeWidth="0.5" />
-                </svg>
-                <span className="text-xs text-gray-700">&gt; 75% (óptima)</span>
+              
+              {/* Ruta */}
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-0.5 border-t border-dashed border-blue-500"></div>
+                <span className="text-xs text-gray-700">Ruta</span>
               </div>
-              <div className="flex items-center gap-1 mb-1">
-                <svg width="16" height="12" viewBox="0 0 20 20">
-                  <polygon points="2,18 18,18 22,2 2,2" fill="#eab308" stroke="black" strokeWidth="0.5" />
-                </svg>
-                <span className="text-xs text-gray-700">40% - 75% (media)</span>
+              
+              {/* Bloqueos */}
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-0.5 bg-red-600 rounded-full"></div>
+                <span className="text-xs text-gray-700">Bloqueos</span>
               </div>
-              <div className="flex items-center gap-1">
-                <svg width="16" height="12" viewBox="0 0 20 20">
-                  <polygon points="2,18 18,18 22,2 2,2" fill="#f97316" stroke="black" strokeWidth="0.5" />
-                </svg>
-                <span className="text-xs text-gray-700">&lt; 40% (baja)</span>
+              
+              {/* Estados de camiones */}
+              <div className="pt-1 border-t border-gray-200">
+                <div className="text-xs font-medium text-gray-600 mb-1">Estados:</div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-blue-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">Normal</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">Averiado</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-gray-800 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">Mant.</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-orange-500 rounded-sm"></div>
+                    <span className="text-xs text-gray-700">Mant. Avería</span>
+                  </div>
+                </div>
+              </div>
+              {/* Leyenda de colores de GLP para camión/ruta/almacén */}
+              <div className="pt-1 border-t border-gray-200 mt-2">
+                <div className="text-xs font-medium text-gray-600 mb-1">Nivel GLP camión/ruta/almacén:</div>
+                <div className="flex items-center gap-1 mb-1">
+                  <svg width="16" height="12" viewBox="0 0 20 20">
+                    <polygon points="2,18 18,18 22,2 2,2" fill="#3b82f6" stroke="black" strokeWidth="0.5" />
+                  </svg>
+                  <span className="text-xs text-gray-700">100% (inicio, lleno)</span>
+                </div>
+                <div className="flex items-center gap-1 mb-1">
+                  <svg width="16" height="12" viewBox="0 0 20 20">
+                    <polygon points="2,18 18,18 22,2 2,2" fill="#22c55e" stroke="black" strokeWidth="0.5" />
+                  </svg>
+                  <span className="text-xs text-gray-700">&gt; 75% (óptima)</span>
+                </div>
+                <div className="flex items-center gap-1 mb-1">
+                  <svg width="16" height="12" viewBox="0 0 20 20">
+                    <polygon points="2,18 18,18 22,2 2,2" fill="#eab308" stroke="black" strokeWidth="0.5" />
+                  </svg>
+                  <span className="text-xs text-gray-700">40% - 75% (media)</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <svg width="16" height="12" viewBox="0 0 20 20">
+                    <polygon points="2,18 18,18 22,2 2,2" fill="#f97316" stroke="black" strokeWidth="0.5" />
+                  </svg>
+                  <span className="text-xs text-gray-700">&lt; 40% (baja)</span>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-      {/* Contenedor principal del mapa */}
-      <div className="flex-1 flex flex-col items-center justify-center">
-        <div className="w-full max-w-full overflow-auto">
-          <svg
-            width={SVG_WIDTH}
-            height={SVG_HEIGHT}
-            className="border border-gray-500 bg-white rounded-xl mx-auto"
-            style={{ maxWidth: '100%', height: 'auto' }}
-            viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
-            preserveAspectRatio="xMidYMid meet"
-            onClick={(evt) => {
-              // Cerrar modales si se hace click en un área vacía del mapa
-              if (evt.target === evt.currentTarget) {
+          )}
+        </div>
+        {/* Contenedor principal del mapa */}
+        <div className="flex-1 flex flex-col items-center justify-center h-full">
+          <div className="w-full max-w-full overflow-auto">
+            <svg
+              width={SVG_WIDTH}
+              height={SVG_HEIGHT}
+              className="border border-gray-500 bg-white rounded-xl mx-auto"
+              style={{ maxWidth: '100%', height: 'auto' }}
+              viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+              preserveAspectRatio="xMidYMid meet"
+              onClick={(evt) => {
+                // Cerrar modales si se hace click en un área vacía del mapa
+                if (evt.target === evt.currentTarget) {
+                  setClickedCamion(null);
+                  setClickedAlmacen(null);
+                  setTooltipAlmacen(null);
+                  
+                  // Limpiar el resaltado
+                  if (onElementoSeleccionado) {
+                    console.log('🎯 MAPA: Limpiando resaltado');
+                    onElementoSeleccionado(null);
+                  }
+                }
+              }}
+            >
+            {/* Fondo invisible para capturar clicks */}
+            <rect 
+              x={0} 
+              y={0} 
+              width={SVG_WIDTH} 
+              height={SVG_HEIGHT} 
+              fill="transparent"
+              onClick={() => {
                 setClickedCamion(null);
                 setClickedAlmacen(null);
                 setTooltipAlmacen(null);
@@ -505,484 +526,465 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
                   console.log('🎯 MAPA: Limpiando resaltado');
                   onElementoSeleccionado(null);
                 }
-              }
-            }}
-          >
-          {/* Fondo invisible para capturar clicks */}
-          <rect 
-            x={0} 
-            y={0} 
-            width={SVG_WIDTH} 
-            height={SVG_HEIGHT} 
-            fill="transparent"
-            onClick={() => {
-              setClickedCamion(null);
-              setClickedAlmacen(null);
-              setTooltipAlmacen(null);
-              
-              // Limpiar el resaltado
-              if (onElementoSeleccionado) {
-                console.log('🎯 MAPA: Limpiando resaltado');
-                onElementoSeleccionado(null);
-              }
-            }}
-          />
-          
-          {/* Grid */}
-          {[...Array(GRID_WIDTH + 1)].map((_, i) => (
-            <line key={`v-${i}`} x1={i * CELL_SIZE} y1={0} x2={i * CELL_SIZE} y2={SVG_HEIGHT} stroke="#d1d5db" strokeWidth={1} />
-          ))}
-          {[...Array(GRID_HEIGHT + 1)].map((_, i) => (
-            <line key={`h-${i}`} x1={0} y1={i * CELL_SIZE} x2={SVG_WIDTH} y2={i * CELL_SIZE} stroke="#d1d5db" strokeWidth={1} />
-          ))}
-
-          {/* Bloqueos */}
-          {bloqueos && bloqueos.map((bloqueo, idx) => (
-            <polyline
-              key={`bloqueo-${idx}`}
-              fill="none"
-              stroke="#dc2626"
-              strokeWidth={BLOQUEO_STROKE_WIDTH}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              points={bloqueo.coordenadas.map(coord => `${coord.x * CELL_SIZE},${coord.y * CELL_SIZE}`).join(' ')}
+              }}
             />
-          ))}
+            
+            {/* Grid */}
+            {[...Array(GRID_WIDTH + 1)].map((_, i) => (
+              <line key={`v-${i}`} x1={i * CELL_SIZE} y1={0} x2={i * CELL_SIZE} y2={SVG_HEIGHT} stroke="#d1d5db" strokeWidth={1} />
+            ))}
+            {[...Array(GRID_HEIGHT + 1)].map((_, i) => (
+              <line key={`h-${i}`} x1={0} y1={i * CELL_SIZE} x2={SVG_WIDTH} y2={i * CELL_SIZE} stroke="#d1d5db" strokeWidth={1} />
+            ))}
 
-          {/* Clientes/Pedidos */}
-          {pedidosPendientes.map((pedido: PedidoConAsignacion) => {
-            //console.log('👤 MAPA: Renderizando cliente:', pedido.codigo, 'en posición:', pedido.coordenada);
-            const esResaltado = elementoResaltado?.tipo === 'pedido' && elementoResaltado?.id === pedido.codigo;
-            const estadoPedido = pedido.estadoPedido;
-            
-            // Colores según el estado del pedido
-            let colorTexto, colorVolumen, filtroIcono;
-            
-            switch (estadoPedido) {
-              case 'NO_ASIGNADO':
-                colorTexto = '#6b7280'; // Gris
-                colorVolumen = '#6b7280';
-                filtroIcono = 'grayscale(100%) brightness(0.7)';
-                break;
-              case 'EN_TRANSITO':
-                colorTexto = '#16a34a'; // Verde
-                colorVolumen = '#16a34a';
-                filtroIcono = 'none';
-                break;
-              case 'RETRASO':
-                colorTexto = '#dc2626'; // Rojo
-                colorVolumen = '#dc2626';
-                filtroIcono = 'none';
-                break;
-              case 'PENDIENTE':
-              default:
-                colorTexto = '#dc2626'; // Rojo
-                colorVolumen = '#dc2626';
-                filtroIcono = 'none';
-                break;
-            }
-            
-            return (
-              <g key={pedido.codigo}>
-                {/* Círculo de resaltado para pedidos */}
-                {esResaltado && (
-                  <circle
-                    key={`${pedido.codigo}-highlight`}
-                    cx={pedido.coordenada.x * CELL_SIZE}
-                    cy={pedido.coordenada.y * CELL_SIZE}
-                    r={25}
-                    fill="none"
-                    stroke="#f59e0b"
-                    strokeWidth={3}
-                    strokeDasharray="4 2"
-                    opacity={0.8}
-                  >
-                    <animate
-                      key={`${pedido.codigo}-animate-r`}
-                      attributeName="r"
-                      values="20;30;20"
-                      dur="2s"
-                      repeatCount="indefinite"
-                    />
-                  </circle>
-                )}
-                
-                {/* Icono del cliente con filtro según estado */}
-                <image
-                  key={`${pedido.codigo}-icon`}
-                  href={clienteIcon}
-                  x={pedido.coordenada.x * CELL_SIZE - 15}
-                  y={pedido.coordenada.y * CELL_SIZE - 15}
-                  width={30}
-                  height={30}
-                  style={{
-                    filter: filtroIcono
-                  }}
-                />
-                
-                {/* Etiqueta del código */}
-                <text
-                  key={`${pedido.codigo}-label`}
-                  x={pedido.coordenada.x * CELL_SIZE}
-                  y={pedido.coordenada.y * CELL_SIZE + 25}
-                  textAnchor="middle"
-                  fontSize="10"
-                  fill={colorTexto}
-                  fontWeight="bold"
-                  stroke="#fff"
-                  strokeWidth="0.5"
-                >
-                  {pedido.codigo}
-                </text>
-                
-                {/* Volumen GLP */}
-                <text
-                  key={`${pedido.codigo}-volume`}
-                  x={pedido.coordenada.x * CELL_SIZE}
-                  y={pedido.coordenada.y * CELL_SIZE + 37}
-                  textAnchor="middle"
-                  fontSize="8"
-                  fill={colorVolumen}
-                  fontWeight="bold"
-                  stroke="#fff"
-                  strokeWidth="0.5"
-                >
-                  {pedido.volumenGLPAsignado.toFixed(1)}m³
-                </text>
-              </g>
-            );
-          })}
+            {/* Bloqueos */}
+            {bloqueos && bloqueos.map((bloqueo, idx) => (
+              <polyline
+                key={`bloqueo-${idx}`}
+                fill="none"
+                stroke="#dc2626"
+                strokeWidth={BLOQUEO_STROKE_WIDTH}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                points={bloqueo.coordenadas.map(coord => `${coord.x * CELL_SIZE},${coord.y * CELL_SIZE}`).join(' ')}
+              />
+            ))}
 
-          {/* Almacenes */}
-          {almacenes.map(almacen => {
-            // console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
-            const esResaltado = elementoResaltado?.tipo === 'almacen' && elementoResaltado?.id === almacen.id;
-            
-            // Calcular porcentaje de GLP para el color
-            const porcentajeGLP = almacen.capacidadMaximaGLP > 0 
-              ? (almacen.capacidadActualGLP / almacen.capacidadMaximaGLP) * 100 
-              : 0;
-            
-            // Usar la función colorSemaforoGLP para obtener el color exacto
-            const colorAlmacen = colorSemaforoGLP(porcentajeGLP);
-            
-            return (
-              <g key={almacen.id} style={{ cursor: 'pointer' }}>
-                {/* Círculo de resaltado para almacenes */}
-                {esResaltado && (
-                  <circle
-                    cx={almacen.coordenada.x * CELL_SIZE}
-                    cy={almacen.coordenada.y * CELL_SIZE}
-                    r={30}
-                    fill="none"
-                    stroke="#10b981"
-                    strokeWidth={3}
-                    strokeDasharray="6 3"
-                    opacity={0.8}
-                  >
-                    <animate
-                      attributeName="r"
-                      values="25;35;25"
-                      dur="2s"
-                      repeatCount="indefinite"
-                    />
-                    <animate
-                      attributeName="opacity"
-                      values="0.6;1;0.6"
-                      dur="2s"
-                      repeatCount="indefinite"
-                    />
-                  </circle>
-                )}
-                
-                {/* Icono del almacén con color aplicado */}
-                <g
-                  transform={`translate(${almacen.coordenada.x * CELL_SIZE - 10}, ${almacen.coordenada.y * CELL_SIZE - 10})`}
-                  onMouseEnter={() => {
-                    // Solo mostrar tooltip si no hay modal activo
-                    if (!clickedAlmacen) {
-                      setTooltipAlmacen(almacen.nombre);
-                    }
-                  }}
-                  onMouseMove={() => {
-                    if (!clickedAlmacen && tooltipAlmacen === almacen.nombre) {
-                      // setTooltipAlmacenPos({ x: evt.clientX, y: evt.clientY }); // ELIMINADO
-                    }
-                  }}
-                  onMouseLeave={() => {
-                    setTooltipAlmacen(null);
-                  }}
-                  onClick={(evt) => {
-                    // Solo abrir el modal si no hay otro modal ya abierto
-                    if (!clickedAlmacen) {
-                      console.log('🖱️ Click en almacén:', almacen.nombre, 'en posición:', evt.clientX, evt.clientY);
-                      setClickedAlmacen(almacen.nombre);
-                      setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
-                      // Ocultar el tooltip de hover
-                      setTooltipAlmacen(null);
-                      
-                      // Activar el resaltado del almacén en el mapa
-                      if (onElementoSeleccionado) {
-                        console.log('🎯 MAPA: Activando resaltado de almacén (texto):', almacen.id);
-                        onElementoSeleccionado({ tipo: 'almacen', id: almacen.id });
-                      }
-                    }
-                  }}
-                >
-                  {/* Trapecio del almacén con el color del semáforo */}
-                  <polygon
-                    points="2,18 18,18 22,2 2,2"
-                    fill={colorAlmacen}
-                    stroke="black"
-                    strokeWidth="1"
+            {/* Clientes/Pedidos */}
+            {pedidosPendientes.map((pedido: PedidoConAsignacion) => {
+              //console.log('👤 MAPA: Renderizando cliente:', pedido.codigo, 'en posición:', pedido.coordenada);
+              const esResaltado = elementoResaltado?.tipo === 'pedido' && elementoResaltado?.id === pedido.codigo;
+              const estadoPedido = pedido.estadoPedido;
+              
+              // Colores según el estado del pedido
+              let colorTexto, colorVolumen, filtroIcono;
+              
+              switch (estadoPedido) {
+                case 'NO_ASIGNADO':
+                  colorTexto = '#6b7280'; // Gris
+                  colorVolumen = '#6b7280';
+                  filtroIcono = 'grayscale(100%) brightness(0.7)';
+                  break;
+                case 'EN_TRANSITO':
+                  colorTexto = '#16a34a'; // Verde
+                  colorVolumen = '#16a34a';
+                  filtroIcono = 'none';
+                  break;
+                case 'RETRASO':
+                  colorTexto = '#dc2626'; // Rojo
+                  colorVolumen = '#dc2626';
+                  filtroIcono = 'none';
+                  break;
+                case 'PENDIENTE':
+                default:
+                  colorTexto = '#dc2626'; // Rojo
+                  colorVolumen = '#dc2626';
+                  filtroIcono = 'none';
+                  break;
+              }
+              
+              return (
+                <g key={pedido.codigo}>
+                  {/* Círculo de resaltado para pedidos */}
+                  {esResaltado && (
+                    <circle
+                      key={`${pedido.codigo}-highlight`}
+                      cx={pedido.coordenada.x * CELL_SIZE}
+                      cy={pedido.coordenada.y * CELL_SIZE}
+                      r={25}
+                      fill="none"
+                      stroke="#f59e0b"
+                      strokeWidth={3}
+                      strokeDasharray="4 2"
+                      opacity={0.8}
+                    >
+                      <animate
+                        key={`${pedido.codigo}-animate-r`}
+                        attributeName="r"
+                        values="20;30;20"
+                        dur="2s"
+                        repeatCount="indefinite"
+                      />
+                    </circle>
+                  )}
+                  
+                  {/* Icono del cliente con filtro según estado */}
+                  <image
+                    key={`${pedido.codigo}-icon`}
+                    href={clienteIcon}
+                    x={pedido.coordenada.x * CELL_SIZE - 15}
+                    y={pedido.coordenada.y * CELL_SIZE - 15}
+                    width={30}
+                    height={30}
+                    style={{
+                      filter: filtroIcono
+                    }}
                   />
                   
-                  {/* Indicador del tipo de almacén (central o intermedio) */}
+                  {/* Etiqueta del código */}
                   <text
-                    x="12"
-                    y="12"
+                    key={`${pedido.codigo}-label`}
+                    x={pedido.coordenada.x * CELL_SIZE}
+                    y={pedido.coordenada.y * CELL_SIZE + 25}
                     textAnchor="middle"
                     fontSize="10"
-                    fill="white"
+                    fill={colorTexto}
                     fontWeight="bold"
-                    stroke="black"
-                    strokeWidth="0.3"
+                    stroke="#fff"
+                    strokeWidth="0.5"
                   >
-                    {almacen.tipo === 'CENTRAL' ? 'C' : 'I'}
+                    {pedido.codigo}
+                  </text>
+                  
+                  {/* Volumen GLP */}
+                  <text
+                    key={`${pedido.codigo}-volume`}
+                    x={pedido.coordenada.x * CELL_SIZE}
+                    y={pedido.coordenada.y * CELL_SIZE + 37}
+                    textAnchor="middle"
+                    fontSize="8"
+                    fill={colorVolumen}
+                    fontWeight="bold"
+                    stroke="#fff"
+                    strokeWidth="0.5"
+                  >
+                    {pedido.volumenGLPAsignado.toFixed(1)}m³
                   </text>
                 </g>
-                
-                <text
-                  x={almacen.coordenada.x * CELL_SIZE}
-                  y={almacen.coordenada.y * CELL_SIZE + 30}
-                  textAnchor="middle"
-                  fontSize="12"
-                  fill={almacen.tipo === 'CENTRAL' ? '#2563eb' : '#16a34a'}
-                  fontWeight="bold"
-                  stroke="#fff"
-                  strokeWidth="0.5"
-                  onClick={evt => {
-                    if (!clickedAlmacen) {
-                      setClickedAlmacen(almacen.nombre);
-                      setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
-                      
-                      // Activar el resaltado del almacén en el mapa
-                      if (onElementoSeleccionado) {
-                        onElementoSeleccionado({ tipo: 'almacen', id: almacen.id });
+              );
+            })}
+
+            {/* Almacenes */}
+            {almacenes.map(almacen => {
+              // console.log('🏪 MAPA: Renderizando almacén:', almacen.nombre, 'en posición:', almacen.coordenada);
+              const esResaltado = elementoResaltado?.tipo === 'almacen' && elementoResaltado?.id === almacen.id;
+              
+              // Calcular porcentaje de GLP para el color
+              const porcentajeGLP = almacen.capacidadMaximaGLP > 0 
+                ? (almacen.capacidadActualGLP / almacen.capacidadMaximaGLP) * 100 
+                : 0;
+              
+              // Usar la función colorSemaforoGLP para obtener el color exacto
+              const colorAlmacen = colorSemaforoGLP(porcentajeGLP);
+              
+              return (
+                <g key={almacen.id} style={{ cursor: 'pointer' }}>
+                  {/* Círculo de resaltado para almacenes */}
+                  {esResaltado && (
+                    <circle
+                      cx={almacen.coordenada.x * CELL_SIZE}
+                      cy={almacen.coordenada.y * CELL_SIZE}
+                      r={30}
+                      fill="none"
+                      stroke="#10b981"
+                      strokeWidth={3}
+                      strokeDasharray="6 3"
+                      opacity={0.8}
+                    >
+                      <animate
+                        attributeName="r"
+                        values="25;35;25"
+                        dur="2s"
+                        repeatCount="indefinite"
+                      />
+                      <animate
+                        attributeName="opacity"
+                        values="0.6;1;0.6"
+                        dur="2s"
+                        repeatCount="indefinite"
+                      />
+                    </circle>
+                  )}
+                  
+                  {/* Icono del almacén con color aplicado */}
+                  <g
+                    transform={`translate(${almacen.coordenada.x * CELL_SIZE - 10}, ${almacen.coordenada.y * CELL_SIZE - 10})`}
+                    onMouseEnter={() => {
+                      // Solo mostrar tooltip si no hay modal activo
+                      if (!clickedAlmacen) {
+                        setTooltipAlmacen(almacen.nombre);
                       }
-                    }
-                  }}
-                >
-                  {almacen.nombre}
-                </text>
-              </g>
-            );
-          })}
-
-          {/* Rutas de camiones normales (primero para que estén por debajo) */}
-          {camionesVisuales
-            .filter(camion => {
-              const estadoCamion = camiones.find(c => c.id === camion.id);
-              const esResaltado = elementoResaltado?.tipo === 'camion' && elementoResaltado?.id === camion.id;
-              return estadoCamion?.estado !== 'Averiado' && 
-                     estadoCamion?.estado !== 'En Mantenimiento por Avería' && 
-                     camion.ruta.length > 1 &&
-                     !esResaltado; // Solo rutas normales (no resaltadas)
-            })
-            .map((camion) => {
-              const estadoCamion = camiones.find(c => c.id === camion.id);
-              
-              // Ruta normal con color según GLP
-              const tieneGLP = estadoCamion && typeof estadoCamion.capacidadActualGLP === 'number' && typeof estadoCamion.capacidadMaximaGLP === 'number' && estadoCamion.capacidadMaximaGLP > 0;
-              const colorRuta = tieneGLP
-                ? colorSemaforoGLP(
-                    (estadoCamion.capacidadActualGLP! / estadoCamion.capacidadMaximaGLP!) * 100,
-                    estadoCamion.estado === 'Disponible' && estadoCamion.capacidadActualGLP === estadoCamion.capacidadMaximaGLP
-                  )
-                : '#3b82f6'; // Azul por defecto
-              
-              return (
-                <polyline
-                  key={`ruta-normal-${camion.id}`}
-                  fill="none"
-                  stroke={colorRuta}
-                  strokeWidth={2}
-                  strokeDasharray="4 2"
-                  points={camion.ruta.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
-                />
+                    }}
+                    onMouseMove={() => {
+                      if (!clickedAlmacen && tooltipAlmacen === almacen.nombre) {
+                        // setTooltipAlmacenPos({ x: evt.clientX, y: evt.clientY }); // ELIMINADO
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      setTooltipAlmacen(null);
+                    }}
+                    onClick={(evt) => {
+                      // Solo abrir el modal si no hay otro modal ya abierto
+                      if (!clickedAlmacen) {
+                        console.log('🖱️ Click en almacén:', almacen.nombre, 'en posición:', evt.clientX, evt.clientY);
+                        setClickedAlmacen(almacen.nombre);
+                        setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
+                        // Ocultar el tooltip de hover
+                        setTooltipAlmacen(null);
+                        
+                        // Activar el resaltado del almacén en el mapa
+                        if (onElementoSeleccionado) {
+                          console.log('🎯 MAPA: Activando resaltado de almacén (texto):', almacen.id);
+                          onElementoSeleccionado({ tipo: 'almacen', id: almacen.id });
+                        }
+                      }
+                    }}
+                  >
+                    {/* Trapecio del almacén con el color del semáforo */}
+                    <polygon
+                      points="2,18 18,18 22,2 2,2"
+                      fill={colorAlmacen}
+                      stroke="black"
+                      strokeWidth="1"
+                    />
+                    
+                    {/* Indicador del tipo de almacén (central o intermedio) */}
+                    <text
+                      x="12"
+                      y="12"
+                      textAnchor="middle"
+                      fontSize="10"
+                      fill="white"
+                      fontWeight="bold"
+                      stroke="black"
+                      strokeWidth="0.3"
+                    >
+                      {almacen.tipo === 'CENTRAL' ? 'C' : 'I'}
+                    </text>
+                  </g>
+                  
+                  <text
+                    x={almacen.coordenada.x * CELL_SIZE}
+                    y={almacen.coordenada.y * CELL_SIZE + 30}
+                    textAnchor="middle"
+                    fontSize="12"
+                    fill={almacen.tipo === 'CENTRAL' ? '#2563eb' : '#16a34a'}
+                    fontWeight="bold"
+                    stroke="#fff"
+                    strokeWidth="0.5"
+                    onClick={evt => {
+                      if (!clickedAlmacen) {
+                        setClickedAlmacen(almacen.nombre);
+                        setClickedAlmacenPos({ x: evt.clientX, y: evt.clientY });
+                        
+                        // Activar el resaltado del almacén en el mapa
+                        if (onElementoSeleccionado) {
+                          onElementoSeleccionado({ tipo: 'almacen', id: almacen.id });
+                        }
+                      }
+                    }}
+                  >
+                    {almacen.nombre}
+                  </text>
+                </g>
               );
             })}
 
-          {/* Rutas de camiones seleccionados (después para que estén por encima) */}
-          {camionesVisuales
-            .filter(camion => {
-              const estadoCamion = camiones.find(c => c.id === camion.id);
-              const esResaltado = elementoResaltado?.tipo === 'camion' && elementoResaltado?.id === camion.id;
-              return estadoCamion?.estado !== 'Averiado' && 
-                     estadoCamion?.estado !== 'En Mantenimiento por Avería' && 
-                     camion.ruta.length > 1 &&
-                     esResaltado; // Solo rutas de camiones seleccionados
-            })
-            .map((camion) => {
-              const estadoCamion = camiones.find(c => c.id === camion.id);
-              // Obtener la ruta completa del camión desde rutasCamiones
-              const rutaCompleta = rutasCamiones.find(r => r.id === camion.id);
-              let rutaAMostrar = camion.ruta;
-              
-              if (rutaCompleta && rutaCompleta.ruta.length > 1) {
-                const rutaCoordsCompleta = rutaCompleta.ruta
-                  .filter(nodo => nodo && typeof nodo === 'string')
-                  .map(parseCoord);
+            {/* Rutas de camiones normales (primero para que estén por debajo) */}
+            {camionesVisuales
+              .filter(camion => {
+                const estadoCamion = camiones.find(c => c.id === camion.id);
+                const esResaltado = elementoResaltado?.tipo === 'camion' && elementoResaltado?.id === camion.id;
+                return estadoCamion?.estado !== 'Averiado' && 
+                       estadoCamion?.estado !== 'En Mantenimiento por Avería' && 
+                       camion.ruta.length > 1 &&
+                       !esResaltado; // Solo rutas normales (no resaltadas)
+              })
+              .map((camion) => {
+                const estadoCamion = camiones.find(c => c.id === camion.id);
                 
-                // Calcular qué parte de la ruta mostrar basándose en el progreso del camión
-                const porcentaje = estadoCamion ? estadoCamion.porcentaje : 0;
-                const indiceInicio = Math.ceil(porcentaje);
+                // Ruta normal con color según GLP
+                const tieneGLP = estadoCamion && typeof estadoCamion.capacidadActualGLP === 'number' && typeof estadoCamion.capacidadMaximaGLP === 'number' && estadoCamion.capacidadMaximaGLP > 0;
+                const colorRuta = tieneGLP
+                  ? colorSemaforoGLP(
+                      (estadoCamion.capacidadActualGLP! / estadoCamion.capacidadMaximaGLP!) * 100,
+                      estadoCamion.estado === 'Disponible' && estadoCamion.capacidadActualGLP === estadoCamion.capacidadMaximaGLP
+                    )
+                  : '#3b82f6'; // Azul por defecto
                 
-                // Mostrar solo la parte de la ruta que aún no ha sido recorrida
-                rutaAMostrar = rutaCoordsCompleta.slice(indiceInicio);
-              }
-              
-              return (
-                <polyline
-                  key={`ruta-seleccionada-${camion.id}`}
-                  fill="none"
-                  stroke="#000000"
-                  strokeWidth={2}
-                  strokeDasharray="none"
-                  points={rutaAMostrar.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
-                />
-              );
-            })}
+                return (
+                  <polyline
+                    key={`ruta-normal-${camion.id}`}
+                    fill="none"
+                    stroke={colorRuta}
+                    strokeWidth={2}
+                    strokeDasharray="4 2"
+                    points={camion.ruta.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
+                  />
+                );
+              })}
 
-          {/* Camiones */}
-          {camionesVisuales
-            .filter(camion => {
-              const estadoCamion = camiones.find(c => c.id === camion.id);
-              // Ocultar camiones en mantenimiento por avería
-              if (estadoCamion?.estado === 'En Mantenimiento por Avería') {
-                return false;
-              }
-              
-              // Ocultar camiones que están en el almacén central (12,8) y tienen estado "Disponible"
-              if (estadoCamion?.estado === 'Disponible' && camion.posicion.x === 12 && camion.posicion.y === 8) {
-                return false;
-              }
-              
-              return true;
-            })
-            .map((camion) => {
-               const estadoCamion = camiones.find(c => c.id === camion.id);
-               const esAveriado = estadoCamion?.estado === 'Averiado';
-               const esEnMantenimiento = estadoCamion?.estado === 'En Mantenimiento';
-               const esEnMantenimientoPreventivo = estadoCamion?.estado === 'En Mantenimiento Preventivo';
-               const esResaltado = elementoResaltado?.tipo === 'camion' && elementoResaltado?.id === camion.id;
-               const { posicion, rotacion } = camion;
-               const tieneGLP = estadoCamion && typeof estadoCamion.capacidadActualGLP === 'number' && typeof estadoCamion.capacidadMaximaGLP === 'number' && estadoCamion.capacidadMaximaGLP > 0;
-               const colorFinal = esAveriado ? ESTADO_COLORS.AVERIADO : 
-                                 esEnMantenimiento ? ESTADO_COLORS.MANTENIMIENTO : 
-                                 esEnMantenimientoPreventivo ? ESTADO_COLORS.MANTENIMIENTO_PREVENTIVO : 
-                                 (tieneGLP
-                                   ? colorSemaforoGLP(
-                                       (estadoCamion.capacidadActualGLP! / estadoCamion.capacidadMaximaGLP!) * 100,
-                                       estadoCamion.estado === 'Disponible' && estadoCamion.capacidadActualGLP === estadoCamion.capacidadMaximaGLP
-                                     )
-                                   : '#3b82f6'); // Azul por defecto si no hay datos
-               const cx = posicion.x * CELL_SIZE;
-               const cy = posicion.y * CELL_SIZE;
-               return (
-                 <g key={`camion-${camion.id}`}>
-                   <g
-                     transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
-                     style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}
+            {/* Rutas de camiones seleccionados (después para que estén por encima) */}
+            {camionesVisuales
+              .filter(camion => {
+                const estadoCamion = camiones.find(c => c.id === camion.id);
+                const esResaltado = elementoResaltado?.tipo === 'camion' && elementoResaltado?.id === camion.id;
+                return estadoCamion?.estado !== 'Averiado' && 
+                       estadoCamion?.estado !== 'En Mantenimiento por Avería' && 
+                       camion.ruta.length > 1 &&
+                       esResaltado; // Solo rutas de camiones seleccionados
+              })
+              .map((camion) => {
+                const estadoCamion = camiones.find(c => c.id === camion.id);
+                // Obtener la ruta completa del camión desde rutasCamiones
+                const rutaCompleta = rutasCamiones.find(r => r.id === camion.id);
+                let rutaAMostrar = camion.ruta;
+                
+                if (rutaCompleta && rutaCompleta.ruta.length > 1) {
+                  const rutaCoordsCompleta = rutaCompleta.ruta
+                    .filter(nodo => nodo && typeof nodo === 'string')
+                    .map(parseCoord);
+                  
+                  // Calcular qué parte de la ruta mostrar basándose en el progreso del camión
+                  const porcentaje = estadoCamion ? estadoCamion.porcentaje : 0;
+                  const indiceInicio = Math.ceil(porcentaje);
+                  
+                  // Mostrar solo la parte de la ruta que aún no ha sido recorrida
+                  rutaAMostrar = rutaCoordsCompleta.slice(indiceInicio);
+                }
+                
+                return (
+                  <polyline
+                    key={`ruta-seleccionada-${camion.id}`}
+                    fill="none"
+                    stroke="#000000"
+                    strokeWidth={2}
+                    strokeDasharray="none"
+                    points={rutaAMostrar.map((p: Coordenada) => `${p.x * CELL_SIZE},${p.y * CELL_SIZE}`).join(' ')}
+                  />
+                );
+              })}
 
-                     onClick={() => {
-                       // Solo abrir el modal si no hay otro modal ya abierto
-                       if (!clickedCamion) {
-                         setClickedCamion(camion.id);
-                         // setClickedPos({ x: evt.clientX, y: evt.clientY }); // ELIMINADO
+            {/* Camiones */}
+            {camionesVisuales
+              .filter(camion => {
+                const estadoCamion = camiones.find(c => c.id === camion.id);
+                // Ocultar camiones en mantenimiento por avería
+                if (estadoCamion?.estado === 'En Mantenimiento por Avería') {
+                  return false;
+                }
+                
+                // Ocultar camiones que están en el almacén central (12,8) y tienen estado "Disponible"
+                if (estadoCamion?.estado === 'Disponible' && camion.posicion.x === 12 && camion.posicion.y === 8) {
+                  return false;
+                }
+                
+                return true;
+              })
+              .map((camion) => {
+                 const estadoCamion = camiones.find(c => c.id === camion.id);
+                 const esAveriado = estadoCamion?.estado === 'Averiado';
+                 const esEnMantenimiento = estadoCamion?.estado === 'En Mantenimiento';
+                 const esEnMantenimientoPreventivo = estadoCamion?.estado === 'En Mantenimiento Preventivo';
+                 const esResaltado = elementoResaltado?.tipo === 'camion' && elementoResaltado?.id === camion.id;
+                 const { posicion, rotacion } = camion;
+                 const tieneGLP = estadoCamion && typeof estadoCamion.capacidadActualGLP === 'number' && typeof estadoCamion.capacidadMaximaGLP === 'number' && estadoCamion.capacidadMaximaGLP > 0;
+                 const colorFinal = esAveriado ? ESTADO_COLORS.AVERIADO : 
+                                   esEnMantenimiento ? ESTADO_COLORS.MANTENIMIENTO : 
+                                   esEnMantenimientoPreventivo ? ESTADO_COLORS.MANTENIMIENTO_PREVENTIVO : 
+                                   (tieneGLP
+                                     ? colorSemaforoGLP(
+                                         (estadoCamion.capacidadActualGLP! / estadoCamion.capacidadMaximaGLP!) * 100,
+                                         estadoCamion.estado === 'Disponible' && estadoCamion.capacidadActualGLP === estadoCamion.capacidadMaximaGLP
+                                       )
+                                     : '#3b82f6'); // Azul por defecto si no hay datos
+                 const cx = posicion.x * CELL_SIZE;
+                 const cy = posicion.y * CELL_SIZE;
+                 return (
+                   <g key={`camion-${camion.id}`}>
+                     <g
+                       transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
+                       style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}
 
-                         
-                         // Activar el resaltado del camión en el mapa
-                         if (onElementoSeleccionado) {
-                           console.log('🎯 MAPA: Activando resaltado de camión:', camion.id);
-                           onElementoSeleccionado({ tipo: 'camion', id: camion.id });
+                       onClick={() => {
+                         // Solo abrir el modal si no hay otro modal ya abierto
+                         if (!clickedCamion) {
+                           setClickedCamion(camion.id);
+                           // setClickedPos({ x: evt.clientX, y: evt.clientY }); // ELIMINADO
+
+                           
+                           // Activar el resaltado del camión en el mapa
+                           if (onElementoSeleccionado) {
+                             console.log('🎯 MAPA: Activando resaltado de camión:', camion.id);
+                             onElementoSeleccionado({ tipo: 'camion', id: camion.id });
+                           }
                          }
-                       }
-                     }}
-                   >
-                     {/* Círculo de resaltado que se mueve con el camión */}
-                     {esResaltado && (
-                       <circle
-                         key={`resaltado-${camion.id}`}
-                         cx={0}
-                         cy={0}
-                         r={25}
-                         fill="none"
-                         stroke="#f59e0b"
-                         strokeWidth={3}
-                         strokeDasharray="8 4"
-                         opacity={0.9}
-                         style={{ transition: 'all 0.8s linear' }}
-                       >
-                         <animateTransform
-                           attributeName="transform"
-                           type="rotate"
-                           values="0 0 0;360 0 0"
-                           dur="4s"
-                           repeatCount="indefinite"
-                         />
-                         <animate
-                           attributeName="opacity"
-                           values="0.7;1;0.7"
-                           dur="1.5s"
-                           repeatCount="indefinite"
-                         />
-                       </circle>
-                     )}
-                     
-                     {/* Cuerpo principal del camión */}
-                     <rect key={`cuerpo-${camion.id}`} x={-8} y={-3} width={16} height={6} rx={1} fill={colorFinal} stroke="black" strokeWidth={0.5} />
-                     
-                     {/* Cabina del camión (frente) */}
-                     <rect key={`cabina-${camion.id}`} x={6} y={-2} width={4} height={4} rx={0.5} fill={colorFinal} stroke="black" strokeWidth={0.5} />
-                     
-                     {/* Ruedas */}
-                     <circle key={`rueda1-${camion.id}`} cx={-5} cy={4} r={1.5} fill="black" />
-                     <circle key={`rueda2-${camion.id}`} cx={2} cy={4} r={1.5} fill="black" />
-                     <circle key={`rueda3-${camion.id}`} cx={7} cy={4} r={1.5} fill="black" />
-                     
-                     {/* Indicador de dirección (flecha) */}
-                     <polygon 
-                       key={`flecha-${camion.id}`}
-                       points="10,0 8,-1.5 8,1.5" 
-                       fill="white" 
-                       stroke="black" 
-                       strokeWidth={0.3}
-                     />
-                     
-                     {/* Líneas de detalle del camión */}
-                     <line key={`linea1-${camion.id}`} x1={-6} y1={-1} x2={4} y2={-1} stroke="black" strokeWidth={0.3} opacity={0.6} />
-                     <line key={`linea2-${camion.id}`} x1={-6} y1={1} x2={4} y2={1} stroke="black" strokeWidth={0.3} opacity={0.6} />
-                     
-                     {esAveriado && (
-                       <text key={`averia-${camion.id}`} x={0} y={-10} textAnchor="middle" fontSize="8" fill="#dc2626" fontWeight="bold">
-                         💥
-                       </text>
-                     )}
-                     
+                       }}
+                     >
+                       {/* Círculo de resaltado que se mueve con el camión */}
+                       {esResaltado && (
+                         <circle
+                           key={`resaltado-${camion.id}`}
+                           cx={0}
+                           cy={0}
+                           r={25}
+                           fill="none"
+                           stroke="#f59e0b"
+                           strokeWidth={3}
+                           strokeDasharray="8 4"
+                           opacity={0.9}
+                           style={{ transition: 'all 0.8s linear' }}
+                         >
+                           <animateTransform
+                             attributeName="transform"
+                             type="rotate"
+                             values="0 0 0;360 0 0"
+                             dur="4s"
+                             repeatCount="indefinite"
+                           />
+                           <animate
+                             attributeName="opacity"
+                             values="0.7;1;0.7"
+                             dur="1.5s"
+                             repeatCount="indefinite"
+                           />
+                         </circle>
+                       )}
+                       
+                       {/* Cuerpo principal del camión */}
+                       <rect key={`cuerpo-${camion.id}`} x={-8} y={-3} width={16} height={6} rx={1} fill={colorFinal} stroke="black" strokeWidth={0.5} />
+                       
+                       {/* Cabina del camión (frente) */}
+                       <rect key={`cabina-${camion.id}`} x={6} y={-2} width={4} height={4} rx={0.5} fill={colorFinal} stroke="black" strokeWidth={0.5} />
+                       
+                       {/* Ruedas */}
+                       <circle key={`rueda1-${camion.id}`} cx={-5} cy={4} r={1.5} fill="black" />
+                       <circle key={`rueda2-${camion.id}`} cx={2} cy={4} r={1.5} fill="black" />
+                       <circle key={`rueda3-${camion.id}`} cx={7} cy={4} r={1.5} fill="black" />
+                       
+                       {/* Indicador de dirección (flecha) */}
+                       <polygon 
+                         key={`flecha-${camion.id}`}
+                         points="10,0 8,-1.5 8,1.5" 
+                         fill="white" 
+                         stroke="black" 
+                         strokeWidth={0.3}
+                       />
+                       
+                       {/* Líneas de detalle del camión */}
+                       <line key={`linea1-${camion.id}`} x1={-6} y1={-1} x2={4} y2={-1} stroke="black" strokeWidth={0.3} opacity={0.6} />
+                       <line key={`linea2-${camion.id}`} x1={-6} y1={1} x2={4} y2={1} stroke="black" strokeWidth={0.3} opacity={0.6} />
+                       
+                       {esAveriado && (
+                         <text key={`averia-${camion.id}`} x={0} y={-10} textAnchor="middle" fontSize="8" fill="#dc2626" fontWeight="bold">
+                           💥
+                         </text>
+                       )}
+                       
 
+                     </g>
                    </g>
-                 </g>
-               );
-            })}
-        </svg>
+                 );
+              })}
+            </svg>
+          </div>
         </div>
       </div>
 
       {/* Modal para almacén (click) */}
       {clickedAlmacen && clickedAlmacenPos && (
         (() => {
-          console.log('🔍 Renderizando modal de almacén:', clickedAlmacen, 'en posición:', clickedAlmacenPos);
+          console.log('�� Renderizando modal de almacén:', clickedAlmacen, 'en posición:', clickedAlmacenPos);
           const almacen = almacenes.find(a => a.nombre === clickedAlmacen);
           
           if (!almacen) {
@@ -1212,68 +1214,70 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
       )}
 
       {/* Controles de simulación debajo del mapa */}
-      <div className="flex items-center gap-4 mt-2 justify-center w-full">
-        <button
-          onClick={() => {
-            if (!running) {
-              // Solo iniciar el contador cuando se presiona "Iniciar" por primera vez
-              iniciarContadorTiempo();
-            }
-            setRunning(prev => !prev);
-          }}
-          className={`px-4 py-1 rounded text-white ${
-            !simulacionActiva && running 
-              ? 'bg-yellow-500 hover:bg-yellow-600' 
-              : 'bg-blue-500 hover:bg-blue-600'
-          }`}
-        >
-          {!simulacionActiva && running 
-            ? 'Pausado (Avería)' 
-            : running 
-              ? 'Pausar' 
-              : 'Iniciar'
-          }
-        </button>
-        {/* Botón de control de velocidad y de iniciar solo si corresponde */}
-        {tipoSimulacion !== 'SEMANAL' && (
+      {controlesSimulacionHabilitados && (
+        <div className="flex items-center gap-4 mt-2 justify-center w-full">
           <button
-            onClick={() => setMostrarControlVelocidad(!mostrarControlVelocidad)}
-            className="px-4 py-1 rounded text-white bg-green-500 hover:bg-green-600"
-          >
-            {mostrarControlVelocidad ? '⚡ Ocultar Control' : '⚡ Control Velocidad'}
-          </button>
-        )}
-        {/* Control de velocidad */}
-        {tipoSimulacion !== 'SEMANAL' && mostrarControlVelocidad && (
-          <ControlVelocidad
-            camiones={camiones}
-            segundosPorNodo={segundosPorNodo}
-            onSegundosPorNodoChange={setSegundosPorNodo}
-            onIntervaloChange={setIntervalo}
-            intervaloActual={intervalo}
-            tipoSimulacion={tipoSimulacion}
-          />
-        )}
-        <label className="flex items-center gap-1 text-sm">
-          Segundos por nodo:
-          <input
-            type="number"
-            min={0.1}
-            max={100}
-            step={0.1}
-            value={segundosPorNodo}
-            onChange={e => setSegundosPorNodo(parseFloat(e.target.value))}
-            className={`border rounded px-2 py-0.5 w-20 ${
-              tipoSimulacion !== 'DIARIA' ? 'bg-gray-100 cursor-not-allowed' : ''
+            onClick={() => {
+              if (!running) {
+                // Solo iniciar el contador cuando se presiona "Iniciar" por primera vez
+                iniciarContadorTiempo();
+              }
+              setRunning(prev => !prev);
+            }}
+            className={`px-4 py-1 rounded text-white ${
+              !simulacionActiva && running 
+                ? 'bg-yellow-500 hover:bg-yellow-600' 
+                : 'bg-blue-500 hover:bg-blue-600'
             }`}
-            disabled={tipoSimulacion !== 'DIARIA'}
-          />
-          s
-        </label>
-        <label className="flex items-center gap-1 text-sm text-gray-600">
-          Intervalo: {intervalo}ms
-        </label>
-      </div>
+          >
+            {!simulacionActiva && running 
+              ? 'Pausado (Avería)' 
+              : running 
+                ? 'Pausar' 
+                : 'Iniciar'
+            }
+          </button>
+          {/* Botón de control de velocidad y de iniciar solo si corresponde */}
+          {tipoSimulacion !== 'SEMANAL' && (
+            <button
+              onClick={() => setMostrarControlVelocidad(!mostrarControlVelocidad)}
+              className="px-4 py-1 rounded text-white bg-green-500 hover:bg-green-600"
+            >
+              {mostrarControlVelocidad ? '⚡ Ocultar Control' : '⚡ Control Velocidad'}
+            </button>
+          )}
+          {/* Control de velocidad */}
+          {tipoSimulacion !== 'SEMANAL' && mostrarControlVelocidad && (
+            <ControlVelocidad
+              camiones={camiones}
+              segundosPorNodo={segundosPorNodo}
+              onSegundosPorNodoChange={setSegundosPorNodo}
+              onIntervaloChange={setIntervalo}
+              intervaloActual={intervalo}
+              tipoSimulacion={tipoSimulacion}
+            />
+          )}
+          <label className="flex items-center gap-1 text-sm">
+            Segundos por nodo:
+            <input
+              type="number"
+              min={0.1}
+              max={100}
+              step={0.1}
+              value={segundosPorNodo}
+              onChange={e => setSegundosPorNodo(parseFloat(e.target.value))}
+              className={`border rounded px-2 py-0.5 w-20 ${
+                tipoSimulacion !== 'DIARIA' ? 'bg-gray-100 cursor-not-allowed' : ''
+              }`}
+              disabled={tipoSimulacion !== 'DIARIA'}
+            />
+            s
+          </label>
+          <label className="flex items-center gap-1 text-sm text-gray-600">
+            Intervalo: {intervalo}ms
+          </label>
+        </div>
+      )}
     </div>
   );
 };
