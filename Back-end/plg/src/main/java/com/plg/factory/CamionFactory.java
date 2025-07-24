@@ -1,6 +1,5 @@
 package com.plg.factory;
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,17 +10,26 @@ import com.plg.entity.Coordenada;
 import com.plg.entity.EstadoCamion;
 import com.plg.entity.TipoCamion;
 import com.plg.entity.TipoNodo;
+import com.plg.utils.Parametros;
 
 /**
  * Patrón fábrica para crear camiones operativos y averiados.
  */
 public class CamionFactory {
 
-    public static final List<Camion> camiones = new ArrayList<>();
+    private static final List<Camion> camiones = new ArrayList<>();
     private static final Map<TipoCamion, Integer> contadorCamiones = new HashMap<>();
 
     static {
         // Inicializamos el contador para cada tipo de camión
+        for (TipoCamion tipo : TipoCamion.values()) {
+            contadorCamiones.put(tipo, 0);
+        }
+    }
+
+    public static void limpiarFactory() {
+        camiones.clear();
+        contadorCamiones.clear();
         for (TipoCamion tipo : TipoCamion.values()) {
             contadorCamiones.put(tipo, 0);
         }
@@ -58,13 +66,13 @@ public class CamionFactory {
                 .pesoCombinado(tara + pesoCarga)
                 .combustibleActual(combustibleInicial)
                 .combustibleMaximo(25)
-                .velocidadPromedio(50.0)
+                .velocidadPromedio(Parametros.velocidadCamion)
                 .estado(EstadoCamion.DISPONIBLE)
                 .coordenada(coordenada)
                 .bloqueado(false)
                 .gScore(0)
                 .fScore(0)
-                .tipoNodo(TipoNodo.NORMAL)
+                .tipoNodo(TipoNodo.CAMION)
                 .build();
     }
 
@@ -95,7 +103,7 @@ public class CamionFactory {
                 .pesoCarga(pesoCarga)
                 .pesoCombinado(tara + pesoCarga)
                 .combustibleActual(0)
-                .velocidadPromedio(50.0)
+                .velocidadPromedio(Parametros.velocidadCamion)
                 .estado(EstadoCamion.INMOVILIZADO_POR_AVERIA)
                 .coordenada(coordenada)
                 .bloqueado(false)
@@ -116,10 +124,10 @@ public class CamionFactory {
     public static Camion crearCamionesPorTipo(TipoCamion tipo, boolean operativo, Coordenada coordenada) {
         double tara, capacidadGLP, pesoCarga = 0.0;
         switch (tipo) {
-            case TA: tara = 2.5; capacidadGLP = 200.0; pesoCarga = 12.5; break;
-            case TB: tara = 2.0; capacidadGLP = 200.0; pesoCarga = 7.5; break;
-            case TC: tara = 1.5; capacidadGLP = 200.0; pesoCarga = 5; break;
-            case TD: tara = 1.0; capacidadGLP = 200.0; pesoCarga = 2.5; break;
+            case TA: tara = 2.5; capacidadGLP = 25; pesoCarga = 12.5; break;
+            case TB: tara = 2.0; capacidadGLP = 15; pesoCarga = 7.5; break;
+            case TC: tara = 1.5; capacidadGLP = 10; pesoCarga = 5; break;
+            case TD: tara = 1.0; capacidadGLP = 5; pesoCarga = 2.5; break;
             default: throw new IllegalArgumentException("Tipo de camión no válido: " + tipo);
         }
 
@@ -131,7 +139,7 @@ public class CamionFactory {
         if (operativo) {
             Camion camion = crearCamionOperativo(codigo, tipo, capacidadGLP, tara, coordenada, 25.0, pesoCarga);
             camion.calcularDistanciaMaxima(); // Calculamos la distancia máxima
-            camiones.add(camion); // Agregamos el camión operativo a la lista
+            camiones.add(camion);
             return camion;
         } else {
             return crearCamionAveriado(codigo, tipo, capacidadGLP, tara, coordenada, pesoCarga);
@@ -163,4 +171,5 @@ public class CamionFactory {
                 .orElse(null);
                 
     }
+
 }

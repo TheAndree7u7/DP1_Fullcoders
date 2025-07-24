@@ -5,72 +5,143 @@
  * el estado de los camiones y sus rutas, y la sincronización con el backend.
  */
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { getMejorIndividuo } from '../services/simulacionApiService';
-import { getAlmacenes, type Almacen } from '../services/almacenApiService';
-import type { Individuo, Pedido } from '../types';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import type { Almacen, Gen, Nodo, Pedido } from "../types";
+
+// ============================
+// IMPORTACIONES DE TIPOS Y CONSTANTES
+// ============================
+
+// Importar constantes
+import {
+  HORA_INICIAL,
+  HORA_PRIMERA_ACTUALIZACION,
+  NODOS_PARA_ACTUALIZACION,
+  SEGUNDOS_POR_NODO,
+} from "./simulacion";
+
+// Importar tipos
+import type {
+  SimulacionContextType,
+  CamionEstado,
+  RutaCamion,
+  Bloqueo,
+  IndividuoConBloqueos,
+} from "./simulacion";
+
+// Re-exportar tipos para uso en otros archivos
+export type { CamionEstado, RutaCamion } from "./simulacion";
+
+// ============================
+// IMPORTACIONES DE MÓDULOS REFACTORIZADOS
+// ============================
+
+// Importar módulos de datos
+import {
+  cargarDatos,
+  cargarSolucionAnticipada,
+  reiniciarSimulacionBackend,
+} from "./simulacion/dataManager";
+
+// Importar módulos de lógica de camiones
+import {
+  marcarCamionAveriado as marcarCamionAveriadoUtil,
+} from "./simulacion/camionLogic";
+
+// Importar módulos de polling
+import {
+  ejecutarPollingPrimerPaquete,
+} from "./simulacion/pollingManager";
+
+// Importar módulos de gestión de estado
+import {
+  limpiarEstadoParaNuevaSimulacion as limpiarEstadoParaNuevaSimulacionUtil,
+  limpiarSimulacionCompleta as limpiarSimulacionCompletaUtil,
+} from "./simulacion/stateManager";
+
+// Importar módulos de avance de hora
+import {
+  avanzarHora as avanzarHoraUtil,
+} from "./simulacion/avanceHora";
+
+// Importar utilidades existentes
+import {
+  pausarSimulacion as pausarSimulacionUtil,
+  reanudarSimulacion as reanudarSimulacionUtil,
+  iniciarContadorTiempo as iniciarContadorTiempoUtil,
+} from "./simulacion/utils";
+
+// Importar utilidades de validación
+import { esValorValido } from "../utils/validacionCamiones";
+
+// ============================
+// FUNCIONES AUXILIARES
+// ============================
 
 /**
- * Constantes de configuración de la simulación
+ * @function mapearEstadoBackendAFrontend
+ * @description Mapea los estados del backend a los estados del frontend
  */
-const HORA_INICIAL = 0;
-const HORA_PRIMERA_ACTUALIZACION = 1;
-const NODOS_PARA_ACTUALIZACION = 25;
-const INCREMENTO_PORCENTAJE = 1;
+const mapearEstadoBackendAFrontend = (estadoBackend: string | undefined): "Disponible" | "Averiado" | "En Mantenimiento" | "En Mantenimiento Preventivo" | "En Mantenimiento por Avería" | "En Ruta" => {
+  if (estadoBackend === 'DISPONIBLE') {
+    return 'Disponible';
+  } else if (estadoBackend === 'EN_RUTA') {
+    return 'En Ruta';
+  } else if (estadoBackend === 'EN_MANTENIMIENTO_POR_AVERIA') {
+    return 'En Mantenimiento por Avería';
+  } else if (estadoBackend === 'EN_MANTENIMIENTO_PREVENTIVO') {
+    return 'En Mantenimiento Preventivo';
+  } else if (estadoBackend === 'INMOVILIZADO_POR_AVERIA') {
+    return 'Averiado';
+  } else if (estadoBackend === 'EN_MANTENIMIENTO' || estadoBackend === 'EN_MANTENIMIENTO_CORRECTIVO') {
+    return 'En Mantenimiento';
+  } else {
+    return 'Disponible'; // Estado por defecto
+  }
+};
 
 /**
- * @interface CamionEstado
- * @description Representa el estado actual de un camión en la simulación
- * @property {string} id - Identificador único del camión
- * @property {string} ubicacion - Coordenadas actuales del camión en formato "(x,y)"
- * @property {number} porcentaje - Progreso de la ruta (0-100)
- * @property {'En Camino' | 'Entregado'} estado - Estado actual del camión
+ * @function determinarUbicacionCamion
+ * @description Determina la ubicación de un camión basándose en su estado anterior y ruta actual
  */
-export interface CamionEstado {
-  id: string;
-  ubicacion: string; // "(x,y)"
-  porcentaje: number;
-  estado: 'En Camino' | 'Entregado';
-}
+const determinarUbicacionCamion = (
+  ruta: RutaCamion
+): string => {
+  let ubicacion: string;
+  
+  // 🔧 CORREGIDO: Siempre usar la primera posición de la nueva ruta del backend
+  // Esto asegura que los camiones aparezcan en la posición correcta según el algoritmo genético
+  if (ruta.ruta && ruta.ruta.length > 0) {
+    ubicacion = ruta.ruta[0];
+    // console.log(`🔍 UBICACIÓN: Camión ${ruta.id} - Nueva posición desde backend: "${ubicacion}"`);
+  } else {
+    // Si no hay ruta, usar la coordenada del almacén central (8,12) según el backend
+    ubicacion = '(8,12)';
+    // console.log(`🔍 UBICACIÓN: Camión ${ruta.id} - Sin ruta, usando almacén central: "${ubicacion}"`);
+  }
+  
+  // Validar que la ubicación no sea undefined o null
+  if (!ubicacion || ubicacion === 'undefined' || ubicacion === 'null') {
+    console.error(`❌ ERROR: Camión ${ruta.id} tiene ubicación inválida después del procesamiento: "${ubicacion}"`);
+    ubicacion = '(8,12)'; // Fallback al almacén central
+  }
+  
+  return ubicacion;
+};
 
-/**
- * @interface RutaCamion
- * @description Define la ruta completa de un camión y sus pedidos asociados
- * @property {string} id - Identificador del camión
- * @property {string[]} ruta - Array de coordenadas que forman la ruta
- * @property {string} puntoDestino - Coordenadas del punto final
- * @property {Pedido[]} pedidos - Lista de pedidos asignados al camión
- */
-export interface RutaCamion {
-  id: string; // camion.codigo
-  ruta: string[]; // ["(12,8)", "(13,8)", ...]
-  puntoDestino: string; // "(x,y)"
-  pedidos: Pedido[];
-}
 
-/**
- * @interface SimulacionContextType
- * @description Define la interfaz del contexto de simulación
- * @property {number} horaActual - Hora actual de la simulación
- * @property {CamionEstado[]} camiones - Estado actual de todos los camiones
- * @property {RutaCamion[]} rutasCamiones - Rutas asignadas a cada camión
- * @property {Almacen[]} almacenes - Lista de almacenes disponibles
- * @property {() => void} avanzarHora - Función para avanzar la simulación una hora
- * @property {() => void} reiniciar - Función para reiniciar la simulación
- * @property {boolean} cargando - Estado de carga de datos
- */
-interface SimulacionContextType {
-  horaActual: number;
-  camiones: CamionEstado[];
-  rutasCamiones: RutaCamion[];
-  almacenes: Almacen[];
-  avanzarHora: () => void;
-  reiniciar: () => void;
-  cargando: boolean;
-}
 
-// Creación del contexto con valor inicial undefined
-const SimulacionContext = createContext<SimulacionContextType | undefined>(undefined);
+// ============================
+// CREACIÓN DEL CONTEXTO
+// ============================
+
+const SimulacionContext = createContext<SimulacionContextType | undefined>(
+  undefined,
+);
+
+// ============================
+// COMPONENTE PROVEEDOR
+// ============================
 
 /**
  * @component SimulacionProvider
@@ -78,149 +149,1077 @@ const SimulacionContext = createContext<SimulacionContextType | undefined>(undef
  * @param {Object} props - Propiedades del componente
  * @param {React.ReactNode} props.children - Componentes hijos que tendrán acceso al contexto
  */
-export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Estados del contexto
+export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  // ============================
+  // ESTADOS PRINCIPALES DE LA SIMULACIÓN
+  // ============================
+  
+  // Estados de control de la simulación
   const [horaActual, setHoraActual] = useState<number>(HORA_INICIAL);
+  const [simulacionActiva, setSimulacionActiva] = useState<boolean>(false);
+  const [cargando, setCargando] = useState<boolean>(true);
+  const [pollingActivo, setPollingActivo] = useState<boolean>(false);
+  
+  // Estados de datos de la simulación
   const [camiones, setCamiones] = useState<CamionEstado[]>([]);
   const [rutasCamiones, setRutasCamiones] = useState<RutaCamion[]>([]);
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
-  const [cargando, setCargando] = useState<boolean>(true);
-  const [nodosRestantesAntesDeActualizar, setNodosRestantesAntesDeActualizar] = useState<number>(NODOS_PARA_ACTUALIZACION);
-  const [esperandoActualizacion, setEsperandoActualizacion] = useState<boolean>(false);
+  const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
+  const [pedidosNoAsignados, setPedidosNoAsignados] = useState<Pedido[]>([]);
+  
+  // Estados de control de actualización
+  const [nodosRestantesAntesDeActualizar, setNodosRestantesAntesDeActualizar] =
+    useState<number>(NODOS_PARA_ACTUALIZACION);
+  const [solicitudAnticipadaEnviada, setSolicitudAnticipadaEnviada] =
+    useState<boolean>(false);
+  const [proximaSolucionCargada, setProximaSolucionCargada] =
+    useState<IndividuoConBloqueos | null>(null);
+  const [primerPaqueteCargado, setPrimerPaqueteCargado] = useState<boolean>(false);
+  
+  // Estados de fechas y tiempo
+  const [fechaHoraSimulacion, setFechaHoraSimulacion] = useState<string | null>(null);
+  const [fechaInicioSimulacion, setFechaInicioSimulacion] = useState<string | null>(null);
+  const [fechaHoraInicioIntervalo, setFechaHoraInicioIntervalo] = useState<string | null>(null);
+  const [fechaHoraFinIntervalo, setFechaHoraFinIntervalo] = useState<string | null>(null);
+  const [diaSimulacion, setDiaSimulacion] = useState<number | null>(null);
+  const [inicioSimulacion, setInicioSimulacion] = useState<Date | null>(null);
+  
+  // Estados de tiempo y contadores
+  const [tiempoRealSimulacion, setTiempoRealSimulacion] = useState<string>("00:00:00");
+  const [tiempoTranscurridoSimulado, setTiempoTranscurridoSimulado] = useState<string>("00:00:00");
+  const [horaSimulacion, setHoraSimulacion] = useState<string>("00:00:00");
+  const [horaSimulacionAcumulada, setHoraSimulacionAcumulada] = useState<string>("00:00:00");
+  const [fechaHoraAcumulada, setFechaHoraAcumulada] = useState<string>("");
+  const [paqueteActualConsumido, setPaqueteActualConsumido] = useState<number>(0);
 
-  // Cargar almacenes al inicio
+  // ============================
+  // EFECTOS DE CONTROL DE TIEMPO
+  // ============================
+
+  // Contador de tiempo real de la simulación
   useEffect(() => {
-    console.log('🚀 CONTEXTO: Montando contexto y cargando almacenes...');
-    cargarAlmacenes();
-    cargarDatos(true);
-  }, []);
+    if (!inicioSimulacion || !simulacionActiva) return;
 
-  /**
-   * @function cargarAlmacenes
-   * @description Carga los datos de almacenes desde el backend
-   */
-  const cargarAlmacenes = async () => {
-    try {
-      //console.log('🔄 ALMACENES: Llamando a getAlmacenes...');
-      const data = await getAlmacenes();
-      //console.log('✅ ALMACENES: Datos recibidos:', data);
-      setAlmacenes(data);
-      //console.log('💾 ALMACENES: Estado actualizado con', data.length, 'almacenes');
-    } catch (error) {
-      console.error('❌ ALMACENES: Error al cargar almacenes:', error);
+    const interval = setInterval(() => {
+      const ahora = new Date();
+      const diferencia = ahora.getTime() - inicioSimulacion.getTime();
+      const segundos = Math.floor(diferencia / 1000);
+      const horas = Math.floor(segundos / 3600);
+      const minutos = Math.floor((segundos % 3600) / 60);
+      const segs = segundos % 60;
+
+      const tiempoFormateado = `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segs.toString().padStart(2, '0')}`;
+      setTiempoRealSimulacion(tiempoFormateado);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [inicioSimulacion, simulacionActiva]);
+
+  // Calcular la hora de simulación basado en fechaHoraSimulacion y horaActual
+  useEffect(() => {
+    if (fechaHoraSimulacion && horaActual >= 0) {
+      let nuevaFecha: Date;
+      
+      // Si tenemos intervalos específicos, usarlos para un cálculo más preciso
+      if (fechaHoraInicioIntervalo && fechaHoraFinIntervalo) {
+        const fechaInicio = new Date(fechaHoraInicioIntervalo);
+        const fechaFin = new Date(fechaHoraFinIntervalo);
+        
+        // Calcular la duración total del intervalo en milisegundos
+        const duracionTotal = fechaFin.getTime() - fechaInicio.getTime();
+        
+        // Calcular el progreso dentro del intervalo actual (0-1)
+        const progresoEnIntervalo = Math.min(horaActual / NODOS_PARA_ACTUALIZACION, 1);
+        const tiempoTranscurrido = duracionTotal * progresoEnIntervalo;
+        
+        // Calcular la fecha exacta sumando el tiempo transcurrido a la fecha de inicio del intervalo
+        nuevaFecha = new Date(fechaInicio.getTime() + tiempoTranscurrido);
+        
+        // Formatear solo la hora
+        const horaFormateada = nuevaFecha.toLocaleTimeString('es-ES', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        
+        setHoraSimulacion(horaFormateada);
+      } else {
+        // Fallback al método anterior si no hay intervalos específicos
+        const fechaBase = new Date(fechaHoraSimulacion);
+        
+        // Calculamos qué nodo estamos dentro del ciclo actual (0-24)
+        const nodoEnCicloActual = horaActual % NODOS_PARA_ACTUALIZACION;
+        
+        // Calculamos segundos adicionales solo para el incremento local dentro del ciclo actual
+        const segundosAdicionales = nodoEnCicloActual * SEGUNDOS_POR_NODO;
+        
+        // Crea nueva fecha sumando los segundos
+        nuevaFecha = new Date(fechaBase.getTime() + segundosAdicionales * 1000);
+        
+        // Formatear solo la hora
+        const horaFormateada = nuevaFecha.toLocaleTimeString('es-ES', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        
+        setHoraSimulacion(horaFormateada);
+      }
+
+      // Calcular hora acumulada desde el inicio de la simulación
+      if (fechaInicioSimulacion) {
+        const fechaInicio = new Date(fechaInicioSimulacion);
+        
+        // Calcular el tiempo total transcurrido desde el inicio
+        const tiempoTotalTranscurrido = nuevaFecha.getTime() - fechaInicio.getTime();
+        const fechaAcumulada = new Date(fechaInicio.getTime() + tiempoTotalTranscurrido);
+        
+        // Formatear hora acumulada
+        const horaAcumuladaFormateada = fechaAcumulada.toLocaleTimeString('es-ES', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        
+        // Formatear fecha y hora acumulada completa
+        const fechaHoraAcumuladaFormateada = fechaAcumulada.toLocaleString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        
+        setHoraSimulacionAcumulada(horaAcumuladaFormateada);
+        setFechaHoraAcumulada(fechaHoraAcumuladaFormateada);
+      }
     }
-  };
+  }, [horaActual, fechaHoraSimulacion, fechaInicioSimulacion, fechaHoraInicioIntervalo, fechaHoraFinIntervalo]);
+
+  // Calcular tiempo transcurrido simulado
+  useEffect(() => {
+    if (fechaHoraSimulacion && fechaInicioSimulacion) {
+      const fechaActual = new Date(fechaHoraSimulacion);
+      const fechaInicio = new Date(fechaInicioSimulacion);
+
+      // Calcular diferencia en milisegundos
+      const diferenciaMilisegundos = fechaActual.getTime() - fechaInicio.getTime();
+
+      // Convertir a segundos
+      const totalSegundos = Math.floor(diferenciaMilisegundos / 1000);
+
+      // Calcular días, horas, minutos y segundos
+      const dias = Math.floor(totalSegundos / 86400);
+      const horas = Math.floor((totalSegundos % 86400) / 3600);
+      const minutos = Math.floor((totalSegundos % 3600) / 60);
+      const segundos = totalSegundos % 60;
+
+      // Formatear como HH:MM:SS para compatibilidad con la función existente
+      const horasFormateadas = (dias * 24 + horas).toString().padStart(2, '0');
+      const minutosFormateados = minutos.toString().padStart(2, '0');
+      const segundosFormateados = segundos.toString().padStart(2, '0');
+
+      const tiempoFormateado = `${horasFormateadas}:${minutosFormateados}:${segundosFormateados}`;
+      setTiempoTranscurridoSimulado(tiempoFormateado);
+    } else {
+      setTiempoTranscurridoSimulado("00:00:00");
+    }
+  }, [fechaHoraSimulacion, fechaInicioSimulacion]);
+
+  // ============================
+  // EFECTOS DE POLLING
+  // ============================
+
+  // Polling automático para obtener el primer paquete después de iniciar la simulación
+  useEffect(() => {
+    if (!pollingActivo || !simulacionActiva || primerPaqueteCargado) return;
+
+    console.log("🔄 POLLING: Iniciando polling para primer paquete...");
+    const cleanup = ejecutarPollingPrimerPaquete(
+      fechaInicioSimulacion,
+      setPollingActivo,
+      setCargando,
+      async (data: IndividuoConBloqueos) => {
+        await aplicarSolucionPrecargada(data);
+        setHoraActual(HORA_PRIMERA_ACTUALIZACION);
+        setCargando(false);
+        setPrimerPaqueteCargado(true); // Marcar como cargado para evitar polling duplicado
+        console.log("🎉 POLLING: Primer paquete aplicado exitosamente al mapa desde la hora", HORA_PRIMERA_ACTUALIZACION);
+      }
+    );
+
+    return cleanup;
+  }, [pollingActivo, simulacionActiva, fechaInicioSimulacion, primerPaqueteCargado]);
+
+  // Monitoreo de cambios en datos de camiones para detectar inconsistencias
+  useEffect(() => {
+    try {
+      // console.log("🔍 MONITOREO: Verificando consistencia de datos de camiones...");
+      
+      if (!camiones || !Array.isArray(camiones)) {
+        console.error("❌ ERROR: camiones no es un array válido en monitoreo:", camiones);
+        return;
+      }
+      
+      if (!rutasCamiones || !Array.isArray(rutasCamiones)) {
+        console.error("❌ ERROR: rutasCamiones no es un array válido en monitoreo:", rutasCamiones);
+        return;
+      }
+      
+      // Verificar consistencia entre camiones y rutas
+      const camionesSinRuta = camiones.filter(camion => 
+        !rutasCamiones.some(ruta => ruta.id === camion.id)
+      );
+      
+      const rutasSinCamion = rutasCamiones.filter(ruta => 
+        !camiones.some(camion => camion.id === ruta.id)
+      );
+      
+      if (camionesSinRuta.length > 0) {
+        console.warn("⚠️ ADVERTENCIA: Camiones sin ruta correspondiente:", camionesSinRuta.map(c => c.id));
+      }
+      
+      if (rutasSinCamion.length > 0) {
+        console.warn("⚠️ ADVERTENCIA: Rutas sin camión correspondiente:", rutasSinCamion.map(r => r.id));
+      }
+      
+      // Verificar datos nulos o inválidos en camiones
+      camiones.forEach((camion, index) => {
+        if (!camion.id) {
+          console.error(`❌ ERROR: Camión en índice ${index} no tiene ID en monitoreo:`, camion);
+        }
+        
+        if (!esValorValido(camion.capacidadActualGLP)) {
+          console.error(`❌ ERROR: Camión ${camion.id} tiene capacidadActualGLP inválida en monitoreo:`, camion.capacidadActualGLP);
+        }
+        
+        if (!esValorValido(camion.combustibleActual)) {
+          console.error(`❌ ERROR: Camión ${camion.id} tiene combustibleActual inválido en monitoreo:`, camion.combustibleActual);
+        }
+      });
+      
+      // console.log(`✅ MONITOREO COMPLETADO: ${camiones.length} camiones, ${rutasCamiones.length} rutas`);
+      
+    } catch (error) {
+      console.error("❌ ERROR en monitoreo de camiones:", error);
+    }
+  }, [camiones, rutasCamiones]);
+
+  // ============================
+  // FUNCIONES DE GESTIÓN DE DATOS
+  // ============================
 
   /**
-   * @function cargarDatos
-   * @description Carga los datos de simulación desde el backend
-   * @param {boolean} esInicial - Indica si es la carga inicial
+   * @function aplicarSolucionPrecargada
+   * @description Aplica una solución previamente cargada para transición suave
    */
-  const cargarDatos = async (esInicial: boolean = false) => {
-    if (esInicial) setCargando(true);
+  const aplicarSolucionPrecargada = async (data: IndividuoConBloqueos) => {
     try {
-      console.log("Iniciando solicitud al servidor...");
-      const data: Individuo = await getMejorIndividuo();
-      console.log("Datos recibidos:", data);
-      const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen) => ({
-        id: gen.camion.codigo,
-        ruta: gen.nodos.map(n => `(${n.coordenada.x},${n.coordenada.y})`),
-        puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
-        pedidos: gen.pedidos,
-      }));
+      console.log("⚡============================= TRANSICIÓN: Aplicando solución precargada======================================");
+      
+      // Actualizar fechas del paquete actual siendo consumido
+      if (data.fechaHoraInicioIntervalo) {
+        setFechaHoraInicioIntervalo(data.fechaHoraInicioIntervalo);
+      }
+      if (data.fechaHoraFinIntervalo) {
+        setFechaHoraFinIntervalo(data.fechaHoraFinIntervalo);
+      }
+      console.log("Fecha de inicio del intervalo", data.fechaHoraInicioIntervalo);
+      console.log("Fecha de fin del intervalo", data.fechaHoraFinIntervalo);
+      
+      // Actualizar fecha y hora de la simulación
+      if (data.fechaHoraSimulacion) {
+        setFechaHoraSimulacion(data.fechaHoraSimulacion);
+
+        // Establecer fecha de inicio si es la primera vez o si no existe
+        if (!fechaInicioSimulacion) {
+          setFechaInicioSimulacion(data.fechaHoraSimulacion);
+        }
+
+        const fecha = new Date(data.fechaHoraSimulacion);
+        setDiaSimulacion(fecha.getDate());
+      }
+
+      // Procesar rutas de camiones
+      const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => {
+        // Log para verificar los tipos de nodos que llegan del backend
+        const tiposNodosRecibidos = gen.nodos.map(n => n.tipo);
+        // console.log('🔍 CONTEXTO: Tipos de nodos recibidos del backend para camión', gen.camion.codigo, ':', tiposNodosRecibidos);
+        
+        // Contar nodos de avería automática
+        const nodosAveriaAutomatica = tiposNodosRecibidos.filter(tipo => 
+          tipo === 'AVERIA_AUTOMATICA_T1' || 
+          tipo === 'AVERIA_AUTOMATICA_T2' || 
+          tipo === 'AVERIA_AUTOMATICA_T3'
+        );
+        
+        if (nodosAveriaAutomatica.length > 0) {
+          // console.log('🚛💥 CONTEXTO: Nodos de avería automática encontrados:', {
+          //   camionId: gen.camion.codigo,
+          //   nodosAveria: nodosAveriaAutomatica,
+          //   totalNodos: tiposNodosRecibidos.length
+          // });
+        }
+        
+        return {
+          id: gen.camion.codigo,
+          ruta: gen.nodos.map((n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`),
+          puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
+          pedidos: gen.pedidos,
+          tiposNodos: tiposNodosRecibidos, // Usar los tipos ya extraídos
+        };
+      });
 
       setRutasCamiones(nuevasRutas);
 
+      // Procesar estado de camiones
       const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
-        const anterior = camiones.find(c => c.id === ruta.id);
-        const ubicacion = anterior?.ubicacion ?? ruta.ruta[0];
+        const gen = data.cromosoma.find((g: Gen) => g.camion.codigo === ruta.id);
+        const camion = gen?.camion;
+        
+        // Usar función auxiliar para determinar ubicación
+        const ubicacion = determinarUbicacionCamion(ruta);
+        const porcentaje = 0;
+        
+        // 🔧 CORREGIDO: Respetar el estado real del backend en lugar de forzar el estado anterior
+        // Obtener el estado base del backend
+        const estadoBase = mapearEstadoBackendAFrontend(camion?.estado);
+        
+        // Si el estado base es "Disponible" pero tiene más de un nodo en la ruta, marcarlo como "En Ruta"
+        let estadoFrontend = estadoBase;
+        if (estadoBase === 'Disponible' && ruta.ruta.length > 1) {
+          estadoFrontend = 'En Ruta';
+          // console.log(`🚛🛣️ ESTADO: Camión ${ruta.id} marcado como 'En Ruta' (${ruta.ruta.length} nodos)`);
+        }
+        
+        // Log para verificar el estado del backend vs frontend
+        // console.log(`🔍 ESTADO: Camión ${ruta.id} - Backend: ${camion?.estado} -> Frontend: ${estadoFrontend} en ubicación ${ubicacion}`);
+        
         return {
           id: ruta.id,
           ubicacion,
-          porcentaje: 0,
-          estado: 'En Camino',
+          porcentaje,
+          estado: estadoFrontend,
+          capacidadActualGLP: camion?.capacidadActualGLP ?? 0,
+          capacidadMaximaGLP: camion?.capacidadMaximaGLP ?? 0,
+          combustibleActual: camion?.combustibleActual ?? 0,
+          combustibleMaximo: camion?.combustibleMaximo ?? 0,
+          distanciaMaxima: camion?.distanciaMaxima ?? 0,
+          pesoCarga: camion?.pesoCarga ?? 0,
+          pesoCombinado: camion?.pesoCombinado ?? 0,
+          tara: camion?.tara ?? 0,
+          tipo: camion?.tipo ?? '',
+          velocidadPromedio: camion?.velocidadPromedio ?? 0,
         };
       });
 
       setCamiones(nuevosCamiones);
-      if (esInicial) setHoraActual(HORA_PRIMERA_ACTUALIZACION);
+
+      // Actualizar bloqueos y almacenes
+      if (data.bloqueos) {
+        setBloqueos(data.bloqueos);
+      } else {
+        setBloqueos([]);
+      }
+
+      if (data.almacenes && data.almacenes.length > 0) {
+        setAlmacenes(data.almacenes);
+      }
+
+      // Procesar pedidos no asignados
+      if (data.pedidos) {
+        setPedidosNoAsignados(data.pedidos);
+        console.log(`✅ TRANSICIÓN: ${data.pedidos.length} pedidos no asignados procesados`);
+      } else {
+        setPedidosNoAsignados([]);
+        console.log("⚠️ TRANSICIÓN: No hay pedidos no asignados en la solución precargada");
+      }
+
+      // CRÍTICO: Reiniciar el tiempo de simulación para sincronizar con el nuevo intervalo
+      // Esto evita que el reloj siga avanzando mientras los camiones empiezan desde 0
+      setHoraActual(0); // Reiniciar el nodo actual
       setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
-      setEsperandoActualizacion(false);
+      setSolicitudAnticipadaEnviada(false);
+      setProximaSolucionCargada(null);
+
+      // Asegurar que el estado de carga esté en false después de aplicar datos
+      setCargando(false);
+
+      // Incrementar el contador de paquetes consumidos
+      setPaqueteActualConsumido(prev => prev + 1);
+      
+      console.log("✅ TRANSICIÓN: Solución precargada aplicada exitosamente");
     } catch (error) {
-      console.error("Error al cargar datos de simulación:", error);
-    } finally {
-      if (esInicial) setCargando(false);
+      console.error("❌ TRANSICIÓN: Error al aplicar solución precargada:", error);
+      throw error;
     }
   };
+
+  /**
+   * @function aplicarNuevaSolucionDespuesAveria
+   * @description Aplica la nueva solución recalculada después de una avería, manteniendo la continuidad temporal
+   */
+  const aplicarNuevaSolucionDespuesAveria = async (data: IndividuoConBloqueos) => {
+    try {
+      console.log("🔄============================= NUEVA SOLUCIÓN: Aplicando solución recalculada después de avería======================================");
+      
+ 
+      // Actualizar fechas del paquete actual siendo consumido
+      if (data.fechaHoraInicioIntervalo) {
+        setFechaHoraInicioIntervalo(data.fechaHoraInicioIntervalo);
+      }
+      if (data.fechaHoraFinIntervalo) {
+        setFechaHoraFinIntervalo(data.fechaHoraFinIntervalo);
+      }
+      console.log("Fecha de inicio del intervalo", data.fechaHoraInicioIntervalo);
+      console.log("Fecha de fin del intervalo", data.fechaHoraFinIntervalo);
+      
+      // Actualizar fecha y hora de la simulación
+      if (data.fechaHoraSimulacion) {
+        setFechaHoraSimulacion(data.fechaHoraSimulacion);
+
+        // Establecer fecha de inicio si es la primera vez o si no existe
+        if (!fechaInicioSimulacion) {
+          setFechaInicioSimulacion(data.fechaHoraSimulacion);
+        }
+
+        const fecha = new Date(data.fechaHoraSimulacion);
+        setDiaSimulacion(fecha.getDate());
+      }
+
+      // Procesar rutas de camiones
+      const nuevasRutas: RutaCamion[] = data.cromosoma.map((gen: Gen) => {
+        // Log para verificar los tipos de nodos que llegan del backend
+        const tiposNodosRecibidos = gen.nodos.map(n => n.tipo);
+        //console.log('🔍 CONTEXTO (NUEVA SOLUCIÓN): Tipos de nodos recibidos del backend para camión', gen.camion.codigo, ':', tiposNodosRecibidos);
+        
+        // Contar nodos de avería automática
+        const nodosAveriaAutomatica = tiposNodosRecibidos.filter(tipo => 
+          tipo === 'AVERIA_AUTOMATICA_T1' || 
+          tipo === 'AVERIA_AUTOMATICA_T2' || 
+          tipo === 'AVERIA_AUTOMATICA_T3'
+        );
+        
+        if (nodosAveriaAutomatica.length > 0) {
+          // console.log('🚛💥 CONTEXTO (NUEVA SOLUCIÓN): Nodos de avería automática encontrados:', {
+          //   camionId: gen.camion.codigo,
+          //   nodosAveria: nodosAveriaAutomatica,
+          //   totalNodos: tiposNodosRecibidos.length
+          // });
+        }
+        
+        return {
+          id: gen.camion.codigo,
+          ruta: gen.nodos.map((n: Nodo) => `(${n.coordenada.x},${n.coordenada.y})`),
+          puntoDestino: `(${gen.destino.x},${gen.destino.y})`,
+          pedidos: gen.pedidos,
+          tiposNodos: tiposNodosRecibidos, // Usar los tipos ya extraídos
+        };
+      });
+
+      setRutasCamiones(nuevasRutas);
+
+      // Procesar estado de camiones
+      const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
+        const gen = data.cromosoma.find((g: Gen) => g.camion.codigo === ruta.id);
+        const camion = gen?.camion;
+        
+        // Usar función auxiliar para determinar ubicación
+        const ubicacion = determinarUbicacionCamion(ruta);
+        const porcentaje = 0;
+        
+        // 🔧 CORREGIDO: Respetar el estado real del backend en lugar de forzar el estado anterior
+        // Obtener el estado base del backend
+        const estadoBase = mapearEstadoBackendAFrontend(camion?.estado);
+        
+        // Si el estado base es "Disponible" pero tiene más de un nodo en la ruta, marcarlo como "En Ruta"
+        let estadoFrontend = estadoBase;
+        if (estadoBase === 'Disponible' && ruta.ruta.length > 1) {
+          estadoFrontend = 'En Ruta';
+          // console.log(`🚛🛣️ ESTADO: Camión ${ruta.id} marcado como 'En Ruta' (${ruta.ruta.length} nodos)`);
+        }
+        
+        // Log para verificar el estado del backend vs frontend
+        // console.log(`🔍 ESTADO: Camión ${ruta.id} - Backend: ${camion?.estado} -> Frontend: ${estadoFrontend} en ubicación ${ubicacion}`);
+        
+        return {
+          id: ruta.id,
+          ubicacion,
+          porcentaje,
+          estado: estadoFrontend,
+          capacidadActualGLP: camion?.capacidadActualGLP ?? 0,
+          capacidadMaximaGLP: camion?.capacidadMaximaGLP ?? 0,
+          combustibleActual: camion?.combustibleActual ?? 0,
+          combustibleMaximo: camion?.combustibleMaximo ?? 0,
+          distanciaMaxima: camion?.distanciaMaxima ?? 0,
+          pesoCarga: camion?.pesoCarga ?? 0,
+          pesoCombinado: camion?.pesoCombinado ?? 0,
+          tara: camion?.tara ?? 0,
+          tipo: camion?.tipo ?? '',
+          velocidadPromedio: camion?.velocidadPromedio ?? 0,
+        };
+      });
+
+      setCamiones(nuevosCamiones);
+
+      // Actualizar bloqueos y almacenes
+      if (data.bloqueos) {
+        setBloqueos(data.bloqueos);
+      } else {
+        setBloqueos([]);
+      }
+
+      if (data.almacenes && data.almacenes.length > 0) {
+        setAlmacenes(data.almacenes);
+      }
+
+      // Procesar pedidos no asignados
+      if (data.pedidos) {
+        setPedidosNoAsignados(data.pedidos);
+        console.log(`✅ TRANSICIÓN: ${data.pedidos.length} pedidos no asignados procesados`);
+      } else {
+        setPedidosNoAsignados([]);
+        console.log("⚠️ TRANSICIÓN: No hay pedidos no asignados en la solución precargada");
+      }
+
+      // CRÍTICO: Reiniciar el tiempo de simulación para sincronizar con el nuevo intervalo
+      // Esto evita que el reloj siga avanzando mientras los camiones empiezan desde 0
+      setHoraActual(0); // Reiniciar el nodo actual
+      setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
+      setSolicitudAnticipadaEnviada(false);
+      setProximaSolucionCargada(null);
+
+      // Asegurar que el estado de carga esté en false después de aplicar datos
+      setCargando(false);
+
+      // Incrementar el contador de paquetes consumidos
+      setPaqueteActualConsumido(prev => prev + 1);
+      
+      console.log("✅ TRANSICIÓN: Solución precargada aplicada exitosamente");
+    } catch (error) {
+      console.error("❌ TRANSICIÓN: Error al aplicar solución precargada:", error);
+      throw error;
+    }
+  };
+
+  /**
+   * @function cargarDatosSimulacion
+   * @description Carga los datos de simulación desde el backend
+   */
+  const cargarDatosSimulacion = async () => {
+    try {
+      console.log("🔄 CARGANDO: Iniciando carga de datos de simulación...");
+      const datos = await cargarDatos(fechaInicioSimulacion);
+      
+      // Validación de datos recibidos
+      // console.log("🔍 VALIDACIÓN: Verificando datos recibidos del backend...");
+      
+      if (!datos.nuevasRutas || !Array.isArray(datos.nuevasRutas)) {
+        console.error("❌ ERROR: nuevasRutas no es un array válido:", datos.nuevasRutas);
+        throw new Error("Datos de rutas inválidos recibidos del backend");
+      }
+      
+      if (!datos.nuevosCamiones || !Array.isArray(datos.nuevosCamiones)) {
+        console.error("❌ ERROR: nuevosCamiones no es un array válido:", datos.nuevosCamiones);
+        throw new Error("Datos de camiones inválidos recibidos del backend");
+      }
+      
+      console.log(`✅ DATOS RECIBIDOS: ${datos.nuevasRutas.length} rutas, ${datos.nuevosCamiones.length} camiones`);
+      
+      // Actualizar fechas del paquete actual siendo consumido
+      if (datos.fechaHoraInicioIntervalo) {
+        setFechaHoraInicioIntervalo(datos.fechaHoraInicioIntervalo);
+      }
+      if (datos.fechaHoraFinIntervalo) {
+        setFechaHoraFinIntervalo(datos.fechaHoraFinIntervalo);
+      }
+      
+      // Actualizar fecha y hora de la simulación
+      if (datos.fechaHoraSimulacion) {
+        setFechaHoraSimulacion(datos.fechaHoraSimulacion);
+
+        // Establecer fecha de inicio si es la primera vez o si no existe
+        if (!fechaInicioSimulacion) {
+          setFechaInicioSimulacion(datos.fechaHoraSimulacion);
+        }
+
+        if (datos.diaSimulacion) {
+          setDiaSimulacion(datos.diaSimulacion);
+        }
+      }
+
+      // Validar y eliminar duplicados antes de establecer las rutas
+      // console.log("🔍 VALIDACIÓN: Procesando rutas...");
+      const rutasUnicas = datos.nuevasRutas.filter((ruta, index, array) => {
+        if (!ruta.id) {
+          console.error(`❌ ERROR: Ruta en índice ${index} no tiene ID:`, ruta);
+          return false;
+        }
+        return array.findIndex(r => r.id === ruta.id) === index;
+      });
+      setRutasCamiones(rutasUnicas);
+      console.log(`✅ RUTAS PROCESADAS: ${rutasUnicas.length} rutas únicas`);
+
+      // Validar y eliminar duplicados antes de establecer los camiones
+      // console.log("🔍 VALIDACIÓN: Procesando camiones...");
+      
+      // Log para verificar duplicados en datos originales
+      const camionesIds = datos.nuevosCamiones.map(c => c.id);
+      const camionesIdsUnicos = [...new Set(camionesIds)];
+      if (camionesIds.length !== camionesIdsUnicos.length) {
+        console.warn('🚨 CONTEXTO: Hay IDs duplicados en datos.nuevosCamiones:', {
+          total: camionesIds.length,
+          unicos: camionesIdsUnicos.length,
+          duplicados: camionesIds.filter((id, index) => camionesIds.indexOf(id) !== index)
+        });
+      }
+      
+      const camionesUnicos = datos.nuevosCamiones.filter((camion, index, array) => {
+        if (!camion.id) {
+          console.error(`❌ ERROR: Camión en índice ${index} no tiene ID:`, camion);
+          return false;
+        }
+        
+        // Validar propiedades críticas
+        if (!esValorValido(camion.capacidadActualGLP)) {
+          console.error(`❌ ERROR: Camión ${camion.id} tiene capacidadActualGLP inválida:`, camion.capacidadActualGLP);
+        }
+        if (!esValorValido(camion.combustibleActual)) {
+          console.error(`❌ ERROR: Camión ${camion.id} tiene combustibleActual inválido:`, camion.combustibleActual);
+        }
+        
+        return array.findIndex(c => c.id === camion.id) === index;
+      });
+      setCamiones(camionesUnicos);
+      console.log(`✅ CAMIONES PROCESADOS: ${camionesUnicos.length} camiones únicos`);
+
+      // Validar bloqueos
+      if (datos.bloqueos && Array.isArray(datos.bloqueos)) {
+        setBloqueos(datos.bloqueos);
+        console.log(`✅ BLOQUEOS PROCESADOS: ${datos.bloqueos.length} bloqueos`);
+      } else {
+        console.warn("⚠️ ADVERTENCIA: No hay bloqueos válidos, estableciendo array vacío");
+        setBloqueos([]);
+      }
+
+      // Gestionar almacenes: priorizar los que vienen del backend, sino mantener los actuales
+      if (datos.almacenes && Array.isArray(datos.almacenes) && datos.almacenes.length > 0) {
+        setAlmacenes(datos.almacenes);
+        console.log(`✅ ALMACENES PROCESADOS: ${datos.almacenes.length} almacenes`);
+      } else {
+        console.warn("⚠️ ADVERTENCIA: No hay almacenes válidos del backend, manteniendo almacenes actuales");
+      }
+
+      // Procesar pedidos no asignados
+      if (datos.pedidosNoAsignados && Array.isArray(datos.pedidosNoAsignados)) {
+        setPedidosNoAsignados(datos.pedidosNoAsignados);
+        console.log(`✅ PEDIDOS NO ASIGNADOS PROCESADOS: ${datos.pedidosNoAsignados.length} pedidos`);
+      } else {
+        console.warn("⚠️ ADVERTENCIA: No hay pedidos no asignados válidos, estableciendo array vacío");
+        setPedidosNoAsignados([]);
+      }
+
+      // CRÍTICO: Reiniciar el tiempo de simulación para sincronizar con el nuevo intervalo
+      // Esto evita que el reloj siga avanzando mientras los camiones empiezan desde 0
+      setHoraActual(0); // Reiniciar el nodo actual
+      setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
+      setSolicitudAnticipadaEnviada(false);
+      setProximaSolucionCargada(null);
+
+      // Incrementar el contador de paquetes consumidos
+      setPaqueteActualConsumido(prev => prev + 1);
+      
+      console.log("✅ CARGANDO: Tiempo de simulación reiniciado para sincronizar con nuevo intervalo");
+      
+      console.log("✅ CARGA COMPLETADA: Datos de simulación cargados exitosamente");
+    } catch (error) {
+      console.error("❌ ERROR CRÍTICO al cargar datos de simulación:", error);
+      throw error;
+    }
+  };
+
+  /**
+   * @function cargarSolucionAnticipadaLocal
+   * @description Carga anticipadamente la siguiente solución para transición suave
+   */
+  const cargarSolucionAnticipadaLocal = async () => {
+    try {
+      
+      console.log("Solucion anticipada cargada desde el contexto en cargarSolucionAnticipadaLocal");
+      const data = await cargarSolucionAnticipada(fechaHoraFinIntervalo);
+      setProximaSolucionCargada(data);
+    } catch (error) {
+      console.error("⚠️ ANTICIPADA: Error al cargar solución anticipada:", error);
+    }
+  };
+
+  // ============================
+  // FUNCIONES DE CONTROL DE SIMULACIÓN
+  // ============================
 
   /**
    * @function avanzarHora
    * @description Avanza la simulación una hora, actualizando la posición de los camiones
-   * y recargando datos del backend cuando sea necesario
    */
   const avanzarHora = async () => {
-    if (esperandoActualizacion) return;
+    // console.log('⏰ CONTEXTO: Iniciando avance de hora...', {
+    //   horaActual,
+    //   totalCamiones: camiones.length,
+    //   camionesAveriados: camiones.filter(c => c.estado === 'Averiado').length,
+    //   rutasConTiposNodos: rutasCamiones.filter(r => r.tiposNodos && r.tiposNodos.length > 0).length
+    // });
+    
+    // Crear el estado de simulación para pasar a la función de averías automáticas
+    const estadoSimulacion = {
+      horaActual,
+      horaSimulacion,
+      fechaHoraSimulacion,
+      fechaInicioSimulacion,
+      diaSimulacion,
+      tiempoRealSimulacion,
+      tiempoTranscurridoSimulado,
+      camiones,
+      rutasCamiones,
+      almacenes,
+      bloqueos
+    };
 
-    const nuevosCamiones = camiones.map((camion) => {
-      const ruta = rutasCamiones.find(r => r.id === camion.id);
-      if (!ruta) return camion;
+    // console.log('📊 CONTEXTO: Estado de simulación creado para averías automáticas:', {
+    //   horaSimulacion: estadoSimulacion.horaSimulacion,
+    //   fechaHoraSimulacion: estadoSimulacion.fechaHoraSimulacion,
+    //   totalCamiones: estadoSimulacion.camiones.length,
+    //   totalRutas: estadoSimulacion.rutasCamiones.length
+    // });
 
-      const siguientePaso = camion.porcentaje + INCREMENTO_PORCENTAJE;
-      const rutaLength = ruta.ruta.length;
+    await avanzarHoraUtil(
+      camiones,
+      rutasCamiones,
+      almacenes,
+      nodosRestantesAntesDeActualizar,
+      solicitudAnticipadaEnviada,
+      proximaSolucionCargada,
+      setCamiones,
+      setHoraActual,
+      setNodosRestantesAntesDeActualizar,
+      setSolicitudAnticipadaEnviada,
+      cargarSolucionAnticipadaLocal,
+      aplicarSolucionPrecargada,
+      cargarDatosSimulacion,
+      setAlmacenes,
+      fechaHoraSimulacion,
+      estadoSimulacion
+    );
+    
+    // console.log('✅ CONTEXTO: Avance de hora completado');
+  };
 
-      if (siguientePaso >= rutaLength) {
-        return { ...camion, estado: 'Entregado' as const, porcentaje: rutaLength - 1 };
-      }
+  /**
+   * @function iniciarContadorTiempo
+   * @description Inicia el contador de tiempo real de la simulación
+   */
+  const iniciarContadorTiempo = () => {
+    iniciarContadorTiempoUtil(setInicioSimulacion, setTiempoRealSimulacion, setSimulacionActiva);
+  };
 
-      return {
-        ...camion,
-        porcentaje: siguientePaso,
-        ubicacion: ruta.ruta[siguientePaso],
-      };
-    });
+  /**
+   * @function pausarSimulacion
+   * @description Pausa la simulación desactivando el contador de tiempo
+   */
+  const pausarSimulacion = () => {
+    pausarSimulacionUtil(setSimulacionActiva);
+  };
 
-    const quedan = nodosRestantesAntesDeActualizar - 1;
-    setNodosRestantesAntesDeActualizar(quedan);
+  /**
+   * @function reanudarSimulacion
+   * @description Reanuda la simulación activando el contador de tiempo
+   */
+  const reanudarSimulacion = () => {
+    reanudarSimulacionUtil(setSimulacionActiva);
+  };
 
-    if (quedan <= 0) {
-      setEsperandoActualizacion(true);
-      //@ts-expect-error no se debugear 
-      setCamiones(nuevosCamiones);
-      setHoraActual(prev => prev + 1);
-      await cargarDatos(false);
-    } else {
+  // ============================
+  // FUNCIONES DE GESTIÓN DE ESTADO
+  // ============================
 
-      //@ts-expect-error no se debugear 
-      setCamiones(nuevosCamiones);
-      setHoraActual(prev => prev + 1);
+  /**
+   * @function reiniciar
+   * @description Reinicia la simulación a su estado inicial y limpia paquetes del backend
+   */
+  const reiniciar = async () => {
+    console.log("🔄 REINICIO: Iniciando reinicio completo de la simulación...");
+
+    try {
+      // Primero reiniciar los paquetes en el backend
+      await reiniciarSimulacionBackend();
+
+      // Limpiar estado y cargar nuevos datos
+      limpiarEstadoParaNuevaSimulacionUtil(
+        setCamiones,
+        setRutasCamiones,
+        setBloqueos,
+        setPedidosNoAsignados,
+        setFechaHoraSimulacion,
+        setFechaHoraInicioIntervalo,
+        setFechaHoraFinIntervalo,
+        setDiaSimulacion,
+        setTiempoTranscurridoSimulado,
+        setHoraSimulacionAcumulada,
+        setFechaHoraAcumulada,
+        setHoraActual,
+        setNodosRestantesAntesDeActualizar,
+        setSolicitudAnticipadaEnviada,
+        setProximaSolucionCargada,
+        setPaqueteActualConsumido,
+        setInicioSimulacion,
+        setTiempoRealSimulacion,
+        setSimulacionActiva,
+        setPollingActivo,
+        setCargando,
+        setPrimerPaqueteCargado,
+        fechaInicioSimulacion
+      );
+
+      console.log("🔄 REINICIO: Reinicio completo finalizado - estado local y backend limpiados");
+    } catch (error) {
+      console.error("❌ REINICIO: Error al reiniciar simulación:", error);
+      throw error;
     }
   };
 
   /**
-   * @function reiniciar
-   * @description Reinicia la simulación a su estado inicial
+   * @function reiniciarYEmpezarNuevo
+   * @description Reinicia completamente la simulación y empieza a cargar nuevos paquetes
    */
-  const reiniciar = () => {
-    const nuevosCamiones: CamionEstado[] = rutasCamiones.map((ruta) => ({
-      id: ruta.id,
-      ubicacion: ruta.ruta[0],
-      porcentaje: 0,
-      estado: 'En Camino' as const,
-    }));
+  const reiniciarYEmpezarNuevo = async () => {
+    console.log("🚀 NUEVO INICIO: Reiniciando simulación para empezar con nuevos paquetes...");
+
+    try {
+      // Primero reiniciar los paquetes en el backend
+      await reiniciarSimulacionBackend();
+
+      // Limpiar completamente el estado local y cargar nuevos datos
+      limpiarEstadoParaNuevaSimulacionUtil(
+        setCamiones,
+        setRutasCamiones,
+        setBloqueos,
+        setPedidosNoAsignados,
+        setFechaHoraSimulacion,
+        setFechaHoraInicioIntervalo,
+        setFechaHoraFinIntervalo,
+        setDiaSimulacion,
+        setTiempoTranscurridoSimulado,
+        setHoraSimulacionAcumulada,
+        setFechaHoraAcumulada,
+        setHoraActual,
+        setNodosRestantesAntesDeActualizar,
+        setSolicitudAnticipadaEnviada,
+        setProximaSolucionCargada,
+        setPaqueteActualConsumido,
+        setInicioSimulacion,
+        setTiempoRealSimulacion,
+        setSimulacionActiva,
+        setPollingActivo,
+        setCargando,
+        setPrimerPaqueteCargado,
+        fechaInicioSimulacion
+      );
+
+      console.log("🎉 NUEVO INICIO: Simulación reiniciada y nuevos datos cargados exitosamente");
+    } catch (error) {
+      console.error("❌ NUEVO INICIO: Error al reiniciar e iniciar nueva simulación:", error);
+      throw error;
+    }
+  };
+
+  /**
+   * @function limpiarEstadoParaNuevaSimulacion
+   * @description Limpia el estado para una nueva simulación y carga los primeros datos
+   */
+  const limpiarEstadoParaNuevaSimulacion = async () => {
+    // Limpiar pedidos en el backend antes de limpiar el estado local
+    // try {
+    //   console.log("🧹 CONTEXT: Limpiando pedidos antes de nueva simulación...");
+    //   await limpiarPedidos();
+    //   console.log("✅ CONTEXT: Pedidos limpiados exitosamente");
+    // } catch (error) {
+    //   console.warn("⚠️ CONTEXT: No se pudieron limpiar los pedidos, continuando con la limpieza local:", error);
+    //   // No bloqueamos la simulación si falla la limpieza de pedidos
+    // }
+
+    limpiarEstadoParaNuevaSimulacionUtil(
+      setCamiones,
+      setRutasCamiones,
+      setBloqueos,
+      setPedidosNoAsignados,
+      setFechaHoraSimulacion,
+      setFechaHoraInicioIntervalo,
+      setFechaHoraFinIntervalo,
+      setDiaSimulacion,
+      setTiempoTranscurridoSimulado,
+      setHoraSimulacionAcumulada,
+      setFechaHoraAcumulada,
+      setHoraActual,
+      setNodosRestantesAntesDeActualizar,
+      setSolicitudAnticipadaEnviada,
+      setProximaSolucionCargada,
+      setPaqueteActualConsumido,
+      setInicioSimulacion,
+      setTiempoRealSimulacion,
+      setSimulacionActiva,
+      setPollingActivo,
+      setCargando,
+      setPrimerPaqueteCargado,
+      fechaInicioSimulacion
+    );
+  };
+
+  /**
+   * @function limpiarSimulacionCompleta
+   * @description Limpia completamente la simulación incluyendo la fecha de inicio
+   * Se usa cuando se inicia una nueva simulación semanal
+   */
+  const limpiarSimulacionCompleta = () => {
+    limpiarSimulacionCompletaUtil(
+      setCamiones,
+      setRutasCamiones,
+      setBloqueos,
+      setPedidosNoAsignados,
+      setFechaHoraSimulacion,
+      setFechaInicioSimulacion,
+      setFechaHoraInicioIntervalo,
+      setFechaHoraFinIntervalo,
+      setDiaSimulacion,
+      setTiempoTranscurridoSimulado,
+      setHoraSimulacionAcumulada,
+      setFechaHoraAcumulada,
+      setHoraActual,
+      setNodosRestantesAntesDeActualizar,
+      setSolicitudAnticipadaEnviada,
+      setProximaSolucionCargada,
+      setPaqueteActualConsumido,
+      setSimulacionActiva,
+      setPollingActivo,
+      setCargando,
+      setPrimerPaqueteCargado
+    );
+  };
+
+  // ============================
+  // FUNCIONES DE CONTROL DE POLLING
+  // ============================
+
+  /**
+   * @function iniciarPollingPrimerPaquete
+   * @description Inicia el polling para obtener el primer paquete disponible
+   */
+  const iniciarPollingPrimerPaquete = () => {
+    setPollingActivo(true);
+  };
+
+  // ============================
+  // FUNCIONES DE GESTIÓN DE CAMIONES
+  // ============================
+
+  /**
+   * @function marcarCamionAveriado
+   * @description Marca un camión como averiado, deteniéndolo en su posición actual
+   * @param {string} camionId - El ID del camión a averiar
+   */
+  const marcarCamionAveriado = (camionId: string) => {
+    const nuevosCamiones = marcarCamionAveriadoUtil(camiones, camionId);
     setCamiones(nuevosCamiones);
-    setHoraActual(HORA_PRIMERA_ACTUALIZACION);
-    setNodosRestantesAntesDeActualizar(NODOS_PARA_ACTUALIZACION);
-    setEsperandoActualizacion(false);
+  };
+
+  // ============================
+  // FUNCIONES DE INFORMACIÓN
+  // ============================
+
+  /**
+   * @function obtenerInfoPaqueteActual
+   * @description Obtiene información del paquete que se está consumiendo actualmente en el mapa
+   * @returns {Object} Información del paquete actual: inicio, fin y número
+   */
+  const obtenerInfoPaqueteActual = () => {
+    return {
+      inicio: fechaHoraInicioIntervalo,
+      fin: fechaHoraFinIntervalo,
+      numero: paqueteActualConsumido
+    };
+  };
+
+  // ============================
+  // VALOR DEL CONTEXTO
+  // ============================
+
+  const contextValue: SimulacionContextType = {
+    // Estados de datos
+    horaActual,
+    camiones,
+    rutasCamiones,
+    almacenes,
+    pedidosNoAsignados,
+    bloqueos,
+    cargando,
+    
+    // Estados de fechas y tiempo
+    fechaHoraSimulacion,
+    fechaInicioSimulacion,
+    fechaHoraInicioIntervalo,
+    fechaHoraFinIntervalo,
+    diaSimulacion,
+    tiempoRealSimulacion,
+    tiempoTranscurridoSimulado,
+    horaSimulacion,
+    horaSimulacionAcumulada,
+    fechaHoraAcumulada,
+    paqueteActualConsumido,
+    
+    // Estados de control
+    simulacionActiva,
+    
+    // Funciones de control de simulación
+    avanzarHora,
+    reiniciar,
+    iniciarContadorTiempo,
+    reiniciarYEmpezarNuevo,
+    pausarSimulacion,
+    reanudarSimulacion,
+    
+    // Funciones de gestión de estado
+    limpiarEstadoParaNuevaSimulacion,
+    limpiarSimulacionCompleta,
+    
+    // Funciones de control de polling
+    iniciarPollingPrimerPaquete,
+    
+    // Funciones de gestión de camiones
+    marcarCamionAveriado,
+    
+    // Funciones de información
+    obtenerInfoPaqueteActual,
+    
+    // Funciones de recálculo después de avería
+    aplicarNuevaSolucionDespuesAveria,
+    
+    // Setters
+    setSimulacionActiva,
+    setPollingActivo,
+    setFechaInicioSimulacion,
   };
 
   return (
-    <SimulacionContext.Provider
-      value={{ horaActual, camiones, rutasCamiones, almacenes, avanzarHora, reiniciar, cargando }}
-    >
+    <SimulacionContext.Provider value={contextValue}>
       {children}
     </SimulacionContext.Provider>
   );
 };
+
+// ============================
+// HOOK PERSONALIZADO
+// ============================
 
 /**
  * @function useSimulacion
@@ -230,6 +1229,13 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
  */
 export const useSimulacion = (): SimulacionContextType => {
   const context = useContext(SimulacionContext);
-  if (!context) throw new Error('useSimulacion debe usarse dentro de SimulacionProvider');
+  if (!context)
+    throw new Error("useSimulacion debe usarse dentro de SimulacionProvider");
   return context;
 };
+
+
+
+
+
+

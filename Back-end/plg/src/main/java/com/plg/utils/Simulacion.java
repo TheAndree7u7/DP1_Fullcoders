@@ -1,179 +1,138 @@
 package com.plg.utils;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-
 import java.util.LinkedHashSet;
-
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.plg.config.DataLoader;
-import com.plg.dto.IndividuoDto;
 import com.plg.entity.Almacen;
 import com.plg.entity.Bloqueo;
 import com.plg.entity.Camion;
+import com.plg.entity.Coordenada;
 import com.plg.entity.Mapa;
+import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
 import com.plg.entity.TipoAlmacen;
-
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.SynchronousQueue;
+import com.plg.entity.TipoNodo;
+import com.plg.utils.simulacion.MantenimientoManager;
+import com.plg.utils.simulacion.AveriasManager;
+import com.plg.utils.simulacion.UtilesSimulacion;
 
 public class Simulacion {
 
-    private static List<Pedido> pedidosSemanal;
-    private static Mapa mapa = Mapa.getInstance();
-    private static LocalDateTime fechaActual;
-    public static Set<Pedido> pedidosPorAtender = new LinkedHashSet<>();
     public static Set<Pedido> pedidosPlanificados = new LinkedHashSet<>();
     public static Set<Pedido> pedidosEntregados = new LinkedHashSet<>();
+    public static List<Bloqueo> bloqueosActivos = new ArrayList<>();
     public static Individuo mejorIndividuo = null;
-    
+    // Variable global para pedidosEnviar
+    public static List<Pedido> pedidosEnviar = new ArrayList<>();
 
-    // Colas para simulación
-    public static BlockingQueue<Object> gaTriggerQueue = new SynchronousQueue<>();
-    public static BlockingQueue<IndividuoDto> gaResultQueue = new SynchronousQueue<>();
-    public static Semaphore iniciar = new Semaphore(0);
-    public static Semaphore continuar = new Semaphore(0);
-
-    public static void configurarSimulacion(LocalDateTime startDate) {
-        fechaActual = startDate;
-        DataLoader.initializeAlmacenes();
-        DataLoader.initializeCamiones();
-        try {
-            DataLoader.initializeMantenimientos();
-            DataLoader.initializeAverias();
-            DataLoader.initializePedidos();
-            DataLoader.initializeBloqueos();
-        } catch (java.io.IOException | ExcepcionesPerzonalizadas.InvalidDataFormatException e) {
-            e.printStackTrace();
-        }
-        LocalDateTime fechaFin = fechaActual.plusDays(7);
-        pedidosSemanal = DataLoader.pedidos.stream()
-                .filter(pedido -> pedido.getFechaRegistro().isAfter(fechaActual)
-                        && pedido.getFechaRegistro().isBefore(fechaFin))
-                .collect(Collectors.toList());
-        System.out.println("\n=== INICIO DE LA SIMULACIÓN ===");
-        System.out.println("📊 Estadísticas iniciales:");
-        System.out.println("   • Total de pedidos en el sistema: " + DataLoader.pedidos.size());
-        System.out.println("   • Pedidos a procesar en esta semana: " + pedidosSemanal.size());
-        System.out.println("\n⏰ Configuración temporal:");
-        System.out.println("   • Fecha de inicio: " + fechaActual);
-        System.out.println("   • Fecha de finalización: " + fechaActual.plusDays(3));
-        System.out.println("\n=== INICIANDO PROCESO DE SIMULACIÓN ===\n");
+    public static void configurarSimulacionDiaria(LocalDateTime startDate) {
+        // Aun no implementado
     }
 
-    public static void ejecutarSimulacion() {
+    public static void configurarSimulacionSemanal(LocalDateTime startDate) {
+        // 1. Actualizar parámetros globales antes de cargar datos
+        Parametros.actualizarParametrosGlobales(startDate);
+        // 2. Limpiamos el mapa antes de iniciar la simulación
+        Mapa.getInstance().limpiarMapa();
+        // 3. Creamos un nuevo dataLoader para la simulación semanal
+        Parametros.dataLoader = new DataLoader();
 
+        // 4. Limpiamos las listas de pedidos
 
-        imprimirDatosSimulacion();
-        LocalDateTime fechaLimite = Parametros.fecha_inicial.plusDays(7);
-        while (!pedidosSemanal.isEmpty()) {
-            Pedido pedido = pedidosSemanal.get(0);
-            // Voy agregando pedidos a la lista de pedidos
-            if (pedidoConFechaMenorAFechaActual(pedido, fechaActual)) {
-                pedidosSemanal.remove(0);
-                pedidosPorAtender.add(pedido);
-            } else {
-                List<Bloqueo> bloqueosActivos = actualizarBloqueos(fechaActual);
-                actualizarEstadoGlobal(fechaActual);
-                if (!pedidosPorAtender.isEmpty()) {
-                    System.out.println("------------------------");
-                    System.out.println("Tiempo actual: " + fechaActual);
-                    List<Pedido> pedidosEnviar = unirPedidosSinRepetidos(pedidosPlanificados, pedidosPorAtender);
-                    try {
-                        iniciar.acquire(); 
-                        AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico(mapa, pedidosEnviar);
-                        algoritmoGenetico.ejecutarAlgoritmo();  
-                        // SimulatedAnnealing simulatedAnnealing = new SimulatedAnnealing(mapa, pedidosEnviar);
-                        // simulatedAnnealing.ejecutarAlgoritmo();          
-                        IndividuoDto mejorIndividuoDto = new IndividuoDto(algoritmoGenetico.getMejorIndividuo(), pedidosEnviar, bloqueosActivos);
-                        gaResultQueue.offer(mejorIndividuoDto);
-                        continuar.acquire(); 
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        System.err.println("Error al esperar el disparador del algoritmo genético: " + e.getMessage());
-                        e.printStackTrace();
-                    }
-                }
-                fechaActual = fechaActual.plusMinutes(Parametros.intervaloTiempo);
-                if (fechaActual.isEqual(fechaLimite) || fechaActual.isAfter(fechaLimite)) {
-                    break;
-                }
-            }
-        }
-        System.out.println("-------------------------");
-        System.out.println("Reporte de la simulación");
-        System.out.println("Kilometros recorridos: " + Parametros.kilometrosRecorridos);
-        System.out.println("Fitness global: " + Parametros.fitnessGlobal);
+        pedidosPlanificados.clear();
+        pedidosEntregados.clear();
+        pedidosEnviar.clear();
 
-    }
-
-
-    public static List<Pedido> unirPedidosSinRepetidos(Set<Pedido> set1, Set<Pedido> set2) {
-        List<Pedido> listaUnida = new ArrayList<>(set1);
-        for (Pedido pedido : set2) {
-            if (!listaUnida.contains(pedido)) {
-                listaUnida.add(pedido);
-            }
-        }
-        return listaUnida;
     }
 
     public static void actualizarEstadoGlobal(LocalDateTime fechaActual) {
         actualizarRepositorios(fechaActual);
         actualizarCamiones(fechaActual);
+        MantenimientoManager.verificarYActualizarMantenimientos(Parametros.dataLoader.camiones, fechaActual);
+        AveriasManager.actualizarCamionesEnAveria(fechaActual);
+        Simulacion.bloqueosActivos = Simulacion.actualizarBloqueos(fechaActual);
+        actualizarPedidos();
     }
 
-    private static List<Bloqueo> actualizarBloqueos(LocalDateTime fechaActual) {
-        List<Bloqueo> bloqueos = DataLoader.bloqueos;
+    public static List<Pedido> actualizarPedidosEnRango() {
+        // 1. Obtenemos todos los pedidos del fechaActual < x < fechaActual +
+        // intervaloTiempo
+        // LocalDateTime fecha_inferior =
+        // Parametros.fecha_inicial.minusMinutes(Parametros.intervaloTiempo).minusMinutes(10);
+        LocalDateTime fecha_inferior = Parametros.fecha_inicio_simulacion;
+        LocalDateTime fecha_superior = Parametros.fecha_inicial.plusMinutes(Parametros.intervaloTiempo).plusMinutes(10);
+        List<Pedido> pedidosEnRango = Parametros.dataLoader.pedidos.stream()
+                .filter(pedido -> pedido.getFechaRegistro().isAfter(fecha_inferior)
+                        && pedido.getFechaRegistro().isBefore(fecha_superior)
+                        && !pedidosEntregados.contains(pedido))
+                .collect(Collectors.toList());
+
+        // 2. Unimos pedidosEnRango con pedidosPlanificados
+        List<Pedido> pedidosUnidos = UtilesSimulacion.unirPedidosSinRepetidos(
+                new LinkedHashSet<>(pedidosPlanificados),
+                new LinkedHashSet<>(pedidosEnRango));
+        return pedidosUnidos;
+    }
+
+    private static void actualizarPedidos() {
+        List<Pedido> pedidosActualizados = actualizarPedidosEnRango();
+        // Borramos los pedidos del mapa
+        for (int i = 0; i < Mapa.getInstance().getFilas(); i++) {
+            for (int j = 0; j < Mapa.getInstance().getColumnas(); j++) {
+                Nodo nodo = Mapa.getInstance().getMatriz().get(i).get(j);
+                if (nodo instanceof Pedido) {
+                    Nodo nodoaux = Nodo.builder().coordenada(new Coordenada(i, j)).tipoNodo(TipoNodo.NORMAL).build();
+                    Mapa.getInstance().setNodo(nodo.getCoordenada(), nodoaux);
+                }
+            }
+        }
+        // Colocamos todos los nuevos pedidos en el mapa
+        for (Pedido pedido : pedidosActualizados) {
+            Mapa.getInstance().setNodo(pedido.getCoordenada(), pedido);
+        }
+        pedidosEnviar = pedidosActualizados;
+    }
+
+    public static List<Bloqueo> actualizarBloqueos(LocalDateTime fechaActual) {
+        List<Bloqueo> bloqueos = Parametros.dataLoader.bloqueos;
         List<Bloqueo> bloqueosActivos = new ArrayList<>();
         for (Bloqueo bloqueo : bloqueos) {
             if (bloqueo.getFechaInicio().isBefore(fechaActual) && bloqueo.getFechaFin().isAfter(fechaActual)) {
                 bloqueo.activarBloqueo();
                 bloqueosActivos.add(bloqueo);
-            } else {
-                bloqueo.desactivarBloqueo();
             }
         }
         return bloqueosActivos;
     }
 
     private static void actualizarRepositorios(LocalDateTime fechaActual) {
-        List<Almacen> almacenes = DataLoader.almacenes;
-        if (fechaActual.getHour() == 0 && fechaActual.getMinute() == 0) {
+        List<Almacen> almacenes = Parametros.dataLoader.almacenes;
+        LocalDateTime fechaAnterior = fechaActual.minusMinutes(Parametros.intervaloTiempo);
+        int diaFechaAnterior = fechaAnterior.getDayOfMonth();
+        int diaFechaActual = fechaActual.getDayOfMonth();
+        if (diaFechaAnterior != diaFechaActual) {
+            // Si es un nuevo día, reiniciamos los almacenes secundarios
             for (Almacen almacen : almacenes) {
                 if (almacen.getTipo() == TipoAlmacen.SECUNDARIO) {
                     almacen.setCapacidadActualGLP(almacen.getCapacidadMaximaGLP());
-                    almacen.setCapacidadCombustible(almacen.getCapacidadMaximaCombustible());
+                    almacen.setCapacidadActualCombustible(almacen.getCapacidadMaximaCombustible());
                 }
             }
         }
     }
 
     private static void actualizarCamiones(LocalDateTime fechaActual) {
-        List<Camion> camiones = DataLoader.camiones;
+        List<Camion> camiones = Parametros.dataLoader.camiones;
+
         for (Camion camion : camiones) {
-            camion.actualizarEstado(Parametros.intervaloTiempo, pedidosPorAtender, pedidosPlanificados,
-                    pedidosEntregados, fechaActual);
+            camion.actualizarEstado(pedidosPlanificados,
+                    pedidosEntregados);
         }
     }
-
-    private static void imprimirDatosSimulacion() {
-        System.out.println("Datos de la simulación:");
-        System.out.println("Fecha inicial: " + Parametros.fecha_inicial);
-        System.out.println("Intervalo de tiempo: " + Parametros.intervaloTiempo + " minutos");
-        System.out.println("Cantidad de pedidos semanales: " + pedidosSemanal.size());
-        System.out.println("Cantidad de almacenes: " + DataLoader.almacenes.size());
-        System.out.println("Cantidad de camiones: " + DataLoader.camiones.size());
-
-    }
-
-    private static boolean pedidoConFechaMenorAFechaActual(Pedido pedido, LocalDateTime fechaActual) {
-        return pedido.getFechaRegistro().isBefore(fechaActual) || pedido.getFechaRegistro().isEqual(fechaActual);
-    }
-
 }

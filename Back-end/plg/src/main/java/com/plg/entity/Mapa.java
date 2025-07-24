@@ -3,13 +3,15 @@ package com.plg.entity;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 import com.plg.utils.Gen;
 import com.plg.utils.Individuo;
+import com.plg.utils.Parametros;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,9 +43,6 @@ public class Mapa {
     }
 
     public static void initializeInstance() {
-        if (instance != null) {
-            throw new IllegalStateException("Mapa instance has already been initialized.");
-        }
         int columnas = 71;
         int filas = 51;
         instance = new Mapa(columnas, filas);
@@ -61,6 +60,15 @@ public class Mapa {
                 fila.add(nodo);
             }
             this.matriz.add(fila);
+        }
+    }
+
+    public void limpiarMapa() {
+        for (int i = 0; i < filas; i++) {
+            for (int j = 0; j < columnas; j++) {
+                Nodo nodo = Nodo.builder().coordenada(new Coordenada(i, j)).tipoNodo(TipoNodo.NORMAL).build();
+                this.matriz.get(i).set(j, nodo);
+            }
         }
     }
 
@@ -210,7 +218,8 @@ public class Mapa {
         return adyacentes;
     }
 
-    private double calcularHeuristica(Nodo a, Nodo b) {
+    // Cambiado a public para poder usarlo desde fuera
+    public double calcularHeuristica(Nodo a, Nodo b) {
         return Math.abs(a.getCoordenada().getColumna() - b.getCoordenada().getColumna()) +
                 Math.abs(a.getCoordenada().getFila() - b.getCoordenada().getFila());
     }
@@ -219,7 +228,7 @@ public class Mapa {
         Nodo inicio = getNodo(nodo1.getCoordenada());
         Nodo destino = getNodo(nodo2.getCoordenada());
         PriorityQueue<Nodo> openSet = new PriorityQueue<>((a, b) -> Double.compare(a.getFScore(), b.getFScore()));
-        Map<Nodo, Nodo> cameFrom = new LinkedHashMap<>();
+        Map<Nodo, Nodo> cameFrom = new HashMap<>();
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
                 Nodo nodo = getNodo(i, j);
@@ -236,7 +245,8 @@ public class Mapa {
                 return reconstruirRuta(cameFrom, nodoActual);
             }
             for (Nodo vecino : getAdj(nodoActual.getCoordenada())) {
-                if (vecino.isBloqueado()) {
+                // Permitir llegar a un nodo bloqueado solo si es el destino
+                if (vecino.isBloqueado() && !vecino.equals(destino)) {
                     continue;
                 }
                 double tentativeGScore = nodoActual.getGScore() + 1;
@@ -250,7 +260,11 @@ public class Mapa {
                 }
             }
         }
-        return Collections.emptyList();
+
+        System.out.println(
+                "⚠️ A*: No se encontró ruta entre " + inicio.getCoordenada() + " y " + destino.getCoordenada());
+
+        return Collections.singletonList(destino);
     }
 
     private List<Nodo> reconstruirRuta(Map<Nodo, Nodo> cameFrom, Nodo nodoActual) {
@@ -262,4 +276,11 @@ public class Mapa {
         Collections.reverse(ruta);
         return ruta;
     }
+
+    public static double calcularDistancia(Coordenada coord1, Coordenada coord2) {
+        return Math.abs(coord1.getColumna() - coord2.getColumna()) +
+                Math.abs(coord1.getFila() - coord2.getFila());
+    }
+
+
 }

@@ -8,82 +8,105 @@ import com.plg.utils.Herramientas;
 import com.plg.utils.Parametros;
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidDataFormatException;
 
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-@Component
 public class DataLoader {
 
-    private static String pathAverias = "data/averias/averias.v1.txt";
-    private static String pathPedidos = "data/pedidos/ventas" + Parametros.anho + Parametros.mes + ".txt";
-    private static String pathMantenimientos = "data/mantenimientos/mantpreventivo.txt";
-    private static String pathBloqueos = "data/bloqueos/" + Parametros.anho + Parametros.mes + ".bloqueos.txt";
+    private String pathAverias = "data/averias/averias.v1.txt";
+    private String pathMantenimientos = "data/mantenimientos/mantpreventivo.txt";
 
-    private static Coordenada coordenadaCentral = new Coordenada(8, 12);
-
-    public static final List<Mantenimiento> mantenimientos = new ArrayList<>();
-    public static List<Pedido> pedidos = new ArrayList<>();
-    public static List<Almacen> almacenes = new ArrayList<>();
-    public static List<Camion> camiones = new ArrayList<>();
-    public static List<Averia> averias = new ArrayList<>();
-    public static List<Bloqueo> bloqueos = new ArrayList<>();
-
-    public static List<Almacen> initializeAlmacenes() {
-        AlmacenFactory.crearAlmacen(TipoAlmacen.CENTRAL, coordenadaCentral, 1_000_000_000,
-                1_000_000_000);
-        AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(42, 42), 160.0, 50);
-        AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(3, 63), 160.0, 50);
-        almacenes = AlmacenFactory.almacenes;
-        return almacenes;
+    // Métodos para generar paths dinámicamente basándose en parámetros actuales
+    private String getPathPedidos() {
+        return "data/pedidos/ventas" + Parametros.anho + Parametros.mes + ".txt";
     }
 
-    public static List<Camion> initializeCamiones() {
+    private String getPathBloqueos() {
+        return "data/bloqueos/" + Parametros.anho + Parametros.mes + ".bloqueos.txt";
+    }
+    private Coordenada coordenadaCentral = new Coordenada(8, 12);
+
+    public final List<Mantenimiento> mantenimientos = new ArrayList<>();
+    public List<Pedido> pedidos = new ArrayList<>();
+    public List<Almacen> almacenes = new ArrayList<>();
+    public List<Camion> camiones = new ArrayList<>();
+    public List<Averia> averias = new ArrayList<>(); // Averias automaticas
+    public List<Averia> averiasAutomaticas = new ArrayList<>(); // !AVERIAS AUTOMATICAS
+    public List<Bloqueo> bloqueos = new ArrayList<>();
+    public List<Camion> camionesAveriados = new ArrayList<>(); // Camiones que se averian automaticamente
+
+    public DataLoader() {
+        initializeAlmacenes();
+        initializeCamiones();
+        try {
+            initializePedidos();
+            initializeMantenimientos();
+
+            initializeAveriasAutomaticas(); // !AVERIAS AUTOMATICAS
+            initializeBloqueos();
+        } catch (InvalidDataFormatException | IOException e) {
+            // Manejo simple: imprimir el error, puedes personalizar según tus necesidades
+            e.printStackTrace();
+        }
+    }
+
+    public List<Almacen> initializeAlmacenes() {
+        AlmacenFactory.limpiarFactory();
+        Almacen central = AlmacenFactory.crearAlmacen(TipoAlmacen.CENTRAL, coordenadaCentral, 1_000_000_000,
+                1_000_000_000);
+        Almacen secundario1 = AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(42, 42), 160.0, 50);
+        Almacen secundario2 = AlmacenFactory.crearAlmacen(TipoAlmacen.SECUNDARIO, new Coordenada(3, 63), 160.0, 50);
+        this.almacenes.add(central);
+        this.almacenes.add(secundario1);
+        this.almacenes.add(secundario2);
+        return this.almacenes;
+    }
+
+    public List<Camion> initializeCamiones() {
+        CamionFactory.limpiarFactory();
         for (int i = 0; i < 2; i++) {
-            CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);
+            Camion camion = CamionFactory.crearCamionesPorTipo(TipoCamion.TA, true, coordenadaCentral);
+            this.camiones.add(camion);
         }
         for (int i = 0; i < 4; i++) {
-            CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);
+            Camion camion = CamionFactory.crearCamionesPorTipo(TipoCamion.TB, true, coordenadaCentral);
+            this.camiones.add(camion);
         }
         for (int i = 0; i < 4; i++) {
-            CamionFactory.crearCamionesPorTipo(TipoCamion.TC, true, coordenadaCentral);
+            Camion camion = CamionFactory.crearCamionesPorTipo(TipoCamion.TC, true, coordenadaCentral);
+            this.camiones.add(camion);
         }
         for (int i = 0; i < 10; i++) {
-            CamionFactory.crearCamionesPorTipo(TipoCamion.TD, true, coordenadaCentral);
+            Camion camion = CamionFactory.crearCamionesPorTipo(TipoCamion.TD, true, coordenadaCentral);
+            this.camiones.add(camion);
         }
-        camiones = CamionFactory.camiones;
-        return camiones;
+        return this.camiones;
     }
 
-    public static List<Averia> initializeAverias() throws InvalidDataFormatException, IOException {
+    public List<Averia> initializeAveriasAutomaticas() throws InvalidDataFormatException, IOException {
         List<String> lines = Herramientas.readAllLines(pathAverias);
         for (String line : lines) {
             Averia averia = new Averia(line);
-            averias.add(averia);
+            this.averiasAutomaticas.add(averia);
         }
-        return averias;
+        System.out.println("Averias automaticas: " + this.averiasAutomaticas.size());
+        return this.averiasAutomaticas;
     }
 
-    public static List<Pedido> initializePedidos() throws InvalidDataFormatException, IOException {
-        List<String> lines = Herramientas.readAllLines(pathPedidos);
+    public List<Pedido> initializePedidos() throws InvalidDataFormatException, IOException {
+        List<String> lines = Herramientas.readAllLines(getPathPedidos());
+
         for (String line : lines) {
-            PedidoFactory.crearPedido(line);
+            Pedido pedido = PedidoFactory.crearPedido(line);
+            this.pedidos.add(pedido);
         }
-        pedidos = PedidoFactory.pedidos;
-        return pedidos;
+
+        return this.pedidos;
     }
 
-    /**
-     * Inicializa la lista de mantenimientos a partir del archivo de mantenimientos.
-     *
-     * @return Lista de mantenimientos inicializados.
-     * @throws IOException                si ocurre un error al leer el archivo.
-     * @throws InvalidDataFormatException si el formato de los datos es inválido.
-     */
-    public static List<Mantenimiento> initializeMantenimientos()
+    public List<Mantenimiento> initializeMantenimientos()
             throws IOException, InvalidDataFormatException {
         List<String> lines = Herramientas.readAllLines(pathMantenimientos); // Propaga IOException si ocurre
 
@@ -123,6 +146,7 @@ public class DataLoader {
             Camion camion;
             try {
                 camion = CamionFactory.getCamionPorCodigo(codigoTipoCamion);
+
             } catch (NoSuchElementException e) {
                 throw new InvalidDataFormatException(
                         "Error en línea de mantenimiento: " + line + ". Detalles: " + e.getMessage());
@@ -143,17 +167,17 @@ public class DataLoader {
                         .mes(i)
                         .camion(camion)
                         .build();
-                mantenimientos.add(mantenimiento);
+                this.mantenimientos.add(mantenimiento);
             }
         }
-        return mantenimientos;
+        return this.mantenimientos;
     }
 
-    public static void initializeBloqueos() throws InvalidDataFormatException, IOException {
-        List<String> lines = Herramientas.readAllLines(pathBloqueos);
+    public void initializeBloqueos() throws InvalidDataFormatException, IOException {
+        List<String> lines = Herramientas.readAllLines(getPathBloqueos());
         for (String line : lines) {
             Bloqueo bloqueo = new Bloqueo(line);
-            bloqueos.add(bloqueo);
+            this.bloqueos.add(bloqueo);
         }
     }
 }

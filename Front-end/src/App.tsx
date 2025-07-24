@@ -1,20 +1,35 @@
 import { Route, Routes } from 'react-router-dom';
 import './App.css';
-import SimulacionSemanal from './views/SimulacionSemanal';
-import { SimulacionProvider } from './context/SimulacionContext';
-import TiempoReal from './views/TiempoReal';
 import SeleccionVista from './views/SeleccionVista';
-import ColapsoLogistico from './views/ColapsoLogistico';
+import SimulacionSemanalConCarga from './views/SimulacionSemanalConCarga';
+import SimulacionAlColapso from './views/SimulacionAlColapso';
+import SimulacionDiaria from './views/SimulacionDiaria';
+import { SimulacionProvider } from './context/SimulacionContext';
+import { ToastContainer, Bounce } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
     <SimulacionProvider>
       <Routes>
         <Route path="/" element={<SeleccionVista />} />
-        <Route path="/simulacion-semanal" element={<SimulacionSemanal />} />
-        <Route path="/tiempo-real" element={<TiempoReal />} />
-        <Route path="/colapso-logistico" element={<ColapsoLogistico />} />
+        <Route path="/simulacion-semanal" element={<SimulacionSemanalConCarga />} />
+        <Route path="/colapso-logistico" element={<SimulacionAlColapso />} />
+        <Route path="/ejecucion-tiempo-real" element={<SimulacionDiaria />} />
       </Routes>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}
+      />
     </SimulacionProvider>
   );
 }

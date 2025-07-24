@@ -1,28 +1,41 @@
 package com.plg.utils;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.time.LocalDateTime;
+import com.plg.utils.Simulacion;
+import com.plg.dto.CoordenadaDto;
+import com.plg.dto.NodoDto;
 import com.plg.entity.Almacen;
+import com.plg.entity.Averia;
 import com.plg.entity.Camion;
+import com.plg.entity.Coordenada;
+import com.plg.entity.EstadoCamion;
 import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
+import com.plg.entity.TipoNodo;
+import com.plg.entity.EstadoPedido;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Gen {
+
     private int posNodo = 0;
-    private String descripcion; 
+    private String descripcion;
     private Camion camion;
     private List<Nodo> nodos;
     private List<Nodo> rutaFinal;
     private List<Pedido> pedidos;
+    private List<Camion> camionesAveriados;
+    private List<Almacen> almacenesIntermedios;
     private double fitness;
 
     public Gen(Camion camion, List<Nodo> nodosOriginal) {
@@ -30,116 +43,267 @@ public class Gen {
         this.nodos = nodosOriginal;
         this.rutaFinal = new ArrayList<>();
         this.pedidos = new ArrayList<>();
+        this.camionesAveriados = new ArrayList<>();
+        this.almacenesIntermedios = new ArrayList<>();
+        this.fitness = 0.0;
+    }
+
+    public double distanciaRecorrida() {
+        return (double) rutaFinal.size();
+    }
+
+    private void recargarCamion(Camion camion, Nodo nodo) {
+        if (nodo instanceof Almacen) {
+            Almacen almacenRecarga = (Almacen) nodo;
+            almacenRecarga.recargarGlPCamion(camion);
+        }
+
+        if (nodo instanceof Camion) {
+            Camion camionRecarga = (Camion) nodo;
+            camionRecarga.recargarGlPSiAveriado(camion);
+        }
+    }
+
+    public String descripcionDistanciaLejana(double distanciaMaxima, double distanciaCalculada, Nodo nodo1,
+            Nodo nodo2) {
+        return "El camion con código " + camion.getCodigo()
+                + " no puede recorrer la distancia de " + distanciaCalculada
+                + " km. La distancia máxima es de " + distanciaMaxima
+                + " km." + " El camión se encuentra en la posición " + nodo1.getCoordenada()
+                + " y se dirige a la posición " + nodo2.getCoordenada() + ".";
     }
 
     public double calcularFitness() {
         this.rutaFinal.clear();
         double fitness = 0.0;
-
+        Nodo posicionActual = camion;
+        List<Nodo> rutaEntradaBloqueada = null;
+        LocalDateTime fechaActual = Parametros.fecha_inicial;
+        LocalDateTime fechaLlegada = fechaActual;
         for (int i = 0; i < nodos.size(); i++) {
-            Nodo nodo1, nodo2;
-            if(i == 0){
-                nodo1 = camion;
-                nodo2 = nodos.get(i);
-            }else{
-                nodo1 = nodos.get(i - 1);
-                nodo2 = nodos.get(i);
-            }
-            List<Nodo> rutaAstar = Mapa.getInstance().aStar(nodo1, nodo2);
-
-            double distanciaCalculada = rutaAstar.size();
-            double distanciaMaxima = camion.calcularDistanciaMaxima();
-            if (distanciaMaxima < distanciaCalculada) {
-                fitness = Double.POSITIVE_INFINITY;
-                this.descripcion = descripcionDistanciaLejana(distanciaMaxima, distanciaCalculada, nodo1, nodo2);
-                break;
-            }
-            if (nodo2 instanceof Pedido) {
-                Pedido pedido = (Pedido) nodo2;
-
-                // Si se trata de un pedido verificamos que lleguemos a tiempo 
-                double tiempoEntregaLimite = pedido.getHorasLimite();
-                double tiempoLlegada = distanciaCalculada / camion.getVelocidadPromedio();
-                boolean tiempoMenorQueLimite = tiempoLlegada <= tiempoEntregaLimite;
-
-                // Verificamos que el camion tenga sufiente combustible
-                boolean volumenGLPAsignado = camion.getCapacidadActualGLP() >= pedido.getVolumenGLPAsignado();
-
-                if (tiempoMenorQueLimite && volumenGLPAsignado) {
-                    fitness += distanciaCalculada; // Aumentamos el fitness por la distancia recorrida
-                    // Combustible gastado
-                    camion.actualizarCombustible(distanciaCalculada);
-
-                    // Actualizamos el volumen de GLP del camion
-                    camion.entregarVolumenGLP(pedido.getVolumenGLPAsignado());
-                    if (i > 0){
-                        rutaAstar.remove(0);
-                    }
-                    rutaFinal.addAll(rutaAstar);
-                } else {
-                    fitness = Double.POSITIVE_INFINITY;
-                    this.descripcion = descripcionError(pedido, camion, tiempoEntregaLimite, tiempoLlegada, tiempoMenorQueLimite, volumenGLPAsignado);
+            Nodo destino = nodos.get(i);
+            List<Nodo> rutaAstar = Mapa.getInstance().aStar(posicionActual, destino);
+            if (destino instanceof Pedido) {
+                ResultadoEntrega resultado = procesarEntregaPedido((Pedido) destino, rutaAstar, fechaLlegada, fitness,
+                        posicionActual, i);
+                fitness = resultado.fitness;
+                fechaLlegada = resultado.fechaLlegada;
+                posicionActual = resultado.posicionActual;
+                rutaEntradaBloqueada = resultado.rutaEntradaBloqueada;
+                if (fitness == Double.POSITIVE_INFINITY)
                     break;
-                }
-            } else if (nodo2 instanceof Almacen || nodo2 instanceof Camion) {
-                recargarCamion(camion, nodo2);
-                if (i > 0){
-                    rutaAstar.remove(0);
-                }
-                rutaFinal.addAll(rutaAstar);
+            } else if (destino instanceof Almacen || destino instanceof Camion) {
+                posicionActual = procesarNodoRecarga(destino, rutaAstar, i);
+                rutaEntradaBloqueada = null;
+            } else {
+                posicionActual = procesarNodoNormal(destino, rutaAstar, i);
+            }
+            if (rutaEntradaBloqueada != null && i + 1 < nodos.size()) {
+                ResultadoSalidaBloqueo resultadoSalida = procesarRutaSalidaBloqueo(rutaEntradaBloqueada, fitness,
+                        posicionActual);
+                fitness = resultadoSalida.fitness;
+                posicionActual = resultadoSalida.posicionActual;
+                rutaEntradaBloqueada = null;
             }
         }
         this.fitness = fitness;
         return fitness;
     }
 
-    private void recargarCamion(Camion camion, Nodo nodo) {
-        if (nodo instanceof Almacen || nodo instanceof Camion) {
-            camion.setCombustibleActual(camion.getCombustibleMaximo());
-            camion.setCapacidadActualGLP(camion.getCapacidadMaximaGLP());
-            if (nodo instanceof Almacen) {
-                Almacen almacen = (Almacen) nodo;
-                almacen.setCapacidadActualGLP(almacen.getCapacidadActualGLP()- camion.getCapacidadMaximaGLP());
-                almacen.setCapacidadCombustible(almacen.getCapacidadCombustible()- camion.getCombustibleMaximo());
+    // Auxiliar para procesar la entrega de un pedido
+    private ResultadoEntrega procesarEntregaPedido(Pedido pedido, List<Nodo> rutaAstar, LocalDateTime fechaLlegada,
+            double fitness, Nodo posicionActual, int i) {
+        double tiempoLlegadaHoras = rutaAstar.size() / camion.getVelocidadPromedio() + 0.25;
+        LocalDateTime nuevaFechaLlegada = fechaLlegada.plusMinutes((long) (tiempoLlegadaHoras * 60));
+        boolean dentroDeLimite = pedido.getFechaLimite() == null || !nuevaFechaLlegada.isAfter(pedido.getFechaLimite());
+        // Calcular la cantidad de pedidos asignados a este camión
+        int cantidadPedidosAsignados = this.pedidos != null && !this.pedidos.isEmpty() ? this.pedidos.size() : 1;
+        double glpPorPedido = camion.getCapacidadActualGLP() / cantidadPedidosAsignados;
+        double volumenPendiente = pedido.getVolumenGLPAsignado() - pedido.getVolumenGLPEntregado();
+        double volumenAEntregar = Math.min(glpPorPedido, volumenPendiente);
+        boolean entregadoCompleto = (pedido.getVolumenGLPEntregado() + volumenAEntregar) >= pedido
+                .getVolumenGLPAsignado() - Parametros.diferenciaParaPedidoEntregado;
+        if (dentroDeLimite) {
+            fitness += rutaAstar.size();
+            camion.actualizarCombustible(rutaAstar.size());
+            camion.entregarVolumenGLP(volumenAEntregar);
+            pedido.setVolumenGLPEntregado(pedido.getVolumenGLPEntregado() + volumenAEntregar);
+            if (entregadoCompleto) {
+                pedido.setVolumenGLPEntregado(pedido.getVolumenGLPAsignado());
+                pedido.setEstado(EstadoPedido.ENTREGADO);
+            }
+            if (i > 0 && rutaAstar.size() > 1) {
+                rutaAstar.remove(0);
+            }
+            rutaFinal.addAll(rutaAstar);
+            List<Nodo> rutaEntradaBloqueada = pedido.isBloqueado() ? new ArrayList<>(rutaAstar) : null;
+            return new ResultadoEntrega(fitness, nuevaFechaLlegada, pedido, rutaEntradaBloqueada);
+        } else {
+            this.descripcion = "El pedido " + pedido.getCodigo() + " no puede ser entregado a tiempo. Fecha límite: "
+                    + pedido.getFechaLimite() + ", fecha llegada: " + nuevaFechaLlegada;
+            return new ResultadoEntrega(Double.POSITIVE_INFINITY, nuevaFechaLlegada, posicionActual, null);
+        }
+    }
 
+    // Auxiliar para procesar nodos de tipo almacén o camión
+    private Nodo procesarNodoRecarga(Nodo destino, List<Nodo> rutaAstar, int i) {
+        recargarCamion(camion, destino);
+        if (i > 0 && rutaAstar.size() > 1) {
+            rutaAstar.remove(0);
+        }
+        rutaFinal.addAll(rutaAstar);
+        return destino;
+    }
+
+    // Auxiliar para procesar nodos normales
+    private Nodo procesarNodoNormal(Nodo destino, List<Nodo> rutaAstar, int i) {
+        if (i > 0 && rutaAstar.size() > 1) {
+            rutaAstar.remove(0);
+        }
+        rutaFinal.addAll(rutaAstar);
+        return destino;
+    }
+
+    public List<Nodo> construirRutaFinalApi() {
+        List<Nodo> rutaApi = new ArrayList<>();
+        for (Nodo nodo : rutaFinal) {
+            if (nodo instanceof Pedido && this.getPedidos().contains(nodo)) {
+                Pedido pedido = (Pedido) nodo;
+                for (int j = 0; j < Parametros.cantNodosEnPedidos; j++) {
+                    rutaApi.add(pedido);
+                }
+            } else if (nodo instanceof Camion && this.getCamionesAveriados().contains(nodo)) {
+                Camion camion = (Camion) nodo;
+                if (camion.getEstado() == EstadoCamion.INMOVILIZADO_POR_AVERIA) {
+                    for (int j = 0; j < Parametros.cantNodosEnPedidos; j++) {
+                        rutaApi.add(nodo);
+                    }
+                }
+            } else {
+                rutaApi.add(nodo);
             }
         }
-    }
-
-    public String descripcionDistanciaLejana(double distanciaMaxima, double distanciaCalculada, Nodo nodo1, Nodo nodo2) {
-        return "El camion con código " + camion.getCodigo() + 
-                    " no puede recorrer la distancia de " + distanciaCalculada + 
-                    " km. La distancia máxima es de " + distanciaMaxima + 
-                    " km." + " El camión se encuentra en la posición " + nodo1.getCoordenada() + 
-                    " y se dirige a la posición " + nodo2.getCoordenada() + ".";
-    }
-
-    public String descripcionError(Pedido pedido, Camion camion, double tiempoEntregaLimite, double tiempoLlegada, boolean tiempoMenorQueLimite, boolean volumenGLPAsignado) {
-        String respuesta = "";
-        if (!tiempoMenorQueLimite) {
-            respuesta =  "El camion con código " + camion.getCodigo() +
-             " no puede llegar a tiempo al pedido "
-              + pedido.getCodigo() + ". Tiempo de entrega: "
-               + tiempoEntregaLimite + " horas. Tiempo de llegada: "
-                + tiempoLlegada + " horas.";
-          
-        } else if (!volumenGLPAsignado) {
-            respuesta = "El camion con código " + camion.getCodigo() +
-             " no tiene suficiente GLP para entregar el pedido "
-              + pedido.getCodigo() + ". Volumen de GLP asignado: "
-               + pedido.getVolumenGLPAsignado() + " m³. Capacidad actual de GLP: "
-                + camion.getCapacidadActualGLP() + " m³.";
+        int cantNodosRecorridos = (int) (Parametros.velocidadCamion * Parametros.intervaloTiempo / 60);
+        if (rutaApi.size() < cantNodosRecorridos) {
+            Nodo ultimoNodo = rutaApi.get(rutaApi.size() - 1);
+            int nodosFaltantes = cantNodosRecorridos - rutaApi.size();
+            for (int i = 0; i < nodosFaltantes; i++) {
+                rutaApi.add(ultimoNodo);
+            }
         }
-        return respuesta;
+        return rutaApi;
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(camion.toString()).append(" ");
-        for (int i = 0; i < nodos.size() - 1; i++) {
-            sb.append(nodos.get(i).toString()).append(" ");
+    // Auxiliar para procesar rutas de salida de bloqueos
+    private ResultadoSalidaBloqueo procesarRutaSalidaBloqueo(List<Nodo> rutaEntradaBloqueada, double fitness,
+            Nodo posicionActual) {
+        List<Nodo> rutaSalida = new ArrayList<>(rutaEntradaBloqueada);
+        Collections.reverse(rutaSalida);
+        rutaSalida.remove(0);
+        if (!rutaSalida.isEmpty()) {
+            rutaFinal.addAll(rutaSalida);
+            fitness += rutaSalida.size();
+            posicionActual = rutaSalida.get(rutaSalida.size() - 1);
         }
-        return sb.toString();
+        return new ResultadoSalidaBloqueo(fitness, posicionActual);
     }
+
+    public Nodo ultimoNodo() {
+        if (rutaFinal.isEmpty()) {
+            return camion;
+        }
+        return rutaFinal.getLast();
+    }
+
+    // Clases auxiliares para devolver múltiples valores
+    private static class ResultadoEntrega {
+        double fitness;
+        LocalDateTime fechaLlegada;
+        Nodo posicionActual;
+        List<Nodo> rutaEntradaBloqueada;
+
+        ResultadoEntrega(double fitness, LocalDateTime fechaLlegada, Nodo posicionActual,
+                List<Nodo> rutaEntradaBloqueada) {
+            this.fitness = fitness;
+            this.fechaLlegada = fechaLlegada;
+            this.posicionActual = posicionActual;
+            this.rutaEntradaBloqueada = rutaEntradaBloqueada;
+        }
+    }
+
+    private static class ResultadoSalidaBloqueo {
+        double fitness;
+        Nodo posicionActual;
+
+        ResultadoSalidaBloqueo(double fitness, Nodo posicionActual) {
+            this.fitness = fitness;
+            this.posicionActual = posicionActual;
+        }
+    }
+
+    // ! calcula la cantidad de nodos que puede recorrer como maximo el camion segun
+    // su velocidad
+    public int calcularCantidadDeNodosQuePuedeRecorrerElCamion() {
+        double velocidad_en_km_h = Parametros.velocidadCamion;
+
+        double cantidad_de_horas_intervalo = Parametros.intervaloTiempo / 60.0;
+
+        double cantidad_de_km_que_puede_recorrer_el_camion = velocidad_en_km_h * cantidad_de_horas_intervalo;
+        // System.out
+        // .println("Cantidad de km que puede recorrer el camion: " +
+        // cantidad_de_km_que_puede_recorrer_el_camion);
+        return (int) (cantidad_de_km_que_puede_recorrer_el_camion);
+    }
+
+    // !Calcula el indice iniial y final de los nodos que estan en el rango de
+    // averias automaticas
+    public void colocar_nodo_de_averia_automatica() {
+        int cantidad_nodos_que_puede_recorrer_el_camion = this.getCamion().calcularCantidadDeNodos();
+        int posicion_inicial = (int) (cantidad_nodos_que_puede_recorrer_el_camion
+                * Parametros.rango_inicial_tramo_averia);
+        int posicion_final = (int) (cantidad_nodos_que_puede_recorrer_el_camion * Parametros.rango_final_tramo_averia);
+        // if (posicion_inicial > 1) {
+        // posicion_inicial = posicion_inicial - 1;
+        // }
+        // if (posicion_final > 1) {
+        // posicion_final = posicion_final - 1;
+        // }
+
+        List<Integer> posiciones_normales = new ArrayList<>();
+        for (int i = posicion_inicial; i <= posicion_final; i++) {
+            if (rutaFinal.get(i).getTipoNodo().equals(TipoNodo.NORMAL)) {
+                posiciones_normales.add(i);
+            }
+        }
+        if(posiciones_normales.isEmpty()) {
+            // Si no hay posiciones normales, no se coloca el nodo de averia automatica
+            return;
+        }
+        // elige una posicion aleatoria dentro de los rangos
+        int posicion_aleatoria = new Random().nextInt(posiciones_normales.size());
+
+        // Realizamos un padding de todos los nodos de ruta final desde la posicion
+        // aleatoria hasta el final de la lista, es decir los eliminamos
+        rutaFinal = new ArrayList<>(rutaFinal.subList(0, posiciones_normales.get(posicion_aleatoria)));
+        Averia averia = Parametros.dataLoader.averiasAutomaticas.stream()
+                .filter(a -> a.getCamion().getCodigo().equals(camion.getCodigo()))
+                .findFirst()
+                .orElse(null);
+        TipoNodo tipo_nodo_averia;
+        if (averia != null) {
+            String tipo_nodo_averia_string = averia.getTipoIncidente().getCodigo();
+            if (tipo_nodo_averia_string.equals("TI1")) {
+                tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T1;
+            } else if (tipo_nodo_averia_string.equals("TI2")) {
+                tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T2;
+            } else {
+                tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T3;
+            }
+        } else {
+            tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T1;
+        }
+        Nodo ultimoNodo = rutaFinal.getLast();
+        ultimoNodo.setTipoNodo(tipo_nodo_averia);
+    }
+
 }

@@ -52,16 +52,5 @@ public class AlmacenController {
         }
     }
 
-    /**
-     * Agrega un nuevo almacén.
-     */
-    @PostMapping
-    public ResponseEntity<?> agregar(@RequestBody AlmacenRequest request) {
-        try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(almacenService.agregar(request));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Error al crear almacén: " + e.getMessage());
-        }
-    }
+    
 }

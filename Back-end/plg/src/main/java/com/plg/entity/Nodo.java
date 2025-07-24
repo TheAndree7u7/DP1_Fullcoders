@@ -1,15 +1,20 @@
 package com.plg.entity;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @SuperBuilder
+@Getter
+@Setter
 public class Nodo {
     private Coordenada coordenada;
     private boolean bloqueado;
@@ -25,15 +30,21 @@ public class Nodo {
         this.fScore = fScore;
     }
 
+    public Nodo(Coordenada coordenada) {
+        this.coordenada = coordenada;
+    }
+
     @Override
     public String toString() {
         return String.format(
                 "Nodo [%s]%n" +
                         "  - Coordenada:       %s%n" +
-                        "  - Tipo de nodo:     %s \n",
+                        "  - Tipo de nodo:     %s\n" +
+                        "  - ¿Bloqueado?:      %s\n",
                 coordenada != null ? coordenada : "N/A",
                 coordenada != null ? coordenada : "N/A",
-                tipoNodo != null ? tipoNodo.getTipo() : "N/A");
+                tipoNodo != null ? tipoNodo.getTipo() : "N/A",
+                bloqueado ? "Sí" : "No");
     }
 
     @Override
