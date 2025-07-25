@@ -65,6 +65,7 @@ public class IndividuoDto {
     // Metodo para agregar averias automaticas en la ruta del mejor individuo
     // verificando cada cromosoma
     public boolean agregarAveriasAutomaticas(List<Averia> averiasAutomaticas) {
+
         // Validación de parámetros de entrada
         if (averiasAutomaticas == null || averiasAutomaticas.isEmpty()) {
             System.out.println("❌ No hay averías automáticas para aplicar");
@@ -89,8 +90,36 @@ public class IndividuoDto {
             LocalDateTime fechaMedio = fechaHoraInicioIntervalo.plusSeconds(segundosTotales / 2);
 
             int turno = Herramientas.detectarTurno(fechaMedio);
-
-            // Validación del turno
+            switch (turno) {
+                case 1:
+                    if (Parametros.averio_turno_1 == true) {
+                        System.out.println("⚠️ Ya se aplicaron averías automáticas en el turno 1. Saltando...");
+                        return true;
+                    }
+                    Parametros.averio_turno_1 = true;
+                    System.out.println("✅ Avería automática configurada para turno 1");
+                    break;
+                case 2:
+                    if (Parametros.averio_turno_2 == true) {
+                        System.out.println("⚠️ Ya se aplicaron averías automáticas en el turno 2. Saltando...");
+                        return true;
+                    }
+                    Parametros.averio_turno_2 = true;
+                    System.out.println("✅ Avería automática configurada para turno 2");
+                    break;
+                case 3:
+                    if (Parametros.averio_turno_3 == true) {
+                        System.out.println("⚠️ Ya se aplicaron averías automáticas en el turno 3. Saltando...");
+                        return true;
+                    }
+                    Parametros.averio_turno_3 = true;
+                    System.out.println("✅ Avería automática configurada para turno 3");
+                    break;
+                default:
+                    System.out.println("⚠️ Turno no válido: " + turno + ". No se aplicarán averías automáticas.");
+                    return true;
+            }
+                // Validación del turno
             if (turno < 1 || turno > 3) {
                 System.out.println("❌ Turno inválido detectado: " + turno);
                 return false;
@@ -126,7 +155,10 @@ public class IndividuoDto {
                     camiones_para_averiar_automaticamente.add(gen.getCamion());
                 }
             }
-
+            if (camiones_para_averiar_automaticamente.isEmpty()) {
+                System.out.println("✅ No hay camiones para averiar automaticamente");
+                return true; // No es un error, simplemente no hay camiones para averiar
+            }
             System.out
                     .println("Camiones para averiar automaticamente: " + camiones_para_averiar_automaticamente.size());
 
