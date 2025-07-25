@@ -83,7 +83,7 @@ public class Herramientas {
         int hora_medio_intervalo = (hora_inicio_intervalo + hora_fin_intervalo) / 2;
 
         int turno = Herramientas.detectarTurno(hora_medio_intervalo);
-
+        System.out.println("Turno: " + turno);
         // ! Prevenir que se agreguen averias en el mismo turno
         switch (turno) {
             case 1:
