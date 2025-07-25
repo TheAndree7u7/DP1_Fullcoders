@@ -5,7 +5,7 @@
 
 import { averiarCamionConEstado } from "../../../services/averiaApiService";
 import { toast, Bounce } from 'react-toastify';
-import { capturarEstadoCompleto, generarResumenEstado, type EstadoSimulacionCompleto } from "../../../context/simulacion/utils/estado";
+import { capturarEstadoCompleto, type EstadoSimulacionCompleto } from "../../../context/simulacion/utils/estado";
 import { calcularTimestampSimulacion } from "../../../context/simulacion/utils/tiempo";
 import type { CamionEstado, RutaCamion, Bloqueo } from "../../../context/simulacion/types";
 import type { Almacen } from "../../../types";
@@ -72,14 +72,14 @@ export const handleAveriaAutomatica = async (
     const estadoCompleto: EstadoSimulacionCompleto = capturarEstadoCompleto(estadoSimulacion);
     
     // Generar resumen del estado para logs
-    const resumenEstado = generarResumenEstado(estadoCompleto);
-    console.log("📊 RESUMEN DEL ESTADO AL MOMENTO DE LA AVERÍA AUTOMÁTICA:");
-    console.log(resumenEstado);
+    // const resumenEstado = generarResumenEstado(estadoCompleto);
+    // console.log("📊 RESUMEN DEL ESTADO AL MOMENTO DE LA AVERÍA AUTOMÁTICA:");
+    // console.log(resumenEstado);
     
     // Enviar avería automática al backend con el tipo correcto (T1, T2, T3)
-    console.log("📡 ENVIANDO AVERÍA AUTOMÁTICA AL BACKEND...");
-    console.log("📅 TIMESTAMP USADO PARA AVERÍA AUTOMÁTICA:", timestampSimulacion);
-    console.log("🔧 TIPO DE AVERÍA:", tipoAveriaString, "(ID:", tipoAveria, ")");
+    // console.log("📡 ENVIANDO AVERÍA AUTOMÁTICA AL BACKEND...");
+    // console.log("📅 TIMESTAMP USADO PARA AVERÍA AUTOMÁTICA:", timestampSimulacion);
+    // console.log("🔧 TIPO DE AVERÍA:", tipoAveriaString, "(ID:", tipoAveria, ")");
     await averiarCamionConEstado(camionId, tipoAveria, timestampSimulacion, estadoCompleto);
     
     // Mostrar toast informativo

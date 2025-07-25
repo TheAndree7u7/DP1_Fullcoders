@@ -107,8 +107,8 @@ public class SimulacionController {
         algoritmoGenetico.ejecutarAlgoritmo();
         if (Parametros.tipoDeSimulacion == TipoDeSimulacion.SEMANAL) {
             Herramientas.agregarAveriasAutomaticas(Parametros.dataLoader.averiasAutomaticas,
-            algoritmoGenetico.getMejorIndividuo().getCromosoma(), fechaDateTime,
-            fechaDateTime.plusMinutes(Parametros.intervaloTiempo));
+                    algoritmoGenetico.getMejorIndividuo().getCromosoma(), fechaDateTime,
+                    fechaDateTime.plusMinutes(Parametros.intervaloTiempo));
         }
         IndividuoDto mejorIndividuoDto = new IndividuoDto(
                 algoritmoGenetico.getMejorIndividuo(),
@@ -124,38 +124,43 @@ public class SimulacionController {
         return mejorIndividuoDto;
     }
 
-    @GetMapping("/iniciar")
-    public ResponseEntity<String> iniciarSimulacion(@RequestParam String fecha) {
-        System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/iniciar (GET)");
-        System.out.println("📅 Fecha recibida: " + fecha);
-        System.out.println("🎯 Tipo de simulación actual: " + Parametros.tipoDeSimulacion);
-        try {
-            // Validar que la fecha no sea nula
-            if (fecha == null) {
-                System.out.println("❌ Error: Fecha de inicio es nula");
-                return ResponseEntity.badRequest().body("Error: La fecha de inicio no puede ser nula");
-            }
-            LocalDateTime fechaDateTime = LocalDateTime.parse(fecha);
-            Parametros.fecha_inicio_simulacion = fechaDateTime;
+    // @GetMapping("/iniciar")
+    // public ResponseEntity<String> iniciarSimulacion(@RequestParam String fecha) {
+    // System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/iniciar
+    // (GET)<--------------");
+    // System.out.println("📅 Fecha recibida: " + fecha);
+    // System.out.println("🎯 Tipo de simulación actual: " +
+    // Parametros.tipoDeSimulacion);
+    // try {
+    // // Validar que la fecha no sea nula
+    // if (fecha == null) {
+    // System.out.println("❌ Error: Fecha de inicio es nula");
+    // return ResponseEntity.badRequest().body("Error: La fecha de inicio no puede
+    // ser nula");
+    // }
+    // LocalDateTime fechaDateTime = LocalDateTime.parse(fecha);
+    // Parametros.fecha_inicio_simulacion = fechaDateTime;
 
-            // Configurar simulación según el tipo actual
-            if (Parametros.tipoDeSimulacion == TipoDeSimulacion.DIARIA) {
-                System.out.println("🌅 Configurando simulación DIARIA");
-                Simulacion.configurarSimulacionDiaria(fechaDateTime);
-            } else {
-                System.out.println("📅 Configurando simulación SEMANAL");
-                Simulacion.configurarSimulacionSemanal(fechaDateTime);
-            }
+    // // Configurar simulación según el tipo actual
+    // if (Parametros.tipoDeSimulacion == TipoDeSimulacion.DIARIA) {
+    // System.out.println("🌅 Configurando simulación DIARIA");
+    // Simulacion.configurarSimulacionDiaria(fechaDateTime);
+    // } else {
+    // System.out.println("📅 Configurando simulación SEMANAL");
+    // Simulacion.configurarSimulacionSemanal(fechaDateTime);
+    // }
 
-            simulacionIniciada = true; // Marcar que la simulación ha sido iniciada
-            String mensaje = "Simulación " + Parametros.tipoDeSimulacion + " iniciada correctamente con fecha: "
-                    + fecha;
-            System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
-            return ResponseEntity.ok(mensaje);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fatal inicializar");
-        }
-    }
+    // simulacionIniciada = true; // Marcar que la simulación ha sido iniciada
+    // String mensaje = "Simulación " + Parametros.tipoDeSimulacion + " iniciada
+    // correctamente con fecha: "
+    // + fecha;
+    // System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
+    // return ResponseEntity.ok(mensaje);
+    // } catch (Exception e) {
+    // return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("fatal
+    // inicializar");
+    // }
+    // }
 
     @PostMapping("/iniciar")
     public ResponseEntity<String> iniciarSimulacionPost(@RequestBody SimulacionRequest request) {
@@ -170,7 +175,9 @@ public class SimulacionController {
             }
             LocalDateTime fechaDateTime = request.getFechaInicio();
             Parametros.fecha_inicio_simulacion = fechaDateTime;
-
+            Parametros.averio_turno_1 = false;
+            Parametros.averio_turno_2 = false;
+            Parametros.averio_turno_3 = false;
             // Configurar simulación según el tipo actual
             if (Parametros.tipoDeSimulacion == TipoDeSimulacion.DIARIA) {
                 System.out.println("🌅 Configurando simulación DIARIA");

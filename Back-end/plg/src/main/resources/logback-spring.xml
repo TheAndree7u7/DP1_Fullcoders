@@ -5,16 +5,37 @@
     <property name="CONSOLE_LOG_PATTERN"
               value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(${PID}){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} : %m%n%wEx"/>
 
+    <property name="FILE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"/>
+
+    <!-- Appender para consola -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <withJansi>true</withJansi> <!-- ¡Esto es clave en Windows! -->
+        <withJansi>true</withJansi>
         <encoder>
+            <charset>UTF-8</charset>
             <pattern>${CONSOLE_LOG_PATTERN}</pattern>
         </encoder>
     </appender>
 
-    <logger name="com.plg" level="DEBUG"/>
+    <!-- Appender que borra el archivo al inicio -->
+    <appender name="CLEAN_FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/application.log</file>
+        <append>false</append> <!-- Esto hace que se borre el archivo al inicio -->
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
 
+    <!-- Configuración específica para el paquete com.plg -->
+    <logger name="com.plg" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="CLEAN_FILE"/>
+    </logger>
+
+    <!-- Configuración raíz -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="CLEAN_FILE"/>
     </root>
 </configuration>

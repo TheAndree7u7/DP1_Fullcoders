@@ -62,15 +62,15 @@ public class Herramientas {
     // !DETECTA EN QUE TURNO SE ENCUENTRA UNA FECHA (son 3 turnos) de 00:00 a 08:00,
     // 08:00 a 16:00, 16:00 a 00:00
     // ! RETORNA 1, 2 O 3
-    public static int detectarTurno(LocalDateTime fecha) {
-        LocalTime hora = fecha.toLocalTime();
-        if (hora.isBefore(LocalTime.of(8, 0))) {
+    public static int detectarTurno(int hora) {
+        if (hora >= 0 && hora < 8) {
             return 1;
-        } else if (hora.isBefore(LocalTime.of(16, 0))) {
+        } else if (hora >= 8 && hora < 16) {
             return 2;
-        } else {
+        } else if (hora >= 16 && hora < 24) {
             return 3;
         }
+        return 0;
     }
 
     public static void agregarAveriasAutomaticas(List<Averia> averiasAutomaticas, List<Gen> cromosoma,
@@ -78,41 +78,48 @@ public class Herramientas {
         //
         // sacar la fecha en medio del intervalo de simulacion
         // !Obtener el turno de la fecha en medio del intervalo de simulacion
-        LocalDateTime fechaMedio = fechaHoraInicioIntervalo
-                .plusSeconds(fechaHoraFinIntervalo.getSecond() - fechaHoraInicioIntervalo.getSecond() / 2);
-        int turno = Herramientas.detectarTurno(fechaMedio);
-        boolean averio_turno_1 = false;
-        boolean averio_turno_2 = false;
-        boolean averio_turno_3 = false;
+        int hora_inicio_intervalo = fechaHoraInicioIntervalo.getHour();
+        int hora_fin_intervalo = fechaHoraFinIntervalo.getHour();
+        int hora_medio_intervalo = (hora_inicio_intervalo + hora_fin_intervalo) / 2;
+
+        int turno = Herramientas.detectarTurno(hora_medio_intervalo);
+
         // ! Prevenir que se agreguen averias en el mismo turno
         switch (turno) {
             case 1:
-                if (averio_turno_1 == true) {
-                    averio_turno_3 = false;
+                if (Parametros.averio_turno_1 == true) {
+                    Parametros.averio_turno_2 = false;
                     return;
                 }
-                averio_turno_1 = true;
+                Parametros.averio_turno_1 = true;
+                System.out.println("Averia en turno 1");
                 break;
             case 2:
-                if (averio_turno_2 == true) {
-                    averio_turno_1 = false;
+                if (Parametros.averio_turno_2 == true) {
+                    Parametros.averio_turno_1 = false;
                     return;
                 }
-                averio_turno_2 = true;
+                Parametros.averio_turno_2 = true;
+                System.out.println("Averia en turno 2");
                 break;
             case 3:
-                if (averio_turno_3 == true) {
-                    averio_turno_2 = false;
+                if (Parametros.averio_turno_3 == true) {
+                    Parametros.averio_turno_2 = false;
                     return;
                 }
-                averio_turno_3 = true;
+                Parametros.averio_turno_3 = true;
+                System.out.println("Averia en turno 3");
                 break;
         }
 
         // Sacar la lista de averias automaticas del turno
+        if (averiasAutomaticas.isEmpty())
+            return;
         List<Averia> averiasAutomaticasTurno = averiasAutomaticas.stream()
                 .filter(averia -> averia.getTurnoOcurrencia() == turno)
                 .toList();
+        if (averiasAutomaticasTurno.isEmpty())
+            return;
         List<Camion> camiones_para_averiar_automaticamente = new ArrayList<>();
         for (Gen gen : cromosoma) {
             boolean camion_en_averias_automaticas = averiasAutomaticasTurno.stream()
@@ -123,14 +130,29 @@ public class Herramientas {
                 camiones_para_averiar_automaticamente.add(gen.getCamion());
             }
         }
-
+        if (camiones_para_averiar_automaticamente.isEmpty())
+            return;
         for (Gen gen : cromosoma) {
             if (camiones_para_averiar_automaticamente.stream()
                     .anyMatch(camion -> camion.getCodigo().equals(gen.getCamion().getCodigo()))) {
                 gen.colocar_nodo_de_averia_automatica();
             }
         }
-        Parametros.dataLoader.camionesAveriados = camiones_para_averiar_automaticamente;
+        Parametros.dataLoader.camionesAveriados.addAll(camiones_para_averiar_automaticamente);
+        if (camiones_para_averiar_automaticamente.isEmpty()) {
+            System.out.println("No hay camiones para averiar automaticamente");
+            return;
+        } else {
+            System.out.println("Averias automaticas: " + averiasAutomaticasTurno.size());
+            System.out
+                    .println("Camiones para averiar automaticamente: " + camiones_para_averiar_automaticamente.size());
+            System.out.println("Lista de codigos de camiones para averiar automaticamente: ");
+            for (Camion camion : camiones_para_averiar_automaticamente) {
+                System.out.println(camion.getCodigo());
+            }
+            System.out.println("--------------------------------");
+        }
+
     }
 
 }

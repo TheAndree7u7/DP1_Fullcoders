@@ -29,11 +29,13 @@ public class Parametros {
 
     // ! PARA LAS AVERIAS AUTOMATICAS
     public static int numero_de_paquete = 0; // Numero de paquete para averias automaticas
-    
-    //!RANGO DE TRAMOS PARA AVERIAS AUTOMATICAS
-    public static double rango_inicial_tramo_averia = 5/100.0; // Rango inicial para averias automaticas
-    public static double rango_final_tramo_averia = 35/100.0; 
 
+    // !RANGO DE TRAMOS PARA AVERIAS AUTOMATICAS
+    public static double rango_inicial_tramo_averia = 5 / 100.0; // Rango inicial para averias automaticas
+    public static double rango_final_tramo_averia = 35 / 100.0;
+    public static boolean averio_turno_1 = false;
+    public static boolean averio_turno_2 = false;
+    public static boolean averio_turno_3 = false;
 
     public static Parametros getInstance() {
         if (instance == null) {

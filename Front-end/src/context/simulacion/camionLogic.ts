@@ -481,69 +481,41 @@ export const avanzarTodosLosCamiones = (
  * @returns {object} Objeto con { debeAveriarse: boolean, tipoAveria?: string }
  */
 export const detectarAveriaAutomatica = (
-  _camion: CamionEstado,
-  _ruta: RutaCamion,
-  _siguientePaso: number,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _averiasAutomaticasActivas: boolean = false
+  camion: CamionEstado,
+  ruta: RutaCamion,
+  siguientePaso: number,
+  averiasAutomaticasActivas: boolean = false
 ): { debeAveriarse: boolean; tipoAveria?: string } => {
-  // DESACTIVADO TEMPORALMENTE: Siempre retornar false para desactivar averías automáticas
+  // Si las averías automáticas están desactivadas, no detectar
+  if (!averiasAutomaticasActivas) {
+    return { debeAveriarse: false };
+  }
+
+  // Si el camión ya está averiado, no necesita detección
+  if (camion.estado === "Averiado") {
+    return { debeAveriarse: false };
+  }
+
+  // Verificar si hay tipos de nodos disponibles
+  if (!ruta.tiposNodos || siguientePaso >= ruta.tiposNodos.length) {
+    return { debeAveriarse: false };
+  }
+
+  const tipoNodoActual = ruta.tiposNodos[siguientePaso];
+
+  // Verificar si el nodo actual es un nodo de avería automática
+  const esNodoAveriaAutomatica = tipoNodoActual === 'AVERIA_AUTOMATICA_T1' || 
+                                 tipoNodoActual === 'AVERIA_AUTOMATICA_T2' || 
+                                 tipoNodoActual === 'AVERIA_AUTOMATICA_T3';
+
+  if (esNodoAveriaAutomatica) {
+    return { 
+      debeAveriarse: true, 
+      tipoAveria: tipoNodoActual 
+    };
+  }
+
   return { debeAveriarse: false };
-  
-  // Código original comentado:
-  // // Si las averías automáticas están desactivadas, no detectar
-  // if (!averiasAutomaticasActivas) {
-  //   return { debeAveriarse: false };
-  // }
-  
-  // // Log para debugging de la función
-  // // console.log('🔍 DETECTAR_AVERIA: Verificando avería automática:', {
-  // //   camionId: camion.id,
-  // //   estadoActual: camion.estado,
-  // //   siguientePaso: siguientePaso,
-  // //   tieneTiposNodos: !!ruta.tiposNodos,
-  // //   longitudTiposNodos: ruta.tiposNodos ? ruta.tiposNodos.length : 0,
-  // //   longitudRuta: ruta.ruta.length,
-  // //   averiasAutomaticasActivas: averiasAutomaticasActivas
-  // // });
-  
-  // // Si el camión ya está averiado, no necesita detección
-  // if (camion.estado === "Averiado") {
-  //   console.log('🔍 DETECTAR_AVERIA: Camión ya está averiado, no necesita detección');
-  //   return { debeAveriarse: false };
-  // }
-
-  // // Verificar si hay tipos de nodos disponibles
-  // if (!ruta.tiposNodos || siguientePaso >= ruta.tiposNodos.length) {
-  //   // console.log('🔍 DETECTAR_AVERIA: No hay tipos de nodos disponibles o índice fuera de rango:', {
-  //   //   tieneTiposNodos: !!ruta.tiposNodos,
-  //   //   siguientePaso: siguientePaso,
-  //   //   longitudTiposNodos: ruta.tiposNodos ? ruta.tiposNodos.length : 0
-  //   // });
-  //   return { debeAveriarse: false };
-  // }
-
-  // const tipoNodoActual = ruta.tiposNodos[siguientePaso];
-  //   // console.log('🔍 DETECTAR_AVERIA: Tipo de nodo actual:', {
-  //   //   tipoNodo: tipoNodoActual,
-  //   //   siguientePaso: siguientePaso
-  //   // });
-  
-  // // Verificar si el nodo actual es un nodo de avería automática
-  // const esNodoAveriaAutomatica = tipoNodoActual === 'AVERIA_AUTOMATICA_T1' || 
-  //                                tipoNodoActual === 'AVERIA_AUTOMATICA_T2' || 
-  //                                tipoNodoActual === 'AVERIA_AUTOMATICA_T3';
-  
-  // if (esNodoAveriaAutomatica) {
-  //   console.log(`🚛💥 DETECTAR_AVERIA: DETECTADA AVERÍA AUTOMÁTICA: Camión ${camion.id} en nodo ${tipoNodoActual}`);
-  //   return { 
-  //     debeAveriarse: true, 
-  //     tipoAveria: tipoNodoActual 
-  //   };
-  // }
-  
-  // // console.log('🔍 DETECTAR_AVERIA: No es nodo de avería automática');
-  // return { debeAveriarse: false };
 };
 
 /**
