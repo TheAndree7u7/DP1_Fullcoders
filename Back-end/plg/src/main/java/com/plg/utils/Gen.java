@@ -258,6 +258,18 @@ public class Gen {
     // !Calcula el indice iniial y final de los nodos que estan en el rango de
     // averias automaticas
     public void colocar_nodo_de_averia_automatica() {
+        // Verificar si ya se ha colocado un nodo de avería automática en esta ruta
+        boolean yaTieneAveriaAutomatica = rutaFinal.stream()
+                .anyMatch(nodo -> nodo.getTipoNodo() == TipoNodo.AVERIA_AUTOMATICA_T1 ||
+                        nodo.getTipoNodo() == TipoNodo.AVERIA_AUTOMATICA_T2 ||
+                        nodo.getTipoNodo() == TipoNodo.AVERIA_AUTOMATICA_T3);
+
+        if (yaTieneAveriaAutomatica) {
+            System.out.println(
+                    "⚠️ Camión " + camion.getCodigo() + " ya tiene un nodo de avería automática. No se aplicará otra.");
+            return;
+        }
+
         int cantidad_nodos_que_puede_recorrer_el_camion = this.getCamion().calcularCantidadDeNodos();
         int posicion_inicial = (int) (cantidad_nodos_que_puede_recorrer_el_camion
                 * Parametros.rango_inicial_tramo_averia);
@@ -271,12 +283,14 @@ public class Gen {
 
         List<Integer> posiciones_normales = new ArrayList<>();
         for (int i = posicion_inicial; i <= posicion_final; i++) {
-            if (rutaFinal.get(i).getTipoNodo().equals(TipoNodo.NORMAL)) {
+            if (i < rutaFinal.size() && rutaFinal.get(i).getTipoNodo().equals(TipoNodo.NORMAL)) {
                 posiciones_normales.add(i);
             }
         }
-        if(posiciones_normales.isEmpty()) {
+        if (posiciones_normales.isEmpty()) {
             // Si no hay posiciones normales, no se coloca el nodo de averia automatica
+            System.out.println("⚠️ No hay posiciones normales disponibles para colocar avería automática en camión "
+                    + camion.getCodigo());
             return;
         }
         // elige una posicion aleatoria dentro de los rangos
@@ -289,21 +303,33 @@ public class Gen {
                 .filter(a -> a.getCamion().getCodigo().equals(camion.getCodigo()))
                 .findFirst()
                 .orElse(null);
+
+        // Verificación crítica: solo proceder si se encuentra una avería configurada
+        // para este camión
+        if (averia == null) {
+            System.out.println("❌ ERROR: Camión " + camion.getCodigo()
+                    + " no tiene avería automática configurada. No se aplicará avería automática.");
+            return;
+        }
+
         TipoNodo tipo_nodo_averia;
-        if (averia != null) {
-            String tipo_nodo_averia_string = averia.getTipoIncidente().getCodigo();
-            if (tipo_nodo_averia_string.equals("TI1")) {
-                tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T1;
-            } else if (tipo_nodo_averia_string.equals("TI2")) {
-                tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T2;
-            } else {
-                tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T3;
-            }
-        } else {
+        String tipo_nodo_averia_string = averia.getTipoIncidente().getCodigo();
+        if (tipo_nodo_averia_string.equals("TI1")) {
             tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T1;
+        } else if (tipo_nodo_averia_string.equals("TI2")) {
+            tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T2;
+        } else if (tipo_nodo_averia_string.equals("TI3")) {
+            tipo_nodo_averia = TipoNodo.AVERIA_AUTOMATICA_T3;
+        } else {
+            System.out.println("❌ ERROR: Tipo de incidente no válido para camión " + camion.getCodigo() + ": "
+                    + tipo_nodo_averia_string);
+            return;
         }
         Nodo ultimoNodo = rutaFinal.getLast();
         ultimoNodo.setTipoNodo(tipo_nodo_averia);
+
+        System.out.println("✅ Avería automática aplicada al camión " + camion.getCodigo() + " en posición "
+                + posiciones_normales.get(posicion_aleatoria));
     }
 
 }

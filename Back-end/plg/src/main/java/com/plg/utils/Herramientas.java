@@ -88,28 +88,31 @@ public class Herramientas {
         switch (turno) {
             case 1:
                 if (Parametros.averio_turno_1 == true) {
-                    Parametros.averio_turno_2 = false;
+                    System.out.println("⚠️ Ya se aplicaron averías automáticas en el turno 1. Saltando...");
                     return;
                 }
                 Parametros.averio_turno_1 = true;
-                System.out.println("Averia en turno 1");
+                System.out.println("✅ Avería automática configurada para turno 1");
                 break;
             case 2:
                 if (Parametros.averio_turno_2 == true) {
-                    Parametros.averio_turno_1 = false;
+                    System.out.println("⚠️ Ya se aplicaron averías automáticas en el turno 2. Saltando...");
                     return;
                 }
                 Parametros.averio_turno_2 = true;
-                System.out.println("Averia en turno 2");
+                System.out.println("✅ Avería automática configurada para turno 2");
                 break;
             case 3:
                 if (Parametros.averio_turno_3 == true) {
-                    Parametros.averio_turno_2 = false;
+                    System.out.println("⚠️ Ya se aplicaron averías automáticas en el turno 3. Saltando...");
                     return;
                 }
                 Parametros.averio_turno_3 = true;
-                System.out.println("Averia en turno 3");
+                System.out.println("✅ Avería automática configurada para turno 3");
                 break;
+            default:
+                System.out.println("⚠️ Turno no válido: " + turno + ". No se aplicarán averías automáticas.");
+                return;
         }
 
         // Sacar la lista de averias automaticas del turno
@@ -120,22 +123,63 @@ public class Herramientas {
                 .toList();
         if (averiasAutomaticasTurno.isEmpty())
             return;
+
+        System.out.println("🔍 Procesando averías automáticas para turno " + turno);
+        System.out.println("📋 Averías automáticas del turno: " + averiasAutomaticasTurno.size());
+        averiasAutomaticasTurno.forEach(averia -> System.out.println(
+                "   - " + averia.getCamion().getCodigo() + " (" + averia.getTipoIncidente().getCodigo() + ")"));
+
         List<Camion> camiones_para_averiar_automaticamente = new ArrayList<>();
         for (Gen gen : cromosoma) {
             boolean camion_en_averias_automaticas = averiasAutomaticasTurno.stream()
                     .anyMatch(averia -> averia.getCamion().getCodigo().equals(gen.getCamion().getCodigo()));
             boolean camion_estado_disponible = gen.getCamion().getEstado().equals(EstadoCamion.DISPONIBLE);
+            boolean camion_ya_averiado = Parametros.dataLoader.camionesAveriados.stream()
+                    .anyMatch(c -> c.getCodigo().equals(gen.getCamion().getCodigo()));
 
-            if (camion_en_averias_automaticas && camion_estado_disponible) {
+            if (camion_en_averias_automaticas && camion_estado_disponible && !camion_ya_averiado) {
                 camiones_para_averiar_automaticamente.add(gen.getCamion());
+                System.out.println("✅ Camión " + gen.getCamion().getCodigo() + " seleccionado para avería automática");
+            } else {
+                if (camion_en_averias_automaticas) {
+                    if (!camion_estado_disponible) {
+                        System.out.println("⚠️ Camión " + gen.getCamion().getCodigo() + " no está disponible (estado: "
+                                + gen.getCamion().getEstado() + ")");
+                    }
+                    if (camion_ya_averiado) {
+                        System.out.println(
+                                "⚠️ Camión " + gen.getCamion().getCodigo() + " ya está en la lista de averiados");
+                    }
+                }
             }
         }
         if (camiones_para_averiar_automaticamente.isEmpty())
             return;
+
+        System.out.println(
+                "🚛 Aplicando averías automáticas a " + camiones_para_averiar_automaticamente.size() + " camiones");
+
+        // Verificación adicional: solo procesar camiones que están en la lista de
+        // averías automáticas del turno
+        List<String> codigosCamionesConfigurados = averiasAutomaticasTurno.stream()
+                .map(averia -> averia.getCamion().getCodigo())
+                .toList();
+
+        System.out.println("📋 Códigos de camiones configurados para averías automáticas en turno " + turno + ": "
+                + codigosCamionesConfigurados);
+
         for (Gen gen : cromosoma) {
+            // Verificación doble: el camión debe estar en la lista de averías automáticas
+            // del turno
             if (camiones_para_averiar_automaticamente.stream()
-                    .anyMatch(camion -> camion.getCodigo().equals(gen.getCamion().getCodigo()))) {
+                    .anyMatch(camion -> camion.getCodigo().equals(gen.getCamion().getCodigo())) &&
+                    codigosCamionesConfigurados.contains(gen.getCamion().getCodigo())) {
+
+                System.out.println("🔧 Aplicando avería automática al camión " + gen.getCamion().getCodigo());
                 gen.colocar_nodo_de_averia_automatica();
+            } else if (codigosCamionesConfigurados.contains(gen.getCamion().getCodigo())) {
+                System.out.println("⚠️ Camión " + gen.getCamion().getCodigo()
+                        + " está configurado pero no cumple condiciones para avería automática");
             }
         }
         Parametros.dataLoader.camionesAveriados.addAll(camiones_para_averiar_automaticamente);
