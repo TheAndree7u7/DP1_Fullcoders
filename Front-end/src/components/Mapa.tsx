@@ -41,6 +41,7 @@ interface CamionVisual {
   ruta: Coordenada[];
   posicion: Coordenada;
   rotacion: number;
+  espejo: boolean;
 }
 
 const GRID_WIDTH = 70;
@@ -268,6 +269,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
       }
       
       let rotacion = 0;
+      let espejo = false;
       
       if (estadoCamion && rutaCoords.length > 1) {
         const porcentaje = estadoCamion.porcentaje;
@@ -280,13 +282,17 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
           if (currentIdx + 1 < rutaCoords.length) {
             const nextPos = rutaCoords[currentIdx + 1];
             if (esCoordenadaValida(nextPos)) {
-              rotacion = calcularRotacion(currentPos, nextPos);
+              const orientacion = calcularRotacion(currentPos, nextPos);
+              rotacion = orientacion.rotacion;
+              espejo = orientacion.espejo;
             }
           } else if (currentIdx > 0) {
             // Si estamos en el último nodo, usar la dirección del último movimiento
             const prevPos = rutaCoords[currentIdx - 1];
             if (esCoordenadaValida(prevPos)) {
-              rotacion = calcularRotacion(prevPos, currentPos);
+              const orientacion = calcularRotacion(prevPos, currentPos);
+              rotacion = orientacion.rotacion;
+              espejo = orientacion.espejo;
             }
           }
         }
@@ -304,7 +310,8 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
         color: CAMION_COLORS[idx % CAMION_COLORS.length],
         ruta: rutaRestante,
         posicion: currentPos,
-        rotacion: rotacion
+        rotacion: rotacion,
+        espejo: espejo
       } as CamionVisual;
     });
 
@@ -894,7 +901,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
                  const esEnMantenimiento = estadoCamion?.estado === 'En Mantenimiento';
                  const esEnMantenimientoPreventivo = estadoCamion?.estado === 'En Mantenimiento Preventivo';
                  const esResaltado = elementoResaltado?.tipo === 'camion' && elementoResaltado?.id === camion.id;
-                 const { posicion, rotacion } = camion;
+                 const { posicion, rotacion, espejo } = camion;
                  const tieneGLP = estadoCamion && typeof estadoCamion.capacidadActualGLP === 'number' && typeof estadoCamion.capacidadMaximaGLP === 'number' && estadoCamion.capacidadMaximaGLP > 0;
                  const colorFinal = esAveriado ? ESTADO_COLORS.AVERIADO : 
                                    esEnMantenimiento ? ESTADO_COLORS.MANTENIMIENTO : 
@@ -910,8 +917,8 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
                  return (
                    <g key={`camion-${camion.id}`}>
                      <g
-                       transform={`translate(${cx}, ${cy}) rotate(${rotacion})`}
-                       style={{ transition: 'transform 0.8s linear', cursor: 'pointer' }}
+                       transform={`translate(${cx}, ${cy}) rotate(${rotacion}) ${espejo ? 'scale(-1, 1)' : ''}`}
+                       style={{ cursor: 'pointer' }}
 
                        onClick={() => {
                          // Solo abrir el modal si no hay otro modal ya abierto
@@ -950,7 +957,7 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
                            strokeWidth={3}
                            strokeDasharray="8 4"
                            opacity={0.9}
-                           style={{ transition: 'all 0.8s linear' }}
+                           style={{}}
                          >
                            <animateTransform
                              attributeName="transform"
