@@ -13,7 +13,7 @@ import {
 } from "./mapa/utils";
 import type { Pedido } from "../types";
 
-const RETRASO_CONSUMO_RUTA = 2;
+const RETRASO_CONSUMO_RUTA = 0;
 
 // Definir el tipo localmente para evitar problemas de importación
 interface PedidoConAsignacion extends Pedido {
