@@ -11,14 +11,14 @@
  * @constant AVERIAS_AUTOMATICAS_POR_TIPO
  * @description Controla si las averías automáticas están activadas según el tipo de simulación
  * 
- * DIARIA: Las averías automáticas están desactivadas (simulación en tiempo real)
+ * DIARIA: Las averías automáticas están activadas para probar la funcionalidad
  * SEMANAL: Las averías automáticas están activadas (simulación semanal)
  * COLAPSO: Las averías automáticas están activadas (simulación de colapso)
  */
 export const AVERIAS_AUTOMATICAS_POR_TIPO = {
-  DIARIA: false,    // Desactivadas para simulación diaria
-  SEMANAL: false,    // Activadas para simulación semanal
-  COLAPSO: false     // Activadas para simulación de colapso
+  DIARIA: true,     // 🔧 ACTIVADO: Para probar la funcionalidad
+  SEMANAL: true,    // 🔧 ACTIVADO: Para simulación semanal
+  COLAPSO: true     // 🔧 ACTIVADO: Para simulación de colapso
 };
 
 /**

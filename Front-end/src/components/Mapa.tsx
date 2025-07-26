@@ -300,25 +300,25 @@ const Mapa: React.FC<MapaProps> = ({
             tipoNodoActual === "AVERIA_AUTOMATICA_T2" ||
             tipoNodoActual === "AVERIA_AUTOMATICA_T3";
 
-          if (esNodoAveriaAutomatica) {
-            // console.log('🚛💥 MAPA: Camión en nodo de avería automática:', {
-            //   camionId: estadoCamion.id,
-            //   tipoNodo: tipoNodoActual,
-            //   porcentaje: porcentaje,
-            //   siguientePaso: siguientePaso,
-            //   estadoActual: estadoCamion.estado,
-            //   ubicacion: estadoCamion.ubicacion
-            // });
+          if (esNodoAveriaAutomatica && estadoCamion.estado === "Averiado") {
+            console.log('🚛💥 MAPA: Camión averiado en nodo de avería automática:', {
+              camionId: estadoCamion.id,
+              tipoNodo: tipoNodoActual,
+              porcentaje: porcentaje,
+              siguientePaso: siguientePaso,
+              estadoActual: estadoCamion.estado,
+              ubicacion: estadoCamion.ubicacion
+            });
           }
         }
 
         // Log para camiones averiados
         if (estadoCamion.estado === "Averiado") {
-          // console.log('🚛🔴 MAPA: Camión averiado detectado:', {
-          //   camionId: estadoCamion.id,
-          //   ubicacion: estadoCamion.ubicacion,
-          //   porcentaje: porcentaje
-          // });
+          console.log('🚛🔴 MAPA: Camión averiado detectado:', {
+            camionId: estadoCamion.id,
+            ubicacion: estadoCamion.ubicacion,
+            porcentaje: porcentaje
+          });
         }
       }
 
@@ -602,6 +602,10 @@ const Mapa: React.FC<MapaProps> = ({
                     <div className="flex items-center gap-1">
                       <div className="w-2 h-2 bg-red-500 rounded-sm"></div>
                       <span className="text-xs text-gray-700">Averiado</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-red-800 rounded-sm"></div>
+                      <span className="text-xs text-gray-700">Avería Automática</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <div className="w-2 h-2 bg-gray-800 rounded-sm"></div>
@@ -1166,6 +1170,8 @@ const Mapa: React.FC<MapaProps> = ({
                 })
                 .map((camion) => {
                   const estadoCamion = camiones.find((c) => c.id === camion.id);
+                  const ruta = rutasCamiones.find((r) => r.id === camion.id);
+                  
                   const esAveriado = estadoCamion?.estado === "Averiado";
                   const esEnMantenimiento =
                     estadoCamion?.estado === "En Mantenimiento";
@@ -1175,190 +1181,216 @@ const Mapa: React.FC<MapaProps> = ({
                     elementoResaltado?.tipo === "camion" &&
                     elementoResaltado?.id === camion.id;
                   const { posicion, rotacion, espejo } = camion;
+                  
+                  // NUEVO: Verificar si es una avería automática
+                  let esAveriaAutomatica = false;
+                  let tipoAveriaAutomatica = '';
+                  
+                  if (esAveriado && ruta && estadoCamion) {
+                    const porcentaje = estadoCamion.porcentaje;
+                    const nodoActual = Math.floor(porcentaje);
+                    
+                    if (ruta.tiposNodos && nodoActual < ruta.tiposNodos.length) {
+                      const tipoNodoActual = ruta.tiposNodos[nodoActual];
+                      esAveriaAutomatica = tipoNodoActual === "AVERIA_AUTOMATICA_T1" ||
+                                          tipoNodoActual === "AVERIA_AUTOMATICA_T2" ||
+                                          tipoNodoActual === "AVERIA_AUTOMATICA_T3";
+                      tipoAveriaAutomatica = tipoNodoActual;
+                    }
+                  }
+                  
                   const tieneGLP =
                     estadoCamion &&
                     typeof estadoCamion.capacidadActualGLP === "number" &&
                     typeof estadoCamion.capacidadMaximaGLP === "number" &&
                     estadoCamion.capacidadMaximaGLP > 0;
-                  const colorFinal = esAveriado
-                    ? ESTADO_COLORS.AVERIADO
-                    : esEnMantenimiento
-                    ? ESTADO_COLORS.MANTENIMIENTO
-                    : esEnMantenimientoPreventivo
-                    ? ESTADO_COLORS.MANTENIMIENTO_PREVENTIVO
-                    : tieneGLP
-                    ? colorSemaforoGLP(
-                        (estadoCamion.capacidadActualGLP! /
-                          estadoCamion.capacidadMaximaGLP!) *
-                          100,
-                        estadoCamion.estado === "Disponible" &&
-                          estadoCamion.capacidadActualGLP ===
-                            estadoCamion.capacidadMaximaGLP
-                      )
-                    : "#3b82f6"; // Azul por defecto si no hay datos
+                    
+                  // NUEVO: Color especial para averías automáticas
+                  let colorFinal;
+                  if (esAveriaAutomatica) {
+                    // Color especial para averías automáticas (rojo más intenso)
+                    colorFinal = "#b91c1c"; // Rojo más oscuro para distinguir averías automáticas
+                  } else if (esAveriado) {
+                    colorFinal = ESTADO_COLORS.AVERIADO;
+                  } else if (esEnMantenimiento) {
+                    colorFinal = ESTADO_COLORS.MANTENIMIENTO;
+                  } else if (esEnMantenimientoPreventivo) {
+                    colorFinal = ESTADO_COLORS.MANTENIMIENTO_PREVENTIVO;
+                  } else if (tieneGLP) {
+                    colorFinal = colorSemaforoGLP(
+                      (estadoCamion.capacidadActualGLP! /
+                        estadoCamion.capacidadMaximaGLP!) *
+                        100,
+                      estadoCamion.estado === "Disponible" &&
+                        estadoCamion.capacidadActualGLP ===
+                          estadoCamion.capacidadMaximaGLP
+                    );
+                  } else {
+                    colorFinal = "#3b82f6"; // Azul por defecto
+                  }
                   const cx = posicion.x * CELL_SIZE;
                   const cy = posicion.y * CELL_SIZE;
                   return (
-                    <g key={`camion-${camion.id}`}>
-                      <g
-                        transform={`translate(${cx}, ${cy}) rotate(${rotacion}) ${
-                          espejo ? "scale(-1, 1)" : ""
-                        }`}
-                        style={{ cursor: "pointer" }}
-                        onClick={() => {
-                          // Solo abrir el modal si no hay otro modal ya abierto
-                          if (!clickedCamion) {
-                            setClickedCamion(camion.id);
-                            // setClickedPos({ x: evt.clientX, y: evt.clientY }); // ELIMINADO
+                    <g
+                      key={`camion-${camion.id}`}
+                      transform={`translate(${cx}, ${cy}) rotate(${rotacion}) scale(${espejo ? -1 : 1})`}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => {
+                        // Solo abrir el modal si no hay otro modal ya abierto
+                        if (!clickedCamion) {
+                          setClickedCamion(camion.id);
 
-                            // Activar el resaltado del camión en el mapa
-                            if (onElementoSeleccionado) {
-                              // console.log(
-                              //   "🎯 MAPA: Activando resaltado de camión:",
-                              //   camion.id
-                              // );
-                              onElementoSeleccionado({
-                                tipo: "camion",
-                                id: camion.id,
-                              });
-                            }
+                          // Activar el resaltado del camión en el mapa
+                          if (onElementoSeleccionado) {
+                            onElementoSeleccionado({
+                              tipo: "camion",
+                              id: camion.id,
+                            });
                           }
-                        }}
-                      >
-                        {/* Área de click invisible más grande para facilitar la selección */}
+                        }
+                      }}
+                    >
+                      {/* NUEVO: Tooltip especial para averías automáticas */}
+                      <title>
+                        {esAveriaAutomatica 
+                          ? `🚛💥 Camión ${camion.id} - Avería automática ${tipoAveriaAutomatica}`
+                          : `Camión ${camion.id}`
+                        }
+                      </title>
+
+                      {/* Área de click invisible más grande para facilitar la selección */}
+                      <circle
+                        key={`area-click-${camion.id}`}
+                        cx={0}
+                        cy={0}
+                        r={18}
+                        fill="transparent"
+                        style={{ cursor: "pointer" }}
+                      />
+
+                      {/* Círculo de resaltado que se mueve con el camión */}
+                      {esResaltado && (
                         <circle
-                          key={`area-click-${camion.id}`}
+                          key={`resaltado-${camion.id}`}
                           cx={0}
                           cy={0}
-                          r={18}
-                          fill="transparent"
-                          style={{ cursor: "pointer" }}
-                        />
+                          r={25}
+                          fill="none"
+                          stroke="#f59e0b"
+                          strokeWidth={3}
+                          strokeDasharray="8 4"
+                          opacity={0.9}
+                          style={{}}
+                        >
+                          <animateTransform
+                            attributeName="transform"
+                            type="rotate"
+                            values="0 0 0;360 0 0"
+                            dur="4s"
+                            repeatCount="indefinite"
+                          />
+                          <animate
+                            attributeName="opacity"
+                            values="0.7;1;0.7"
+                            dur="1.5s"
+                            repeatCount="indefinite"
+                          />
+                        </circle>
+                      )}
 
-                        {/* Círculo de resaltado que se mueve con el camión */}
-                        {esResaltado && (
-                          <circle
-                            key={`resaltado-${camion.id}`}
-                            cx={0}
-                            cy={0}
-                            r={25}
-                            fill="none"
-                            stroke="#f59e0b"
-                            strokeWidth={3}
-                            strokeDasharray="8 4"
-                            opacity={0.9}
-                            style={{}}
-                          >
-                            <animateTransform
-                              attributeName="transform"
-                              type="rotate"
-                              values="0 0 0;360 0 0"
-                              dur="4s"
-                              repeatCount="indefinite"
-                            />
-                            <animate
-                              attributeName="opacity"
-                              values="0.7;1;0.7"
-                              dur="1.5s"
-                              repeatCount="indefinite"
-                            />
-                          </circle>
-                        )}
+                      {/* Cuerpo principal del camión */}
+                      <rect
+                        key={`cuerpo-${camion.id}`}
+                        x={-8}
+                        y={-3}
+                        width={16}
+                        height={6}
+                        rx={1}
+                        fill={colorFinal}
+                        stroke="black"
+                        strokeWidth={0.5}
+                      />
 
-                        {/* Cuerpo principal del camión */}
-                        <rect
-                          key={`cuerpo-${camion.id}`}
-                          x={-8}
-                          y={-3}
-                          width={16}
-                          height={6}
-                          rx={1}
-                          fill={colorFinal}
-                          stroke="black"
-                          strokeWidth={0.5}
-                        />
+                      {/* Cabina del camión (frente) */}
+                      <rect
+                        key={`cabina-${camion.id}`}
+                        x={6}
+                        y={-2}
+                        width={4}
+                        height={4}
+                        rx={0.5}
+                        fill={colorFinal}
+                        stroke="black"
+                        strokeWidth={0.5}
+                      />
 
-                        {/* Cabina del camión (frente) */}
-                        <rect
-                          key={`cabina-${camion.id}`}
-                          x={6}
-                          y={-2}
-                          width={4}
-                          height={4}
-                          rx={0.5}
-                          fill={colorFinal}
-                          stroke="black"
-                          strokeWidth={0.5}
-                        />
+                      {/* Ruedas */}
+                      <circle
+                        key={`rueda1-${camion.id}`}
+                        cx={-5}
+                        cy={4}
+                        r={1.5}
+                        fill="black"
+                      />
+                      <circle
+                        key={`rueda2-${camion.id}`}
+                        cx={2}
+                        cy={4}
+                        r={1.5}
+                        fill="black"
+                      />
+                      <circle
+                        key={`rueda3-${camion.id}`}
+                        cx={7}
+                        cy={4}
+                        r={1.5}
+                        fill="black"
+                      />
 
-                        {/* Ruedas */}
-                        <circle
-                          key={`rueda1-${camion.id}`}
-                          cx={-5}
-                          cy={4}
-                          r={1.5}
-                          fill="black"
-                        />
-                        <circle
-                          key={`rueda2-${camion.id}`}
-                          cx={2}
-                          cy={4}
-                          r={1.5}
-                          fill="black"
-                        />
-                        <circle
-                          key={`rueda3-${camion.id}`}
-                          cx={7}
-                          cy={4}
-                          r={1.5}
-                          fill="black"
-                        />
+                      {/* Indicador de dirección (flecha) */}
+                      <polygon
+                        key={`flecha-${camion.id}`}
+                        points="10,0 8,-1.5 8,1.5"
+                        fill="white"
+                        stroke="black"
+                        strokeWidth={0.3}
+                      />
 
-                        {/* Indicador de dirección (flecha) */}
-                        <polygon
-                          key={`flecha-${camion.id}`}
-                          points="10,0 8,-1.5 8,1.5"
-                          fill="white"
-                          stroke="black"
-                          strokeWidth={0.3}
-                        />
+                      {/* Líneas de detalle del camión */}
+                      <line
+                        key={`linea1-${camion.id}`}
+                        x1={-6}
+                        y1={-1}
+                        x2={4}
+                        y2={-1}
+                        stroke="black"
+                        strokeWidth={0.3}
+                        opacity={0.6}
+                      />
+                      <line
+                        key={`linea2-${camion.id}`}
+                        x1={-6}
+                        y1={1}
+                        x2={4}
+                        y2={1}
+                        stroke="black"
+                        strokeWidth={0.3}
+                        opacity={0.6}
+                      />
 
-                        {/* Líneas de detalle del camión */}
-                        <line
-                          key={`linea1-${camion.id}`}
-                          x1={-6}
-                          y1={-1}
-                          x2={4}
-                          y2={-1}
-                          stroke="black"
-                          strokeWidth={0.3}
-                          opacity={0.6}
-                        />
-                        <line
-                          key={`linea2-${camion.id}`}
-                          x1={-6}
-                          y1={1}
-                          x2={4}
-                          y2={1}
-                          stroke="black"
-                          strokeWidth={0.3}
-                          opacity={0.6}
-                        />
-
-                        {esAveriado && (
-                          <text
-                            key={`averia-${camion.id}`}
-                            x={0}
-                            y={-10}
-                            textAnchor="middle"
-                            fontSize="8"
-                            fill="#dc2626"
-                            fontWeight="bold"
-                          >
-                            💥
-                          </text>
-                        )}
-                      </g>
+                      {esAveriado && (
+                        <text
+                          key={`averia-${camion.id}`}
+                          x={0}
+                          y={-10}
+                          textAnchor="middle"
+                          fontSize="8"
+                          fill="#dc2626"
+                          fontWeight="bold"
+                        >
+                          💥
+                        </text>
+                      )}
                     </g>
                   );
                 })}

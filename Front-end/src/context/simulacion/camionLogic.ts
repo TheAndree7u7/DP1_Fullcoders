@@ -16,7 +16,6 @@ import {
   calcularDistanciaMaxima,
 } from "../../types";
 import { INCREMENTO_PORCENTAJE } from "./types";
-import { handleAveriaAutomatica } from "../../components/mapa/utils/averiasAutomaticas";
 
 /**
  * @function obtenerCoordenadaAlmacenCentral
@@ -263,8 +262,13 @@ export const avanzarCamion = (
   },
   averiasAutomaticasActivas: boolean = false
 ): CamionEstado => {
-  // Si el camión está averiado, no avanza
+  // Si el camión está averiado, no avanza y permanece en su posición actual
   if (camion.estado === "Averiado") {
+    console.log('🚛🔴 CAMION_LOGIC: Camión averiado, manteniendo en posición:', {
+      camionId: camion.id,
+      ubicacion: camion.ubicacion,
+      porcentaje: camion.porcentaje
+    });
     return camion;
   }
 
@@ -299,29 +303,22 @@ export const avanzarCamion = (
     });
   }
   
-  // Si debe marcar como averiado, registrar la avería automática y retornar el camión con estado "Averiado"
+  // Si debe marcar como averiado, marcar localmente sin registrar en backend
   if (debeAveriarse) {
-    console.log('🚛🔴 CAMION_LOGIC: Marcando camión como averiado automáticamente:', {
+    console.log('🚛🔴 CAMION_LOGIC: Marcando camión como averiado automáticamente (SOLO VISUAL):', {
       camionId: camion.id,
       tipoAveria: tipoAveria,
-      nuevaUbicacion: ruta.ruta[siguientePaso]
+      nodoAveria: ruta.ruta[siguientePaso],
+      porcentaje: siguientePaso
     });
     
-    // Registrar la avería automática en el backend si tenemos el estado de simulación
-    if (estadoSimulacion) {
-      console.log('📡 CAMION_LOGIC: Registrando avería automática en backend...');
-      handleAveriaAutomatica(camion.id, tipoAveria!, estadoSimulacion).catch(error => {
-        console.error("❌ Error al registrar avería automática:", error);
-      });
-    } else {
-      console.warn('⚠️ CAMION_LOGIC: No se pudo registrar avería automática - estadoSimulacion no disponible');
-    }
-    
+    // IMPORTANTE: Mantener el camión en el nodo de avería hasta el próximo paquete
+    // NO se registra en el backend, solo se marca visualmente
     return {
       ...camion,
       estado: "Averiado",
-      porcentaje: siguientePaso,
-      ubicacion: ruta.ruta[siguientePaso],
+      porcentaje: siguientePaso, // Avanzar al nodo de avería
+      ubicacion: ruta.ruta[siguientePaso], // Posicionar en el nodo de avería
     };
   }
 
@@ -509,6 +506,13 @@ export const detectarAveriaAutomatica = (
                                  tipoNodoActual === 'AVERIA_AUTOMATICA_T3';
 
   if (esNodoAveriaAutomatica) {
+    console.log('🚛💥 DETECCIÓN: Primer nodo de avería automática detectado:', {
+      camionId: camion.id,
+      tipoNodo: tipoNodoActual,
+      paso: siguientePaso,
+      porcentaje: camion.porcentaje
+    });
+    
     return { 
       debeAveriarse: true, 
       tipoAveria: tipoNodoActual 
