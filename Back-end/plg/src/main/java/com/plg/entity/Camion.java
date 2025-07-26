@@ -135,6 +135,7 @@ public class Camion extends Nodo {
 
     public void actualizarEstado(Set<Pedido> pedidosPlanificados,
             Set<Pedido> pedidosEntregados) {
+        
         if (this.gen == null) {
             // Primera vez que se llama no existen pedidos por atender
             return;

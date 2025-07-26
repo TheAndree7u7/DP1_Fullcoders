@@ -128,7 +128,7 @@ export const handleAveriar = async (
     
     // 8. Enviar avería con estado completo al backend (ahora incluye el camión averiado)
     console.log("📡 ENVIANDO AVERÍA CON ESTADO COMPLETO (CAMIÓN AVERIADO)...");
-    console.log("📅 TIMESTAMP USADO PARA AVERÍA:", fechaHoraReporte);
+    console.log("📅 TIMESTAMP USADO PARA AVERÍA:", fechaHoraReporte); 
     await averiarCamionConEstado(camionId, tipo, fechaHoraReporte, estadoCompleto);
     
     // 9. NUEVO: Recalcular algoritmo genético con fecha actual

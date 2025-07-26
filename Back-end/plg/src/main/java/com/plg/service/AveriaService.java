@@ -84,6 +84,7 @@ public class AveriaService {
         }
         try {
             // Crear la avería solo con los campos requeridos
+            System.out.println("_______________Avería creada exitosamente con estado completo de la simulación");
             Averia averia = request.toAveria();
             // !CALCULA LOS DATOS DE LA AVERIA EN BASE A LOS DATOS DEL CAMION Y TIPO DE
             // INCIDENTE
@@ -106,6 +107,9 @@ public class AveriaService {
                 System.out.println("No se actualizo la coordenada");
             }
             averia.setEstado(true); // Asegurarse de que la avería esté activa
+            System.out.println("Avería creada exitosamente con estado completo de la simulación");
+            System.out.println("Avería: " + averia);
+            System.out.println("_______________Avería creada exitosamente con estado completo de la simulación");
             return AveriaRepository.save(averia);
         } catch (NoSuchElementException e) {
             throw new InvalidInputException("Camión no encontrado: " + request.getCodigoCamion());
