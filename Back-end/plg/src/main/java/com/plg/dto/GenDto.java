@@ -24,7 +24,8 @@ public class GenDto {
     public GenDto(Gen gen) {
         this.camion = new CamionDto(gen.getCamion());
         this.nodos = new ArrayList<>();
-        for (Nodo nodo : gen.construirRutaFinalApi()) {
+        List<Nodo> rutaApi = gen.construirRutaFinalApi();
+        for (Nodo nodo : rutaApi) {
             NodoDto nodoDto = obtenerTipoNodo(nodo, gen);
             this.nodos.add(nodoDto);
         }

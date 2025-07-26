@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.plg.repository.AveriaRepository;
 import com.plg.utils.Gen;
 import com.plg.utils.Parametros;
+import com.plg.utils.Herramientas.CamionYAveria;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -55,14 +56,6 @@ public class Camion extends Nodo {
 
     public Camion(Coordenada coordenada, boolean bloqueado, double gScore, TipoNodo tipoNodo, double fScore) {
         super(coordenada, bloqueado, gScore, fScore, tipoNodo);
-    }
-
-    private static boolean isPosInf(double v) {
-        return Double.isInfinite(v) && v > 0;
-    }
-
-    private static boolean isNegInf(double v) {
-        return Double.isInfinite(v) && v < 0;
     }
 
     @Override
@@ -138,31 +131,16 @@ public class Camion extends Nodo {
         capacidadActualGLP -= volumenGLP;
     }
 
+    // ACTUALIZAR ESTADO FUNCIÓN PRINCIPAL
+
     public void actualizarEstado(Set<Pedido> pedidosPlanificados,
             Set<Pedido> pedidosEntregados) {
         if (this.gen == null) {
             // Primera vez que se llama no existen pedidos por atender
             return;
         }
-        int cantNodos = 0;
+        int cantNodos = obtenerCantidadDeNodos();
         int antiguo = gen.getPosNodo();
-        if (this.getEstado() == EstadoCamion.DISPONIBLE) {
-            // Si el camión está disponible, se mueve a la siguiente posición
-            cantNodos = calcularCantidadDeNodos();
-        } else {
-            AveriaRepository averiaRepo = new AveriaRepository();
-            List<Averia> averias = averiaRepo.findByCamion(this);
-            // Si alguna de las averias
-            // Comparamos si alguna de las averías tiene un tiempo igual a la fecha actual
-            if (averias.stream().anyMatch(a -> a.getFechaHoraReporte().isEqual(Parametros.fecha_inicial))) {
-
-                cantNodos = calcularCantidadDeNodos();
-            } else {
-                // El camion ya ha sido averiado con anterioridad
-                cantNodos = 0;
-            }
-
-        }
         // !Actualiza la posición del camión en la ruta final
         if (antiguo + cantNodos < gen.getRutaFinal().size()) {
             gen.setPosNodo(antiguo + cantNodos);
@@ -172,27 +150,10 @@ public class Camion extends Nodo {
         int distanciaRecorrida = gen.getPosNodo() - antiguo;
         actualizarCombustible(distanciaRecorrida);
 
-        if (Parametros.dataLoader.camionesAveriados.stream()
-                .anyMatch(c -> c.getCodigo().equals(this.codigo))) {
-            this.setEstado(EstadoCamion.INMOVILIZADO_POR_AVERIA);
-        }
-
-        // En el tiempo transcurrido donde se puede encontrar el camión
-        // Verificar que la ruta final no esté vacía
-        if (gen.getRutaFinal().isEmpty()) {
-            System.out.println("⚠️ ADVERTENCIA: Camión " + codigo + " tiene ruta final vacía");
-            return;
-        }
-
-        int intermedio = Math.min(gen.getPosNodo(), gen.getRutaFinal().size() - 1);
-
-        // Actualiza la posición del camión en el mapa solo si está disponible
-        if (intermedio < gen.getRutaFinal().size()) {
-            Coordenada nuevaCoordenada = gen.getRutaFinal().get(intermedio).getCoordenada();
-            setCoordenada(nuevaCoordenada);
-
-        }
-
+        int intermedio = gen.getPosNodo();
+        Coordenada nuevaCoordenada = gen.getRutaFinal().get(intermedio).getCoordenada();
+        setCoordenada(nuevaCoordenada);
+        
         // RECORRER RUTA HASTA PUNTO INTERMEDIO
         for (int i = 0; i <= intermedio; i++) {
             Nodo nodo = gen.getRutaFinal().get(i);
@@ -270,11 +231,8 @@ public class Camion extends Nodo {
         }
     }
 
-    public int calcularCantidadDeNodos() {
-        double diferenciaTiempo = Parametros.intervaloTiempo;
-        if (Parametros.diferenciaTiempoMinRequest != 0) {
-            diferenciaTiempo = Parametros.diferenciaTiempoMinRequest;
-        }
+    public int calcularCantidadDeNodos(double diferenciaTiempo) {
+
         int cantNodos = (int) (diferenciaTiempo * velocidadPromedio / 60);
         List<Nodo> rutaApi = gen.construirRutaFinalApi();
         Nodo nodo_final = rutaApi.get(Math.max(cantNodos - 1, 0));
@@ -297,6 +255,32 @@ public class Camion extends Nodo {
         camion.setCapacidadActualGLP(camion.getCapacidadActualGLP() + glpRecargar);
         this.setCapacidadActualGLP(this.getCapacidadActualGLP() - glpRecargar);
         return true;
+    }
+
+    public int obtenerCantidadDeNodos() {
+        CamionYAveria c = Parametros.dataLoader.camionesAveriados.stream()
+                .filter(camionAveriado -> camionAveriado.getCamion().getCodigo().equals(this.codigo))
+                .findFirst()
+                .orElse(null);
+        if (c != null) {
+            return c.getPosicionAveria();
+        }
+
+        int cantNodos = 0;
+        double diferenciaTiempo = Parametros.intervaloTiempo;
+        if (this.getEstado() == EstadoCamion.DISPONIBLE) {
+            cantNodos = calcularCantidadDeNodos(diferenciaTiempo);
+        } else {
+            AveriaRepository averiaRepo = new AveriaRepository();
+            List<Averia> averias = averiaRepo.findByCamion(this);
+            if (averias.stream().anyMatch(a -> a.getFechaHoraReporte().isEqual(Parametros.fecha_inicial))) {
+                cantNodos = calcularCantidadDeNodos(diferenciaTiempo);
+            } else {
+                cantNodos = 0;
+            }
+
+        }
+        return cantNodos;
     }
 
     @JsonIgnore

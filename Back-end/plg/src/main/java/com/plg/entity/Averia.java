@@ -27,6 +27,7 @@ public class Averia {
     private LocalDateTime fechaHoraFinEsperaEnRuta;
     private int turnoOcurrencia;
     private double tiempoReparacionEstimado;
+    @Builder.Default
     private Boolean estado = true; // true: activo, false: inactivo
     private Coordenada coordenada;
 
@@ -77,6 +78,15 @@ public class Averia {
         } else {
             this.turnoOcurrencia = 3; // Turno 3: 16:00 - 24:00
         }
+    }
+
+    public void actualizarAveria(LocalDateTime fechaReporte){
+        this.fechaHoraReporte = fechaReporte;
+        this.calcularTurnoOcurrencia();
+        this.tipoIncidente.initDefaultAverias();
+        this.fechaHoraFinEsperaEnRuta = calcularFechaHoraFinEsperaEnRuta();
+        this.fechaHoraDisponible = calcularFechaHoraDisponible();
+        this.tiempoReparacionEstimado = calcularTiempoInoperatividad();
     }
 
     // calcula el tiempo que no estara disponible segun si importa turno o si s va

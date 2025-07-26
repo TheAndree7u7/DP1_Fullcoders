@@ -229,49 +229,7 @@ public class AveriaController {
     @PostMapping("/averiar-camion-con-estado")
     public ResponseEntity<?> averiarCamionConEstado(@RequestBody AveriaConEstadoRequest request) {
         try {
-            // 🔍 AGREGADO: Logs detallados para debugging de coordenadas
-            // System.out.println("🔍 AVERÍA BACKEND: Recibida solicitud de avería con
-            // estado completo");
-            // System.out.println(" - Código del camión: " + request.getCodigoCamion());
-            // System.out.println(" - Tipo de incidente: " + request.getTipoIncidente());
-            // System.out.println(" - Fecha y hora del reporte: " +
-            // request.getFechaHoraReporte());
-            // System.out.println(" - Coordenada recibida: " + request.getCoordenada());
-
-            // // 🔍 AGREGADO: Log detallado de la coordenada
-            // if (request.getCoordenada() != null) {
-            //     System.out.println("   - Coordenada (fila): " + request.getCoordenada().getFila());
-            //     System.out.println("   - Coordenada (columna): " + request.getCoordenada().getColumna());
-            // } else {
-            //     System.out.println("   - ⚠️ ADVERTENCIA: La coordenada es NULL");
-            // }
-
-            // // 🔍 AGREGADO: Log del estado de simulación
-            // if (request.getEstadoSimulacion() != null) {
-            //     System.out.println("   - Estado de simulación recibido: SÍ");
-            //     System.out.println("   - Timestamp: " + request.getEstadoSimulacion().getTimestamp());
-            //     System.out.println("   - Hora simulación: " + request.getEstadoSimulacion().getHoraSimulacion());
-            //     System.out.println("   - Cantidad de camiones en estado: " +
-            //             (request.getEstadoSimulacion().getCamiones() != null
-            //                     ? request.getEstadoSimulacion().getCamiones().size()
-            //                     : 0));
-
-            //     // 🔍 AGREGADO: Buscar el camión averiado en el estado
-            //     if (request.getEstadoSimulacion().getCamiones() != null) {
-            //         request.getEstadoSimulacion().getCamiones().stream()
-            //                 .filter(c -> c.getId().equals(request.getCodigoCamion()))
-            //                 .findFirst()
-            //                 .ifPresent(camion -> {
-            //                     System.out.println(
-            //                             "   - Camión averiado en estado - ubicación: " + camion.getUbicacion());
-            //                     System.out.println(
-            //                             "   - Camión averiado en estado - porcentaje: " + camion.getPorcentaje());
-            //                 });
-            //     }
-            // } else {
-            //     System.out.println("   - ⚠️ ADVERTENCIA: El estado de simulación es NULL");
-            // }
-
+    
             // Validaciones básicas
             if (request.getCodigoCamion() == null || request.getCodigoCamion().trim().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -290,28 +248,10 @@ public class AveriaController {
 
             // 🔧 MEJORADO: Crear el AveriaRequest y verificar la coordenada
             AveriaRequest averiaRequest = request.toAveriaRequest();
-            // System.out.println("🔍 AVERÍA BACKEND: AveriaRequest creado");
-            // System.out.println("   - Coordenada en AveriaRequest: " + averiaRequest.getCoordenada());
-            // if (averiaRequest.getCoordenada() != null) {
-            //     System.out.println("   - Coordenada (fila): " + averiaRequest.getCoordenada().getFila());
-            //     System.out.println("   - Coordenada (columna): " + averiaRequest.getCoordenada().getColumna());
-            // } else {
-            //     System.out.println("   - ⚠️ ADVERTENCIA: La coordenada en AveriaRequest es NULL");
-            // }
 
-            // Procesar la avería con estado completo
             Averia averia = averiaService.agregar(averiaRequest);
 
-            // 🔍 AGREGADO: Verificar la avería creada
-            // System.out.println("🔍 AVERÍA BACKEND: Avería creada exitosamente");
-            // System.out.println("   - Camión: " + averia.getCamion().getCodigo());
-            // System.out.println("   - Coordenada en avería: " + averia.getCoordenada());
-            // if (averia.getCoordenada() != null) {
-            //     System.out.println("   - Coordenada final (fila): " + averia.getCoordenada().getFila());
-            //     System.out.println("   - Coordenada final (columna): " + averia.getCoordenada().getColumna());
-            // }
 
-            // Crear respuesta con información adicional
             return ResponseEntity.status(HttpStatus.CREATED).body(new AveriaConEstadoResponse(
                     averia,
                     "Avería creada exitosamente con estado completo de la simulación",
