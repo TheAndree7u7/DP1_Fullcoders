@@ -27,6 +27,7 @@ import type {
   RutaCamion,
   Bloqueo,
   IndividuoConBloqueos,
+  DiccionarioRutasCamiones,
 } from "./simulacion";
 
 // Re-exportar tipos para uso en otros archivos
@@ -69,6 +70,9 @@ import {
   pausarSimulacion as pausarSimulacionUtil,
   reanudarSimulacion as reanudarSimulacionUtil,
   iniciarContadorTiempo as iniciarContadorTiempoUtil,
+  generarDiccionarioRutasCamiones,
+  verificarCamionEnNodoAveria,
+  obtenerNodosAveriaEnRuta,
 } from "./simulacion/utils";
 
 // Importar utilidades de validación
@@ -168,6 +172,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
   // Estados de datos de la simulación
   const [camiones, setCamiones] = useState<CamionEstado[]>([]);
   const [rutasCamiones, setRutasCamiones] = useState<RutaCamion[]>([]);
+  const [diccionarioRutasCamiones, setDiccionarioRutasCamiones] = useState<DiccionarioRutasCamiones>({});
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
   const [pedidosNoAsignados, setPedidosNoAsignados] = useState<Pedido[]>([]);
@@ -481,6 +486,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setRutasCamiones(nuevasRutas);
 
+      // Generar diccionario de rutas de camiones
+      const nuevoDiccionarioRutas = generarDiccionarioRutasCamiones(nuevasRutas);
+      setDiccionarioRutasCamiones(nuevoDiccionarioRutas);
+
       // Procesar estado de camiones
       const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
         const gen = data.cromosoma.find((g: Gen) => g.camion.codigo === ruta.id);
@@ -626,6 +635,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       setRutasCamiones(nuevasRutas);
+
+      // Generar diccionario de rutas de camiones
+      const nuevoDiccionarioRutas = generarDiccionarioRutasCamiones(nuevasRutas);
+      setDiccionarioRutasCamiones(nuevoDiccionarioRutas);
 
       // Procesar estado de camiones
       const nuevosCamiones: CamionEstado[] = nuevasRutas.map((ruta) => {
@@ -1164,6 +1177,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     horaActual,
     camiones,
     rutasCamiones,
+    diccionarioRutasCamiones,
     almacenes,
     pedidosNoAsignados,
     bloqueos,
@@ -1209,6 +1223,12 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     
     // Funciones de recálculo después de avería
     aplicarNuevaSolucionDespuesAveria,
+    
+    // Funciones de verificación de rutas y averías
+    verificarCamionEnNodoAveria: (idCamion: string, porcentajeAvance: number) => 
+      verificarCamionEnNodoAveria(diccionarioRutasCamiones, idCamion, porcentajeAvance),
+    obtenerNodosAveriaEnRuta: (idCamion: string) => 
+      obtenerNodosAveriaEnRuta(diccionarioRutasCamiones, idCamion),
     
     // Setters
     setSimulacionActiva,

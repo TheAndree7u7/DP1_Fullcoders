@@ -152,6 +152,7 @@ export interface SimulacionContextType {
   horaActual: number;
   camiones: CamionEstado[];
   rutasCamiones: RutaCamion[];
+  diccionarioRutasCamiones: DiccionarioRutasCamiones;
   almacenes: Almacen[];
   pedidosNoAsignados: Pedido[];
   fechaHoraSimulacion: string | null;
@@ -185,6 +186,8 @@ export interface SimulacionContextType {
   obtenerInfoPaqueteActual: () => { inicio: string | null; fin: string | null; numero: number };
   setFechaInicioSimulacion: (fecha: string) => void;
   aplicarNuevaSolucionDespuesAveria: (data: IndividuoConBloqueos) => Promise<void>;
+  verificarCamionEnNodoAveria: (idCamion: string, porcentajeAvance: number) => boolean;
+  obtenerNodosAveriaEnRuta: (idCamion: string) => NodoRutaCompleto[];
 }
 
 /**
@@ -198,3 +201,32 @@ export type IndividuoConBloqueos = Individuo & {
   fechaHoraInicioIntervalo?: string;
   fechaHoraFinIntervalo?: string;
 }; 
+
+/**
+ * @interface NodoRutaCompleto
+ * @description Define un nodo completo de la ruta con coordenadas y tipo
+ */
+export interface NodoRutaCompleto {
+  coordenada: Coordenada;
+  tipo: string; // Tipo de nodo (NORMAL, PEDIDO, AVERIA_AUTOMATICA_T1, etc.)
+  indice: number; // Posición en la ruta
+}
+
+/**
+ * @interface RutaCamionCompleta
+ * @description Define la ruta completa de un camión con información detallada de cada nodo
+ */
+export interface RutaCamionCompleta {
+  idCamion: string;
+  ruta: NodoRutaCompleto[];
+  puntoDestino: Coordenada;
+  pedidos: Pedido[];
+}
+
+/**
+ * @interface DiccionarioRutasCamiones
+ * @description Diccionario que mapea el ID del camión con su ruta completa
+ */
+export interface DiccionarioRutasCamiones {
+  [idCamion: string]: RutaCamionCompleta;
+} 
