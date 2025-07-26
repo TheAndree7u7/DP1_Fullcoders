@@ -178,9 +178,7 @@ const Mapa: React.FC<MapaProps> = ({
       segundosPorNodo
     );
     setIntervalo(nuevoIntervalo);
-    console.log(
-      `⏱️ MAPA: Intervalo recalculado para ${tipoSimulacion}: ${nuevoIntervalo}ms (${segundosPorNodo}s por nodo)`
-    );
+    
   }, [segundosPorNodo, tipoSimulacion]);
 
   // Efecto para iniciar automáticamente la simulación si se especifica

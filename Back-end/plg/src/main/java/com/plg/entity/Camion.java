@@ -270,6 +270,9 @@ public class Camion extends Nodo {
 
         int cantNodos = 0;
         double diferenciaTiempo = Parametros.intervaloTiempo;
+        if(Parametros.diferenciaTiempoMinRequest != 0){
+            diferenciaTiempo = Parametros.diferenciaTiempoMinRequest;
+        }
         if (this.getEstado() == EstadoCamion.DISPONIBLE) {
             cantNodos = calcularCantidadDeNodos(diferenciaTiempo);
         } else {
