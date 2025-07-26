@@ -107,9 +107,6 @@ public class AveriaService {
                 System.out.println("No se actualizo la coordenada");
             }
             averia.setEstado(true); // Asegurarse de que la avería esté activa
-            System.out.println("Avería creada exitosamente con estado completo de la simulación");
-            System.out.println("Avería: " + averia);
-            System.out.println("_______________Avería creada exitosamente con estado completo de la simulación");
             return AveriaRepository.save(averia);
         } catch (NoSuchElementException e) {
             throw new InvalidInputException("Camión no encontrado: " + request.getCodigoCamion());
