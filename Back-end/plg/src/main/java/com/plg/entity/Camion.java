@@ -163,7 +163,12 @@ public class Camion extends Nodo {
             }
 
         }
-        gen.setPosNodo(antiguo + cantNodos);
+        // !Actualiza la posición del camión en la ruta final
+        if (antiguo + cantNodos < gen.getRutaFinal().size()) {
+            gen.setPosNodo(antiguo + cantNodos);
+        } else {
+            gen.setPosNodo(gen.getRutaFinal().size() - 1);
+        }
         int distanciaRecorrida = gen.getPosNodo() - antiguo;
         actualizarCombustible(distanciaRecorrida);
 

@@ -44,18 +44,18 @@ public class Parametros {
         return instance;
     }
 
-    public static void actualizarParametrosGlobales(LocalDateTime fechaInicio) {
+    public static void actualizarParametrosGlobales(LocalDateTime fechaInicio_intervalo) {
         // Extraer año, mes y día de la fecha de inicio
-        Parametros.anho = String.valueOf(fechaInicio.getYear());
-        Parametros.mes = String.format("%02d", fechaInicio.getMonthValue());
-        Parametros.dia = String.format("%02d", fechaInicio.getDayOfMonth());
+        Parametros.anho = String.valueOf(fechaInicio_intervalo.getYear());
+        Parametros.mes = String.format("%02d", fechaInicio_intervalo.getMonthValue());
+        Parametros.dia = String.format("%02d", fechaInicio_intervalo.getDayOfMonth());
 
         // Actualizar fecha_inicial en Parametros
-        Parametros.fecha_inicial = fechaInicio;
+        Parametros.fecha_inicial = fechaInicio_intervalo;
         System.out.println("📅 Parámetros actualizados:");
-        System.out.println("   • Año: " + Parametros.anho);
-        System.out.println("   • Mes: " + Parametros.mes);
-        System.out.println("   • Día: " + Parametros.dia);
+        System.out.println(" Fecha de inicio del intervalo: " + fechaInicio_intervalo);
+        System.out.println(
+                " Fecha de fin del intervalo: " + fechaInicio_intervalo.plusMinutes(Parametros.intervaloTiempo));
     }
 
 }

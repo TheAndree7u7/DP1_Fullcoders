@@ -17,7 +17,7 @@
  */
 export const AVERIAS_AUTOMATICAS_POR_TIPO = {
   DIARIA: false,    // Desactivadas para simulación diaria
-  SEMANAL: true,    // Activadas para simulación semanal
+  SEMANAL: false,    // Activadas para simulación semanal
   COLAPSO: false     // Activadas para simulación de colapso
 };
 

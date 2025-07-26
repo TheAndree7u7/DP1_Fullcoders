@@ -64,7 +64,7 @@ public class Simulacion {
     }
 
     public static void actualizarEstadoGlobal(LocalDateTime fechaActual) {
-        actualizarRepositorios(fechaActual);
+        actualizarRepositorios(fechaActual);//!Actualiza los almacenes secundarios
         actualizarCamiones(fechaActual);
         MantenimientoManager.verificarYActualizarMantenimientos(Parametros.dataLoader.camiones, fechaActual);
         AveriasManager.actualizarCamionesEnAveria(fechaActual);

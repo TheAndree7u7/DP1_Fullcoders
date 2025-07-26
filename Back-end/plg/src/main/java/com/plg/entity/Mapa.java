@@ -63,6 +63,9 @@ public class Mapa {
         }
     }
 
+    /*
+     * Limpia el mapa, es decir, pone todos los nodos en estado normal
+     */
     public void limpiarMapa() {
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
@@ -281,6 +284,5 @@ public class Mapa {
         return Math.abs(coord1.getColumna() - coord2.getColumna()) +
                 Math.abs(coord1.getFila() - coord2.getFila());
     }
-
 
 }

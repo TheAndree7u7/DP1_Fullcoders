@@ -77,6 +77,7 @@ public class Herramientas {
             LocalDateTime fechaHoraInicioIntervalo, LocalDateTime fechaHoraFinIntervalo) {
         //
         // sacar la fecha en medio del intervalo de simulacion
+        System.out.println("----AVERIAS AUTOMATICAS--------------------------------");
         // !Obtener el turno de la fecha en medio del intervalo de simulacion
         int hora_inicio_intervalo = fechaHoraInicioIntervalo.getHour();
         int hora_fin_intervalo = fechaHoraFinIntervalo.getHour();
@@ -89,6 +90,7 @@ public class Herramientas {
             case 1:
                 if (Parametros.averio_turno_1 == true) {
                     System.out.println("⚠️ Ya se aplicaron averías automáticas en el turno 1. Saltando...");
+                    Parametros.averio_turno_2 = false;
                     return;
                 }
                 Parametros.averio_turno_1 = true;
@@ -97,6 +99,7 @@ public class Herramientas {
             case 2:
                 if (Parametros.averio_turno_2 == true) {
                     System.out.println("⚠️ Ya se aplicaron averías automáticas en el turno 2. Saltando...");
+                    Parametros.averio_turno_3 = false;
                     return;
                 }
                 Parametros.averio_turno_2 = true;
@@ -105,6 +108,7 @@ public class Herramientas {
             case 3:
                 if (Parametros.averio_turno_3 == true) {
                     System.out.println("⚠️ Ya se aplicaron averías automáticas en el turno 3. Saltando...");
+                    Parametros.averio_turno_1 = false;
                     return;
                 }
                 Parametros.averio_turno_3 = true;
@@ -115,7 +119,7 @@ public class Herramientas {
                 return;
         }
 
-        // Sacar la lista de averias automaticas del turno
+        // !Sacar la lista de averias automaticas del turno
         if (averiasAutomaticas.isEmpty())
             return;
         List<Averia> averiasAutomaticasTurno = averiasAutomaticas.stream()
@@ -131,6 +135,8 @@ public class Herramientas {
 
         List<Camion> camiones_para_averiar_automaticamente = new ArrayList<>();
         for (Gen gen : cromosoma) {
+            // !Verifica si el camion cumple con las condiciones para ser averiado
+            // automaticamente  
             boolean camion_en_averias_automaticas = averiasAutomaticasTurno.stream()
                     .anyMatch(averia -> averia.getCamion().getCodigo().equals(gen.getCamion().getCodigo()));
             boolean camion_estado_disponible = gen.getCamion().getEstado().equals(EstadoCamion.DISPONIBLE);
