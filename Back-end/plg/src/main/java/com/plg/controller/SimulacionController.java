@@ -95,8 +95,8 @@ public class SimulacionController {
         algoritmoGenetico.ejecutarAlgoritmo();
         if (Parametros.tipoDeSimulacion == TipoDeSimulacion.SEMANAL) {
             // ! Registra las averias en el mejor individuo para que se puedan averiar
-            // Herramientas.agregarAveriasAutomaticas(Parametros.dataLoader.averiasAutomaticas,
-            // algoritmoGenetico.getMejorIndividuo().getCromosoma(), fechaDateTime);
+            Herramientas.agregarAveriasAutomaticas(Parametros.dataLoader.averiasAutomaticas,
+            algoritmoGenetico.getMejorIndividuo().getCromosoma(), fechaDateTime);
         }
         // ! Fin Algoritmo Genético
 
