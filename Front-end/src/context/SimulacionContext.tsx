@@ -538,10 +538,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Procesar pedidos no asignados
       if (data.pedidos) {
         setPedidosNoAsignados(data.pedidos);
-        console.log(`✅ TRANSICIÓN: ${data.pedidos.length} pedidos no asignados procesados`);
+        // console.log(`✅ TRANSICIÓN: ${data.pedidos.length} pedidos no asignados procesados`);
       } else {
         setPedidosNoAsignados([]);
-        console.log("⚠️ TRANSICIÓN: No hay pedidos no asignados en la solución precargada");
+        // console.log("⚠️ TRANSICIÓN: No hay pedidos no asignados en la solución precargada");
       }
 
       // CRÍTICO: Reiniciar el tiempo de simulación para sincronizar con el nuevo intervalo
@@ -557,7 +557,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Incrementar el contador de paquetes consumidos
       setPaqueteActualConsumido(prev => prev + 1);
       
-      console.log("✅ TRANSICIÓN: Solución precargada aplicada exitosamente");
+      // console.log("✅ TRANSICIÓN: Solución precargada aplicada exitosamente");
     } catch (error) {
       console.error("❌ TRANSICIÓN: Error al aplicar solución precargada:", error);
       throw error;
@@ -685,10 +685,10 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Procesar pedidos no asignados
       if (data.pedidos) {
         setPedidosNoAsignados(data.pedidos);
-        console.log(`✅ TRANSICIÓN: ${data.pedidos.length} pedidos no asignados procesados`);
+        // console.log(`✅ TRANSICIÓN: ${data.pedidos.length} pedidos no asignados procesados`);
       } else {
         setPedidosNoAsignados([]);
-        console.log("⚠️ TRANSICIÓN: No hay pedidos no asignados en la solución precargada");
+        // console.log("⚠️ TRANSICIÓN: No hay pedidos no asignados en la solución precargada");
       }
 
       // CRÍTICO: Reiniciar el tiempo de simulación para sincronizar con el nuevo intervalo
@@ -704,7 +704,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Incrementar el contador de paquetes consumidos
       setPaqueteActualConsumido(prev => prev + 1);
       
-      console.log("✅ TRANSICIÓN: Solución precargada aplicada exitosamente");
+      // console.log("✅ TRANSICIÓN: Solución precargada aplicada exitosamente");
     } catch (error) {
       console.error("❌ TRANSICIÓN: Error al aplicar solución precargada:", error);
       throw error;
