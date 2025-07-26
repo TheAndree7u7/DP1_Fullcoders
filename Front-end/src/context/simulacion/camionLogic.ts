@@ -282,7 +282,7 @@ export const avanzarCamion = (
   const siguientePaso = camion.porcentaje + INCREMENTO_PORCENTAJE;
 
   // NUEVO: Detectar avería automática antes de mover el camión
-  const { debeAveriarse, tipoAveria } = detectarAveriaAutomatica(camion, ruta, siguientePaso, averiasAutomaticasActivas);
+  const { debeAveriarse, tipoAveria } = detectarAveriaAutomaticaNuevo(camion, ruta, siguientePaso, averiasAutomaticasActivas);
   
   // Log detallado para debugging de averías automáticas
   if (debeAveriarse) {
@@ -513,6 +513,53 @@ export const detectarAveriaAutomatica = (
       debeAveriarse: true, 
       tipoAveria: tipoNodoActual 
     };
+  }
+
+  return { debeAveriarse: false };
+};
+
+/**
+ * @function detectarAveriaAutomaticaNuevo
+ * @description Detecta si un camión debe ser marcado como averiado automáticamente al recorrer un nodo con avería automática
+ * y muestra un mensaje en consola cuando el camión está en estado "En Ruta" (siempre activo)
+ * @returns {object} Objeto con { debeAveriarse: boolean, tipoAveria?: string }
+ */
+export const detectarAveriaAutomaticaNuevo = (
+  camion: CamionEstado,
+  ruta: RutaCamion,
+  siguientePaso: number,
+  averiasAutomaticasActivas: boolean = false
+): { debeAveriarse: boolean; tipoAveria?: string } => {
+  // Si el camión ya está averiado, no necesita detección
+  if (camion.estado === "Averiado") {
+    return { debeAveriarse: false };
+  }
+
+  // Verificar si hay tipos de nodos disponibles
+  if (!ruta.tiposNodos || siguientePaso >= ruta.tiposNodos.length) {
+    return { debeAveriarse: false };
+  }
+
+  const tipoNodoActual = ruta.tiposNodos[siguientePaso];
+
+  // Verificar si el nodo actual es un nodo de avería automática
+  const esNodoAveriaAutomatica = tipoNodoActual === 'AVERIA_AUTOMATICA_T1' || 
+                                 tipoNodoActual === 'AVERIA_AUTOMATICA_T2' || 
+                                 tipoNodoActual === 'AVERIA_AUTOMATICA_T3';
+
+  if (esNodoAveriaAutomatica) {
+    // Mostrar mensaje en consola siempre cuando el camión esté en estado "En Ruta"
+    if (camion.estado === "En Ruta") {
+      console.log(`🚛💥 DETENIDO POR AVERÍA AUTOMÁTICA: Camión ${camion.id} en nodo ${tipoNodoActual}`);
+    }
+    
+    // Solo marcar como averiado si las averías automáticas están activas
+    if (averiasAutomaticasActivas) {
+      return { 
+        debeAveriarse: true, 
+        tipoAveria: tipoNodoActual 
+      };
+    }
   }
 
   return { debeAveriarse: false };
