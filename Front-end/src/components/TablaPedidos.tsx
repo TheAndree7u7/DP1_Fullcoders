@@ -81,19 +81,19 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
     const codigosUnicos = [...new Set(todosCodigos)];
     
     if (todosCodigos.length !== codigosUnicos.length) {
-      console.warn('🚨 TABLA PEDIDOS: Hay códigos duplicados en datos originales:', {
-        total: todosCodigos.length,
-        unicos: codigosUnicos.length,
-        duplicados: todosCodigos.filter((codigo, index) => todosCodigos.indexOf(codigo) !== index)
-      });
+      // console.warn('🚨 TABLA PEDIDOS: Hay códigos duplicados en datos originales:', {
+      //   total: todosCodigos.length,
+      //   unicos: codigosUnicos.length,
+      //   duplicados: todosCodigos.filter((codigo, index) => todosCodigos.indexOf(codigo) !== index)
+      // });
       
       // Log detallado de códigos por fuente
-      console.log('🔍 TABLA PEDIDOS: Códigos por fuente:', {
-        rutasCamiones: codigosRutas,
-        pedidosNoAsignados: codigosNoAsignados,
-        duplicadosEnRutas: codigosRutas.filter((codigo, index) => codigosRutas.indexOf(codigo) !== index),
-        duplicadosEnNoAsignados: codigosNoAsignados.filter((codigo, index) => codigosNoAsignados.indexOf(codigo) !== index)
-      });
+      // console.log('🔍 TABLA PEDIDOS: Códigos por fuente:', {
+      //   rutasCamiones: codigosRutas,
+      //   pedidosNoAsignados: codigosNoAsignados,
+      //   duplicadosEnRutas: codigosRutas.filter((codigo, index) => codigosRutas.indexOf(codigo) !== index),
+      //   duplicadosEnNoAsignados: codigosNoAsignados.filter((codigo, index) => codigosNoAsignados.indexOf(codigo) !== index)
+      // });
     }
     
     const pedidosMap = new Map<string, Pedido & { 
@@ -431,9 +431,9 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
                 </td>
               </tr>
             ) : (
-                             pedidosFiltrados.map((pedido) => (
+                             pedidosFiltrados.map((pedido, index) => (
                  <tr 
-                   key={pedido.codigo} 
+                   key={`${pedido.codigo}-${index}-${pedido.camionesAsignados?.join('-') || 'no-asignado'}`} 
                    onClick={() => onElementoSeleccionado && onElementoSeleccionado({tipo: 'pedido', id: pedido.codigo})}
                    className="border-b last:border-b-0 bg-white hover:bg-yellow-50 hover:cursor-pointer transition-colors"
                    title="Clic para resaltar en el mapa"
@@ -457,9 +457,9 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
                            {pedido.camionesAsignados.length} camión{pedido.camionesAsignados.length > 1 ? 'es' : ''}
                          </div>
                          <div className="flex flex-wrap gap-1">
-                           {pedido.camionesAsignados.map((camionId: string) => (
+                           {pedido.camionesAsignados.map((camionId: string, camionIndex: number) => (
                              <span
-                               key={`${pedido.codigo}-${camionId}`}
+                               key={`${pedido.codigo}-${camionId}-${camionIndex}-${index}`}
                                className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold"
                              >
                                {camionId}
