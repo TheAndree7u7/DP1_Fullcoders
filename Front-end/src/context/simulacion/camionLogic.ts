@@ -16,7 +16,7 @@ import {
   calcularDistanciaMaxima,
 } from "../../types";
 import { INCREMENTO_PORCENTAJE } from "./types";
-import { handleAveriaAutomatica } from "../../components/mapa/utils/averiasAutomaticas";
+
 
 /**
  * @function obtenerCoordenadaAlmacenCentral
@@ -298,23 +298,13 @@ export const avanzarCamion = (
     });
   }
   
-  // Si debe marcar como averiado, registrar la avería automática y retornar el camión con estado "Averiado"
+  // Si debe marcar como averiado, retornar el camión con estado "Averiado"
   if (debeAveriarse) {
     console.log('🚛🔴 CAMION_LOGIC: Marcando camión como averiado automáticamente:', {
       camionId: camion.id,
       tipoAveria: tipoAveria,
       nuevaUbicacion: ruta.ruta[siguientePaso]
     });
-    
-    // Registrar la avería automática en el backend si tenemos el estado de simulación
-    if (estadoSimulacion) {
-      console.log('📡 CAMION_LOGIC: Registrando avería automática en backend...');
-      handleAveriaAutomatica(camion.id, tipoAveria!, estadoSimulacion).catch(error => {
-        console.error("❌ Error al registrar avería automática:", error);
-      });
-    } else {
-      console.warn('⚠️ CAMION_LOGIC: No se pudo registrar avería automática - estadoSimulacion no disponible');
-    }
     
     return {
       ...camion,
