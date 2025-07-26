@@ -444,7 +444,7 @@ const AgregarPedidosPanel: React.FC = () => {
         </div>
       </div>
 
-      <div className="right-menu-table-scroll">
+      <div className="right-menu-table-scroll medium">
         {modo === 'individual' ? (
           /* Formulario para pedido individual */
           <div className="space-y-3">

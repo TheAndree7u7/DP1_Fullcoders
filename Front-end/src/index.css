@@ -74,8 +74,8 @@
 
 /* Asegurar que las tablas tengan un alto mínimo */
 .table-container {
-  min-height: 200px;
-  max-height: calc(100vh - 400px);
+  min-height: 150px;
+  max-height: calc(100vh - 500px);
 }
 
 /* Estilos específicos para el right menu */
@@ -94,6 +94,7 @@
 .right-menu-table-container {
   flex: 1;
   min-height: 0;
+  max-height: 450px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -102,6 +103,7 @@
 .right-menu-table-scroll {
   flex: 1;
   min-height: 0;
+  max-height: 400px;
   overflow-y: auto;
   overflow-x: auto;
 }
@@ -165,4 +167,23 @@
 .right-menu-table-scroll {
   position: relative;
   scroll-behavior: smooth;
+}
+
+/* Tablas más compactas */
+.right-menu-table-scroll table {
+  font-size: 0.875rem; /* 14px */
+}
+
+.right-menu-table-scroll th,
+.right-menu-table-scroll td {
+  padding: 0.5rem 0.75rem; /* Reducir padding */
+}
+
+/* Altura máxima más restrictiva para tablas específicas */
+.right-menu-table-scroll.compact {
+  max-height: 300px;
+}
+
+.right-menu-table-scroll.medium {
+  max-height: 350px;
 }

@@ -196,7 +196,7 @@ const CamionesAveriadosTable: React.FC<CamionesAveriadosTableProps> = ({ onEleme
          </p>
        </div>
 
-             <div className="right-menu-table-scroll rounded-lg shadow border border-gray-200 bg-white">
+             <div className="right-menu-table-scroll medium rounded-lg shadow border border-gray-200 bg-white">
          <table className="w-full table-fixed text-sm bg-white" style={{ minWidth: '500px' }}>
           <thead>
                          <tr className="border-b border-gray-200">

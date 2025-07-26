@@ -158,7 +158,7 @@ const TablaAlmacenes: React.FC<TablaAlmacenesProps> = ({ onElementoSeleccionado 
         </p>
       </div>
 
-      <div className="right-menu-table-scroll rounded-lg shadow border border-gray-200 bg-white">
+      <div className="right-menu-table-scroll medium rounded-lg shadow border border-gray-200 bg-white">
         <table className="min-w-full table-auto text-sm bg-white" style={{ minWidth: '600px' }}>
           <thead className="sticky top-0 bg-gray-50 z-10">
             <tr className="border-b border-gray-200">

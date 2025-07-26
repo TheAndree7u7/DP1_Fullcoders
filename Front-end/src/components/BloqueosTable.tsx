@@ -13,7 +13,7 @@ const BloqueosTable: React.FC = () => {
   };
 
     return (
-    <div className="right-menu-table-scroll rounded-lg border border-gray-200">
+    <div className="right-menu-table-scroll compact rounded-lg border border-gray-200">
         <table className="min-w-full table-auto text-sm text-left" style={{ minWidth: '500px' }}>
         <thead className="bg-gray-100 sticky top-0 z-10">
           <tr>
