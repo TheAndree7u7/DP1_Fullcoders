@@ -77,10 +77,8 @@ export const handleAveriar = async (
     const fechaHoraReporte = timestampSimulacion;
     
     // 1. CRÍTICO: Detener el polling inmediatamente para evitar nuevos paquetes
-    console.log("🛑 DETENIENDO POLLING INMEDIATAMENTE...");
     if (setPollingActivo) {
       setPollingActivo(false);
-      console.log("✅ Polling detenido exitosamente");
     } else {
       console.warn("⚠️ No se pudo detener el polling - función no disponible");
     }

@@ -119,14 +119,12 @@ const ControlSimulacion: React.FC = () => {
       
       // Iniciar el polling para obtener el primer paquete automáticamente
       iniciarPollingPrimerPaquete();
-      console.log("🔄 FRONTEND: Polling iniciado para obtener primer paquete automáticamente");
       
       // Actualizar información después de unos segundos para dar tiempo al backend
       setTimeout(async () => {
         try {
           const info = await obtenerInfoSimulacion();
           setInfoSimulacion(info);
-          console.log("📊 FRONTEND: Info de simulación actualizada:", info);
           
           if (info.enProceso) {
             setMensaje('Simulación en progreso - Los datos se actualizan automáticamente');

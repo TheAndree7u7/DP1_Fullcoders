@@ -44,7 +44,6 @@ export const limpiarEstadoParaNuevaSimulacion = (
   setPrimerPaqueteCargado: (cargado: boolean) => void,
   fechaInicioSimulacion: string | null
 ): void => {
-  console.log("🧹 LIMPIEZA: Limpiando estado para nueva simulación...");
 
   // Limpiar datos de simulación anterior (pero NO los almacenes)
   setCamiones([]);
@@ -80,10 +79,8 @@ export const limpiarEstadoParaNuevaSimulacion = (
 
   // Mientras esperamos el primer paquete, mostrar estado de carga
   setCargando(true);
-  console.log("🔄 LIMPIEZA: Configurando estado de carga mientras esperamos primer paquete...");
 
   // No intentar cargar datos inmediatamente, solo usar polling para obtener el primer paquete
-  console.log("🔄 LIMPIEZA: Iniciando polling para obtener el primer paquete disponible...");
   setPollingActivo(true);
 };
 
@@ -115,7 +112,6 @@ export const limpiarSimulacionCompleta = (
   setCargando: (cargando: boolean) => void,
   setPrimerPaqueteCargado: (cargado: boolean) => void
 ): void => {
-  console.log("🧹 LIMPIEZA COMPLETA: Limpiando toda la simulación incluyendo fecha de inicio...");
 
   // Limpiar TODOS los datos de simulación incluyendo fecha de inicio
   setCamiones([]);

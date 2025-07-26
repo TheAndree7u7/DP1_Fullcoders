@@ -69,7 +69,6 @@ const CargaArchivosSimulacion: React.FC<CargaArchivosSimulacionProps> = ({
       setTimeout(async () => {
         try {
           const info = await obtenerInfoSimulacion();
-          console.log("📊 FRONTEND: Info de simulación actualizada:", info);
           
           if (info.enProceso) {
             setMensaje('Simulación en progreso - Los datos se actualizan automáticamente');
