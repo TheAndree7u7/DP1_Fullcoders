@@ -69,7 +69,7 @@ export const handleAveriaAutomatica = async (
 
     // Capturar el estado completo actual
     console.log("📸 CAPTURANDO ESTADO COMPLETO PARA AVERÍA AUTOMÁTICA...");
-    const estadoCompleto: EstadoSimulacionCompleto = capturarEstadoCompleto(estadoSimulacion);
+    // const estadoCompleto: EstadoSimulacionCompleto = capturarEstadoCompleto(estadoSimulacion);
     
     // Generar resumen del estado para logs
     // const resumenEstado = generarResumenEstado(estadoCompleto);
@@ -80,7 +80,7 @@ export const handleAveriaAutomatica = async (
     // console.log("📡 ENVIANDO AVERÍA AUTOMÁTICA AL BACKEND...");
     // console.log("📅 TIMESTAMP USADO PARA AVERÍA AUTOMÁTICA:", timestampSimulacion);
     // console.log("🔧 TIPO DE AVERÍA:", tipoAveriaString, "(ID:", tipoAveria, ")");
-    await averiarCamionConEstado(camionId, tipoAveria, timestampSimulacion, estadoCompleto);
+    // await averiarCamionConEstado(camionId, tipoAveria, timestampSimulacion, estadoCompleto);
     
     // Mostrar toast informativo
     toast.info(`🚛💥 Camión ${camionId} averiado automáticamente (${tipoAveriaString})`, {

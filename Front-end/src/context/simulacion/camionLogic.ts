@@ -260,8 +260,7 @@ export const avanzarCamion = (
     rutasCamiones: RutaCamion[];
     almacenes: Almacen[];
     bloqueos: Bloqueo[]; 
-  },
-  averiasAutomaticasActivas: boolean = false
+  }
 ): CamionEstado => {
   // Si el camión está averiado, no avanza
   if (camion.estado === "Averiado") {
@@ -282,7 +281,7 @@ export const avanzarCamion = (
   const siguientePaso = camion.porcentaje + INCREMENTO_PORCENTAJE;
 
   // NUEVO: Detectar avería automática antes de mover el camión
-  const { debeAveriarse, tipoAveria } = detectarAveriaAutomaticaNuevo(camion, ruta, siguientePaso, averiasAutomaticasActivas);
+  const { debeAveriarse, tipoAveria } = detectarAveriaAutomaticaNuevo(camion, ruta, siguientePaso);
   
   // Log detallado para debugging de averías automáticas
   if (debeAveriarse) {
@@ -464,14 +463,13 @@ export const avanzarTodosLosCamiones = (
     rutasCamiones: RutaCamion[];
     almacenes: Almacen[];
     bloqueos: Bloqueo[]; 
-  },
-  averiasAutomaticasActivas: boolean = false
+  }
 ): CamionEstado[] => {
   return camiones.map((camion) => {
     const ruta = rutasCamiones.find((r) => r.id === camion.id);
     if (!ruta) return camion;
 
-    return avanzarCamion(camion, ruta, almacenes, setAlmacenes, estadoSimulacion, averiasAutomaticasActivas);
+    return avanzarCamion(camion, ruta, almacenes, setAlmacenes, estadoSimulacion);
   });
 };
 
@@ -527,8 +525,7 @@ export const detectarAveriaAutomatica = (
 export const detectarAveriaAutomaticaNuevo = (
   camion: CamionEstado,
   ruta: RutaCamion,
-  siguientePaso: number,
-  averiasAutomaticasActivas: boolean = false
+  siguientePaso: number
 ): { debeAveriarse: boolean; tipoAveria?: string } => {
   // Si el camión ya está averiado, no necesita detección
   if (camion.estado === "Averiado") {
@@ -553,13 +550,11 @@ export const detectarAveriaAutomaticaNuevo = (
       console.log(`🚛💥 DETENIDO POR AVERÍA AUTOMÁTICA: Camión ${camion.id} en nodo ${tipoNodoActual}`);
     }
     
-    // Solo marcar como averiado si las averías automáticas están activas
-    if (averiasAutomaticasActivas) {
-      return { 
-        debeAveriarse: true, 
-        tipoAveria: tipoNodoActual 
-      };
-    }
+    // Siempre marcar como averiado cuando detecte nodo de avería automática
+    return { 
+      debeAveriarse: true, 
+      tipoAveria: tipoNodoActual 
+    };
   }
 
   return { debeAveriarse: false };
