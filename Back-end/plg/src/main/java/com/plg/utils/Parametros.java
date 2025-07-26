@@ -33,9 +33,9 @@ public class Parametros {
     // !RANGO DE TRAMOS PARA AVERIAS AUTOMATICAS
     public static double rango_inicial_tramo_averia = 5 / 100.0; // Rango inicial para averias automaticas
     public static double rango_final_tramo_averia = 35 / 100.0;
-    public static boolean averio_turno_1 = false;
-    public static boolean averio_turno_2 = false;
-    public static boolean averio_turno_3 = false;
+
+    // VAIABLES QUE MANEJAN EL TURNO DEL SISTEMA
+    public static int turnoSistema = 0;
 
     public static Parametros getInstance() {
         if (instance == null) {

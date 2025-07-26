@@ -7,6 +7,7 @@ import com.plg.factory.PedidoFactory;
 import com.plg.utils.Herramientas;
 import com.plg.utils.Parametros;
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidDataFormatException;
+import com.plg.utils.Herramientas.CamionYAveria;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public class DataLoader {
     public List<Averia> averias = new ArrayList<>(); // Averias automaticas
     public List<Averia> averiasAutomaticas = new ArrayList<>(); // !AVERIAS AUTOMATICAS
     public List<Bloqueo> bloqueos = new ArrayList<>();
-    public List<Camion> camionesAveriados = new ArrayList<>(); // Camiones que se averian automaticamente
+    public List<CamionYAveria> camionesAveriados = new ArrayList<>(); // Camiones que se averian automaticamente
 
     public DataLoader() {
         initializeAlmacenes();

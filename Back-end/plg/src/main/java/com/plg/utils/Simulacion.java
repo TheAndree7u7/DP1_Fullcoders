@@ -47,6 +47,19 @@ public class Simulacion {
         System.out.println("✅ Simulación diaria configurada para fecha: " + startDate);
     }
 
+    public static void iniciarSimulacion(LocalDateTime fechaInicio) {
+        // 1. Configurar la simulación según el tipo actual
+        if (Parametros.tipoDeSimulacion == TipoDeSimulacion.DIARIA) {
+            System.out.println("🌅 Configurando simulación DIARIA");
+            configurarSimulacionDiaria(fechaInicio);
+        } else if (Parametros.tipoDeSimulacion == TipoDeSimulacion.SEMANAL) {
+            System.out.println("📅 Configurando simulación SEMANAL");
+            configurarSimulacionSemanal(fechaInicio);
+        }
+        // 2. Actualizar la fecha de inicio de la simulación
+        Parametros.fecha_inicio_simulacion = fechaInicio;
+    }
+
     public static void configurarSimulacionSemanal(LocalDateTime startDate) {
         // 1. Actualizar parámetros globales antes de cargar datos
         Parametros.actualizarParametrosGlobales(startDate);

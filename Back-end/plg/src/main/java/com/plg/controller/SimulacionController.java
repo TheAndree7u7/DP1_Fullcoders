@@ -58,7 +58,6 @@ public class SimulacionController {
     // ! MEJOR INDIVIDUO POR FECHA
     @GetMapping("/mejor")
     public IndividuoDto obtenerMejorIndividuoPorFecha(@RequestParam String fecha) {
-        System.out.println("✅✅✅✅✅✅✅✅✅✅✅INICIO✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅");
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/mejor (por fecha)"); // Validar que la fecha no sea
                                                                                       // nula o vacía
         if (fecha == null || fecha.isEmpty()) {
@@ -77,20 +76,8 @@ public class SimulacionController {
 
         // ! Verificar si la simulación ha sido iniciada---> Esto solo se hace una vez
         if (!simulacionIniciada) {
-            // Brindamos una advertencia e iniciamos la simulación
-            System.out.println("⚠️ Advertencia: La simulación no ha sido iniciada. Iniciando simulación...");
-
-            // Configurar simulación según el tipo actual
-            if (Parametros.tipoDeSimulacion == TipoDeSimulacion.DIARIA) {
-                System.out.println("🌅 Configurando simulación DIARIA");
-                Simulacion.configurarSimulacionDiaria(fechaDateTime);
-            } else {
-                System.out.println("📅 Configurando simulación SEMANAL");
-                Simulacion.configurarSimulacionSemanal(fechaDateTime);
-            }
-
-            simulacionIniciada = true; // Marcar que la simulación ha sido iniciada
-            Parametros.fecha_inicio_simulacion = fechaDateTime;
+            Simulacion.iniciarSimulacion(fechaDateTime);
+            simulacionIniciada = true; 
         } else {
             System.out.println("✅ Continuando con la fecha: " + fechaDateTime);
         }
@@ -109,8 +96,7 @@ public class SimulacionController {
         if (Parametros.tipoDeSimulacion == TipoDeSimulacion.SEMANAL) {
             // ! Registra las averias en el mejor individuo para que se puedan averiar
             Herramientas.agregarAveriasAutomaticas(Parametros.dataLoader.averiasAutomaticas,
-                    algoritmoGenetico.getMejorIndividuo().getCromosoma(), fechaDateTime,
-                    fechaDateTime.plusMinutes(Parametros.intervaloTiempo));
+                    algoritmoGenetico.getMejorIndividuo().getCromosoma(), fechaDateTime);
         }
         // ! Fin Algoritmo Genético
 
@@ -131,7 +117,6 @@ public class SimulacionController {
 
     @PostMapping("/iniciar")
     public ResponseEntity<String> iniciarSimulacionPost(@RequestBody SimulacionRequest request) {
-        System.out.println("✳️✳️✳️✳️✳️✳️Inicio de simulación✳️✳️✳️✳️✳️");
         System.out.println("🌐 ENDPOINT LLAMADO: /api/simulacion/iniciar (POST)");
         System.out.println("📅 Fecha de inicio de la simulación: " + request.getFechaInicio());
         System.out.println("🎯 Tipo de simulación actual: " + Parametros.tipoDeSimulacion);
@@ -142,23 +127,10 @@ public class SimulacionController {
                 return ResponseEntity.badRequest().body("Error: La fecha de inicio no puede ser nula");
             }
             LocalDateTime fechaDateTime = request.getFechaInicio();
-            Parametros.fecha_inicio_simulacion = fechaDateTime;
-            Parametros.averio_turno_1 = false;
-            Parametros.averio_turno_2 = false;
-            Parametros.averio_turno_3 = false;
-            // Configurar simulación según el tipo actual
-            if (Parametros.tipoDeSimulacion == TipoDeSimulacion.DIARIA) {
-                System.out.println("🌅 Configurando simulación DIARIA");
-                Simulacion.configurarSimulacionDiaria(fechaDateTime);
-            } else {
-                System.out.println("📅 Configurando simulación SEMANAL");
-                Simulacion.configurarSimulacionSemanal(fechaDateTime);
-            }
-
+            Simulacion.iniciarSimulacion(fechaDateTime);
             simulacionIniciada = true; // Marcar que la simulación ha sido iniciada
             String mensaje = "SIMULACION " + Parametros.tipoDeSimulacion + " INICIADA: " + request.getFechaInicio();
             System.out.println("✅ ENDPOINT RESPUESTA: " + mensaje);
-            System.out.println("✳️✳️✳️✳️✳️✳️Fin de simulación✳️✳️✳️✳️✳️");
             return ResponseEntity.ok(mensaje);
 
         } catch (Exception e) {
