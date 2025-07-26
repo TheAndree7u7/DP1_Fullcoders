@@ -1215,10 +1215,10 @@ const Mapa: React.FC<MapaProps> = ({
 
                             // Activar el resaltado del camión en el mapa
                             if (onElementoSeleccionado) {
-                              console.log(
-                                "🎯 MAPA: Activando resaltado de camión:",
-                                camion.id
-                              );
+                              // console.log(
+                              //   "🎯 MAPA: Activando resaltado de camión:",
+                              //   camion.id
+                              // );
                               onElementoSeleccionado({
                                 tipo: "camion",
                                 id: camion.id,
@@ -1386,7 +1386,7 @@ const Mapa: React.FC<MapaProps> = ({
             return null;
           }
 
-          console.log("✅ Almacén encontrado:", almacen.nombre);
+          // console.log("✅ Almacén encontrado:", almacen.nombre);
 
           const porcentajeGLP =
             almacen.capacidadMaximaGLP > 0
