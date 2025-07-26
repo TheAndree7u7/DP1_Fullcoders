@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import com.plg.entity.Averia;
 import com.plg.entity.Camion;
 import com.plg.entity.EstadoCamion;
+import com.plg.repository.AveriaRepository;
 import com.plg.utils.ExcepcionesPerzonalizadas.ResourceNotFoundException;
 
 public class Herramientas {
@@ -100,7 +101,8 @@ public class Herramientas {
                     if (posicionAveria == -1) {
                         continue; // No se pudo colocar la avería
                     }
-                    camiones_para_averia.add(new CamionYAveria(camion, posicionAveria));
+                    AveriaRepository.save(averia);
+                    camiones_para_averia.add(new CamionYAveria(camion, averia, posicionAveria));
                 }
             }
         }
@@ -109,9 +111,11 @@ public class Herramientas {
 
     public static class CamionYAveria{
         private Camion camion;
+        private Averia averia;
         private int posicionAveria;
-        public CamionYAveria(Camion camion, int posicionAveria) {
+        public CamionYAveria(Camion camion, Averia averia, int posicionAveria) {
             this.camion = camion;
+            this.averia = averia;
             this.posicionAveria = posicionAveria;
         }
         public Camion getCamion() {
@@ -119,6 +123,9 @@ public class Herramientas {
         }
         public int getPosicionAveria() {
             return posicionAveria;
+        }
+        public Averia getAveria() {
+            return averia;
         }
     }
 

@@ -21,7 +21,7 @@ public class AveriaRepository {
      *
      * @return Lista de todas las averías
      */
-    public List<Averia> findAll() {
+    public static List<Averia> findAll() {
         return Parametros.dataLoader.averias;
     }
 
@@ -31,7 +31,7 @@ public class AveriaRepository {
      *
      * @return Lista de averías activas
      */
-    public List<Averia> findAllActive() {
+    public static List<Averia> findAllActive() {
         return Parametros.dataLoader.averias.stream()
                 .filter(a -> a.getEstado() != null && a.getEstado())
                 .collect(Collectors.toList());
@@ -43,7 +43,7 @@ public class AveriaRepository {
      * @param camion el camión del cual obtener las averías
      * @return Lista de averías del camión
      */
-    public List<Averia> findByCamion(Camion camion) {
+    public static List<Averia> findByCamion(Camion camion) {
         return Parametros.dataLoader.averias.stream()
                 .filter(a -> a.getCamion() != null && a.getCamion().equals(camion))
                 .collect(Collectors.toList());
@@ -55,7 +55,7 @@ public class AveriaRepository {
      * @param averia la avería a guardar
      * @return la avería guardada
      */
-    public Averia save(Averia averia) {
+    public static Averia save(Averia averia) {
         Parametros.dataLoader.averias.add(averia);
         return averia;
     }
@@ -65,7 +65,7 @@ public class AveriaRepository {
      *
      * @return Lista de códigos de camiones averiados (sin duplicados)
      */
-    public List<String> findCodigosCamionesAveriados() {
+    public static List<String> findCodigosCamionesAveriados() {
         return Parametros.dataLoader.averias.stream()
                 .filter(a -> a.getEstado() != null && a.getEstado() && a.getCamion() != null)
                 .map(a -> a.getCamion().getCodigo())
@@ -80,7 +80,7 @@ public class AveriaRepository {
      * @param tipoIncidente tipo de incidente ("TI1", "TI2", "TI3")
      * @return Lista de averías filtradas
      */
-    public List<Averia> findByCamionAndTipo(String codigoCamion, String tipoIncidente) {
+    public static List<Averia> findByCamionAndTipo(String codigoCamion, String tipoIncidente) {
         return Parametros.dataLoader.averias.stream()
                 .filter(a -> a.getCamion() != null
                 && a.getCamion().getCodigo().equals(codigoCamion)

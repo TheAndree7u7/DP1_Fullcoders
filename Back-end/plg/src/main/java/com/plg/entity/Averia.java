@@ -89,6 +89,11 @@ public class Averia {
         this.tiempoReparacionEstimado = calcularTiempoInoperatividad();
     }
 
+    public void activarAveria() {
+        this.estado = true;
+        this.camion.setEstado(EstadoCamion.INMOVILIZADO_POR_AVERIA);
+    }
+
     // calcula el tiempo que no estara disponible segun si importa turno o si s va
     // trasladar a almacen central
     public double calcularTiempoInoperatividad() {

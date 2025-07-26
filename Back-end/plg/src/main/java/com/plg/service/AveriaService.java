@@ -11,11 +11,7 @@ import com.plg.entity.Averia;
 import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
 import com.plg.entity.EstadoCamion;
-import com.plg.entity.EstadoPedido;
-import com.plg.entity.Nodo;
-import com.plg.entity.Pedido;
 import com.plg.entity.TipoAlmacen;
-import com.plg.entity.TipoNodo;
 import com.plg.entity.TipoIncidente;
 import com.plg.repository.AveriaRepository;
 import com.plg.utils.ExcepcionesPerzonalizadas.InvalidInputException;
@@ -26,11 +22,9 @@ import com.plg.utils.ExcepcionesPerzonalizadas.InvalidInputException;
 @Service
 public class AveriaService {
 
-    private final AveriaRepository averiaRepository;
     private final CamionService camionService;
 
-    public AveriaService(AveriaRepository averiaRepository, CamionService camionService) {
-        this.averiaRepository = averiaRepository;
+    public AveriaService(CamionService camionService) {
         this.camionService = camionService;
     }
 
@@ -40,7 +34,7 @@ public class AveriaService {
      * @return Lista de todas las averías
      */
     public List<Averia> listar() {
-        return averiaRepository.findAll();
+        return AveriaRepository.findAll();
     }
 
     /**
@@ -49,7 +43,7 @@ public class AveriaService {
      * @return Lista de averías activas
      */
     public List<Averia> listarActivas() {
-        return averiaRepository.findAllActive();
+        return AveriaRepository.findAllActive();
     }
 
     /**
@@ -59,7 +53,7 @@ public class AveriaService {
      * @return Lista de averías del camión
      */
     public List<Averia> listarPorCamion(Camion camion) {
-        return averiaRepository.findByCamion(camion);
+        return AveriaRepository.findByCamion(camion);
     }
 
     /**
@@ -70,7 +64,7 @@ public class AveriaService {
      * @return Lista de averías filtradas
      */
     public List<Averia> listarPorCamionYTipo(String codigoCamion, String tipoIncidente) {
-        return averiaRepository.findByCamionAndTipo(codigoCamion, tipoIncidente);
+        return AveriaRepository.findByCamionAndTipo(codigoCamion, tipoIncidente);
     }
 
     /**
@@ -112,7 +106,7 @@ public class AveriaService {
                 System.out.println("No se actualizo la coordenada");
             }
             averia.setEstado(true); // Asegurarse de que la avería esté activa
-            return averiaRepository.save(averia);
+            return AveriaRepository.save(averia);
         } catch (NoSuchElementException e) {
             throw new InvalidInputException("Camión no encontrado: " + request.getCodigoCamion());
         } catch (IllegalArgumentException e) {
@@ -146,7 +140,7 @@ public class AveriaService {
      * @return Lista de códigos de camiones averiados (sin duplicados)
      */
     public List<String> listarCodigosCamionesAveriados() {
-        return averiaRepository.findCodigosCamionesAveriados();
+        return AveriaRepository.findCodigosCamionesAveriados();
     }
 
     /**

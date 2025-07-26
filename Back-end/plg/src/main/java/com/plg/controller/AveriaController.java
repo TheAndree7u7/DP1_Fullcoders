@@ -243,10 +243,6 @@ public class AveriaController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("El estado de la simulación es obligatorio");
             }
-
-            System.out.println("AVERIA CAMION");
-
-            // 🔧 MEJORADO: Crear el AveriaRequest y verificar la coordenada
             AveriaRequest averiaRequest = request.toAveriaRequest();
 
             Averia averia = averiaService.agregar(averiaRequest);

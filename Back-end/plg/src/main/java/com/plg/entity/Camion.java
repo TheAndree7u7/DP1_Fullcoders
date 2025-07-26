@@ -263,6 +263,7 @@ public class Camion extends Nodo {
                 .findFirst()
                 .orElse(null);
         if (c != null) {
+            c.getAveria().activarAveria();
             return c.getPosicionAveria();
         }
 

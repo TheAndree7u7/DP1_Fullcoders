@@ -8,11 +8,9 @@ import com.plg.entity.Averia;
 import com.plg.entity.Camion;
 import com.plg.entity.Coordenada;
 import com.plg.entity.EstadoCamion;
-import com.plg.entity.Pedido;
 import com.plg.repository.AveriaRepository;
 import com.plg.repository.CamionRepository;
 import com.plg.service.CamionService;
-import com.plg.service.AveriaService;
 
 /**
  * Maneja la actualización de estados de camiones en función de averías (TI1, TI2, TI3).
@@ -25,14 +23,11 @@ public class AveriasManager {
      */
     public static void actualizarCamionesEnAveria(LocalDateTime fechaActual) {
         try {
-            // Crear instancias de los repositorios y servicios necesarios
-            AveriaRepository averiaRepository = new AveriaRepository();
+            
             CamionRepository camionRepository = new CamionRepository();
             CamionService camionService = new CamionService(camionRepository);
-            AveriaService averiaService = new AveriaService(averiaRepository, camionService);
-
             // Obtener todas las averías activas
-            List<Averia> averiasActivas = averiaService.listarActivas();
+            List<Averia> averiasActivas = AveriaRepository.findAllActive();
 
             // 1. Procesar averías que NO requieren traslado (TI1)
             procesarAveriasNoRequierenTraslado(averiasActivas, fechaActual, camionService);
