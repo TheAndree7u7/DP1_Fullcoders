@@ -1534,6 +1534,12 @@ const Mapa: React.FC<MapaProps> = ({
                   Estado: {camion.estado}
                   <br />
                   Pedidos asignados: {numPedidos}
+                  {ruta?.pedidos && ruta.pedidos.length > 0 && (
+                    <>
+                      <br />
+                      Nombres pedidos: {ruta.pedidos.map(p => p.codigo).join(', ')}
+                    </>
+                  )}
                   <br />
                   Capacidad GLP:{" "}
                   {formatearCapacidadGLP(
