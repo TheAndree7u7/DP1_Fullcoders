@@ -30,7 +30,7 @@ export const obtenerSegundosPorNodoSegunTipo = (tipoSimulacion: string): number 
       // Simulación en tiempo real: 62.9 segundos por nodo (configurable)
       return 62.9;
     case 'SEMANAL':
-      return 0.10;
+      return 0.15;
     case 'COLAPSO':
       // Simulación semanal/colapso: 36 segundos por nodo (fijo)
       return SEGUNDOS_POR_NODO;
