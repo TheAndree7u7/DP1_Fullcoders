@@ -12,9 +12,9 @@ const BloqueosTable: React.FC = () => {
     setExpandedIndex(expandedIndex === idx ? null : idx);
   };
 
-  return (
-    <div className="rounded-lg border border-gray-200 max-h-96 overflow-y-auto">
-      <table className="min-w-full table-auto text-sm text-left">
+    return (
+    <div className="right-menu-table-scroll rounded-lg border border-gray-200">
+        <table className="min-w-full table-auto text-sm text-left" style={{ minWidth: '500px' }}>
         <thead className="bg-gray-100 sticky top-0 z-10">
           <tr>
             <th className="px-4 py-2 font-semibold text-gray-700">#</th>

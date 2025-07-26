@@ -183,7 +183,7 @@ const SimulacionDiaria: React.FC = () => {
             
             {/* Menú derecho - que desplaza el mapa */}
             <div 
-              className={`transition-all duration-300 ${menuExpandido ? "" : "w-0 overflow-hidden"}`}
+              className={`transition-all duration-300 h-full ${menuExpandido ? "" : "w-0 overflow-hidden"}`}
               style={menuExpandido ? { width: `${100 - mapaWidth}%` } : {}}
             >
               <RightMenu expanded={menuExpandido} setExpanded={setMenuExpandido} onElementoSeleccionado={setElementoResaltado} />

@@ -39,4 +39,4 @@ export const obtenerAveriasAutomaticasActivas = (tipoSimulacion: string): boolea
  * @constant CONTROLES_SIMULACION_HABILITADOS
  * @description Controla si los controles de simulación están habilitados
  */
-export const CONTROLES_SIMULACION_HABILITADOS = true; 
+export const CONTROLES_SIMULACION_HABILITADOS = false; 

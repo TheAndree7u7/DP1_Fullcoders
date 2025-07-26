@@ -93,7 +93,7 @@ const CardsCamiones: React.FC = () => {
   if (!camiones || !Array.isArray(camiones)) {
     console.error('❌ ERROR: No se pueden renderizar camiones - datos inválidos:', camiones);
     return (
-      <div className="max-h-96 overflow-y-auto pr-1 -mr-1 space-y-2">
+      <div className="right-menu-table-scroll pr-1 -mr-1 space-y-2">
         <div className="text-red-600 text-center p-4">
           Error: Datos de camiones no disponibles
         </div>
@@ -102,7 +102,7 @@ const CardsCamiones: React.FC = () => {
   }
   
   return (
-    <div className="max-h-96 overflow-y-auto pr-1 -mr-1 space-y-2">
+    <div className="right-menu-table-scroll pr-1 -mr-1 space-y-2">
       {camiones.map((camion, index) => {
         try {
           const indexRuta = rutasCamiones.findIndex(ruta => ruta.id === camion.id);

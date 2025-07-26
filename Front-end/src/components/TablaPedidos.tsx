@@ -292,14 +292,14 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
 
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
-      <div className="text-lg font-bold text-black mb-3 flex items-center gap-2">
+    <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      <div className="text-lg font-bold text-black mb-3 flex items-center gap-2 flex-shrink-0">
         <Package className="w-5 h-5" />
         Lista de Pedidos
       </div>
 
              {/* Filtros */}
-       <div className="mb-3 space-y-3">
+       <div className="mb-3 space-y-3 flex-shrink-0">
          {/* Campo de búsqueda */}
          <div>
            <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -340,15 +340,15 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
        </div>
 
       {/* Tip para seleccionar pedido */}
-      <div className="mb-3 p-2 bg-amber-50 border border-amber-200 rounded-lg">
+      <div className="mb-3 p-2 bg-amber-50 border border-amber-200 rounded-lg flex-shrink-0">
         <p className="text-xs text-amber-700">
           💡 <strong>Tip:</strong> Haz clic en cualquier fila para resaltar el pedido en el mapa
         </p>
       </div>
 
       {/* Tabla de pedidos */}
-      <div className="flex-1 min-h-0 overflow-auto rounded-lg shadow border border-gray-200 bg-white">
-                 <table className="min-w-full table-auto text-sm bg-white">
+      <div className="right-menu-table-scroll rounded-lg shadow border border-gray-200 bg-white">
+                 <table className="min-w-full table-auto text-sm bg-white" style={{ minWidth: '800px' }}>
            <thead className="sticky top-0 bg-gray-50 z-10">
              <tr className="border-b border-gray-200">
                <th className="px-4 py-2 text-left font-semibold text-black">
@@ -494,7 +494,7 @@ const TablaPedidos: React.FC<TablaPedidosProps> = ({ onElementoSeleccionado }) =
       </div>
 
       {/* Resumen */}
-      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+      <div className="mt-3 p-3 bg-gray-50 rounded-lg flex-shrink-0">
         <div className="flex justify-between items-center text-sm">
           <span className="font-medium text-gray-700">
             Total de pedidos: <span className="font-bold text-blue-600">{todosPedidos.length}</span>

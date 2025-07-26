@@ -400,14 +400,14 @@ const AgregarPedidosPanel: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
-      <div className="text-lg font-bold text-black mb-3 flex items-center gap-2">
+    <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      <div className="text-lg font-bold text-black mb-3 flex items-center gap-2 flex-shrink-0">
         <MapPin className="w-5 h-5" />
         Agregar Pedidos
       </div>
 
       {/* Información del timestamp de simulación */}
-      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex-shrink-0">
         <h4 className="text-sm font-semibold text-blue-800 mb-1 flex items-center gap-2">
           🕐 Timestamp de Simulación
         </h4>
@@ -417,7 +417,7 @@ const AgregarPedidosPanel: React.FC = () => {
       </div>
 
       {/* Selector de modo */}
-      <div className="mb-4">
+      <div className="mb-4 flex-shrink-0">
         <div className="flex gap-1">
           <button
             onClick={() => setModo('individual')}
@@ -444,7 +444,7 @@ const AgregarPedidosPanel: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="right-menu-table-scroll">
         {modo === 'individual' ? (
           /* Formulario para pedido individual */
           <div className="space-y-3">

@@ -77,7 +77,7 @@ public class SimulacionController {
         // ! Verificar si la simulación ha sido iniciada---> Esto solo se hace una vez
         if (!simulacionIniciada) {
             Simulacion.iniciarSimulacion(fechaDateTime);
-            simulacionIniciada = true; 
+            simulacionIniciada = true;
         } else {
             System.out.println("✅ Continuando con la fecha: " + fechaDateTime);
         }
@@ -95,8 +95,8 @@ public class SimulacionController {
         algoritmoGenetico.ejecutarAlgoritmo();
         if (Parametros.tipoDeSimulacion == TipoDeSimulacion.SEMANAL) {
             // ! Registra las averias en el mejor individuo para que se puedan averiar
-            Herramientas.agregarAveriasAutomaticas(Parametros.dataLoader.averiasAutomaticas,
-                    algoritmoGenetico.getMejorIndividuo().getCromosoma(), fechaDateTime);
+            // Herramientas.agregarAveriasAutomaticas(Parametros.dataLoader.averiasAutomaticas,
+            // algoritmoGenetico.getMejorIndividuo().getCromosoma(), fechaDateTime);
         }
         // ! Fin Algoritmo Genético
 

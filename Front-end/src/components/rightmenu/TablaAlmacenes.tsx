@@ -113,15 +113,15 @@ const TablaAlmacenes: React.FC<TablaAlmacenesProps> = ({ onElementoSeleccionado 
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
-      <div className="text-lg font-bold text-black mb-3 flex items-center gap-2">
+    <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      <div className="text-lg font-bold text-black mb-3 flex items-center gap-2 flex-shrink-0">
         <Building2 className="w-5 h-5" />
         Lista de Almacenes
       </div>
       
       {/* Indicador de recarga automática */}
       {mostrarRecargaAutomatica && (
-        <div className="mb-3 p-2 bg-green-100 border border-green-300 rounded-lg">
+        <div className="mb-3 p-2 bg-green-100 border border-green-300 rounded-lg flex-shrink-0">
           <div className="flex items-center gap-2 text-green-700">
             <span className="text-lg">🔄</span>
             <div className="text-sm">
@@ -133,7 +133,7 @@ const TablaAlmacenes: React.FC<TablaAlmacenesProps> = ({ onElementoSeleccionado 
       )}
       
       {/* Campo de búsqueda */}
-      <div className="mb-3">
+      <div className="mb-3 flex-shrink-0">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Buscar almacenes:
         </label>
@@ -152,14 +152,14 @@ const TablaAlmacenes: React.FC<TablaAlmacenesProps> = ({ onElementoSeleccionado 
       </div>
 
       {/* Tip para seleccionar almacén */}
-      <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded-lg">
+      <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded-lg flex-shrink-0">
         <p className="text-xs text-green-700">
           💡 <strong>Tip:</strong> Haz clic en cualquier fila para resaltar el almacén en el mapa
         </p>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto rounded-lg shadow border border-gray-200 bg-white">
-        <table className="min-w-full table-auto text-sm bg-white">
+      <div className="right-menu-table-scroll rounded-lg shadow border border-gray-200 bg-white">
+        <table className="min-w-full table-auto text-sm bg-white" style={{ minWidth: '600px' }}>
           <thead className="sticky top-0 bg-gray-50 z-10">
             <tr className="border-b border-gray-200">
               <th className="px-4 py-2 text-left font-semibold text-black">
@@ -275,7 +275,7 @@ const TablaAlmacenes: React.FC<TablaAlmacenesProps> = ({ onElementoSeleccionado 
       </div>
       
       {/* Resumen */}
-      <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+      <div className="mt-3 p-3 bg-gray-50 rounded-lg flex-shrink-0">
         <div className="flex justify-between items-center text-sm">
           <span className="font-medium text-gray-700">
             Total de almacenes: <span className="font-bold text-blue-600">{almacenes.length}</span>

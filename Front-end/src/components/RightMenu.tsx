@@ -37,17 +37,17 @@ const RightMenu: React.FC<RightMenuProps> = ({
   if (!expanded) return null;
 
   return (
-    <div className="transition-all duration-300 bg-white rounded-xl p-4 shadow-md h-full flex flex-col w-full min-w-80 max-w-full">
+    <div className="right-menu-container transition-all duration-300 bg-white rounded-xl p-4 shadow-md w-full min-w-80 max-w-full">
       <button
         onClick={() => setExpanded(false)}
-        className="self-end mb-2"
+        className="self-end mb-2 flex-shrink-0"
         title="Ocultar menú"
       >
         <ChevronRight size={12} />
       </button>
 
       {/* Botones de alternancia de panel */}
-      <div className="flex gap-2 mb-4 flex-wrap">
+      <div className="flex gap-2 mb-4 flex-wrap flex-shrink-0">
         <button
           className={`px-3 py-1 rounded font-semibold transition ${panel === "camiones" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800 hover:bg-blue-100"}`}
           onClick={() => setPanel("camiones")}
@@ -93,7 +93,7 @@ const RightMenu: React.FC<RightMenuProps> = ({
         </button>
       </div>
 
-      <div className="flex flex-col flex-1 min-h-0">
+      <div className="right-menu-content">
         {panel === "camiones" && (
           <DatosCamionesTable onElementoSeleccionado={onElementoSeleccionado} />
         )}
@@ -103,32 +103,40 @@ const RightMenu: React.FC<RightMenuProps> = ({
           />
         )}
         {panel === "estadoCamiones" && (
-          <div className="flex flex-col flex-1 min-h-0">
-            <div className="text-md font-bold text-gray-700 mb-2">
+          <div className="right-menu-table-container">
+            <div className="text-md font-bold text-gray-700 mb-2 flex-shrink-0">
               Estado de los camiones
             </div>
-            <CardsCamiones />
+            <div className="right-menu-table-scroll">
+              <CardsCamiones />
+            </div>
           </div>
         )}
         {panel === "bloqueos" && (
-          <>
-            <div className="text-md font-bold text-gray-700">
+          <div className="right-menu-table-container">
+            <div className="text-md font-bold text-gray-700 mb-2 flex-shrink-0">
               Bloqueos activos
             </div>
-            <BloqueosTable />
-          </>
+            <div className="right-menu-table-scroll">
+              <BloqueosTable />
+            </div>
+          </div>
         )}
         {panel === "metricas" && (
-          <>
-            <div className="text-md font-bold text-gray-700">
+          <div className="right-menu-table-container">
+            <div className="text-md font-bold text-gray-700 mb-2 flex-shrink-0">
               Métricas de rendimiento
             </div>
-            <MetricasRendimiento />
-            <div className="text-xs font-bold text-gray-700">
+            <div className="mb-4 flex-shrink-0">
+              <MetricasRendimiento />
+            </div>
+            <div className="text-xs font-bold text-gray-700 mb-2 flex-shrink-0">
               Indicadores de camiones
             </div>
-            <IndicadoresCamiones />
-          </>
+            <div className="right-menu-table-scroll">
+              <IndicadoresCamiones />
+            </div>
+          </div>
         )}
         {panel === "pedidos" && (
           <TablaPedidos onElementoSeleccionado={onElementoSeleccionado} />

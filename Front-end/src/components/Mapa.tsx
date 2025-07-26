@@ -66,7 +66,7 @@ const SVG_HEIGHT = GRID_HEIGHT * CELL_SIZE;
 const BLOQUEO_STROKE_WIDTH = 4;
 
 // Agregar constante global para habilitar/deshabilitar controles
-export const CONTROLES_SIMULACION_HABILITADOS = true;
+export const CONTROLES_SIMULACION_HABILITADOS = false;
 
 interface MapaProps {
   elementoResaltado?: {
