@@ -12,10 +12,10 @@ import IndicadorGLPTotal from "../components/IndicadorGLPTotal";
 import IndicadorFlotaFuncional from "../components/IndicadorFlotaFuncional";
 
 // Constante para habilitar los controles de simulación en la vista semanal
-const CONTROLES_SIMULACION_SEMANAL_HABILITADOS = true;
+const CONTROLES_SIMULACION_SEMANAL_HABILITADOS = false;
 
 // Constante para mostrar/ocultar todos los controles de simulación
-const MOSTRAR_CONTROLES_SIMULACION = true;;
+const MOSTRAR_CONTROLES_SIMULACION = false;
 
 const SimulacionSemanal: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
