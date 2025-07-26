@@ -928,6 +928,16 @@ const Mapa: React.FC<MapaProps> = ({ elementoResaltado, onElementoSeleccionado, 
                          }
                        }}
                      >
+                       {/* Área de click invisible más grande para facilitar la selección */}
+                       <circle
+                         key={`area-click-${camion.id}`}
+                         cx={0}
+                         cy={0}
+                         r={18}
+                         fill="transparent"
+                         style={{ cursor: 'pointer' }}
+                       />
+                       
                        {/* Círculo de resaltado que se mueve con el camión */}
                        {esResaltado && (
                          <circle

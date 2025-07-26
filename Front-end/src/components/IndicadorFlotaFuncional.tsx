@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSimulacion } from '../context/SimulacionContext';
+import { colorSemaforoGLP } from './mapa/utils';
 
 const IndicadorFlotaFuncional: React.FC = () => {
   const { camiones } = useSimulacion();
@@ -37,10 +38,13 @@ const IndicadorFlotaFuncional: React.FC = () => {
     return (camionesFuncionales / camionesTotales) * 100;
   }, [camionesFuncionales, camionesTotales]);
 
+  // Obtener el color semáforo según el porcentaje
+  const colorFlotaFuncional = colorSemaforoGLP(porcentajeFlotaFuncional);
+
   return (
     <>
       <span className="mr-2">Flota funcional:</span>
-      <span className="font-bold text-green-300">
+      <span className="font-bold" style={{ color: colorFlotaFuncional }}>
         {porcentajeFlotaFuncional.toFixed(1)}%
       </span>
     </>
