@@ -126,7 +126,7 @@ const ControlSimulacion: React.FC = () => {
         try {
           const info = await obtenerInfoSimulacion();
           setInfoSimulacion(info);
-          console.log("📊 FRONTEND: Info de simulación actualizada:", info);
+          // console.log("📊 FRONTEND: Info de simulación actualizada:", info);
           
           if (info.enProceso) {
             setMensaje('Simulación en progreso - Los datos se actualizan automáticamente');
