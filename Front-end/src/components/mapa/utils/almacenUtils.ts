@@ -3,8 +3,8 @@
  * @description Utilidades para obtener información de pedidos y camiones asignados a almacenes
  */
 
-import type { Almacen, Pedido, CamionEstado, RutaCamion } from '../../../types';
-import type { PedidoConAsignacion } from '../../../context/simulacion/types';
+import type { Almacen, CamionEstado, RutaCamion } from '../../../types';
+import type { PedidoConAsignacion } from './pedidos';
 
 /**
  * @function obtenerPedidosAsignadosAlAlmacen
@@ -18,8 +18,7 @@ import type { PedidoConAsignacion } from '../../../context/simulacion/types';
 export const obtenerPedidosAsignadosAlAlmacen = (
   almacen: Almacen,
   rutasCamiones: RutaCamion[],
-  camiones: CamionEstado[],
-  pedidosNoAsignados: Pedido[]
+  camiones: CamionEstado[]
 ): PedidoConAsignacion[] => {
   const pedidosAsignados: PedidoConAsignacion[] = [];
   const coordenadaAlmacen = `(${almacen.coordenada.x},${almacen.coordenada.y})`;

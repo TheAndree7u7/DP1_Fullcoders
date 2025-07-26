@@ -1398,8 +1398,7 @@ const Mapa: React.FC<MapaProps> = ({
           const pedidosAsignados = obtenerPedidosAsignadosAlAlmacen(
             almacen,
             rutasCamiones,
-            camiones,
-            pedidosNoAsignados
+            camiones
           );
           const camionesAsignados = obtenerCamionesAsignadosAlAlmacen(
             almacen,
