@@ -67,7 +67,7 @@ public class Simulacion {
         Mapa.getInstance().limpiarMapa();
         // 3. Creamos un nuevo dataLoader para la simulación semanal
         Parametros.dataLoader = new DataLoader();
-
+        Parametros.turnoSistema = 0;
         // 4. Limpiamos las listas de pedidos
 
         pedidosPlanificados.clear();
