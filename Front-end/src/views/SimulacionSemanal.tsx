@@ -9,6 +9,7 @@ import { useSimulacion } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
 import { useCurrentDateTime } from "../hooks/useCurrentDateTime";
 import IndicadorGLPTotal from "../components/IndicadorGLPTotal";
+import IndicadorFlotaFuncional from "../components/IndicadorFlotaFuncional";
 
 // Constante para habilitar los controles de simulación en la vista semanal
 const CONTROLES_SIMULACION_SEMANAL_HABILITADOS = true;
@@ -130,6 +131,9 @@ const SimulacionSemanal: React.FC = () => {
             <div className="text-sm flex items-center gap-4">
               <div>
                 <IndicadorGLPTotal />
+              </div>
+              <div>
+                <IndicadorFlotaFuncional />
               </div>
               <div>
                 <span className="mr-2">Fecha y hora de la simulacion:</span>

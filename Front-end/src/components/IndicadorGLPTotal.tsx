@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSimulacion } from '../context/SimulacionContext';
 import { esValorValido } from '../utils/validacionCamiones';
+import { colorSemaforoGLP } from './mapa/utils';
 
 const IndicadorGLPTotal: React.FC = () => {
   const { camiones } = useSimulacion();
@@ -33,10 +34,13 @@ const IndicadorGLPTotal: React.FC = () => {
     return (glpActualTotal / glpMaximoTotal) * 100;
   }, [glpActualTotal, glpMaximoTotal]);
 
+  // Obtener el color semáforo según el porcentaje
+  const colorCapacidad = colorSemaforoGLP(porcentajeCapacidad);
+
   return (
     <>
       <span className="mr-2">Capacidad de la flota:</span>
-      <span className="font-bold text-blue-300">
+      <span className="font-bold" style={{ color: colorCapacidad }}>
         {porcentajeCapacidad.toFixed(1)}%
       </span>
     </>

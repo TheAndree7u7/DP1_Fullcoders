@@ -301,7 +301,13 @@ const BottomMenu: React.FC<BottomMenuProps> = ({ expanded, setExpanded, camionSe
               <div className="flex gap-4">
                 <span className="font-medium">📍 Paradas: <span className="text-blue-600 font-bold">{rutaProcesada.length}</span></span>
                 <span className="font-medium">🔢 Nodos originales: <span className="text-gray-600 font-bold">{ruta.ruta.length}</span></span>
-                <span className="font-medium">📦 Pedidos: <span className="text-orange-600 font-bold">{rutaProcesada.filter(n => n.tipo === 'pedido').length}</span></span>
+                <span className="font-medium">📦 Pedidos: <span className="text-orange-600 font-bold">{rutaProcesada.filter(n => n.tipo === 'pedido').length}</span> 
+                  {rutaProcesada.filter(n => n.tipo === 'pedido').length > 0 && (
+                    <span className="text-gray-600 text-xs ml-1">
+                      ({rutaProcesada.filter(n => n.tipo === 'pedido').map(n => n.pedido?.codigo).join(', ')})
+                    </span>
+                  )}
+                </span>
                 <span className="font-medium">⏱️ Tiempo total: <span className="text-indigo-600 font-bold">{Math.round(rutaProcesada.reduce((total, nodo) => total + (nodo.duracionMinutos || 1.2), 0))}min</span></span>
               </div>
               <div className="flex items-center gap-2">

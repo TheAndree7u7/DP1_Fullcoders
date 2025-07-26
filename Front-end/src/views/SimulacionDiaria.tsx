@@ -9,6 +9,7 @@ import { useSimulacion } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
 import { useCurrentDateTime } from "../hooks/useCurrentDateTime";
 import IndicadorGLPTotal from "../components/IndicadorGLPTotal";
+import IndicadorFlotaFuncional from "../components/IndicadorFlotaFuncional";
 
 const SimulacionDiaria: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
@@ -124,6 +125,9 @@ const SimulacionDiaria: React.FC = () => {
             <div className="text-sm flex items-center gap-4">
               <div>
                 <IndicadorGLPTotal />
+              </div>
+              <div>
+                <IndicadorFlotaFuncional />
               </div>
               <div>
                 <span className="mr-2">Fecha y hora de la simulación:</span>
