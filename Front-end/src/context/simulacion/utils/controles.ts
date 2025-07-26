@@ -47,6 +47,5 @@ export const iniciarContadorTiempo = (
  * @returns {void}
  */
 export const iniciarPollingPrimerPaquete = (setPollingActivo: (value: boolean) => void): void => {
-  console.log("🚀 POLLING: Activando polling para obtener primer paquete...");
   setPollingActivo(true);
 }; 

@@ -285,7 +285,6 @@ export const cargarSolucionAnticipada = async (
     console.log("======================INICIO DE LA SOLUCION ANTICIPADA==================");
     console.log("🚀 ANTICIPADA: Cargando solución anticipada en background...");
     const data = await getMejorIndividuo(fechaHoraFinIntervalo || "") as IndividuoConBloqueos;
-    console.log("✨ ANTICIPADA: Solución anticipada cargada y lista:", data);
     console.log("___________________________FIN DE LA SOLUCION ANTICIPADA___________________________");
     return data;
   } catch (error) {

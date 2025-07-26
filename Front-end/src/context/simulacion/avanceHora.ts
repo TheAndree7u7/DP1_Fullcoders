@@ -59,19 +59,7 @@ const verificarYRecargarAlmacenes = (
         // Los almacenes centrales no se recargan automáticamente
         return almacen;
       });
-      
-      // Contar cuántos almacenes intermedios se recargaron
-      const almacenesIntermedios = almacenes.filter(a => a.tipo === 'SECUNDARIO');
-      const almacenesRecargadosCount = almacenesIntermedios.length;
-      
-      console.log(`✅ RECARGA COMPLETADA: ${almacenesRecargadosCount} almacenes intermedios recargados a su capacidad máxima`);
-      console.log("📊 ESTADO ALMACENES INTERMEDIOS:", almacenesRecargados
-        .filter(a => a.tipo === 'SECUNDARIO')
-        .map(a => ({
-          nombre: a.nombre,
-          GLP: `${a.capacidadActualGLP}/${a.capacidadMaximaGLP}`,
-          Combustible: `${a.capacidadActualCombustible}/${a.capacidadCombustible}`
-        })));
+
       
       return almacenesRecargados;
     }
@@ -167,7 +155,6 @@ export const avanzarHora = async (
 
     // Si ya tenemos la solución anticipada cargada, usarla directamente
     if (proximaSolucionCargada) {
-      console.log("⚡ TRANSICIÓN: Usando solución anticipada precargada para transición suave");
       await aplicarSolucionPrecargada(proximaSolucionCargada);
     } else {
       console.log("🔄 TRANSICIÓN: Solución anticipada no disponible, cargando en tiempo real...");

@@ -39,7 +39,6 @@ export const ejecutarPollingPrimerPaquete = (
       console.log("⏰ POLLING: Timeout alcanzado, desactivando polling...");
       setPollingActivo(false);
       setCargando(false);
-      console.log("⚠️ POLLING: Estado de carga cambiado a false por timeout");
       return;
     }
 
@@ -68,7 +67,6 @@ export const ejecutarPollingPrimerPaquete = (
   }, 2000); // Verificar cada 2 segundos
 
   return () => {
-    console.log("🛑 POLLING: Limpiando interval de polling");
     console.log("___________________________FIN DEL POLLING___________________________FIN");
     clearInterval(interval);
   };

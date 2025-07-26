@@ -129,7 +129,6 @@ const AgregarPedidosPanel: React.FC = () => {
       console.log("📦 PROCESANDO PEDIDOS: Iniciando procesamiento de pedidos...");
       
       // 1. Detener polling y pausar simulación
-      console.log("🛑 DETENIENDO POLLING Y PAUSANDO SIMULACIÓN...");
       if (setPollingActivo) {
         setPollingActivo(false);
       }
