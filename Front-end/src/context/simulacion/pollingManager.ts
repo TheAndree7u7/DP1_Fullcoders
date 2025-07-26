@@ -31,29 +31,34 @@ export const ejecutarPollingPrimerPaquete = (
 
   let intentos = 0;
   const maxIntentos = 60; // Máximo 120 segundos de polling
+  let isActive = true;
 
   const interval = setInterval(async () => {
+    if (!isActive) return;
+    
     intentos++;
 
     if (intentos > maxIntentos) {
       console.log("⏰ POLLING: Timeout alcanzado, desactivando polling...");
-      setPollingActivo(false);
-      setCargando(false);
+      if (isActive) {
+        setPollingActivo(false);
+        setCargando(false);
+      }
       return;
     }
 
     try {
-      // console.log("🔍 POLLING: Buscando nuevos paquetes...");
       const paquete = await getMejorIndividuo(fechaInicioSimulacion ?? "");
       const data = paquete as IndividuoConBloqueos;
 
       // Verificar si hay datos válidos
       if (data && data.cromosoma && Array.isArray(data.cromosoma)) {
         console.log("✅ POLLING: Primer paquete encontrado (camiones:", data.cromosoma.length, "), desactivando polling...");
-        setPollingActivo(false);
-
-        // Aplicar el primer paquete
-        await onPaqueteEncontrado(data);
+        if (isActive) {
+          setPollingActivo(false);
+          // Aplicar el primer paquete
+          await onPaqueteEncontrado(data);
+        }
       } else {
         console.log("⏳ POLLING: No hay paquetes disponibles aún, continuando...");
       }
@@ -68,6 +73,7 @@ export const ejecutarPollingPrimerPaquete = (
 
   return () => {
     console.log("___________________________FIN DEL POLLING___________________________FIN");
+    isActive = false;
     clearInterval(interval);
   };
 }; 
