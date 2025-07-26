@@ -278,7 +278,7 @@ export async function recalcularAlgoritmoDespuesAveria(fechaHoraActual: string):
  */
 export async function cambiarTipoSimulacion(tipoSimulacion: TipoSimulacion): Promise<TipoSimulacionResponse> {
   try {
-    console.log("🔄 TIPO SIMULACIÓN: Cambiando tipo de simulación a:", tipoSimulacion);
+    // console.log("🔄 TIPO SIMULACIÓN: Cambiando tipo de simulación a:", tipoSimulacion);
     
     const response = await fetch(API_URLS.CAMBIAR_TIPO_SIMULACION, {
       method: 'POST',
@@ -297,7 +297,7 @@ export async function cambiarTipoSimulacion(tipoSimulacion: TipoSimulacion): Pro
     }
 
     const data = await response.json();
-    console.log("✅ TIPO SIMULACIÓN: Tipo de simulación cambiado exitosamente:", data);
+    // console.log("✅ TIPO SIMULACIÓN: Tipo de simulación cambiado exitosamente:", data);
 
  
     return data as TipoSimulacionResponse;
@@ -329,7 +329,7 @@ export async function obtenerTipoSimulacionActual(): Promise<TipoSimulacionActua
     }
 
     const data = await response.json();
-    console.log("✅ TIPO SIMULACIÓN: Tipo de simulación actual obtenido:", data);
+    // console.log("✅ TIPO SIMULACIÓN: Tipo de simulación actual obtenido:", data);
     return data as TipoSimulacionActualResponse;
   } catch (error) {
     console.error("❌ TIPO SIMULACIÓN: Error al obtener tipo de simulación actual:", error);

@@ -43,7 +43,7 @@ export const ejecutarPollingPrimerPaquete = (
     }
 
     try {
-      console.log("🔍 POLLING: Buscando nuevos paquetes...");
+      // console.log("🔍 POLLING: Buscando nuevos paquetes...");
       const paquete = await getMejorIndividuo(fechaInicioSimulacion ?? "");
       const data = paquete as IndividuoConBloqueos;
 

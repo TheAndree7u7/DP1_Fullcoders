@@ -55,7 +55,7 @@ const CargaSimulacionDiaria: React.FC = () => {
         
         console.log("✅ FRONTEND: Simulación diaria iniciada en backend, limpiando estado...");
         await limpiarEstadoParaNuevaSimulacion();
-        console.log("🧹 FRONTEND: Estado limpiado y datos cargados para simulación diaria");
+        // console.log("🧹 FRONTEND: Estado limpiado y datos cargados para simulación diaria");
         
         // Paso 5: Iniciar polling
         setPaso(5);
