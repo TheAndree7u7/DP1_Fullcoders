@@ -1,7 +1,8 @@
 import React from 'react';
 import { Search, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { useSimulacion, type CamionEstado } from '../../context/SimulacionContext';
-import { formatearCapacidadGLP, formatearCombustible, obtenerClaseColorValor, esValorValido } from '../../utils/validacionCamiones';
+import { formatearCapacidadGLP, formatearCombustible, esValorValido } from '../../utils/validacionCamiones';
+import { colorSemaforoGLP } from '../mapa/utils';
 
 interface DatosCamionesTableProps {
   onElementoSeleccionado: (elemento: {tipo: 'camion' | 'pedido' | 'almacen', id: string} | null) => void;
@@ -229,10 +230,18 @@ const DatosCamionesTable: React.FC<DatosCamionesTableProps> = ({ onElementoSelec
                       title="Clic para resaltar en el mapa"
                     >
                       <td className="px-4 py-2 text-gray-800 font-mono font-semibold">{camion.id}</td>
-                      <td className={`px-4 py-2 font-bold ${obtenerClaseColorValor(camion.capacidadActualGLP)}`}>
+                      <td className="px-4 py-2 font-bold" style={{ 
+                        color: esValorValido(camion.capacidadActualGLP) && esValorValido(camion.capacidadMaximaGLP) && camion.capacidadMaximaGLP > 0
+                          ? colorSemaforoGLP((camion.capacidadActualGLP / camion.capacidadMaximaGLP) * 100)
+                          : '#ef4444' // Rojo para valores inválidos
+                      }}>
                         {formatearCapacidadGLP(camion.capacidadActualGLP, camion.capacidadMaximaGLP)}
                       </td>
-                      <td className={`px-4 py-2 font-bold ${obtenerClaseColorValor(camion.combustibleActual)}`}>
+                      <td className="px-4 py-2 font-bold" style={{ 
+                        color: esValorValido(camion.combustibleActual) && esValorValido(camion.combustibleMaximo) && camion.combustibleMaximo > 0
+                          ? colorSemaforoGLP((camion.combustibleActual / camion.combustibleMaximo) * 100)
+                          : '#ef4444' // Rojo para valores inválidos
+                      }}>
                         {formatearCombustible(camion.combustibleActual, camion.combustibleMaximo)}
                       </td>
                       <td className="px-4 py-2 text-gray-600">
