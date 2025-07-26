@@ -955,13 +955,13 @@ const Mapa: React.FC<MapaProps> = ({
                       onClick={(evt) => {
                         // Solo abrir el modal si no hay otro modal ya abierto
                         if (!clickedAlmacen) {
-                          console.log(
-                            "🖱️ Click en almacén:",
-                            almacen.nombre,
-                            "en posición:",
-                            evt.clientX,
-                            evt.clientY
-                          );
+                          // console.log(
+                          //   "🖱️ Click en almacén:",
+                          //   almacen.nombre,
+                          //   "en posición:",
+                          //   evt.clientX,
+                          //   evt.clientY
+                          // );
                           setClickedAlmacen(almacen.nombre);
                           setClickedAlmacenPos({
                             x: evt.clientX,
@@ -1374,12 +1374,12 @@ const Mapa: React.FC<MapaProps> = ({
       {clickedAlmacen &&
         clickedAlmacenPos &&
         (() => {
-          console.log(
-            "�� Renderizando modal de almacén:",
-            clickedAlmacen,
-            "en posición:",
-            clickedAlmacenPos
-          );
+          // console.log(
+          //   "�� Renderizando modal de almacén:",
+          //   clickedAlmacen,
+          //   "en posición:",
+          //   clickedAlmacenPos
+          // );
           const almacen = almacenes.find((a) => a.nombre === clickedAlmacen);
 
           if (!almacen) {
