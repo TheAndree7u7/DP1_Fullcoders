@@ -52,7 +52,7 @@ export const calcularIntervaloTiempoReal = (
   velocidadCamion?: number
 ): number => {
   // Factor de ajuste basado en la velocidad del camión (si se proporciona)
-  let factorAjuste = 1;
+  let factorAjuste = 0.30;
   
   if (velocidadCamion && velocidadCamion > 0) {
     // Velocidad de referencia: 60 km/h
