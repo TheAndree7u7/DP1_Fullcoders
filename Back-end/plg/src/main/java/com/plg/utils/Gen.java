@@ -212,6 +212,14 @@ public class Gen {
         return rutaFinal.getLast();
     }
 
+    public Nodo penUltimoNodo(){
+        if( rutaFinal.size() < 2) {
+            return null;
+        }
+        int pos = rutaFinal.size()-2;
+        return rutaFinal.get(pos);
+    }
+
     // Clases auxiliares para devolver múltiples valores
     private static class ResultadoEntrega {
         double fitness;

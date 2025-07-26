@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-import java.time.temporal.ChronoUnit;
 
 import com.plg.entity.Almacen;
 import com.plg.entity.Camion;
@@ -276,7 +275,15 @@ public class Individuo {
         Gen gen = getGenPorCamion(camion.getCodigo());
         boolean primera_vez = gen.getRutaFinal().isEmpty();
         Nodo inicio = gen.ultimoNodo();
-        List<Nodo> ruta = Mapa.getInstance().aStar(inicio, fin);
+        Nodo penUltimo = gen.penUltimoNodo();
+        List<Nodo> ruta = null;
+        if(inicio instanceof Pedido && gen.getPedidos().contains(inicio) && penUltimo != null && inicio.isBloqueado()){
+            List<Nodo> nodosABloquear = bloquearNodosDeSalida(penUltimo, inicio);
+            ruta = Mapa.getInstance().aStar(inicio, fin);
+            liberarNodosBloqueados(nodosABloquear);
+        }else{
+            ruta = Mapa.getInstance().aStar(inicio, fin);
+        }
         if (!primera_vez) {
             // Quitamos de la ruta el primer nodo (inicio)
             ruta.remove(0);
@@ -284,6 +291,25 @@ public class Individuo {
         gen.getRutaFinal().addAll(ruta);
         gen.setFitness(gen.getRutaFinal().size());
     }
+
+    public List<Nodo> bloquearNodosDeSalida(Nodo penUltimo, Nodo ultimo){
+        List<Nodo> nodos = Mapa.getInstance().getAdj(ultimo.getCoordenada());
+        List<Nodo> nodosBloqueados = new ArrayList<>();
+        for(Nodo nodo: nodos){
+            if (!nodo.equals(penUltimo) && !nodo.isBloqueado()) {
+                nodosBloqueados.add(nodo);
+                nodo.setBloqueado(true);
+            }
+        }
+        return nodosBloqueados;
+    }
+
+    public void liberarNodosBloqueados(List<Nodo> nodosBloqueados) {
+        for (Nodo nodo : nodosBloqueados) {
+            nodo.setBloqueado(false);
+        }
+    }
+
 
     private List<Pedido> seleccionarPedidosParaCamion(Camion camion, List<Pedido> pedidosEvaluar,
             int maxPedidosPorCamion) {

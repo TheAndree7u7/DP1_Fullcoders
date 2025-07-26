@@ -1,7 +1,6 @@
 package com.plg.utils;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -81,15 +80,11 @@ public class Simulacion {
         actualizarCamiones(fechaActual);
         MantenimientoManager.verificarYActualizarMantenimientos(Parametros.dataLoader.camiones, fechaActual);
         AveriasManager.actualizarCamionesEnAveria(fechaActual);
-        Simulacion.bloqueosActivos = Simulacion.actualizarBloqueos(fechaActual);
         actualizarPedidos();
+        Simulacion.bloqueosActivos = Simulacion.actualizarBloqueos(fechaActual);
     }
 
     public static List<Pedido> actualizarPedidosEnRango() {
-        // 1. Obtenemos todos los pedidos del fechaActual < x < fechaActual +
-        // intervaloTiempo
-        // LocalDateTime fecha_inferior =
-        // Parametros.fecha_inicial.minusMinutes(Parametros.intervaloTiempo).minusMinutes(10);
         LocalDateTime fecha_inferior = Parametros.fecha_inicio_simulacion;
         LocalDateTime fecha_superior = Parametros.fecha_inicial.plusMinutes(Parametros.intervaloTiempo).plusMinutes(10);
 
