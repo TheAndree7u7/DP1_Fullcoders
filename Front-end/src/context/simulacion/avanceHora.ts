@@ -44,12 +44,12 @@ const verificarYRecargarAlmacenes = (
     const segundos = fechaActual.getSeconds();
     
     if (hora === 0 && minutos === 0 && segundos === 0) {
-      console.log("🔄 RECARGA AUTOMÁTICA: Es medianoche (00:00:00), recargando SOLO almacenes intermedios...");
+      // console.log("🔄 RECARGA AUTOMÁTICA: Es medianoche (00:00:00), recargando SOLO almacenes intermedios...");
       
       // Recargar SOLO los almacenes intermedios (SECUNDARIO) a su capacidad máxima
       const almacenesRecargados = almacenes.map(almacen => {
         if (almacen.tipo === 'SECUNDARIO') {
-          console.log(`🔄 Recargando almacén intermedio: ${almacen.nombre}`);
+          // console.log(`🔄 Recargando almacén intermedio: ${almacen.nombre}`);
           return {
             ...almacen,
             capacidadActualGLP: almacen.capacidadMaximaGLP,

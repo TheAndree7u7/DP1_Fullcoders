@@ -1482,7 +1482,7 @@ const Mapa: React.FC<MapaProps> = ({
                 {almacen.tipo === "SECUNDARIO" && (
                   <div className="mb-3 p-2 bg-green-50 rounded text-center">
                     <div className="text-xs text-green-700">
-                      🔄 Recarga automática a las 00:00
+                      {/* 🔄 Recarga automática a las 00:00 */}
                     </div>
                   </div>
                 )}
