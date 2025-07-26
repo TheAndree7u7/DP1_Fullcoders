@@ -13,7 +13,7 @@ import {
 } from "./mapa/utils";
 import type { Pedido } from "../types";
 
-const RETRASO_CONSUMO_RUTA = 2;
+const RETRASO_CONSUMO_RUTA = 0;
 
 // Definir el tipo localmente para evitar problemas de importación
 interface PedidoConAsignacion extends Pedido {
@@ -35,11 +35,8 @@ const esCoordenadaValida = (
     !isNaN(coord.y)
   );
 };
-import {
-  formatearCapacidadGLP,
-  formatearCombustible,
-  calcularGLPEntregaPorCamion,
-} from "../utils/validacionCamiones";
+
+import ModalCamion from "./modals/ModalCamion";
 import {
   obtenerIntervaloPorDefecto,
   calcularIntervaloSegunTipo,
@@ -1215,10 +1212,10 @@ const Mapa: React.FC<MapaProps> = ({
 
                             // Activar el resaltado del camión en el mapa
                             if (onElementoSeleccionado) {
-                              console.log(
-                                "🎯 MAPA: Activando resaltado de camión:",
-                                camion.id
-                              );
+                              // console.log(
+                              //   "🎯 MAPA: Activando resaltado de camión:",
+                              //   camion.id
+                              // );
                               onElementoSeleccionado({
                                 tipo: "camion",
                                 id: camion.id,
@@ -1501,198 +1498,34 @@ const Mapa: React.FC<MapaProps> = ({
           );
         })()}
 
-      {/* Modal para camión (panel lateral derecho) */}
-      {clickedCamion &&
-        (() => {
-          const camion = camiones.find((c) => c.id === clickedCamion);
-          const ruta = rutasCamiones.find((r) => r.id === clickedCamion);
-          const numPedidos = ruta?.pedidos?.length || 0;
-          const esAveriado = camion?.estado === "Averiado";
-          const glpEntrega = calcularGLPEntregaPorCamion(
-            clickedCamion,
-            rutasCamiones,
-            camiones
-          );
-          return (
-            <div
-              className="fixed top-1/2 right-0 transform -translate-y-1/2 bg-white border-l border-gray-300 rounded-l-lg shadow-2xl z-50 w-96 max-w-full p-6 flex flex-col"
-              style={{ minHeight: "400px", maxHeight: "90vh" }}
-            >
-              {/* Header con título y botón cerrar */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="font-bold text-lg">Camión: {clickedCamion}</div>
-                <button
-                  className="text-gray-500 hover:text-black text-2xl font-bold"
-                  onClick={() => setClickedCamion(null)}
-                  title="Cerrar"
-                >
-                  ×
-                </button>
-              </div>
-              {camion && (
-                <div className="text-sm mb-4">
-                  Estado: {camion.estado}
-                  <br />
-                  Pedidos asignados: {numPedidos}
-                  {ruta?.pedidos && ruta.pedidos.length > 0 && (
-                    <>
-                      <br />
-                      Nombres pedidos: {ruta.pedidos.map(p => p.codigo).join(', ')}
-                    </>
-                  )}
-                  <br />
-                  Capacidad GLP:{" "}
-                  {formatearCapacidadGLP(
-                    camion.capacidadActualGLP,
-                    camion.capacidadMaximaGLP
-                  )}
-                  <br />
-                  GLP a entregar: {glpEntrega.toFixed(2)} m³
-                  <br />
-                  Combustible:{" "}
-                  {formatearCombustible(
-                    camion.combustibleActual,
-                    camion.combustibleMaximo
-                  )}
-                  <br />
-                  Distancia máxima: {camion.distanciaMaxima.toFixed(2)} km
-                  <br />
-                  Peso carga: {camion.pesoCarga.toFixed(2)}
-                  <br />
-                  Peso combinado: {camion.pesoCombinado.toFixed(2)}
-                  <br />
-                  Tara: {camion.tara}
-                  <br />
-                  Tipo: {camion.tipo}
-                  <br />
-                  Ubicación: {camion.ubicacion}
-                  <br />
-                  Progreso: {camion.porcentaje}
-                </div>
-              )}
-              {esAveriado ? (
-                <div className="text-red-600 font-bold text-center py-2">
-                  🚛💥 CAMIÓN AVERIADO
-                </div>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <button
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded disabled:opacity-50"
-                    disabled={averiando === clickedCamion + "-1"}
-                    onClick={() =>
-                      handleAveriar(
-                        clickedCamion,
-                        1,
-                        marcarCamionAveriado,
-                        setAveriando,
-                        setClickedCamion,
-                        setSimulacionActiva,
-                        {
-                          horaActual,
-                          horaSimulacion,
-                          fechaHoraSimulacion,
-                          fechaInicioSimulacion,
-                          diaSimulacion,
-                          tiempoRealSimulacion,
-                          tiempoTranscurridoSimulado,
-                          camiones,
-                          rutasCamiones,
-                          almacenes,
-                          bloqueos,
-                        },
-                        setPollingActivo,
-                        aplicarNuevaSolucionDespuesAveria
-                      )
-                    }
-                  >
-                    {averiando === clickedCamion + "-1"
-                      ? "Averiando..."
-                      : "Avería tipo 1"}
-                  </button>
-                  <button
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded disabled:opacity-50"
-                    disabled={averiando === clickedCamion + "-2"}
-                    onClick={() =>
-                      handleAveriar(
-                        clickedCamion,
-                        2,
-                        marcarCamionAveriado,
-                        setAveriando,
-                        setClickedCamion,
-                        setSimulacionActiva,
-                        {
-                          horaActual,
-                          horaSimulacion,
-                          fechaHoraSimulacion,
-                          fechaInicioSimulacion,
-                          diaSimulacion,
-                          tiempoRealSimulacion,
-                          tiempoTranscurridoSimulado,
-                          camiones,
-                          rutasCamiones,
-                          almacenes,
-                          bloqueos,
-                        },
-                        setPollingActivo,
-                        aplicarNuevaSolucionDespuesAveria
-                      )
-                    }
-                  >
-                    {averiando === clickedCamion + "-2"
-                      ? "Averiando..."
-                      : "Avería tipo 2"}
-                  </button>
-                  <button
-                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded disabled:opacity-50"
-                    disabled={averiando === clickedCamion + "-3"}
-                    onClick={() =>
-                      handleAveriar(
-                        clickedCamion,
-                        3,
-                        marcarCamionAveriado,
-                        setAveriando,
-                        setClickedCamion,
-                        setSimulacionActiva,
-                        {
-                          horaActual,
-                          horaSimulacion,
-                          fechaHoraSimulacion,
-                          fechaInicioSimulacion,
-                          diaSimulacion,
-                          tiempoRealSimulacion,
-                          tiempoTranscurridoSimulado,
-                          camiones,
-                          rutasCamiones,
-                          almacenes,
-                          bloqueos,
-                        },
-                        setPollingActivo,
-                        aplicarNuevaSolucionDespuesAveria
-                      )
-                    }
-                  >
-                    {averiando === clickedCamion + "-3"
-                      ? "Averiando..."
-                      : "Avería tipo 3"}
-                  </button>
-                </div>
-              )}
-              <button
-                className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded w-full"
-                onClick={() => {
-                  // Aquí se activa el menú inferior para mostrar la ruta
-                  const event = new CustomEvent("mostrarRutaCamion", {
-                    detail: { camionId: clickedCamion },
-                  });
-                  window.dispatchEvent(event);
-                  setClickedCamion(null);
-                }}
-              >
-                📍 Mostrar ruta del camión
-              </button>
-            </div>
-          );
-        })()}
+      {/* Modal para camión usando componente separado */}
+      <ModalCamion
+        clickedCamion={clickedCamion}
+        camiones={camiones}
+        rutasCamiones={rutasCamiones}
+        averiando={averiando}
+        onClose={() => setClickedCamion(null)}
+        onAveriar={handleAveriar}
+        marcarCamionAveriado={marcarCamionAveriado}
+        setAveriando={setAveriando}
+        setClickedCamion={setClickedCamion}
+        setSimulacionActiva={setSimulacionActiva}
+        datosSimulacion={{
+          horaActual,
+          horaSimulacion,
+          fechaHoraSimulacion,
+          fechaInicioSimulacion,
+          diaSimulacion,
+          tiempoRealSimulacion,
+          tiempoTranscurridoSimulado,
+          camiones,
+          rutasCamiones,
+          almacenes,
+          bloqueos,
+        }}
+        setPollingActivo={setPollingActivo}
+        aplicarNuevaSolucionDespuesAveria={aplicarNuevaSolucionDespuesAveria}
+      />
 
       {/* Controles de simulación debajo del mapa */}
       {controlesSimulacionHabilitados && (
