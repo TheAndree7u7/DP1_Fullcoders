@@ -7,8 +7,9 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.plg.repository.AveriaRepository;
 import com.plg.utils.Gen;
+import com.plg.utils.Herramientas;
 import com.plg.utils.Parametros;
-import com.plg.utils.Herramientas.CamionYAveria;
+import com.plg.utils.Herramientas.CamionAveriaAuxiliar;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -259,10 +260,7 @@ public class Camion extends Nodo {
     }
 
     public int obtenerCantidadDeNodos() {
-        CamionYAveria c = Parametros.dataLoader.camionesAveriados.stream()
-                .filter(camionAveriado -> camionAveriado.getCamion().getCodigo().equals(this.codigo))
-                .findFirst()
-                .orElse(null);
+        CamionAveriaAuxiliar c = Herramientas.obtenerCamionAveriaAuxiliar(this);
         if (c != null) {
             c.getAveria().activarAveria();
             c.getAveria().actualizarAveria(Parametros.fecha_inicial);
@@ -287,6 +285,8 @@ public class Camion extends Nodo {
         }
         return cantNodos;
     }
+
+  
 
     @JsonIgnore
     public Camion getClone() {
