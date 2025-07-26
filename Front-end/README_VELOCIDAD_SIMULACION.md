@@ -27,12 +27,13 @@ export const SEGUNDOS_POR_NODO = (HORAS_POR_ACTUALIZACION * 60 * 60) / NODOS_PAR
 export const obtenerSegundosPorNodoSegunTipo = (tipoSimulacion: string): number => {
   switch (tipoSimulacion) {
     case 'DIARIA':
-      return 62.9; // Configurable
+      return SEGUNDOS_POR_NODO; // 36 segundos (1 hora / 100 nodos)
     case 'SEMANAL':
+      return 0.30;
     case 'COLAPSO':
       return SEGUNDOS_POR_NODO; // Fijo: 36 segundos
     default:
-      return 62.9;
+      return SEGUNDOS_POR_NODO;
   }
 };
 
@@ -89,7 +90,7 @@ Se eliminaron los valores hardcodeados de `36` segundos en:
 ## Tipos de Simulación y Velocidades
 
 ### 1. Simulación DIARIA (Tiempo Real)
-- **Velocidad por defecto**: 62.9 segundos por nodo
+- **Velocidad por defecto**: 36 segundos por nodo (1 hora / 100 nodos)
 - **Configuración**: Completamente configurable
 - **Controles disponibles**:
   - Input manual de segundos por nodo

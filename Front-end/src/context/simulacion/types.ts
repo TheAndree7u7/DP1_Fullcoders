@@ -27,16 +27,16 @@ export const SEGUNDOS_POR_NODO = (HORAS_POR_ACTUALIZACION * 60 * 60) / NODOS_PAR
 export const obtenerSegundosPorNodoSegunTipo = (tipoSimulacion: string): number => {
   switch (tipoSimulacion) {
     case 'DIARIA':
-      // Simulación en tiempo real: 62.9 segundos por nodo (configurable)
-      return 62.9;
+      // Simulación en tiempo real: 36 segundos por nodo (1 hora / 100 nodos)
+      return SEGUNDOS_POR_NODO; // 36 segundos por nodo
     case 'SEMANAL':
       return 0.30;
     case 'COLAPSO':
       // Simulación semanal/colapso: 36 segundos por nodo (fijo)
       return SEGUNDOS_POR_NODO;
     default:
-      // Por defecto usar el valor de tiempo real
-      return 62.9;
+      // Por defecto usar el valor calculado
+      return SEGUNDOS_POR_NODO;
   }
 };
 
@@ -48,7 +48,7 @@ export const obtenerSegundosPorNodoSegunTipo = (tipoSimulacion: string): number 
  * @returns {number} Intervalo en milisegundos
  */
 export const calcularIntervaloTiempoReal = (
-  segundosPorNodo: number = 62.9,
+  segundosPorNodo: number = SEGUNDOS_POR_NODO, // 36 segundos por defecto
   velocidadCamion?: number
 ): number => {
   // Factor de ajuste basado en la velocidad del camión (si se proporciona)
