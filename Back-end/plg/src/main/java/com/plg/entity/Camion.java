@@ -264,6 +264,7 @@ public class Camion extends Nodo {
                 .orElse(null);
         if (c != null) {
             c.getAveria().activarAveria();
+            c.getAveria().actualizarAveria(Parametros.fecha_inicial);
             return c.getPosicionAveria();
         }
 
@@ -272,8 +273,7 @@ public class Camion extends Nodo {
         if (this.getEstado() == EstadoCamion.DISPONIBLE) {
             cantNodos = calcularCantidadDeNodos(diferenciaTiempo);
         } else {
-            AveriaRepository averiaRepo = new AveriaRepository();
-            List<Averia> averias = averiaRepo.findByCamion(this);
+            List<Averia> averias = AveriaRepository.findByCamion(this);
             if (averias.stream().anyMatch(a -> a.getFechaHoraReporte().isEqual(Parametros.fecha_inicial))) {
                 cantNodos = calcularCantidadDeNodos(diferenciaTiempo);
             } else {
