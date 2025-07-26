@@ -75,7 +75,7 @@ import {
 import { esValorValido } from "../utils/validacionCamiones";
 
 // Importar constantes de configuración
-import { obtenerAveriasAutomaticasActivas } from "../config/constants";
+// import { obtenerAveriasAutomaticasActivas } from "../config/constants";
 
 // ============================
 // FUNCIONES AUXILIARES
@@ -877,19 +877,19 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
     // });
     
     // Crear el estado de simulación para pasar a la función de averías automáticas
-    const estadoSimulacion = {
-      horaActual,
-      horaSimulacion,
-      fechaHoraSimulacion,
-      fechaInicioSimulacion,
-      diaSimulacion,
-      tiempoRealSimulacion,
-      tiempoTranscurridoSimulado,
-      camiones,
-      rutasCamiones,
-      almacenes,
-      bloqueos
-    };
+    // const estadoSimulacion = {
+    //   horaActual,
+    //   horaSimulacion,
+    //   fechaHoraSimulacion,
+    //   fechaInicioSimulacion,
+    //   diaSimulacion,
+    //   tiempoRealSimulacion,
+    //   tiempoTranscurridoSimulado,
+    //   camiones,
+    //   rutasCamiones,
+    //   almacenes,
+    //   bloqueos
+    // };
 
     // console.log('📊 CONTEXTO: Estado de simulación creado para averías automáticas:', {
     //   horaSimulacion: estadoSimulacion.horaSimulacion,
@@ -913,9 +913,8 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       aplicarSolucionPrecargada,
       cargarDatosSimulacion,
       setAlmacenes,
-      fechaHoraSimulacion,
-      estadoSimulacion,
-      obtenerAveriasAutomaticasActivas(tipoSimulacion)
+      fechaHoraSimulacion
+      // estadoSimulacion // Eliminado
     );
     
     // console.log('✅ CONTEXTO: Avance de hora completado');

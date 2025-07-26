@@ -3,7 +3,8 @@
  * @description Lógica para el avance y actualización de camiones en la simulación
  */
 
-import type { CamionEstado, RutaCamion, Bloqueo } from "./types";
+import type { CamionEstado, RutaCamion } from "./types";
+// import type { Bloqueo } from "./types";
 import type { Pedido, Almacen } from "../../types";
 import { 
   parseCoord, 
@@ -16,7 +17,7 @@ import {
   calcularDistanciaMaxima,
 } from "../../types";
 import { INCREMENTO_PORCENTAJE } from "./types";
-import { handleAveriaAutomatica } from "../../components/mapa/utils/averiasAutomaticas";
+// import { handleAveriaAutomatica } from "../../components/mapa/utils/averiasAutomaticas";
 
 /**
  * @function obtenerCoordenadaAlmacenCentral
@@ -248,20 +249,20 @@ export const avanzarCamion = (
   ruta: RutaCamion,
   almacenes: Almacen[],
   setAlmacenes: (almacenes: Almacen[]) => void,
-  estadoSimulacion?: {
-    horaActual: number;
-    horaSimulacion: string;
-    fechaHoraSimulacion: string | null;
-    fechaInicioSimulacion: string | null;
-    diaSimulacion: number | null;
-    tiempoRealSimulacion: string;
-    tiempoTranscurridoSimulado: string;
-    camiones: CamionEstado[];
-    rutasCamiones: RutaCamion[];
-    almacenes: Almacen[];
-    bloqueos: Bloqueo[]; 
-  },
-  averiasAutomaticasActivas: boolean = false
+  // estadoSimulacion?: {
+  //   horaActual: number;
+  //   horaSimulacion: string;
+  //   fechaHoraSimulacion: string | null;
+  //   fechaInicioSimulacion: string | null;
+  //   diaSimulacion: number | null;
+  //   tiempoRealSimulacion: string;
+  //   tiempoTranscurridoSimulado: string;
+  //   camiones: CamionEstado[];
+  //   rutasCamiones: RutaCamion[];
+  //   almacenes: Almacen[];
+  //   bloqueos: Bloqueo[]; 
+  // },
+  // averiasAutomaticasActivas: boolean = false
 ): CamionEstado => {
   // Si el camión está averiado, no avanza
   if (camion.estado === "Averiado") {
@@ -282,48 +283,48 @@ export const avanzarCamion = (
   const siguientePaso = camion.porcentaje + INCREMENTO_PORCENTAJE;
 
   // NUEVO: Detectar avería automática antes de mover el camión
-  const { debeAveriarse, tipoAveria } = detectarAveriaAutomatica(camion, ruta, siguientePaso, averiasAutomaticasActivas);
+  // const { debeAveriarse, tipoAveria } = detectarAveriaAutomatica(camion, ruta, siguientePaso, averiasAutomaticasActivas);
   
   // Log detallado para debugging de averías automáticas
-  if (debeAveriarse) {
-    console.log('🚛💥 CAMION_LOGIC: DETECTADA AVERÍA AUTOMÁTICA EN avanzarCamion:', {
-      camionId: camion.id,
-      tipoAveria: tipoAveria,
-      porcentaje: camion.porcentaje,
-      siguientePaso: siguientePaso,
-      ubicacionActual: camion.ubicacion,
-      estadoActual: camion.estado,
-      estadoSimulacionDisponible: !!estadoSimulacion,
-      rutaLength: rutaLength,
-      tiposNodosDisponibles: ruta.tiposNodos ? ruta.tiposNodos.length : 0
-    });
-  }
+  // if (debeAveriarse) {
+  //   console.log('🚛💥 CAMION_LOGIC: DETECTADA AVERÍA AUTOMÁTICA EN avanzarCamion:', {
+  //     camionId: camion.id,
+  //     tipoAveria: tipoAveria,
+  //     porcentaje: camion.porcentaje,
+  //     siguientePaso: siguientePaso,
+  //     ubicacionActual: camion.ubicacion,
+  //     estadoActual: camion.estado,
+  //     estadoSimulacionDisponible: !!estadoSimulacion,
+  //     rutaLength: rutaLength,
+  //     tiposNodosDisponibles: ruta.tiposNodos ? ruta.tiposNodos.length : 0
+  //   });
+  // }
   
   // Si debe marcar como averiado, registrar la avería automática y retornar el camión con estado "Averiado"
-  if (debeAveriarse) {
-    console.log('🚛🔴 CAMION_LOGIC: Marcando camión como averiado automáticamente:', {
-      camionId: camion.id,
-      tipoAveria: tipoAveria,
-      nuevaUbicacion: ruta.ruta[siguientePaso]
-    });
+  // if (debeAveriarse) {
+  //   console.log('🚛🔴 CAMION_LOGIC: Marcando camión como averiado automáticamente:', {
+  //     camionId: camion.id,
+  //     tipoAveria: tipoAveria,
+  //     nuevaUbicacion: ruta.ruta[siguientePaso]
+  //   });
     
-    // Registrar la avería automática en el backend si tenemos el estado de simulación
-    if (estadoSimulacion) {
-      console.log('📡 CAMION_LOGIC: Registrando avería automática en backend...');
-      handleAveriaAutomatica(camion.id, tipoAveria!, estadoSimulacion).catch(error => {
-        console.error("❌ Error al registrar avería automática:", error);
-      });
-    } else {
-      console.warn('⚠️ CAMION_LOGIC: No se pudo registrar avería automática - estadoSimulacion no disponible');
-    }
+  //   // Registrar la avería automática en el backend si tenemos el estado de simulación
+  //   if (estadoSimulacion) {
+  //     console.log('📡 CAMION_LOGIC: Registrando avería automática en backend...');
+  //     handleAveriaAutomatica(camion.id, tipoAveria!, estadoSimulacion).catch(error => {
+  //       console.error("❌ Error al registrar avería automática:", error);
+  //     });
+  //   } else {
+  //     console.warn('⚠️ CAMION_LOGIC: No se pudo registrar avería automática - estadoSimulacion no disponible');
+  //   }
     
-    return {
-      ...camion,
-      estado: "Averiado",
-      porcentaje: siguientePaso,
-      ubicacion: ruta.ruta[siguientePaso],
-    };
-  }
+  //   return {
+  //     ...camion,
+  //     estado: "Averiado",
+  //     porcentaje: siguientePaso,
+  //     ubicacion: ruta.ruta[siguientePaso],
+  //   };
+  // }
 
   // Mover el camión a la nueva posición
   const nuevaUbicacion = ruta.ruta[siguientePaso];
@@ -452,26 +453,26 @@ export const avanzarTodosLosCamiones = (
   rutasCamiones: RutaCamion[],
   almacenes: Almacen[],
   setAlmacenes: (almacenes: Almacen[]) => void,
-  estadoSimulacion?: {
-    horaActual: number;
-    horaSimulacion: string;
-    fechaHoraSimulacion: string | null;
-    fechaInicioSimulacion: string | null;
-    diaSimulacion: number | null;
-    tiempoRealSimulacion: string;
-    tiempoTranscurridoSimulado: string;
-    camiones: CamionEstado[];
-    rutasCamiones: RutaCamion[];
-    almacenes: Almacen[];
-    bloqueos: Bloqueo[]; 
-  },
-  averiasAutomaticasActivas: boolean = false
+  // estadoSimulacion?: {
+  //   horaActual: number;
+  //   horaSimulacion: string;
+  //   fechaHoraSimulacion: string | null;
+  //   fechaInicioSimulacion: string | null;
+  //   diaSimulacion: number | null;
+  //   tiempoRealSimulacion: string;
+  //   tiempoTranscurridoSimulado: string;
+  //   camiones: CamionEstado[];
+  //   rutasCamiones: RutaCamion[];
+  //   almacenes: Almacen[];
+  //   bloqueos: Bloqueo[]; 
+  // },
+  // averiasAutomaticasActivas: boolean = false
 ): CamionEstado[] => {
   return camiones.map((camion) => {
     const ruta = rutasCamiones.find((r) => r.id === camion.id);
     if (!ruta) return camion;
 
-    return avanzarCamion(camion, ruta, almacenes, setAlmacenes, estadoSimulacion, averiasAutomaticasActivas);
+    return avanzarCamion(camion, ruta, almacenes, setAlmacenes); // estadoSimulacion, averiasAutomaticasActivas);
   });
 };
 
@@ -484,12 +485,12 @@ export const detectarAveriaAutomatica = (
   camion: CamionEstado,
   ruta: RutaCamion,
   siguientePaso: number,
-  averiasAutomaticasActivas: boolean = false
+  // averiasAutomaticasActivas: boolean = false
 ): { debeAveriarse: boolean; tipoAveria?: string } => {
   // Si las averías automáticas están desactivadas, no detectar
-  if (!averiasAutomaticasActivas) {
-    return { debeAveriarse: false };
-  }
+  // if (!averiasAutomaticasActivas) {
+  //   return { debeAveriarse: false };
+  // }
 
   // Si el camión ya está averiado, no necesita detección
   if (camion.estado === "Averiado") {

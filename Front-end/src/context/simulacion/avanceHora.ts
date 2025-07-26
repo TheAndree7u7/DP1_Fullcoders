@@ -3,7 +3,8 @@
  * @description Lógica para el avance de hora en la simulación
  */
 
-import type { CamionEstado, RutaCamion, Bloqueo, IndividuoConBloqueos } from "./types";
+import type { CamionEstado, RutaCamion, IndividuoConBloqueos } from "./types";
+// import type { Bloqueo } from "./types";
 import type { Almacen } from "../../types";
 import { NODOS_PARA_ACTUALIZACION, SEGUNDOS_POR_NODO } from "./types";
 import { avanzarTodosLosCamiones } from "./camionLogic";
@@ -91,20 +92,20 @@ export const avanzarHora = async (
   cargarDatosSimulacion: () => Promise<void>,
   setAlmacenes: (almacenes: Almacen[]) => void,
   fechaHoraSimulacion: string | null,
-  estadoSimulacion?: {
-    horaActual: number;
-    horaSimulacion: string;
-    fechaHoraSimulacion: string | null;
-    fechaInicioSimulacion: string | null;
-    diaSimulacion: number | null;
-    tiempoRealSimulacion: string;
-    tiempoTranscurridoSimulado: string;
-    camiones: CamionEstado[];
-    rutasCamiones: RutaCamion[];
-    almacenes: Almacen[];
-    bloqueos: Bloqueo[]; 
-  },
-  averiasAutomaticasActivas: boolean = false
+  // estadoSimulacion?: {
+  //   horaActual: number;
+  //   horaSimulacion: string;
+  //   fechaHoraSimulacion: string | null;
+  //   fechaInicioSimulacion: string | null;
+  //   diaSimulacion: number | null;
+  //   tiempoRealSimulacion: string;
+  //   tiempoTranscurridoSimulado: string;
+  //   camiones: CamionEstado[];
+  //   rutasCamiones: RutaCamion[];
+  //   almacenes: Almacen[];
+  //   bloqueos: Bloqueo[]; 
+  // },
+  // averiasAutomaticasActivas: boolean = false
 ): Promise<void> => {
   // console.log('🚀 AVANCE_HORA: Iniciando avance de hora...', {
   //   totalCamiones: camiones.length,
@@ -129,19 +130,19 @@ export const avanzarHora = async (
 
   // Avanzar todos los camiones
   // console.log('🚛 AVANCE_HORA: Avanzando camiones con estado de simulación...');
-  const nuevosCamiones = avanzarTodosLosCamiones(camiones, rutasCamiones, almacenesActualizados, setAlmacenes, estadoSimulacion, averiasAutomaticasActivas);
+  const nuevosCamiones = avanzarTodosLosCamiones(camiones, rutasCamiones, almacenesActualizados, setAlmacenes); // estadoSimulacion, averiasAutomaticasActivas);
   
   // Log para verificar si hubo cambios en los camiones
-  const camionesAveriadosAntes = camiones.filter(c => c.estado === 'Averiado').length;
-  const camionesAveriadosDespues = nuevosCamiones.filter(c => c.estado === 'Averiado').length;
+  // const camionesAveriadosAntes = camiones.filter(c => c.estado === 'Averiado').length;
+  // const camionesAveriadosDespues = nuevosCamiones.filter(c => c.estado === 'Averiado').length;
   
-  if (camionesAveriadosDespues > camionesAveriadosAntes) {
-    console.log('🚛💥 AVANCE_HORA: Se detectaron nuevas averías automáticas:', {
-      averiadosAntes: camionesAveriadosAntes,
-      averiadosDespues: camionesAveriadosDespues,
-      nuevasAverias: camionesAveriadosDespues - camionesAveriadosAntes
-    });
-  }
+  // if (camionesAveriadosDespues > camionesAveriadosAntes) {
+  //   console.log('🚛💥 AVANCE_HORA: Se detectaron nuevas averías automáticas:', {
+  //     averiadosAntes: camionesAveriadosAntes,
+  //     averiadosDespues: camionesAveriadosDespues,
+  //     nuevasAverias: camionesAveriadosDespues - camionesAveriadosAntes
+  //   });
+  // }
   
   setCamiones(nuevosCamiones);
 
