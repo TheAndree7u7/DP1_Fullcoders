@@ -16,6 +16,13 @@ export type { PedidoConAsignacion } from "./pedidos";
 // Utilidades de averías
 export { handleAveriar } from "./averias";
 
+// Utilidades de almacenes
+export { 
+  obtenerPedidosAsignadosAlAlmacen, 
+  obtenerCamionesAsignadosAlAlmacen,
+  formatearFecha 
+} from "./almacenUtils";
+
 /**
  * Devuelve el color del semáforo según el porcentaje de capacidad GLP
  * @param porcentaje número entre 0 y 100
