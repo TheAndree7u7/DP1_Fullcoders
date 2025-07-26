@@ -49,6 +49,7 @@ const RightMenu: React.FC<RightMenuProps> = ({
       {/* Botones de alternancia de panel */}
       <div className="flex gap-2 mb-4 flex-wrap flex-shrink-0">
         <button
+          data-panel="camiones"
           className={`px-3 py-1 rounded font-semibold transition ${panel === "camiones" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800 hover:bg-blue-100"}`}
           onClick={() => setPanel("camiones")}
         >
@@ -73,6 +74,7 @@ const RightMenu: React.FC<RightMenuProps> = ({
           Métricas
         </button>
         <button
+          data-panel="pedidos"
           className={`px-3 py-1 rounded font-semibold transition ${panel === "pedidos" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800 hover:bg-blue-100"}`}
           onClick={() => setPanel("pedidos")}
         >

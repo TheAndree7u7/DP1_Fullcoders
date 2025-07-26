@@ -78,8 +78,7 @@ import {
 // Importar utilidades de validación
 import { esValorValido } from "../utils/validacionCamiones";
 
-// Importar constantes de configuración
-import { obtenerAveriasAutomaticasActivas } from "../config/constants";
+
 
 // ============================
 // FUNCIONES AUXILIARES
@@ -927,8 +926,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       cargarDatosSimulacion,
       setAlmacenes,
       fechaHoraSimulacion,
-      estadoSimulacion,
-      obtenerAveriasAutomaticasActivas(tipoSimulacion)
+      estadoSimulacion
     );
     
     // console.log('✅ CONTEXTO: Avance de hora completado');

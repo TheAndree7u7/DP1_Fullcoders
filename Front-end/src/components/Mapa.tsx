@@ -10,6 +10,11 @@ import {
   getPedidosPendientes,
   handleAveriar,
   colorSemaforoGLP, // <-- importar la función
+  obtenerPedidosAsignadosAlAlmacen,
+  obtenerCamionesAsignadosAlAlmacen,
+  formatearFecha,
+  obtenerTipoAveriaCamion,
+  obtenerDescripcionTipoAveria,
 } from "./mapa/utils";
 import type { Pedido } from "../types";
 
@@ -952,13 +957,13 @@ const Mapa: React.FC<MapaProps> = ({
                       onClick={(evt) => {
                         // Solo abrir el modal si no hay otro modal ya abierto
                         if (!clickedAlmacen) {
-                          console.log(
-                            "🖱️ Click en almacén:",
-                            almacen.nombre,
-                            "en posición:",
-                            evt.clientX,
-                            evt.clientY
-                          );
+                          // console.log(
+                          //   "🖱️ Click en almacén:",
+                          //   almacen.nombre,
+                          //   "en posición:",
+                          //   evt.clientX,
+                          //   evt.clientY
+                          // );
                           setClickedAlmacen(almacen.nombre);
                           setClickedAlmacenPos({
                             x: evt.clientX,
@@ -1371,12 +1376,12 @@ const Mapa: React.FC<MapaProps> = ({
       {clickedAlmacen &&
         clickedAlmacenPos &&
         (() => {
-          console.log(
-            "�� Renderizando modal de almacén:",
-            clickedAlmacen,
-            "en posición:",
-            clickedAlmacenPos
-          );
+          // console.log(
+          //   "�� Renderizando modal de almacén:",
+          //   clickedAlmacen,
+          //   "en posición:",
+          //   clickedAlmacenPos
+          // );
           const almacen = almacenes.find((a) => a.nombre === clickedAlmacen);
 
           if (!almacen) {
@@ -1391,9 +1396,21 @@ const Mapa: React.FC<MapaProps> = ({
               ? (almacen.capacidadActualGLP / almacen.capacidadMaximaGLP) * 100
               : 0;
 
+          // Obtener pedidos y camiones asignados al almacén
+          const pedidosAsignados = obtenerPedidosAsignadosAlAlmacen(
+            almacen,
+            rutasCamiones,
+            camiones
+          );
+          const camionesAsignados = obtenerCamionesAsignadosAlAlmacen(
+            almacen,
+            rutasCamiones,
+            camiones
+          );
+
           // Calcular posición del modal para que se vea completo
-          const modalWidth = 280;
-          const modalHeight = 180;
+          const modalWidth = 400;
+          const modalHeight = 500;
           const viewportWidth = window.innerWidth;
           const viewportHeight = window.innerHeight;
 
@@ -1437,7 +1454,7 @@ const Mapa: React.FC<MapaProps> = ({
               </div>
 
               {/* Content */}
-              <div className="p-3">
+              <div className="p-3 overflow-y-auto" style={{ maxHeight: '400px' }}>
                 {/* Estado */}
                 <div className="mb-3 text-center">
                   <span
@@ -1484,6 +1501,114 @@ const Mapa: React.FC<MapaProps> = ({
                     </div>
                   </div>
                 )}
+
+                {/* Lista de Pedidos Programados */}
+                <div className="mb-4">
+                  <h4 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
+                    📦 Pedidos Programados ({pedidosAsignados.length})
+                    <button
+                      onClick={() => {
+                        // Cambiar al panel de pedidos en el menú derecho
+                        const btnPedidos = document.querySelector('[data-panel="pedidos"]') as HTMLButtonElement;
+                        if (btnPedidos) {
+                          btnPedidos.click();
+                        }
+                        setClickedAlmacen(null);
+                      }}
+                      className="ml-auto text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors"
+                      title="Ver panel de pedidos"
+                    >
+                      Ver Panel
+                    </button>
+                  </h4>
+                  {pedidosAsignados.length > 0 ? (
+                    <div className="max-h-32 overflow-y-auto border border-gray-200 rounded p-2 bg-gray-50">
+                      {pedidosAsignados.map((pedido) => (
+                        <div key={pedido.codigo} className="mb-2 p-2 bg-white rounded border-l-4 border-blue-500">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="text-xs font-bold text-gray-800">{pedido.codigo}</div>
+                              <div className="text-xs text-gray-600">
+                                ({pedido.coordenada.x}, {pedido.coordenada.y}) • {pedido.volumenGLPAsignado.toFixed(1)}m³
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {formatearFecha(pedido.fechaRegistro)}
+                              </div>
+                            </div>
+                            <div className="text-xs">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                pedido.estadoPedido === 'ENTREGADO' ? 'bg-green-100 text-green-800' :
+                                pedido.estadoPedido === 'EN_TRANSITO' ? 'bg-blue-100 text-blue-800' :
+                                pedido.estadoPedido === 'RETRASO' ? 'bg-red-100 text-red-800' :
+                                'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {pedido.estadoPedido}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-500 text-center p-2 bg-gray-50 rounded border">
+                      No hay pedidos programados
+                    </div>
+                  )}
+                </div>
+
+                {/* Lista de Camiones Asignados */}
+                <div className="mb-4">
+                  <h4 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
+                    🚛 Unidades de Transporte ({camionesAsignados.length})
+                    <button
+                      onClick={() => {
+                        // Cambiar al panel de camiones en el menú derecho
+                        const btnCamiones = document.querySelector('[data-panel="camiones"]') as HTMLButtonElement;
+                        if (btnCamiones) {
+                          btnCamiones.click();
+                        }
+                        setClickedAlmacen(null);
+                      }}
+                      className="ml-auto text-xs bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded transition-colors"
+                      title="Ver panel de camiones"
+                    >
+                      Ver Panel
+                    </button>
+                  </h4>
+                  {camionesAsignados.length > 0 ? (
+                    <div className="max-h-32 overflow-y-auto border border-gray-200 rounded p-2 bg-gray-50">
+                      {camionesAsignados.map((camion) => (
+                        <div key={camion.id} className="mb-2 p-2 bg-white rounded border-l-4 border-green-500">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="text-xs font-bold text-gray-800">Camión {camion.id}</div>
+                              <div className="text-xs text-gray-600">
+                                {camion.ubicacion} • {(camion.capacidadActualGLP || 0).toFixed(1)}/{(camion.capacidadMaximaGLP || 0).toFixed(1)}m³
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Combustible: {(camion.combustibleActual || 0).toFixed(1)}/{(camion.combustibleMaximo || 0).toFixed(1)}L
+                              </div>
+                            </div>
+                            <div className="text-xs">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                camion.estado === 'Disponible' ? 'bg-green-100 text-green-800' :
+                                camion.estado === 'En Ruta' ? 'bg-blue-100 text-blue-800' :
+                                camion.estado === 'Averiado' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {camion.estado}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-500 text-center p-2 bg-gray-50 rounded border">
+                      No hay camiones asignados
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Footer */}
@@ -1571,9 +1696,40 @@ const Mapa: React.FC<MapaProps> = ({
               {esAveriado ? (
                 <div className="text-red-600 font-bold text-center py-2">
                   🚛💥 CAMIÓN AVERIADO
+                  {(() => {
+                    const tipoAveria = obtenerTipoAveriaCamion(clickedCamion, camiones, rutasCamiones);
+                    if (tipoAveria) {
+                      const descripcion = obtenerDescripcionTipoAveria(tipoAveria);
+                      return (
+                        <div className="text-sm font-normal mt-1">
+                          Tipo: {tipoAveria} - {descripcion}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               ) : (
-                <div className="flex flex-col gap-2">
+                <>
+                  {/* Mostrar información de avería automática si está en un nodo de avería */}
+                  {(() => {
+                    const tipoAveria = obtenerTipoAveriaCamion(clickedCamion, camiones, rutasCamiones);
+                    if (tipoAveria) {
+                      const descripcion = obtenerDescripcionTipoAveria(tipoAveria);
+                      return (
+                        <div className="bg-orange-100 border border-orange-300 rounded p-2 mb-2 text-center">
+                          <div className="text-orange-800 font-semibold text-sm">
+                            ⚠️ EN NODO DE AVERÍA AUTOMÁTICA
+                          </div>
+                          <div className="text-orange-700 text-xs mt-1">
+                            Tipo: {tipoAveria} - {descripcion}
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                  <div className="flex flex-col gap-2">
                   <button
                     className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded disabled:opacity-50"
                     disabled={averiando === clickedCamion + "-1"}
@@ -1674,20 +1830,21 @@ const Mapa: React.FC<MapaProps> = ({
                       : "Avería tipo 3"}
                   </button>
                 </div>
+                <button
+                  className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded w-full"
+                  onClick={() => {
+                    // Aquí se activa el menú inferior para mostrar la ruta
+                    const event = new CustomEvent("mostrarRutaCamion", {
+                      detail: { camionId: clickedCamion },
+                    });
+                    window.dispatchEvent(event);
+                    setClickedCamion(null);
+                  }}
+                >
+                  📍 Mostrar ruta del camión
+                </button>
+              </>
               )}
-              <button
-                className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded w-full"
-                onClick={() => {
-                  // Aquí se activa el menú inferior para mostrar la ruta
-                  const event = new CustomEvent("mostrarRutaCamion", {
-                    detail: { camionId: clickedCamion },
-                  });
-                  window.dispatchEvent(event);
-                  setClickedCamion(null);
-                }}
-              >
-                📍 Mostrar ruta del camión
-              </button>
             </div>
           );
         })()}

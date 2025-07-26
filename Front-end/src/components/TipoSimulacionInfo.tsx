@@ -36,31 +36,7 @@ const TipoSimulacionInfo: React.FC<TipoSimulacionInfoProps> = ({ className = '' 
     }
   };
 
-  const obtenerIconoTipo = (tipo: string) => {
-    switch (tipo) {
-      case 'DIARIA':
-        return '⚡';
-      case 'SEMANAL':
-        return '📊';
-      case 'COLAPSO':
-        return '🚨';
-      default:
-        return '❓';
-    }
-  };
 
-  const obtenerColorTipo = (tipo: string) => {
-    switch (tipo) {
-      case 'DIARIA':
-        return 'text-blue-600 bg-blue-100 border-blue-200';
-      case 'SEMANAL':
-        return 'text-green-600 bg-green-100 border-green-200';
-      case 'COLAPSO':
-        return 'text-red-600 bg-red-100 border-red-200';
-      default:
-        return 'text-gray-600 bg-gray-100 border-gray-200';
-    }
-  };
 
   // Función para obtener información de rutas de camiones
   const obtenerInfoRutasCamiones = () => {
