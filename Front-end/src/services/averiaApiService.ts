@@ -269,4 +269,20 @@ export async function averiarCamionConEstado(
   return result;
 }
 
+// Nuevo servicio: GET /api/averias/camion
+export async function obtenerAveriasPorCamion(codigoCamion: string): Promise<AveriaResponse[]> {
+  const response = await fetch(`${API_CONFIG.BASE_URL}/averias/camion?codigoCamion=${codigoCamion}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json"
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error("No se pudieron obtener las averías del camión");
+  }
+  
+  return response.json();
+}
+
 

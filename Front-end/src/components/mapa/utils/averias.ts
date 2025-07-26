@@ -231,4 +231,70 @@ export const handleAveriar = async (
   }
 };
 
+/**
+ * @function obtenerTipoAveriaCamion
+ * @description Obtiene el tipo de avería de un camión, incluyendo averías automáticas
+ * @param {string} camionId - ID del camión
+ * @param {CamionEstado[]} camiones - Lista de camiones
+ * @param {RutaCamion[]} rutasCamiones - Lista de rutas de camiones
+ * @returns {string | null} Tipo de avería (T1, T2, T3) o null si no está averiado
+ */
+export const obtenerTipoAveriaCamion = (
+  camionId: string,
+  camiones: CamionEstado[],
+  rutasCamiones: RutaCamion[]
+): string | null => {
+  // Buscar el camión
+  const camion = camiones.find(c => c.id === camionId);
+  if (!camion) return null;
+
+  // Verificar si está en un nodo de avería automática (incluso si no está marcado como averiado)
+  const rutaCamion = rutasCamiones.find(r => r.id === camionId);
+  if (rutaCamion && rutaCamion.tiposNodos) {
+    const porcentaje = camion.porcentaje;
+    const siguientePaso = Math.floor(porcentaje);
+    
+    if (siguientePaso < rutaCamion.tiposNodos.length) {
+      const tipoNodoActual = rutaCamion.tiposNodos[siguientePaso];
+      
+      // Verificar si es un nodo de avería automática
+      if (tipoNodoActual === 'AVERIA_AUTOMATICA_T1') {
+        return 'T1';
+      } else if (tipoNodoActual === 'AVERIA_AUTOMATICA_T2') {
+        return 'T2';
+      } else if (tipoNodoActual === 'AVERIA_AUTOMATICA_T3') {
+        return 'T3';
+      }
+    }
+  }
+
+  // Si está marcado como averiado, intentar obtener el tipo de avería del backend
+  if (camion.estado === "Averiado") {
+    // Por ahora retornamos null, pero aquí se podría hacer una llamada al API
+    // para obtener el tipo de avería registrada en el backend
+    return null;
+  }
+
+  return null;
+};
+
+/**
+ * @function obtenerDescripcionTipoAveria
+ * @description Obtiene la descripción del tipo de avería
+ * @param {string} tipoAveria - Tipo de avería (T1, T2, T3)
+ * @returns {string} Descripción del tipo de avería
+ */
+export const obtenerDescripcionTipoAveria = (tipoAveria: string): string => {
+  switch (tipoAveria) {
+    case 'T1':
+      return 'Avería Menor ';
+    case 'T2':
+      return 'Avería Media ';
+    case 'T3':
+      return 'Avería Grave ';
+    default:
+      return 'Avería Desconocida';
+  }
+};
+
  

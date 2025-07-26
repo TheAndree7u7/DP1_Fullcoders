@@ -14,7 +14,11 @@ export { getPedidosPendientes } from "./pedidos";
 export type { PedidoConAsignacion } from "./pedidos";
 
 // Utilidades de averías
-export { handleAveriar } from "./averias";
+export { 
+  handleAveriar,
+  obtenerTipoAveriaCamion,
+  obtenerDescripcionTipoAveria
+} from "./averias";
 
 // Utilidades de almacenes
 export { 

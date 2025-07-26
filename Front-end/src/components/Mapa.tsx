@@ -13,6 +13,8 @@ import {
   obtenerPedidosAsignadosAlAlmacen,
   obtenerCamionesAsignadosAlAlmacen,
   formatearFecha,
+  obtenerTipoAveriaCamion,
+  obtenerDescripcionTipoAveria,
 } from "./mapa/utils";
 import type { Pedido } from "../types";
 
@@ -1694,9 +1696,40 @@ const Mapa: React.FC<MapaProps> = ({
               {esAveriado ? (
                 <div className="text-red-600 font-bold text-center py-2">
                   🚛💥 CAMIÓN AVERIADO
+                  {(() => {
+                    const tipoAveria = obtenerTipoAveriaCamion(clickedCamion, camiones, rutasCamiones);
+                    if (tipoAveria) {
+                      const descripcion = obtenerDescripcionTipoAveria(tipoAveria);
+                      return (
+                        <div className="text-sm font-normal mt-1">
+                          Tipo: {tipoAveria} - {descripcion}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               ) : (
-                <div className="flex flex-col gap-2">
+                <>
+                  {/* Mostrar información de avería automática si está en un nodo de avería */}
+                  {(() => {
+                    const tipoAveria = obtenerTipoAveriaCamion(clickedCamion, camiones, rutasCamiones);
+                    if (tipoAveria) {
+                      const descripcion = obtenerDescripcionTipoAveria(tipoAveria);
+                      return (
+                        <div className="bg-orange-100 border border-orange-300 rounded p-2 mb-2 text-center">
+                          <div className="text-orange-800 font-semibold text-sm">
+                            ⚠️ EN NODO DE AVERÍA AUTOMÁTICA
+                          </div>
+                          <div className="text-orange-700 text-xs mt-1">
+                            Tipo: {tipoAveria} - {descripcion}
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                  <div className="flex flex-col gap-2">
                   <button
                     className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded disabled:opacity-50"
                     disabled={averiando === clickedCamion + "-1"}
@@ -1797,20 +1830,21 @@ const Mapa: React.FC<MapaProps> = ({
                       : "Avería tipo 3"}
                   </button>
                 </div>
+                <button
+                  className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded w-full"
+                  onClick={() => {
+                    // Aquí se activa el menú inferior para mostrar la ruta
+                    const event = new CustomEvent("mostrarRutaCamion", {
+                      detail: { camionId: clickedCamion },
+                    });
+                    window.dispatchEvent(event);
+                    setClickedCamion(null);
+                  }}
+                >
+                  📍 Mostrar ruta del camión
+                </button>
+              </>
               )}
-              <button
-                className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded w-full"
-                onClick={() => {
-                  // Aquí se activa el menú inferior para mostrar la ruta
-                  const event = new CustomEvent("mostrarRutaCamion", {
-                    detail: { camionId: clickedCamion },
-                  });
-                  window.dispatchEvent(event);
-                  setClickedCamion(null);
-                }}
-              >
-                📍 Mostrar ruta del camión
-              </button>
             </div>
           );
         })()}
