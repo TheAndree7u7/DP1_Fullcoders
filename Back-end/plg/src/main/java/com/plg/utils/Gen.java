@@ -5,13 +5,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.time.LocalDateTime;
-import com.plg.utils.Simulacion;
-import com.plg.dto.CoordenadaDto;
-import com.plg.dto.NodoDto;
+
 import com.plg.entity.Almacen;
 import com.plg.entity.Averia;
 import com.plg.entity.Camion;
-import com.plg.entity.Coordenada;
 import com.plg.entity.EstadoCamion;
 import com.plg.entity.Mapa;
 import com.plg.entity.Nodo;
@@ -260,26 +257,10 @@ public class Gen {
         // elige una posicion aleatoria dentro de los rangos
         int posicion_aleatoria = new Random().nextInt(posiciones_normales.size());
 
-        Nodo nodoSeleccionado = rutaFinal.get(posiciones_normales.get(posicion_aleatoria));     
-        TipoNodo tipo_nodo_averia = obtenerTipoAveria(averia);
-        nodoSeleccionado.setTipoNodo(tipo_nodo_averia);
+        Nodo nodoSeleccionado = rutaFinal.get(posiciones_normales.get(posicion_aleatoria));
         averia.setCoordenada(nodoSeleccionado.getCoordenada());
         averia.setEstado(false);
         return posiciones_normales.get(posicion_aleatoria);
-    }
-
-    private TipoNodo obtenerTipoAveria(Averia averia) {
-        String tipoAveria = averia.getTipoIncidente().getCodigo();
-        switch (tipoAveria) {
-            case "TI1":
-                return TipoNodo.AVERIA_AUTOMATICA_T1;
-            case "TI2":
-                return TipoNodo.AVERIA_AUTOMATICA_T2;
-            case "TI3":
-                return TipoNodo.AVERIA_AUTOMATICA_T3;
-            default:
-                return TipoNodo.NORMAL;
-        }
     }
 
 }

@@ -88,7 +88,7 @@ public class Herramientas {
         List<Averia> averiasAutomaticasTurno = averiasAutomaticas.stream()
                 .filter(averia -> averia.getTurnoOcurrencia() == turno)
                 .toList();
-        List<CamionYAveria> camiones_para_averia = new ArrayList<>();
+        List<CamionAveriaAuxiliar> camiones_para_averia = new ArrayList<>();
         for(Averia averia : averiasAutomaticasTurno) {
             Gen gen = cromosoma.stream()
                     .filter(g -> g.getCamion().getCodigo().equals(averia.getCamion().getCodigo()))
@@ -102,18 +102,18 @@ public class Herramientas {
                         continue; // No se pudo colocar la avería
                     }
                     AveriaRepository.save(averia);
-                    camiones_para_averia.add(new CamionYAveria(camion, averia, posicionAveria));
+                    camiones_para_averia.add(new CamionAveriaAuxiliar(camion, averia, posicionAveria));
                 }
             }
         }
         Parametros.dataLoader.camionesAveriados = camiones_para_averia;
     }
 
-    public static class CamionYAveria{
+    public static class CamionAveriaAuxiliar{
         private Camion camion;
         private Averia averia;
         private int posicionAveria;
-        public CamionYAveria(Camion camion, Averia averia, int posicionAveria) {
+        public CamionAveriaAuxiliar(Camion camion, Averia averia, int posicionAveria) {
             this.camion = camion;
             this.averia = averia;
             this.posicionAveria = posicionAveria;
@@ -127,6 +127,13 @@ public class Herramientas {
         public Averia getAveria() {
             return averia;
         }
+    }
+
+      public static CamionAveriaAuxiliar obtenerCamionAveriaAuxiliar(Camion camion){
+        return Parametros.dataLoader.camionesAveriados.stream()
+                .filter(camionAveriado -> camionAveriado.getCamion().getCodigo().equals(camion.getCodigo()))
+                .findFirst()
+                .orElse(null);
     }
 
 }

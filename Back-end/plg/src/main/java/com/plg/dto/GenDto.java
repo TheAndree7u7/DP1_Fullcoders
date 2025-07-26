@@ -9,8 +9,11 @@ import com.plg.entity.Coordenada;
 import com.plg.entity.Nodo;
 import com.plg.entity.Pedido;
 import com.plg.entity.TipoNodo;
+import com.plg.repository.AveriaRepository;
 import com.plg.utils.Gen;
+import com.plg.utils.Herramientas;
 import com.plg.utils.Parametros;
+import com.plg.utils.Herramientas.CamionAveriaAuxiliar;
 
 import lombok.Data;
 
@@ -40,15 +43,20 @@ public class GenDto {
 
     public NodoDto obtenerTipoNodo(Nodo nodo, Gen gen) {
         // Buscamos el nodo en la lista de almacenesIntermedios
-        TipoNodo tipopNodo = nodo.getTipoNodo();
+        TipoNodo tipoNodo = nodo.getTipoNodo();
         if (gen.getAlmacenesIntermedios().stream().anyMatch(a -> a.equals(nodo))) {
-            tipopNodo = TipoNodo.ALMACEN_RECARGA;
+            tipoNodo = TipoNodo.ALMACEN_RECARGA;
         } else if (gen.getPedidos().stream().anyMatch(p -> p.equals(nodo))) {
-            tipopNodo = TipoNodo.PEDIDO;
+            tipoNodo = TipoNodo.PEDIDO;
         } else if (gen.getCamionesAveriados().stream().anyMatch(c -> c.equals(nodo))) {
-            tipopNodo = TipoNodo.CAMION_AVERIADO;
-        } 
-        NodoDto nuevo_nodo = new NodoDto(nodo, tipopNodo);
+            tipoNodo = TipoNodo.CAMION_AVERIADO;
+        } else{
+            CamionAveriaAuxiliar camionAveriaAuxiliar = Herramientas.obtenerCamionAveriaAuxiliar(gen.getCamion());
+            if (camionAveriaAuxiliar != null && camionAveriaAuxiliar.getAveria().getCoordenada().equals(nodo.getCoordenada())) {
+                tipoNodo = camionAveriaAuxiliar.getAveria().obtenerTipoAveria();
+            }
+        }
+        NodoDto nuevo_nodo = new NodoDto(nodo, tipoNodo);
         return nuevo_nodo;
     }
 

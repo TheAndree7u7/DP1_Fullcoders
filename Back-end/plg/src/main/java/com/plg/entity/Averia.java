@@ -158,4 +158,19 @@ public class Averia {
         }
         return fechaHoraFinEspera;
     }
+
+        public TipoNodo obtenerTipoAveria() {
+        String tipoAveria = tipoIncidente.getCodigo();
+        switch (tipoAveria) {
+            case "TI1":
+                return TipoNodo.AVERIA_AUTOMATICA_T1;
+            case "TI2":
+                return TipoNodo.AVERIA_AUTOMATICA_T2;
+            case "TI3":
+                return TipoNodo.AVERIA_AUTOMATICA_T3;
+            default:
+                return TipoNodo.NORMAL;
+        }
+    }
+
 }
