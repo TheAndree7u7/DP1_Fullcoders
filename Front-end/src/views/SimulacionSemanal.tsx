@@ -9,7 +9,12 @@ import { useSimulacion } from "../context/SimulacionContext";
 import { formatearTiempoTranscurrido } from "../context/simulacion/utils/tiempo";
 import { useCurrentDateTime } from "../hooks/useCurrentDateTime";
 import IndicadorGLPTotal from "../components/IndicadorGLPTotal";
- 
+
+// Constante para habilitar los controles de simulación en la vista semanal
+const CONTROLES_SIMULACION_SEMANAL_HABILITADOS = true;
+
+// Constante para mostrar/ocultar todos los controles de simulación
+const MOSTRAR_CONTROLES_SIMULACION = true;;
 
 const SimulacionSemanal: React.FC = () => {
   const [menuExpandido, setMenuExpandido] = useState(true);
@@ -21,7 +26,10 @@ const SimulacionSemanal: React.FC = () => {
   const { 
     fechaHoraSimulacion, 
     tiempoTranscurridoSimulado, 
-    fechaHoraAcumulada
+    fechaHoraAcumulada,
+    simulacionActiva,
+    pausarSimulacion,
+    reanudarSimulacion
   } = useSimulacion();
   const currentDateTime = useCurrentDateTime();
   const [tiempoSimulado, setTiempoSimulado] = useState<Date | null>(null);
@@ -32,7 +40,7 @@ const SimulacionSemanal: React.FC = () => {
   // Estado para resaltar elementos en el mapa
   const [elementoResaltado, setElementoResaltado] = useState<{tipo: 'camion' | 'pedido' | 'almacen', id: string} | null>(null);
   // Estado para el panel de control
-
+  
 
   // Actualizar la hora simulada solo cuando cambia la fecha del backend
   useEffect(() => {
@@ -147,7 +155,8 @@ const SimulacionSemanal: React.FC = () => {
       
       
       {/* Contenido principal - ahora con altura dinámica */}
-      <div className={`resize-container flex flex-row flex-1 px-4 overflow-hidden relative transition-all duration-300 ${bottomMenuExpandido ? 'pb-4' : ''}`}>
+             <div className={`resize-container flex flex-row flex-1 px-4 overflow-visible relative transition-all duration-300 ${bottomMenuExpandido ? 'pb-4' : ''}`}>
+
         {panel === 'camiones' ? (
           <>
             {/* Mapa */}
@@ -155,9 +164,34 @@ const SimulacionSemanal: React.FC = () => {
               className={`transition-all duration-300 ${menuExpandido ? "" : "w-full"}`}
               style={menuExpandido ? { width: `${mapaWidth}%` } : {}}
             >
-              <div className="bg-white p-4 rounded-xl overflow-auto w-full h-full">
-                <Mapa elementoResaltado={elementoResaltado} onElementoSeleccionado={setElementoResaltado} iniciarAutomaticamente={true} controlesSimulacionHabilitados={false} />
-              </div>
+              
+               
+               <div className={`bg-white rounded-xl w-full h-full ${MOSTRAR_CONTROLES_SIMULACION ? 'p-4' : 'p-0'}`}>
+                 <Mapa elementoResaltado={elementoResaltado} onElementoSeleccionado={setElementoResaltado} iniciarAutomaticamente={true} controlesSimulacionHabilitados={MOSTRAR_CONTROLES_SIMULACION && CONTROLES_SIMULACION_SEMANAL_HABILITADOS} />
+               </div>
+               
+               {/* Botón personalizado debajo del mapa */}
+               {MOSTRAR_CONTROLES_SIMULACION && (
+                 <div className="mt-4 flex justify-center">
+                   <button
+                     className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                       simulacionActiva 
+                         ? 'bg-yellow-700 hover:bg-yellow-800 text-white' 
+                         : 'bg-green-600 hover:bg-green-700 text-white'
+                     }`}
+                     onClick={() => {
+                       if (simulacionActiva) {
+                         pausarSimulacion();
+                       } else {
+                         reanudarSimulacion();
+                       }
+                     }}
+                   >
+                     <span>{simulacionActiva ? '⏸️' : '▶️'}</span>
+                     {simulacionActiva ? 'Pausar Simulación' : 'Continuar Simulación'}
+                   </button>
+                 </div>
+               )}
             </div>
             
             {/* Separador movible */}
