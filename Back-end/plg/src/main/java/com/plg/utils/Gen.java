@@ -181,11 +181,16 @@ public class Gen {
             }
         }
         int cantNodosRecorridos = (int) (Parametros.velocidadCamion * Parametros.intervaloTiempo / 60);
-        if (rutaApi.size() < cantNodosRecorridos) {
+        if (rutaApi.size() < cantNodosRecorridos && !rutaApi.isEmpty()) {
             Nodo ultimoNodo = rutaApi.get(rutaApi.size() - 1);
             int nodosFaltantes = cantNodosRecorridos - rutaApi.size();
             for (int i = 0; i < nodosFaltantes; i++) {
                 rutaApi.add(ultimoNodo);
+            }
+        } else if (rutaApi.isEmpty() && cantNodosRecorridos > 0) {
+            // Si la ruta está vacía, usar el camión como nodo por defecto
+            for (int i = 0; i < cantNodosRecorridos; i++) {
+                rutaApi.add(camion);
             }
         }
         return rutaApi;
@@ -212,11 +217,11 @@ public class Gen {
         return rutaFinal.getLast();
     }
 
-    public Nodo penUltimoNodo(){
-        if( rutaFinal.size() < 2) {
+    public Nodo penUltimoNodo() {
+        if (rutaFinal.size() < 2) {
             return null;
         }
-        int pos = rutaFinal.size()-2;
+        int pos = rutaFinal.size() - 2;
         return rutaFinal.get(pos);
     }
 
@@ -248,7 +253,8 @@ public class Gen {
 
     public int colocar_nodo_de_averia_automatica(Averia averia) {
 
-        int cantidad_nodos_que_puede_recorrer_el_camion = this.getCamion().calcularCantidadDeNodos(Parametros.intervaloTiempo);
+        int cantidad_nodos_que_puede_recorrer_el_camion = this.getCamion()
+                .calcularCantidadDeNodos(Parametros.intervaloTiempo);
         int posicion_inicial = (int) (cantidad_nodos_que_puede_recorrer_el_camion
                 * Parametros.rango_inicial_tramo_averia);
         int posicion_final = (int) (cantidad_nodos_que_puede_recorrer_el_camion * Parametros.rango_final_tramo_averia);

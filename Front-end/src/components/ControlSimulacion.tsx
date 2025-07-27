@@ -37,41 +37,38 @@ const ControlSimulacion: React.FC = () => {
 
   // Actualizar información de la simulación cada 5 segundos
   useEffect(() => {
+    let isMounted = true;
+    
     const intervalo = setInterval(async () => {
+      if (!isMounted) return;
+      
       try {
         const info = await obtenerInfoSimulacion();
-        setInfoSimulacion(info);
-        
-
-        
-        // console.log("🔒 DIAGNÓSTICO: Estado del botón 'Iniciar Simulación':", {
-        //   cargando: cargando,
-        //   simulacionEnProceso: info.enProceso,
-        //   botonBloqueado: cargando || info.enProceso,
-        //   razonBloqueo: cargando ? 'Cargando activo' : info.enProceso ? 'Simulación en proceso' : 'No bloqueado'
-        // });
-        
+        if (isMounted) {
+          setInfoSimulacion(info);
+        }
       } catch (error) {
-        console.error('Error al obtener info de simulación:', error);
+        if (isMounted) {
+          console.error('Error al obtener info de simulación:', error);
+        }
       }
     }, 5000);
 
     // Obtener información inicial
     obtenerInfoSimulacion().then((info) => {
-      setInfoSimulacion(info);
-      
+      if (isMounted) {
+        setInfoSimulacion(info);
+      }
+    }).catch((error) => {
+      if (isMounted) {
+        console.error('Error al obtener info inicial:', error);
+      }
+    });
 
-      
-      // console.log("🔒 DIAGNÓSTICO: Estado inicial del botón 'Iniciar Simulación':", {
-      //   cargando: cargando,
-      //   simulacionEnProceso: info.enProceso,
-      //   botonBloqueado: cargando || info.enProceso,
-      //   razonBloqueo: cargando ? 'Cargando activo' : info.enProceso ? 'Simulación en proceso' : 'No bloqueado'
-      // });
-      
-    }).catch(console.error);
-
-    return () => clearInterval(intervalo);
+    return () => {
+      isMounted = false;
+      clearInterval(intervalo);
+    };
   }, [cargando]); // Agregué cargando como dependencia para actualizar logs
 
   const manejarInicioSimulacion = async () => {

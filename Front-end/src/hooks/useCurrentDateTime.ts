@@ -4,11 +4,18 @@ export const useCurrentDateTime = () => {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
   useEffect(() => {
+    let isMounted = true;
+    
     const interval = setInterval(() => {
-      setCurrentDateTime(new Date());
+      if (isMounted) {
+        setCurrentDateTime(new Date());
+      }
     }, 1000);
 
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   return currentDateTime;
