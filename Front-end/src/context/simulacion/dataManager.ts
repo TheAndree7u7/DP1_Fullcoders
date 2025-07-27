@@ -82,12 +82,12 @@ export const cargarDatos = async (
         pedidos: gen.pedidos,
       };
       
-      console.log(`🔍 DEBUG: Ruta procesada para camión ${ruta.id}:`, {
-        nodos: ruta.ruta.length,
-        ruta: ruta.ruta,
-        puntoDestino: ruta.puntoDestino,
-        pedidos: ruta.pedidos.length
-      });
+      // console.log(`🔍 DEBUG: Ruta procesada para camión ${ruta.id}:`, {
+      //   nodos: ruta.ruta.length,
+      //   ruta: ruta.ruta,
+      //   puntoDestino: ruta.puntoDestino,
+      //   pedidos: ruta.pedidos.length
+      // });
       
       return ruta;
     });

@@ -743,7 +743,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error("Datos de camiones inválidos recibidos del backend");
       }
       
-      console.log(`✅ DATOS RECIBIDOS: ${datos.nuevasRutas.length} rutas, ${datos.nuevosCamiones.length} camiones`);
+      // console.log(`✅ DATOS RECIBIDOS: ${datos.nuevasRutas.length} rutas, ${datos.nuevosCamiones.length} camiones`);
       
       // Actualizar fechas del paquete actual siendo consumido
       if (datos.fechaHoraInicioIntervalo) {
@@ -777,7 +777,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         return array.findIndex(r => r.id === ruta.id) === index;
       });
       setRutasCamiones(rutasUnicas);
-      console.log(`✅ RUTAS PROCESADAS: ${rutasUnicas.length} rutas únicas`);
+      // console.log(`✅ RUTAS PROCESADAS: ${rutasUnicas.length} rutas únicas`);
 
       // Validar y eliminar duplicados antes de establecer los camiones
       // console.log("🔍 VALIDACIÓN: Procesando camiones...");
@@ -810,12 +810,12 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
         return array.findIndex(c => c.id === camion.id) === index;
       });
       setCamiones(camionesUnicos);
-      console.log(`✅ CAMIONES PROCESADOS: ${camionesUnicos.length} camiones únicos`);
+      // console.log(`✅ CAMIONES PROCESADOS: ${camionesUnicos.length} camiones únicos`);
 
       // Validar bloqueos
       if (datos.bloqueos && Array.isArray(datos.bloqueos)) {
         setBloqueos(datos.bloqueos);
-        console.log(`✅ BLOQUEOS PROCESADOS: ${datos.bloqueos.length} bloqueos`);
+        // console.log(`✅ BLOQUEOS PROCESADOS: ${datos.bloqueos.length} bloqueos`);
       } else {
         console.warn("⚠️ ADVERTENCIA: No hay bloqueos válidos, estableciendo array vacío");
         setBloqueos([]);
@@ -824,7 +824,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Gestionar almacenes: priorizar los que vienen del backend, sino mantener los actuales
       if (datos.almacenes && Array.isArray(datos.almacenes) && datos.almacenes.length > 0) {
         setAlmacenes(datos.almacenes);
-        console.log(`✅ ALMACENES PROCESADOS: ${datos.almacenes.length} almacenes`);
+        // console.log(`✅ ALMACENES PROCESADOS: ${datos.almacenes.length} almacenes`);
       } else {
         console.warn("⚠️ ADVERTENCIA: No hay almacenes válidos del backend, manteniendo almacenes actuales");
       }
@@ -832,7 +832,7 @@ export const SimulacionProvider: React.FC<{ children: React.ReactNode }> = ({
       // Procesar pedidos no asignados
       if (datos.pedidosNoAsignados && Array.isArray(datos.pedidosNoAsignados)) {
         setPedidosNoAsignados(datos.pedidosNoAsignados);
-        console.log(`✅ PEDIDOS NO ASIGNADOS PROCESADOS: ${datos.pedidosNoAsignados.length} pedidos`);
+        // console.log(`✅ PEDIDOS NO ASIGNADOS PROCESADOS: ${datos.pedidosNoAsignados.length} pedidos`);
       } else {
         console.warn("⚠️ ADVERTENCIA: No hay pedidos no asignados válidos, estableciendo array vacío");
         setPedidosNoAsignados([]);
