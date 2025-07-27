@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSimulacion } from "../context/SimulacionContext";
 import { iniciarSimulacion } from "../services/simulacionApiService";
@@ -12,6 +12,7 @@ const CargaSimulacionDiaria: React.FC = () => {
   const [mensaje, setMensaje] = useState("Iniciando simulación diaria...");
   const [error, setError] = useState<string | null>(null);
   const [fechaInicio, setFechaInicio] = useState<string>("");
+  const hasInitialized = useRef(false);
   
   const { 
     setFechaInicioSimulacion,
@@ -22,6 +23,13 @@ const CargaSimulacionDiaria: React.FC = () => {
   const currentDateTime = useCurrentDateTime();
 
   useEffect(() => {
+    // Evitar múltiples ejecuciones
+    if (hasInitialized.current) {
+      return;
+    }
+    
+    hasInitialized.current = true;
+
     const iniciarSimulacionDiaria = async () => {
       try {
         // Paso 1: Preparar fecha y hora actual
@@ -82,7 +90,7 @@ const CargaSimulacionDiaria: React.FC = () => {
     };
 
     iniciarSimulacionDiaria();
-  }, [currentDateTime, setFechaInicioSimulacion, limpiarEstadoParaNuevaSimulacion, iniciarPollingPrimerPaquete, navigate]);
+  }, []); // Array de dependencias vacío para que solo se ejecute una vez
 
   const pasos = [
     "Obteniendo fecha y hora actual",
