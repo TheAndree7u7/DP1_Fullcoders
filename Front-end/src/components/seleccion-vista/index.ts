@@ -1,0 +1,11 @@
+export { default as Header } from './Header';
+export { default as Footer } from './Footer';
+export { default as StatusMessage } from './StatusMessage';
+export { default as SimulacionCard } from './SimulacionCard';
+export { default as SimulacionGrid } from './SimulacionGrid';
+export { default as InformacionSistema } from './InformacionSistema';
+export { default as GestionPedidos } from './GestionPedidos';
+export { default as Bienvenida } from './Bienvenida';
+export { useSeleccionVista } from './hooks/useSeleccionVista';
+export { opcionesSimulacion } from './data/opcionesSimulacion';
+export type { OpcionSimulacion } from './SimulacionCard'; 
