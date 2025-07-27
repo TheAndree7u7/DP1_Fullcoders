@@ -210,6 +210,24 @@ const SeleccionVista: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Botón para agregar pedidos */}
+        <div className="mt-8 text-center">
+          <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl mx-auto">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              Gestión de Pedidos
+            </h3>
+            <p className="text-gray-600 text-sm mb-4">
+              Agrega nuevos pedidos de GLP al sistema de simulación de forma individual o mediante archivos
+            </p>
+            <button
+              onClick={() => navigate('/agregar-pedidos')}
+              className="bg-gradient-to-r from-purple-500 to-purple-600 text-white py-3 px-8 rounded-lg font-semibold text-sm transition-all duration-300 hover:shadow-lg hover:scale-105"
+            >
+              📦 Agregar Pedidos
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Footer */}
